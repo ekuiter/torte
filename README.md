@@ -7,3 +7,5 @@
 * shiny name?
 * upgrade featjar version
 * integrate negation-cnf
+* join results_analyze and transform.csv
+* join warnings and errors
