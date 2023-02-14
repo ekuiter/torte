@@ -15,7 +15,7 @@ if [ -z $NOT_IN_DOCKER ]; then
 
     # in old versions, use c-binding from 2.6.12
     #for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | sed -n '/2.6.12/q;p'); do
-    for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | | sed -n '/2.6.0/$,p' | sed -n '/2.6.4/q;p'); do
+    for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | sed -n '/2.6.0/,$p' | sed -n '/2.6.4/q;p'); do
         run linux https://github.com/torvalds/linux $tag /home/output/c-bindings/linux/v2.6.12.$BINDING arch/i386/Kconfig $linux_env
     done
 

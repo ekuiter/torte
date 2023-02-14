@@ -9,3 +9,8 @@
 * integrate negation-cnf
 * join results_analyze and transform.csv
 * join warnings and errors
+* update clean, export, etc scripts
+* see https://github.com/paulgazz/kmax/blob/master/kmax/kextractlinux https://github.com/paulgazz/kmax/blob/master/kmax/arch.py for fixing linux >= 4.19
+* rename stages
+* abstract away stages for easier adding / changing / skipping of stages?
+* clarify requirements of run.sh (vagrant?)
