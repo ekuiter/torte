@@ -16,8 +16,23 @@ mkdir -p output
 
 # clone repositories
 chmod +x input/extract.sh
+chmod +x input/prepare_linux_repository.sh
 source input/params.ini
 source input/extract.sh
+source input/prepare_linux_repository.sh
+
+# stage 0: get version dates and SLOCs
+# todo: make this stage skippable (or at least cloc)
+results_stats=output/results_stats.csv
+if [ ! -f $results_stats ]; then
+    if [[ $SKIP_BUILD != y ]]; then
+        docker build -f stage0/Dockerfile -t stage0 stage0
+    fi
+    echo version,time,date,sloc | tee -a $results_stats
+    docker run --rm -v $PWD/input:/home/input stage0 ./input/extract.sh | tee -a $results_stats
+else
+    echo Skipping stage 0
+fi
 
 # stage 1: extract feature models as .model files with kconfigreader-extract and kclause
 if [[ ! -d output/models ]]; then
@@ -34,7 +49,7 @@ if [[ ! -d output/models ]]; then
 
         # run evaluation script inside Docker container
         # for other evaluations, you can run other scripts (e.g., extract_all.sh)
-        docker run --rm -m $MEMORY_LIMIT -e KCONFIG -e N -v $PWD/output/stage1_${reader}_output:/home/output -v $PWD/input:/home/input stage1_$reader ./input/extract.sh
+        docker run --rm -m $MEMORY_LIMIT -e N -v $PWD/output/stage1_${reader}_output:/home/output -v $PWD/input:/home/input stage1_$reader ./input/extract.sh
         
         # arrange files for further processing
         for system in output/stage1_${reader}_output/models/*; do
@@ -103,45 +118,48 @@ fi
 res=output/results_transform.csv
 err=output/error_transform.log
 res_miss=output/results_missing.csv
+
 if [ ! -f $res ]; then
     rm -f $res $err $res_miss
-    echo system,iteration,source,extract_time,extract_variables,extract_literals,transformation,transform_time,transform_variables,transform_literals >> $res
+    echo system,tag,time,date,sloc,iteration,source,extract_time,extract_variables,extract_literals,transformation,transform_time,transform_variables,transform_literals >> $res
     touch $err $res_miss
 
-    SYSTEMS=("${KCONFIG[@]}" "${HIERARCHIES[@]}")
-    for system in ${SYSTEMS[@]}; do
-        system_tag=$(echo $system | tr , _)
-        model_num=$(ls output/models/$system* 2>/dev/null | wc -l)
-        if ! ([ $model_num -eq $(( 2*$N )) ] || ([ $model_num -eq $N ] && (ls output/models/$system* | grep -q hierarchy))); then
-            echo "WARNING: Missing feature models for $system" | tee -a $err
-        else
-            i=0
-            while [ $i -ne $N ]; do
-                i=$(($i+1))
-                for source in kconfigreader kclause hierarchy; do
-                    if [ -f output/models/$system,$i,$source* ]; then
-                        model=output/models/$system,$i,$source.model
-                        stats=output/intermediate/$system,$i,hierarchy.stats
-                        echo "Processing $model"
-                        if [ -f $model ]; then
-                            extract_time=$(cat $model | grep "#item time" | cut -d' ' -f3)
-                            extract_variables=$(cat $model | sed "s/)/)\n/g" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
-                            extract_literals=$(cat $model | sed "s/)/)\n/g" | grep "def(" | wc -l)
-                        else
-                            extract_time=NA
-                            extract_variables=$(cat $stats | cut -d' ' -f1)
-                            extract_literals=$(cat $stats | cut -d' ' -f2)
-                        fi
-                        for transformation in featureide z3 kconfigreader; do
-                            if [ -f output/dimacs/$system,$i,$source,$transformation* ]; then
-                                dimacs=output/dimacs/$system,$i,$source,$transformation.dimacs
+    for system_tag in $(cat $results_stats | cut -d, -f1-2 | tail -n+2); do
+        i=0
+        while [ $i -ne $N ]; do
+            # todo: re-add check for missing models
+            # system_tag=$(echo $system | tr , _)
+            # model_num=$(ls output/models/$system* 2>/dev/null | wc -l)
+            # if ! ([ $model_num -eq $(( 2*$N )) ] || ([ $model_num -eq $N ] && (ls output/models/$system* | grep -q hierarchy))); then
+            #     echo "WARNING: Missing feature models for $system" | tee -a $err
+            # else
+            i=$(($i+1))
+            for source in kconfigreader kclause hierarchy; do
+                if [ -f output/models/$system_tag,$i,$source* ]; then
+                    model=output/models/$system_tag,$i,$source.model
+                    stats=output/intermediate/$system_tag,$i,hierarchy.stats
+                    echo "Processing $model"
+                    if [ -f $model ]; then
+                        extract_time=$(cat $model | grep "#item time" | cut -d' ' -f3)
+                        extract_variables=$(cat $model | sed "s/)/)\n/g" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
+                        extract_literals=$(cat $model | sed "s/)/)\n/g" | grep "def(" | wc -l)
+                    else
+                        extract_time=NA
+                        extract_variables=$(cat $stats | cut -d' ' -f1)
+                        extract_literals=$(cat $stats | cut -d' ' -f2)
+                    fi
+                    for transformation in z3 kconfigreader; do ## todo: featureide
+                        if ([[ $source == kconfigreader ]] && [[ $transformation == kconfigreader ]]) ||
+                            ([[ $source == kclause ]] && [[ $transformation == z3 ]]) ; then
+                            if [ -f output/dimacs/$system_tag,$i,$source,$transformation* ]; then
+                                dimacs=output/dimacs/$system_tag,$i,$source,$transformation.dimacs
                                 echo Processing $dimacs
                                 transform_time=$(cat $dimacs | grep "c time" | cut -d' ' -f3)
                                 transform_variables=$(cat $dimacs | grep -E ^p | cut -d' ' -f3)
                                 transform_literals=$(cat $dimacs | grep -E "^[^pc]" | grep -Fo ' ' | wc -l)
-                                echo $system_tag,$i,$source,$extract_time,$extract_variables,$extract_literals,$transformation,$transform_time,$transform_variables,$transform_literals >> $res
+                                echo $system_tag,$(cat $results_stats | grep $system_tag | cut -d, -f3-),$i,$source,$extract_time,$extract_variables,$extract_literals,$transformation,$transform_time,$transform_variables,$transform_literals >> $res
                             else
-                                echo "WARNING: Missing DIMACS file for $system with source $source and transformation $transformation" | tee -a $err
+                                echo "WARNING: Missing DIMACS file for $system_tag with source $source and transformation $transformation" | tee -a $err
                                 echo $system_tag,$i,$source,$extract_time,$extract_variables,$extract_literals,$transformation,NA,NA,NA >> $res
                                 for solver in ${SOLVERS[@]}; do
                                     for analysis in ${ANALYSES[@]}; do
@@ -159,11 +177,11 @@ if [ ! -f $res ]; then
                                     done
                                 done
                             fi
-                        done
-                    fi
-                done
+                        fi
+                    done
+                fi
             done
-        fi
+        done
     done
 else
     echo Skipping stage 2c

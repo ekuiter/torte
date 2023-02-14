@@ -11,12 +11,12 @@ import z3
 # This is wrong because .dimacs() does not call the tseitin-cnf tactic. Even
 # s = z3.Tactic("tseitin-cnf").solver()
 # does not work, as the actual solver is not called by .dimacs().
-# Instead, this performs some kind of slicing/variable elimination, so
-# model counting and core/dead features cannot be reliably calculated.
-# For a correct Tseitin transformation, use the following:
+# Instead, this produces a garbage CNF (see https://github.com/Z3Prover/z3/issues/6577).
+# For a correct Tseitin transformation, use the following.
+# Since z3 v4.12.1, the simplifier must be called explictly with Then, so Tactic("tseitin-cnf") is not enough.
 
 goal = z3.Goal()
 with open(sys.argv[1], 'rb') as file:
   goal.add(z3.parse_smt2_string(file.read()))
-goal = z3.Tactic("tseitin-cnf")(goal)[0]
+goal = z3.Then("simplify", "elim-and", "tseitin-cnf")(goal)[0]
 print(goal.dimacs())

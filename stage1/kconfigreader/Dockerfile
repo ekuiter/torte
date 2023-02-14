@@ -20,7 +20,14 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
   flex \
   bison \
   build-essential \
-  bc
+  bc \
+  # some Linux versions require newer GCC
+  software-properties-common \
+  && add-apt-repository ppa:ubuntu-toolchain-r/test \
+  && apt-get update && apt-get install -y --allow-unauthenticated \
+  gcc-9 \
+  g++-9 \
+  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-9
 
 # copy and set up
 # - dumpconf (which is compiled against the projects' Kconfig implementations)

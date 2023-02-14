@@ -8,13 +8,22 @@ run-solver() (
     log=output/$dimacs,$solver,$analysis.log
     echo "    Running solver $solver for analysis $analysis"
     start=`date +%s.%N`
-    (timeout $TIMEOUT_ANALYZE ./$solver input.dimacs > $log) || true
+    (timeout $TIMEOUT_ANALYZE ./run.sh $solver input.dimacs 2>$err > $log) || true
     end=`date +%s.%N`
-    if cat $log | grep -q "SATISFIABLE" || cat $log | grep -q "^s " || cat $log | grep -q " of solutions" || cat $log | grep -q "# solutions" || cat $log | grep -q " models"; then
-        satisfiable=$(cat $log | grep -q "^s SATISFIABLE$\|^SATISFIABLE$" && echo TRUE || (cat $log | grep -q "^s UNSATISFIABLE$\|^UNSATISFIABLE$" && echo FALSE || echo NA))
-        model_count=$(cat $log | sed -z 's/\n# solutions \n/SHARPSAT/g' | grep -oP "((?<=Counting...)\d+(?= models)|(?<=  Counting... )\d+(?= models)|(?<=c model count\.{12}: )\d+|(?<=^s )\d+|(?<=^s mc )\d+|(?<=#SAT \(full\):   		)\d+|(?<=SHARPSAT)\d+|(?<=Number of solutions\t\t\t)[.e+\-\d]+)" || true)
-        model_count="${model_count:-NA}"
-        echo $dimacs,$solver,$analysis$suffix,$(echo "($end - $start) * 1000000000 / 1" | bc),$satisfiable,$model_count >> $res
+    if grep -q ^mc_int=. $log || grep -q ^mc_double=. $log || grep -q ^mc_log10=. $log; then
+        #todo
+        # satisfiable=$(cat $log | grep -q "^s SATISFIABLE$\|^SATISFIABLE$" && echo TRUE || (cat $log | grep -q "^s UNSATISFIABLE$\|^UNSATISFIABLE$" && echo FALSE || echo NA))
+        # model_count=$(cat $log | sed -z 's/\n# solutions \n/SHARPSAT/g' | grep -oP "((?<=Counting...)\d+(?= models)|(?<=  Counting... )\d+(?= models)|(?<=c model count\.{12}: )\d+|(?<=^s )\d+|(?<=^s mc )\d+|(?<=#SAT \(full\):   		)\d+|(?<=SHARPSAT)\d+|(?<=Number of solutions\t\t\t)[.e+\-\d]+)" || true)
+        # model_count="${model_count:-NA}"
+        # echo $dimacs,$solver,$analysis$suffix,$(echo "($end - $start) * 1000000000 / 1" | bc),$satisfiable,$model_count >> $res
+
+        mc_int=$(grep mc_int $log | cut -d= -f2)
+        mc_double=$(grep mc_double $log | cut -d= -f2)
+        mc_log10=$(grep mc_log10 $log | cut -d= -f2)
+        mc_int=${mc_int:-NA}
+        mc_double=${mc_double:-NA}
+        mc_log10=${mc_log10:-NA}
+        echo $dimacs,$solver,$analysis$suffix,$(echo "($end - $start) * 1000000000 / 1" | bc),$mc_int,$mc_double,$mc_log10 >> $res
     else
         echo "WARNING: No solver output for $dimacs with solver $solver and analysis $analysis" | tee -a $err
         echo $dimacs,$solver,$analysis$suffix,NA,NA,NA >> $res
@@ -53,12 +62,12 @@ run-core-analysis() (
     run-core-dead-analysis "Core feature" "-"
 )
 
-echo system,iteration,source,transformation,solver,analysis,solve_time,satisfiable,model_count >> $res
+echo system,tag,iteration,source,transformation,solver,analysis,solve_time,mc_int,mc_double,mc_log10 >> $res
 touch $err
 
 rm -rf output/dimacs/*.features
-for dimacs_path in output/dimacs/*.dimacs; do
-    dimacs=$(basename $dimacs_path .dimacs | sed 's/,/_/')
+for dimacs_path in $(ls output/dimacs/*kclause*.dimacs | sort -V); do
+    dimacs=$(basename $dimacs_path .dimacs)
     base_it=$(echo $dimacs_path | rev | cut -d, -f2- | rev)
     base=$(echo $base_it | sed 's/\(,.*,\).*,/\1/g')
     echo "Reading features for $dimacs"
@@ -81,8 +90,9 @@ for dimacs_path in output/dimacs/*.dimacs; do
         done
     fi
 done
+
 for dimacs_path in output/dimacs/*.dimacs; do
-    dimacs=$(basename $dimacs_path .dimacs | sed 's/,/_/')
+    dimacs=$(basename $dimacs_path .dimacs)
     base=$(echo $dimacs_path | rev | cut -d, -f2- | rev | sed 's/\(,.*,\).*,/\1/g')
     echo "Solving $dimacs"
     for solver in $SOLVERS; do

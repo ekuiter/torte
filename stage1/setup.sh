@@ -76,6 +76,10 @@ read-model() (
         find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*default $(.*//g' {} \;
         find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*depends on $(.*//g' {} \;
         find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*def_bool $(.*//g' {} \;
+        # ugly hack for linux 6.0
+        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*def_bool ((.*//g' {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*//g' {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*$(as-instr,endbr64).*//g' {} \;
     fi
     i=0
     while [ $i -ne $N ]; do
@@ -115,16 +119,13 @@ git-checkout() (
     if [ ! -z "$3" ]; then
         cd input/$1
         git reset --hard
-        git clean -fx
+        git clean -dfx
         git checkout -f $3
     fi
 )
 
 run() (
     set -e
-    if [[ $2 != skip-model ]] && ! echo $KCONFIG | grep -q $1,$3; then
-        exit
-    fi
     echo | tee -a $LOG
     if ! echo $4 | grep -q c-bindings; then
         binding_path=/home/output/c-bindings/$1/$3.$BINDING
@@ -132,13 +133,13 @@ run() (
         binding_path=$4
     fi
     if [[ ! -f "/home/output/models/$1/$3.$READER.model" ]]; then
-        trap 'ec=$?; (( ec != 0 )) && (rm -f /home/output/models/'$1'/'$3'.'$READER'* && echo FAIL | tee -a $LOG) || (echo SUCCESS | tee -a $LOG)' EXIT
+        trap 'ec=$?; (( ec != 0 )) && (rm -f /home/output/models/'$1'/'$3',*,'$READER'* && echo FAIL | tee -a $LOG) || (echo SUCCESS | tee -a $LOG)' EXIT
         if [[ $2 != skip-checkout ]]; then
             echo "Checking out $3 in $1" | tee -a $LOG
             eval git-checkout $1 $2 $3
         fi
         cd input/$1
-        if [ ! $binding_path = $4 ]; then
+        if [ ! $binding_path = "$4" ]; then
             echo "Compiling C binding $BINDING for $1 at $3" | tee -a $LOG
             c-binding $BINDING $1 $3 $4
         fi

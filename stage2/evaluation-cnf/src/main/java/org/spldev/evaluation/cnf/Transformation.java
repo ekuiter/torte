@@ -36,7 +36,8 @@ public abstract class Transformation implements Serializable {
 	private static final long serialVersionUID = 1L;
 	@SuppressWarnings("StaticInitializerReferencesSubClass")
 	public static Transformation[] transformations = new Transformation[] {
-		new FeatureIDE(),
+		// todo
+		//new FeatureIDE(),
 		new Z3(),
 		new KConfigReader()
 	};

@@ -204,7 +204,7 @@ static void print_symbol(FILE *out, struct symbol *sym) {
 }
 
 // use E_NONE for first call to print_expr's prevtoken
-void print_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
+ void my_print_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 {
 	if (_expr_compare_type(prevtoken, e->type) > 0)
 		fprintf(out, "(");
@@ -221,7 +221,7 @@ void print_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 #ifdef ENUM_E_NOT
 	case E_NOT:
     fprintf(out, "!");
-    print_expr(e->left.expr, out, E_NOT);
+    my_print_expr(e->left.expr, out, E_NOT);
 		break;
 #endif
 #ifdef ENUM_E_EQUAL
@@ -258,16 +258,16 @@ void print_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 #endif
 #ifdef ENUM_E_OR
 	case E_OR:
-    print_expr(e->left.expr, out, E_OR);
+    my_print_expr(e->left.expr, out, E_OR);
     fprintf(out, " || ");
-    print_expr(e->right.expr, out, E_OR);
+    my_print_expr(e->right.expr, out, E_OR);
 		break;
 #endif
 #ifdef ENUM_E_AND
 	case E_AND:
-    print_expr(e->left.expr, out, E_AND);
+    my_print_expr(e->left.expr, out, E_AND);
     fprintf(out, " && ");
-    print_expr(e->right.expr, out, E_AND);
+    my_print_expr(e->right.expr, out, E_AND);
 		break;
 #endif
 #ifdef ENUM_E_LIST
@@ -277,7 +277,7 @@ void print_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
     fprintf(out, " ");
 		if (e->left.expr) {
       fprintf(out, "^ ");
-      print_expr(e->left.expr, out, E_LIST);
+      my_print_expr(e->left.expr, out, E_LIST);
 		}
 		break;
 #endif
@@ -288,7 +288,7 @@ void print_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
     fprintf(out, " ");
 		if (e->left.expr) {
       fprintf(out, "^ ");
-      print_expr(e->left.expr, out, E_CHOICE);
+      my_print_expr(e->left.expr, out, E_CHOICE);
 		}
 		break;
 #endif
@@ -473,7 +473,7 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
     fprintf(out, " ");
 		if (e->left.expr) {
       fprintf(out, "^ ");
-      print_expr(e->left.expr, out, E_LIST);
+      my_print_expr(e->left.expr, out, E_LIST);
 		}
 		break;
 #endif
@@ -485,7 +485,7 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
     fprintf(out, " ");
 		if (e->left.expr) {
       fprintf(out, "^ ");
-      print_expr(e->left.expr, out, E_CHOICE);
+      my_print_expr(e->left.expr, out, E_CHOICE);
 		}
 		break;
 #endif

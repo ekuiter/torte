@@ -17,6 +17,7 @@ WORKDIR /home
 RUN git clone https://github.com/paulgazz/kmax.git \
   && cd kmax \
   && git checkout c6e83a07d4f916267cb9e718c0b2de42ecfe4147 \
+  && sed -i 's/z3-solver/z3-solver==4.12.1/' setup.py \
   && python3 setup.py install
 
 # install dependencies of analyzed projects
