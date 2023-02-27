@@ -26,7 +26,7 @@ run-solver() (
         echo $dimacs,$solver,$analysis$suffix,$(echo "($end - $start) * 1000000000 / 1" | bc),$mc_int,$mc_double,$mc_log10 >> $res
     else
         echo "WARNING: No solver output for $dimacs with solver $solver and analysis $analysis" | tee -a $err
-        echo $dimacs,$solver,$analysis$suffix,NA,NA,NA >> $res
+        echo $dimacs,$solver,$analysis$suffix,NA,NA,NA,NA >> $res
     fi
 )
 
@@ -38,7 +38,7 @@ run-void-analysis() (
 )
 
 run-core-dead-analysis() (
-    features=$(cat $base.features)
+    features=$(cat $(echo $base | sed 's/kconfigreader/kclause/').features) # todo
     i=1
     for f in $features; do
         fnum=$(cat $dimacs_path | grep " $f$" | cut -d' ' -f2 | head -n1)
@@ -91,7 +91,7 @@ for dimacs_path in $(ls output/dimacs/*kclause*.dimacs | sort -V); do
     fi
 done
 
-for dimacs_path in output/dimacs/*.dimacs; do
+for dimacs_path in $(ls output/dimacs/*kclause*.dimacs | sort -V); do
     dimacs=$(basename $dimacs_path .dimacs)
     base=$(echo $dimacs_path | rev | cut -d, -f2- | rev | sed 's/\(,.*,\).*,/\1/g')
     echo "Solving $dimacs"

@@ -12,11 +12,8 @@
 * update clean, export, etc scripts
 * see https://github.com/paulgazz/kmax/blob/master/kmax/kextractlinux https://github.com/paulgazz/kmax/blob/master/kmax/arch.py for fixing linux >= 4.19
 * rename stages
-* abstract away stages for easier adding / changing / skipping of stages? (each stage in another dir, with defined boundaries, scripted together in params.ini with one section defining the systems (e.g., as in extract.sh) and one section defining the stage piping, each stage overrides git-checkout and run)
-* clarify requirements of run.sh (vagrant?)
+* abstract away stages for easier adding / changing / skipping of stages? (each stage in another dir, with defined boundaries, scripted together in params.ini with one section defining the systems (e.g., as in extract.sh) and one section defining the stage piping, each stage overrides git-checkout and run), standardized input/, output/, output.log and error.log
+* clarify requirements of run.sh (git,coreutils...)
 * log how long each phase took
-
-
-* sort -V in stage 3
-* transform fail for 5.4
-* NA 4 times
+* script with scp, rm .git, screen ..., stop
+* update kmax version (and other versions)

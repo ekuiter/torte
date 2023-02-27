@@ -1,6 +1,8 @@
 #!/bin/bash
-set -ea
+set -ea # exit on error and auto-export variables
 shopt -s extglob # needed for @(...|...) syntax below
+
+cd "$(dirname "$0")" # change into script directory
 
 if [[ ! -f input/params.ini ]]; then
     echo "Evaluation parameters missing!"
@@ -28,7 +30,7 @@ if [ ! -f $results_stats ]; then
     if [[ $SKIP_BUILD != y ]]; then
         docker build -f stage0/Dockerfile -t stage0 stage0
     fi
-    echo version,time,date,sloc | tee -a $results_stats
+    echo system,version,time,date,sloc | tee -a $results_stats
     docker run --rm -v $PWD/input:/home/input stage0 ./input/extract.sh | tee -a $results_stats
 else
     echo Skipping stage 0

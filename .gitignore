@@ -2,3 +2,4 @@
 /input/*/
 !/input/hierarchies
 /export*
+/_*.sh
