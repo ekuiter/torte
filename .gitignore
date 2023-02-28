@@ -1,5 +1,4 @@
-/output*
 /input/*/
-!/input/hierarchies
+/output*
 /export*
-/_*.sh
+_*.sh

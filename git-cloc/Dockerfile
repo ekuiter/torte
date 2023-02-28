@@ -1,0 +1,12 @@
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y \
+    git \
+    cloc \
+    curl \
+    wget
+WORKDIR /home
+COPY *.sh ./
+RUN chmod +x *.sh \
+    && git config --global --add safe.directory '*' \
+    && git config --global user.email "anon@example.com" \
+    && git config --global user.name "anon"

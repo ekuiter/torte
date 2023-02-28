@@ -17,3 +17,4 @@
 * log how long each phase took
 * script with scp, rm .git, screen ..., stop
 * update kmax version (and other versions)
+* weird exit for Solving linux,v2.6.36,1,kclause,z3

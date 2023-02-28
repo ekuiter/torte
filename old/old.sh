@@ -1,27 +1,5 @@
-#!/bin/bash
-set -ea # exit on error and auto-export variables
-shopt -s extglob # needed for @(...|...) syntax below
 
-cd "$(dirname "$0")" # change into script directory
-
-if [[ ! -f input/params.ini ]]; then
-    echo "Evaluation parameters missing!"
-    exit 1
-fi
-
-if [[ ! -f input/extract.sh ]]; then
-    echo "Extraction script missing!"
-    exit 1
-fi
-
-mkdir -p output
-
-# clone repositories
-chmod +x input/extract.sh
-chmod +x input/prepare_linux_repository.sh
-source input/params.ini
-source input/extract.sh
-source input/prepare_linux_repository.sh
+#source prepare_linux_repository.sh
 
 # stage 0: get version dates and SLOCs
 # todo: make this stage skippable (or at least cloc)
