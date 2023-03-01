@@ -1,0 +1,120 @@
+# echos and appends to a file
+alias append="tee -a"
+
+# logs an error and exit
+error() {
+    echo "$@" 1>&2
+    exit 1
+}
+
+# requires that the given commands are available
+require-command() {
+    for command in $@; do
+        if ! command -v $command &> /dev/null; then
+            error "Required command $command is missing, please install manually."
+        fi
+    done
+}
+
+# requires that the given variables are set
+require-variable() {
+    for var in $@; do
+        if [[ -z ${!var+x} ]]; then
+            error "Required variable $var is not set, please set it to some value."
+        fi
+    done
+}
+
+# requires that the given variables are non-empty
+require-value() {
+    for var in $@; do
+        if [[ -z ${!var} ]]; then
+            error "Required variable $var is empty, please set it to a non-empty value."
+        fi
+    done
+}
+
+# requires that we are not in a Docker container
+require-host() {
+    if [[ ! -z $docker_running ]]; then
+        error "Cannot be run inside a Docker container."
+    fi
+}
+
+# returns whether a function is not defined, useful for providing fallback implementations
+unless-function() { ! declare -F $1 >/dev/null; }
+
+# replaces a given search string for a given number of times per line, operates on standard input
+replace-times() {
+    local n=$1
+    local search=$2
+    local replace=$3
+    require-value n search replace
+    if [[ $n -eq 0 ]]; then
+        cat -
+    else
+        cat - | sed "s/$search/$replace/" | replace-times $(($n-1)) $search $replace
+    fi
+}
+
+# joins two CSV files on the first n columns, assumes that the first line contains a header
+join-tables() {
+    local a=$1
+    local b=$2
+    local n=${3:-1}
+    ((n--))
+    require-value a b
+    join -t, \
+        <(cat $a | replace-times $n , \# | head -n1) \
+        <(cat $b | replace-times $n , \# | head -n1) \
+        | replace-times $n \# ,
+    join -t, \
+        <(cat $a | replace-times $n , \# | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
+        <(cat $b | replace-times $n , \# | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
+        | replace-times $n \# ,
+}
+
+# silently push directory
+pushd() {
+    command pushd "$@" > /dev/null
+}
+
+# silently pop directory
+popd() {
+    command popd "$@" > /dev/null
+}
+
+git-checkout() {
+    local revision=$1
+    local directory=${2:-.}
+    require-value revision directory
+    git -C $directory reset -q --hard >/dev/null
+    git -C $directory clean -q -dfx > /dev/null
+    git -C $directory checkout -q -f $revision > /dev/null
+}
+
+git-revisions() {
+    local system=$1
+    require-value system
+    git -C $(input-directory)/$system tag | sort -V
+}
+
+exclude-revision() {
+    local term=$1
+    shift
+    if [[ -z $term ]]; then
+        cat -
+    else
+        cat - | grep -v $term | exclude-revision $@
+    fi
+}
+
+start-at-revision() {
+    local start_inclusive=$1
+    cat - | ([[ -z $start_inclusive ]] && cat || sed -n '/'$start_inclusive'/,$p')
+}
+
+stop-at-revision() {
+    local end_exclusive=$1
+    cat - | ([[ -z $end_exclusive ]] && cat || sed -n '/'$end_exclusive'/q;p')
+}

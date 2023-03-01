@@ -1,19 +1,4 @@
 
-#source prepare_linux_repository.sh
-
-# stage 0: get version dates and SLOCs
-# todo: make this stage skippable (or at least cloc)
-results_stats=output/results_stats.csv
-if [ ! -f $results_stats ]; then
-    if [[ $SKIP_BUILD != y ]]; then
-        docker build -f stage0/Dockerfile -t stage0 stage0
-    fi
-    echo system,version,time,date,sloc | tee -a $results_stats
-    docker run --rm -v $PWD/input:/home/input stage0 ./input/extract.sh | tee -a $results_stats
-else
-    echo Skipping stage 0
-fi
-
 # stage 1: extract feature models as .model files with kconfigreader-extract and kclause
 if [[ ! -d output/models ]]; then
     # clean up previous (incomplete) files

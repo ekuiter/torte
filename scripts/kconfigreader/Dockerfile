@@ -35,5 +35,6 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 # - CNF transformer
 COPY kconfigreader/TransformCNF.scala kconfigreader/src/main/scala/
 RUN cd kconfigreader && sbt mkrun
-COPY kconfigreader/dumpconf.c *.sh ./
-RUN chmod +x *.sh
+COPY *.sh kconfigreader/*.sh kconfigreader/dumpconf.c ./
+RUN chmod +x *.sh \
+    && git config --global --add safe.directory '*'

@@ -1,5 +1,5 @@
-# first, we define general experimental setup
-# next, we define the models to analyze
+# first, we set up the experiment's global variables
+# next, we define the kconfig models to analyze
 # finally, we define and combine analysis stages
 
 input_directory=input # path to system repositories
@@ -7,9 +7,10 @@ output_directory=output # path to resulting outputs, created if necessary
 skip_docker_build= # y if building Docker images should be skipped, useful for loading imported images
 
 run-experiment() {
-    run-stage 1 git-cloc/Dockerfile $input_directory "./clone-systems.sh"
-    run-stage 2 git-cloc/Dockerfile $input_directory "./tag-linux-versions.sh"
-    run-stage 3 git-cloc/Dockerfile $input_directory "./read-statistics.sh"
+    #run-stage 1 scripts/git/Dockerfile $(input-directory) "./clone-systems.sh"
+    #run-stage 2 scripts/git/Dockerfile $(input-directory) "./tag-linux-versions.sh"
+    #run-stage 3 scripts/git/Dockerfile $(input-directory) "./read-statistics.sh"
+    run-stage 4 scripts/kconfigreader/Dockerfile $(input-directory) "./extract-kconfig-models.sh"
 }
 
 # a version is sys,tag/revision,arch
@@ -40,16 +41,18 @@ run-experiment() {
 add-system busybox https://github.com/mirror/busybox
 add-system linux https://github.com/torvalds/linux
 
-add-version linux v2.5.45
-add-version linux v2.5.46
+add-revision linux v2.5.45
+add-revision linux v2.5.46
 
-# todo: add-c-binding, add-feature-model; implying add-version
+# todo: add-c-binding, add-feature-model; implying add-revision
 
-# for tag in $(git -C input/busybox tag | grep -v pre | grep -v alpha | grep -v rc | sort -V); do
-#     run busybox https://github.com/mirror/busybox $tag scripts/kconfig/*.o Config.in
-# done
+# todo: abstract into function so host does not require git
 
-linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
+for revision in $(git-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_33_0); do
+    add-kconfig-model busybox $revision scripts/kconfig/*.o Config.in
+done
+
+#linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
 # run linux skip-model v2.6.12 scripts/kconfig/*.o arch/i386/Kconfig $linux_env
 
 # # in old versions, use c-binding from 2.6.12
