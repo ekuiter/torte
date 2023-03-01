@@ -36,6 +36,6 @@ add-kconfig() {
         $system $revision "" $kconfig_file $env
 }
 
-source main.sh init
+source main.sh load-config
 echo system,tag,kconfig-binding,kconfig-file > $(output-csv)
-source main.sh load
+source main.sh load-subjects

@@ -14,4 +14,4 @@ add-system() {
     fi
 }
 
-source main.sh load
+source main.sh load-subjects

@@ -64,4 +64,4 @@ tag-versions() {
     done
 }
 
-source main.sh load
+source main.sh load-subjects

@@ -34,11 +34,13 @@ run-stage() {
     fi
 }
 
-# prepares an experimnt by loading the given config file
-# adds all experiment subjects in the process
-# on the host, this has no effect besides defining variables and functions
+# prepares an experiment by loading the given config file
+# this has no effect besides defining variables and functions
 # sets several global variables
-load() {
+load-config() {
+    if [[ ! -z $config_file ]]; then
+        return
+    fi
     if [[ -z $docker_running ]]; then
         config_file=${1:-input/config.sh}
     else
@@ -50,13 +52,18 @@ load() {
     fi
     source $config_file
     require-variable config_file input_directory output_directory skip_docker_build
+}
+
+# loads a config file and adds all experiment subjects
+load-subjects() {
+    load-config $1
     experiment-subjects
 }
 
 # removes all output files specified by the given config file, does not touch input files or Docker images
 clean() {
     require-host
-    load $1
+    load-config $1
     rm -rf $output_directory
 }
 
@@ -64,10 +71,7 @@ clean() {
 run() {
     require-host
     require-command docker
-    load $1
+    load-config $1
     mkdir -p $output_directory
     experiment-stages
 }
-
-# does nothing, only defines variables and functions
-init() { :; }

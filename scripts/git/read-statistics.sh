@@ -20,8 +20,8 @@ add-revision() (
 )
 
 option=$1
-source main.sh init
+source main.sh load-config
 echo system,revision,time,date > $(output-directory)/date.csv
 echo system,revision,sloc > $(output-directory)/sloc.csv
-source main.sh load
+source main.sh load-subjects
 join-tables $(output-directory)/date.csv $(output-directory)/sloc.csv 2 > $(output-csv)
