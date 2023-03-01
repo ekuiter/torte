@@ -27,5 +27,6 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 # copy and set up
 # - kextractor (which is compiled against the projects' Kconfig implementations)
 # - IO and evaluation scripts
-COPY kclause/kextractor.c kclause/*.py *.sh ./
-RUN chmod +x *.sh
+COPY *.sh kclause/*.sh kclause/*.py kclause/kextractor.c ./
+RUN chmod +x *.sh \
+    && git config --global --add safe.directory '*'

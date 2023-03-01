@@ -8,9 +8,10 @@ skip_docker_build= # y if building Docker images should be skipped, useful for l
 
 experiment-stages() {
     run-stage 1 scripts/git/Dockerfile $(input-directory) "./clone-systems.sh"
-    run-stage 2 scripts/git/Dockerfile $(input-directory) "./tag-linux-versions.sh"
-    run-stage 3 scripts/git/Dockerfile $(input-directory) "./read-statistics.sh skip-sloc"
-    run-stage 4 scripts/kconfigreader/Dockerfile $(input-directory) "./extract-kconfig.sh"
+    #run-stage 2 scripts/git/Dockerfile $(input-directory) "./tag-linux-versions.sh"
+    #run-stage 3 scripts/git/Dockerfile $(input-directory) "./read-statistics.sh skip-sloc"
+    #run-stage 4 scripts/kconfigreader/Dockerfile $(input-directory) "./extract-kconfig.sh"
+    run-stage 3 scripts/kclause/Dockerfile $(input-directory) "./extract-kconfig.sh"
 }
 
 experiment-subjects() {

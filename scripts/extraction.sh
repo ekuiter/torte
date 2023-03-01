@@ -23,12 +23,14 @@ kconfig-checkout() {
     popd
 }
 
+# returns all files needed to compile a kconfig binding
 kconfig-binding-files() {
     kconfig_binding_files_spec=$1
     require-value kconfig_binding_files_spec
     echo $kconfig_binding_files_spec | tr , ' '
 }
 
+# returns the directory containing the kconfig binding files
 kconfig-binding-directory() {
     kconfig_binding_files_spec=$1
     require-value kconfig_binding_files_spec
