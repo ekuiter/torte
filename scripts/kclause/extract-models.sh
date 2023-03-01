@@ -5,4 +5,4 @@
 source main.sh init
 
 reader=kclause
-c_binding=kextractor
+kconfig_binding=kextractor

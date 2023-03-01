@@ -9,19 +9,19 @@ add-revision() (
     echo "Reading statistics for $system $revision"
     local time=$(git -C $(input-directory)/$system --no-pager log -1 -s --format=%ct $revision)
     local date=$(date -d @$time +"%Y-%m-%d")
-    echo $system,$revision,$time,$date >> $docker_output_directory/date.csv
+    echo $system,$revision,$time,$date >> $(output-directory)/date.csv
     if [[ $option != skip-sloc ]]; then
-        (cd input/$system; cloc --git $revision > $docker_output_directory/$revision.txt)
-        local sloc=$(cat $docker_output_directory/$revision.txt | grep ^SUM | tr -s ' ' | cut -d' ' -f5)
-        echo $system,$revision,$sloc >> $docker_output_directory/sloc.csv
+        (cd input/$system; cloc --git $revision > $(output-directory)/$revision.txt)
+        local sloc=$(cat $(output-directory)/$revision.txt | grep ^SUM | tr -s ' ' | cut -d' ' -f5)
+        echo $system,$revision,$sloc >> $(output-directory)/sloc.csv
     else
-        echo $system,$revision,NA >> $docker_output_directory/sloc.csv
+        echo $system,$revision,NA >> $(output-directory)/sloc.csv
     fi
 )
 
 option=$1
 source main.sh init
-echo system,revision,time,date > $docker_output_directory/date.csv
-echo system,revision,sloc > $docker_output_directory/sloc.csv
+echo system,revision,time,date > $(output-directory)/date.csv
+echo system,revision,sloc > $(output-directory)/sloc.csv
 source main.sh load
-join-tables $docker_output_directory/date.csv $docker_output_directory/sloc.csv 2 > $(output-csv)
+join-tables $(output-directory)/date.csv $(output-directory)/sloc.csv 2 > $(output-csv)

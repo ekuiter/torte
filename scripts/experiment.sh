@@ -6,7 +6,12 @@ run-stage() {
     local input_directory=$3
     local command=$4
     require-host
-    require-value config_file stage dockerfile input_directory command
+    require-value config_file stage dockerfile input_directory
+    local flags=
+    if [[ -z $command ]]; then
+        command=/bin/bash
+        flags=-it
+    fi
     if [[ ! -f $(output-log $stage) ]]; then
         echo "Running stage $stage"
         rm -rf $(output-prefix $stage)*
@@ -15,7 +20,7 @@ run-stage() {
             docker build -f $dockerfile -t $stage $scripts_directory
         fi
         mkdir -p $(output-directory $stage)
-        docker run --rm \
+        docker run --rm $flags \
             -v $PWD/$(input-directory):$docker_input_directory \
             -v $PWD/$(output-directory $stage):$docker_output_directory \
             -e docker_running=y \
@@ -29,7 +34,8 @@ run-stage() {
     fi
 }
 
-# prepares an experimnt by loading the given config file, adding all systems and versions in the process
+# prepares an experimnt by loading the given config file
+# adds all experiment subjects in the process
 # on the host, this has no effect besides defining variables and functions
 # sets several global variables
 load() {
@@ -44,13 +50,8 @@ load() {
     fi
     source $config_file
     require-variable config_file input_directory output_directory skip_docker_build
+    experiment-subjects
 }
-
-# stubs that are implemented in Docker containers and config files
-unless-function add-system && add-system() { :; } # adds a system to evaluate
-unless-function add-revision && add-revision() { :; } # adds a version to evaluate
-unless-function add-kconfig-model && add-kconfig-model() { :; } # adds a kconfig model to evaluate
-unless-function run-experiment && run-experiment() { :; } # runs an experiment
 
 # removes all output files specified by the given config file, does not touch input files or Docker images
 clean() {
@@ -65,7 +66,7 @@ run() {
     require-command docker
     load $1
     mkdir -p $output_directory
-    run-experiment
+    experiment-stages
 }
 
 # does nothing, only defines variables and functions

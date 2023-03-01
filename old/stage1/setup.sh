@@ -24,17 +24,17 @@ cd /home
 mkdir -p output
 echo -n > $LOG
 echo -n > $MODELS
-echo system,tag,c-binding,kconfig-file >> $MODELS
+echo system,tag,kconfig-binding,kconfig-file >> $MODELS
 git config --global --add safe.directory "*"
 
 # compiles the C program that extracts Kconfig constraints from Kconfig files
 # for kconfigreader and kclause, this compiles dumpconf and kextractor against the Kconfig parser, respectively
-c-binding() (
+kconfig-binding() (
     if [ $2 = buildroot ]; then
         find ./ -type f -name "*Config.in" -exec sed -i 's/source "\$.*//g' {} \; # ignore generated Kconfig files in buildroot
     fi
     set -e
-    mkdir -p /home/output/c-bindings/$2
+    mkdir -p /home/output/kconfig-bindings/$2
     args=""
     binding_files=$(echo $4 | tr , ' ')
     binding_dir=$(dirname $binding_files | head -n1)
@@ -47,12 +47,12 @@ c-binding() (
     # make config sometimes asks for integers (not easily simulated with "yes"), which is why we add a timeout
     make $binding_files >/dev/null || (yes | make allyesconfig >/dev/null) || (yes | make xconfig >/dev/null) || (yes "" | timeout 20s make config >/dev/null) || true
     strip -N main $binding_dir/*.o || true
-    cmd="gcc /home/$1.c $binding_files -I $binding_dir -Wall -Werror=switch $args -Wno-format -o /home/output/c-bindings/$2/$3.$1"
+    cmd="gcc /home/$1.c $binding_files -I $binding_dir -Wall -Werror=switch $args -Wno-format -o /home/output/kconfig-bindings/$2/$3.$1"
     (echo $cmd >> $LOG) && eval $cmd
 )
 
 read-model() (
-    # read-model kconfigreader|kclause system commit c-binding Kconfig env
+    # read-model kconfigreader|kclause system commit kconfig-binding Kconfig env
     set -e
     mkdir -p /home/output/models/$2
     if [ -z "$6" ]; then
@@ -127,8 +127,8 @@ git-checkout() (
 run() (
     set -e
     echo | tee -a $LOG
-    if ! echo $4 | grep -q c-bindings; then
-        binding_path=/home/output/c-bindings/$1/$3.$BINDING
+    if ! echo $4 | grep -q kconfig-bindings; then
+        binding_path=/home/output/kconfig-bindings/$1/$3.$BINDING
     else
         binding_path=$4
     fi
@@ -140,8 +140,8 @@ run() (
         fi
         cd input/$1
         if [ ! $binding_path = "$4" ]; then
-            echo "Compiling C binding $BINDING for $1 at $3" | tee -a $LOG
-            c-binding $BINDING $1 $3 $4
+            echo "Compiling Kconfig binding $BINDING for $1 at $3" | tee -a $LOG
+            kconfig-binding $BINDING $1 $3 $4
         fi
         if [[ $2 != skip-model ]]; then
             echo "Reading feature model for $1 at $3" | tee -a $LOG

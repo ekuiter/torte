@@ -44,6 +44,13 @@ require-host() {
 # returns whether a function is not defined, useful for providing fallback implementations
 unless-function() { ! declare -F $1 >/dev/null; }
 
+# if not defined, defines a function with a given name doing nothing
+define-stub() {
+    function=$1
+    require-value function
+    eval "unless-function $function && $function() { :; } || true"
+}
+
 # replaces a given search string for a given number of times per line, operates on standard input
 replace-times() {
     local n=$1
@@ -84,21 +91,32 @@ popd() {
     command popd "$@" > /dev/null
 }
 
-git-checkout() {
-    local revision=$1
-    local directory=${2:-.}
-    require-value revision directory
+# remove (un-)staged changes and untracked files
+git-clean() {
+    local directory=${1:-.}
+    require-value directory
     git -C $directory reset -q --hard >/dev/null
     git -C $directory clean -q -dfx > /dev/null
+}
+
+# clean and checkout a revision
+git-checkout() {
+    local revision=$1
+    local directory=$2
+    require-value revision directory
+    echo "Checking out $revision in $directory"
+    git-clean $directory
     git -C $directory checkout -q -f $revision > /dev/null
 }
 
+# list all revisions in version order
 git-revisions() {
     local system=$1
     require-value system
     git -C $(input-directory)/$system tag | sort -V
 }
 
+# exclude revisions matching a term
 exclude-revision() {
     local term=$1
     shift
@@ -109,11 +127,13 @@ exclude-revision() {
     fi
 }
 
+# only include revisions starting from a given revision
 start-at-revision() {
     local start_inclusive=$1
     cat - | ([[ -z $start_inclusive ]] && cat || sed -n '/'$start_inclusive'/,$p')
 }
 
+# only include revisions starting up to a given revision
 stop-at-revision() {
     local end_exclusive=$1
     cat - | ([[ -z $end_exclusive ]] && cat || sed -n '/'$end_exclusive'/q;p')

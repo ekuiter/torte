@@ -6,14 +6,60 @@ input_directory=input # path to system repositories
 output_directory=output # path to resulting outputs, created if necessary
 skip_docker_build= # y if building Docker images should be skipped, useful for loading imported images
 
-run-experiment() {
-    #run-stage 1 scripts/git/Dockerfile $(input-directory) "./clone-systems.sh"
-    #run-stage 2 scripts/git/Dockerfile $(input-directory) "./tag-linux-versions.sh"
-    #run-stage 3 scripts/git/Dockerfile $(input-directory) "./read-statistics.sh"
-    run-stage 4 scripts/kconfigreader/Dockerfile $(input-directory) "./extract-kconfig-models.sh"
+experiment-stages() {
+    run-stage 1 scripts/git/Dockerfile $(input-directory) "./clone-systems.sh"
+    run-stage 2 scripts/git/Dockerfile $(input-directory) "./tag-linux-versions.sh"
+    run-stage 3 scripts/git/Dockerfile $(input-directory) "./read-statistics.sh skip-sloc"
+    run-stage 4 scripts/kconfigreader/Dockerfile $(input-directory) "./extract-kconfig.sh"
 }
 
-# a version is sys,tag/revision,arch
+experiment-subjects() {
+    add-system busybox https://github.com/mirror/busybox
+    add-system linux https://github.com/torvalds/linux
+
+    add-revision linux v2.5.45
+    add-revision linux v2.5.46
+
+    for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
+        add-kconfig busybox $revision scripts/kconfig/*.o Config.in ""
+    done
+
+    linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
+    add-kconfig linux v2.6.13 scripts/kconfig/*.o arch/i386/Kconfig $linux_env
+}
+
+kconfig-post-checkout-hook() {
+    system=$1
+    revision=$2
+    require-value system revision
+
+    # the following hacks may impair accuracy, but are necessary to extract a kconfig model
+    if [[ $system == freetz-ng ]]; then
+        # ugly hack because freetz-ng is weird
+        touch make/Config.in.generated make/external.in.generated config/custom.in
+    fi
+    if [[ $system == buildroot ]]; then
+        touch .br2-external.in .br2-external.in.paths .br2-external.in.toolchains .br2-external.in.openssl .br2-external.in.jpeg .br2-external.in.menus .br2-external.in.skeleton .br2-external.in.init
+        # ignore generated Kconfig files in buildroot
+        find ./ -type f -name "*Config.in" -exec sed -i 's/source "\$.*//g' {} \;
+    fi
+    if [[ $system == toybox ]]; then
+        mkdir -p generated
+        touch generated/Config.in generated/Config.probed
+    fi
+    if [[ $system == linux ]]; then
+        # ignore all constraints that use the newer $(success,...) syntax
+        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*default $(.*//g' {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*depends on $(.*//g' {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*def_bool $(.*//g' {} \;
+        # ugly hack for linux 6.0
+        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*def_bool ((.*//g' {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*//g' {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*$(as-instr,endbr64).*//g' {} \;
+    fi
+}
+
+# a version is sys,tag/revision,arch,iteration
 
 #READERS="kconfigreader kclause" # Docker containers with Kconfig extractors
 #READERS="kclause" # Docker containers with Kconfig extractors
@@ -38,27 +84,10 @@ run-experiment() {
 #SOLVERS="c2d d4 dpmc gpmc sharpsat-td-arjun1 sharpsat-td-arjun2 sharpsat-td twg"
 #SOLVERS="d4"
 
-add-system busybox https://github.com/mirror/busybox
-add-system linux https://github.com/torvalds/linux
-
-add-revision linux v2.5.45
-add-revision linux v2.5.46
-
-# todo: add-c-binding, add-feature-model; implying add-revision
-
-# todo: abstract into function so host does not require git
-
-for revision in $(git-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_33_0); do
-    add-kconfig-model busybox $revision scripts/kconfig/*.o Config.in
-done
-
-#linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
-# run linux skip-model v2.6.12 scripts/kconfig/*.o arch/i386/Kconfig $linux_env
-
-# # in old versions, use c-binding from 2.6.12
+# # in old versions, use kconfig-binding from 2.6.12
 # for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | sed -n '/2.6.12/q;p'); do
 # #for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | sed -n '/2.6.0/,$p' | sed -n '/2.6.4/q;p'); do
-#     run linux https://github.com/torvalds/linux $tag /home/output/c-bindings/linux/v2.6.12.$BINDING arch/i386/Kconfig $linux_env
+#     run linux https://github.com/torvalds/linux $tag /home/output/kconfig-bindings/linux/v2.6.12.$BINDING arch/i386/Kconfig $linux_env
 # done
 
 # for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | sed -n '/2.6.12/,$p'); do
