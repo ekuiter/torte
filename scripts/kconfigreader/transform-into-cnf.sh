@@ -6,4 +6,5 @@ add-system() {
     :
 }
 
+# shellcheck source=../../scripts/main.sh
 source main.sh load-subjects

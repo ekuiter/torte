@@ -1,17 +1,18 @@
+#!/bin/bash
 # first, we set up the experiment's global variables
 # next, we define the kconfig models to analyze
 # finally, we define and combine analysis stages
 
-input_directory=input # path to system repositories
-output_directory=output # path to resulting outputs, created if necessary
-skip_docker_build= # y if building Docker images should be skipped, useful for loading imported images
+export INPUT_DIRECTORY=input # path to system repositories
+export OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
+export SKIP_DOCKER_BUILD= # y if building Docker images should be skipped, useful for loading imported images
 
 experiment-stages() {
-    run-stage 1 scripts/git/Dockerfile $(input-directory) "./clone-systems.sh"
+    run-stage 1 scripts/git/Dockerfile "$(input-directory)" "./clone-systems.sh"
     #run-stage 2 scripts/git/Dockerfile $(input-directory) "./tag-linux-versions.sh"
     #run-stage 3 scripts/git/Dockerfile $(input-directory) "./read-statistics.sh skip-sloc"
     #run-stage 4 scripts/kconfigreader/Dockerfile $(input-directory) "./extract-kconfig.sh"
-    run-stage 3 scripts/kclause/Dockerfile $(input-directory) "./extract-kconfig.sh"
+    run-stage 3 scripts/kclause/Dockerfile "$(input-directory)" "./extract-kconfig.sh"
 }
 
 experiment-subjects() {
@@ -22,7 +23,7 @@ experiment-subjects() {
     add-revision linux v2.5.46
 
     for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
-        add-kconfig busybox $revision scripts/kconfig/*.o Config.in ""
+        add-kconfig busybox "$revision" scripts/kconfig/*.o Config.in ""
     done
 
     linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
@@ -50,13 +51,13 @@ kconfig-post-checkout-hook() {
     fi
     if [[ $system == linux ]]; then
         # ignore all constraints that use the newer $(success,...) syntax
-        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*default $(.*//g' {} \;
-        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*depends on $(.*//g' {} \;
-        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*def_bool $(.*//g' {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*default \$(.*//g" {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*depends on \$(.*//g" {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*def_bool \$(.*//g" {} \;
         # ugly hack for linux 6.0
-        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*def_bool ((.*//g' {} \;
-        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*//g' {} \;
-        find ./ -type f -name "*Kconfig*" -exec sed -i 's/\s*$(as-instr,endbr64).*//g' {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*def_bool ((.*//g" {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*//g" {} \;
+        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*\$(as-instr,endbr64).*//g" {} \;
     fi
 }
 

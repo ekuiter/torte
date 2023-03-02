@@ -23,8 +23,8 @@ add-system() {
         # could also add more granular versions with minor or patch level after 2.6.12, if necessary
 
         if [[ $dirty -eq 1 ]]; then
-            git -C $(input-directory)/linux prune
-            git -C $(input-directory)/linux gc
+            git -C "$(input-directory)/linux" prune
+            git -C "$(input-directory)/linux" gc
         fi
     fi
 }
@@ -34,34 +34,37 @@ tag-versions() {
     local start_inclusive=$2
     local end_exclusive=$3
     require-value base_uri
-    local versions=$(curl -s $base_uri | sed 's/.*>\(.*\)<.*/\1/g' | grep .tar.gz | cut -d- -f2 | sed 's/\.tar\.gz//' | sort -V \
-        | ([[ -z $start_inclusive ]] && cat || sed -n '/'$start_inclusive'/,$p') \
-        | ([[ -z $end_exclusive ]] && cat || sed -n '/'$end_exclusive'/q;p'))
-    for version in ${versions[@]}; do
-        if ! $(git -C $(input-directory)/linux tag | grep -q ^v$version$); then
+    local versions
+    versions=$(curl -s "$base_uri" | sed 's/.*>\(.*\)<.*/\1/g' | grep .tar.gz | cut -d- -f2 | sed 's/\.tar\.gz//' | sort -V)
+    versions=$(start-at-revision "$start_inclusive")
+    versions=$(stop-at-revision "$end_exclusive")
+    for version in "${versions[@]}"; do
+        if ! "$(git -C "$(input-directory)"/linux tag | grep -q "^v$version$")"; then
             echo -n "Adding tag for Linux $version "
-            local date=$(date -d "$(curl -s $base_uri | grep linux-$version.tar.gz | \
+            local date
+            date=$(date -d "$(curl -s "$base_uri" | grep "linux-$version.tar.gz" | \
                 cut -d'>' -f3 | tr -s ' ' | cut -d' ' -f2- | rev | cut -d' ' -f2- | rev)" +%s)
-            echo "($(date -d@$date +"%Y-%m-%d")) ..."
+            echo "($(date -d "@$date" +"%Y-%m-%d")) ..."
             dirty=1
-            wget -q $base_uri/linux-$version.tar.gz
-            tar xzf *.tar.gz*
-            pushd $(input-directory)/linux
+            wget -q "$base_uri/linux-$version.tar.gz"
+            tar xzf ./*.tar.gz*
+            push "$(input-directory)/linux"
             git reset -q --hard >/dev/null
             git clean -q -dfx >/dev/null
-            git checkout -q --orphan $version >/dev/null
+            git checkout -q --orphan "$version" >/dev/null
             git reset -q --hard >/dev/null
             git clean -q -dfx >/dev/null
-            cp -R ../../linux-$version/. ./
+            cp -R "../../linux-$version/." ./
             git add -A >/dev/null
-            GIT_COMMITTER_DATE=$date git commit -q --date $date -m v$version >/dev/null
-            git tag v$version >/dev/null
-            popd
-            rm -rf linux-$version
+            GIT_COMMITTER_DATE=$date git commit -q --date "$date" -m "v$version" >/dev/null
+            git tag "v$version" >/dev/null
+            pop
+            rm -rf "linux-$version"
         else
             echo "Skipping tag for Linux $version"
         fi
     done
 }
 
+# shellcheck source=../../scripts/main.sh
 source main.sh load-subjects

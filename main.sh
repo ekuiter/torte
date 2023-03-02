@@ -1,2 +1,2 @@
 #!/bin/bash
-scripts/main.sh $@
+scripts/main.sh "$@"

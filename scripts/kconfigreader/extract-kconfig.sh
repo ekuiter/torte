@@ -7,8 +7,8 @@ add-kconfig-binding() {
     local revision=$2
     local kconfig_binding_files_spec=$3
     require-value system revision kconfig_binding_files_spec
-    kconfig-checkout $system $revision $kconfig_binding_files_spec
-    compile-kconfig-binding dumpconf $system $revision $kconfig_binding_files_spec
+    kconfig-checkout "$system" "$revision" "$kconfig_binding_files_spec"
+    compile-kconfig-binding dumpconf "$system" "$revision" "$kconfig_binding_files_spec"
 }
 
 add-kconfig-model() {
@@ -18,9 +18,9 @@ add-kconfig-model() {
     local kconfig_file=$4
     local env=$5
     require-value system revision kconfig_file
-    kconfig-checkout $system $revision
+    kconfig-checkout "$system" "$revision"
     extract-kconfig-model kconfigreader dumpconf \
-        $system $revision $kconfig_binding_file $kconfig_file $env
+        "$system" "$revision" "$kconfig_binding_file" "$kconfig_file" "$env"
 }
 
 add-kconfig() {
@@ -30,12 +30,14 @@ add-kconfig() {
     local kconfig_file=$4
     local env=$5
     require-value system revision kconfig_binding_files_spec kconfig_file
-    kconfig-checkout $system $revision $kconfig_binding_files_spec
-    compile-kconfig-binding dumpconf $system $revision $kconfig_binding_files_spec
+    kconfig-checkout "$system" "$revision" "$kconfig_binding_files_spec"
+    compile-kconfig-binding dumpconf "$system" "$revision" "$kconfig_binding_files_spec"
     extract-kconfig-model kconfigreader dumpconf \
-        $system $revision "" $kconfig_file $env
+        "$system" "$revision" "" "$kconfig_file" "$env"
 }
 
+# shellcheck source=../../scripts/main.sh
 source main.sh load-config
-echo system,tag,kconfig-binding,kconfig-file > $(output-csv)
+echo system,tag,kconfig-binding,kconfig-file > "$(output-csv)"
+# shellcheck source=../../scripts/main.sh
 source main.sh load-subjects

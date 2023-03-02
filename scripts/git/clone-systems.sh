@@ -8,10 +8,11 @@ add-system() {
     require-value system url
     if [[ ! -d "$(input-directory)/$system" ]]; then
         echo "Cloning system $system"
-        git clone $url $(input-directory)/$system
+        git clone "$url" "$(input-directory)/$system"
     else
         echo "Skipping clone for system $system"
     fi
 }
 
+# shellcheck source=../../scripts/main.sh
 source main.sh load-subjects
