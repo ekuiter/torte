@@ -8,11 +8,11 @@ export OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
 export SKIP_DOCKER_BUILD= # y if building Docker images should be skipped, useful for loading imported images
 
 experiment-stages() {
-    run-stage 1 scripts/git/Dockerfile "$(input-directory)" "./clone-systems.sh"
-    run-stage 2 scripts/git/Dockerfile "$(input-directory)" "./tag-linux-versions.sh"
-    run-stage 3 scripts/git/Dockerfile "$(input-directory)" "./read-statistics.sh skip-sloc"
-    run-stage 4 scripts/kconfigreader/Dockerfile "$(input-directory)" "./extract-kconfig.sh"
-    run-stage 5 scripts/kclause/Dockerfile "$(input-directory)" "./extract-kconfig.sh"
+    run-stage 1 scripts/git/Dockerfile "$(input-directory)" ./clone-systems.sh
+    run-stage 2 scripts/git/Dockerfile "$(input-directory)" ./tag-linux-versions.sh
+    run-stage 3 scripts/git/Dockerfile "$(input-directory)" ./read-statistics.sh skip-sloc
+    run-stage 4 scripts/kconfigreader/Dockerfile "$(input-directory)" ./extract-kconfig.sh
+    run-stage 5 scripts/kclause/Dockerfile "$(input-directory)" ./extract-kconfig.sh
 }
 
 experiment-subjects() {

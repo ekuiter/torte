@@ -23,7 +23,7 @@ api=(
 )
 
 SCRIPTS_DIRECTORY=$(dirname "$0") # scripts directory
-DOCKER_CONTAINER_NAME_PREFIX="eval" # prefix for naming Docker containers
+DOCKER_PREFIX="eval" # prefix for naming Docker images and containers
 DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
 DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
 DOCKER_OUTPUT_FILE_PREFIX=output # prefix for output files inside Docker containers

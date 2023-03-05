@@ -6,28 +6,30 @@ run-stage() {
     local stage=$1
     local dockerfile=$2
     local input_directory=$3
-    local command=$4
     require-host
     require-value CONFIG_FILE stage dockerfile input_directory
     local flags=
-    if [[ -z $command ]]; then
-        command=/bin/bash
+    if [[ $# -lt 4 ]]; then
+        command=(/bin/bash)
         flags=-it
+    else
+        command=("${@:4}")
     fi
     if [[ ! -f $(output-log "$stage") ]]; then
         echo "Running stage $stage"
         rm -rf "$(output-prefix "$stage")*"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
-            docker build -f "$dockerfile" -t "$stage" "$SCRIPTS_DIRECTORY"
+            docker build -f "$dockerfile" -t "${DOCKER_PREFIX}_$stage" "$SCRIPTS_DIRECTORY"
         fi
         mkdir -p "$(output-directory "$stage")"
+        # todo: do not pass --name, instead stop containers via image name
         docker run --rm $flags \
-            --name "${DOCKER_CONTAINER_NAME_PREFIX}_$stage" \
+            --name "${DOCKER_PREFIX}_$stage" \
             -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
             -e DOCKER_RUNNING=y \
-            "$stage" "$command" \
+            "${DOCKER_PREFIX}_$stage" "${command[@]}" \
             > >(append "$(output-log "$stage")") \
             2> >(append "$(output-err "$stage")" >&2)
         copy-output-files "$stage"
@@ -83,7 +85,7 @@ run() {
 
 # stops a running experiment
 stop() {
-    readarray -t containers < <(docker ps -q --filter="name=$DOCKER_CONTAINER_NAME_PREFIX")
+    readarray -t containers < <(docker ps -q --filter="name=$DOCKER_PREFIX")
     if [[ ${#containers[@]} -gt 0 ]]; then
         docker kill "${containers[@]}"
     fi
