@@ -2,6 +2,7 @@
 # ./read-statistics.sh [skip-sloc]
 # counts number of source lines of codes using cloc
 
+# todo: skip if already counted
 add-revision() {
     local system=$1
     local revision=$2

@@ -23,6 +23,7 @@ run-stage() {
         fi
         mkdir -p "$(output-directory "$stage")"
         docker run --rm $flags \
+            --name "${DOCKER_CONTAINER_NAME_PREFIX}_$stage" \
             -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
             -e DOCKER_RUNNING=y \
@@ -68,6 +69,7 @@ clean() {
     require-host
     load-config "$1"
     rm -rf "$OUTPUT_DIRECTORY"
+    # todo: use sudo if necessary (or find a way to create files with the right permissions)
 }
 
 # runs the experiment defined in the given config file
@@ -77,4 +79,12 @@ run() {
     load-config "$1"
     mkdir -p "$OUTPUT_DIRECTORY"
     experiment-stages
+}
+
+# stops a running experiment
+stop() {
+    readarray -t containers < <(docker ps -q --filter="name=$DOCKER_CONTAINER_NAME_PREFIX")
+    if [[ ${#containers[@]} -gt 0 ]]; then
+        docker kill "${containers[@]}"
+    fi
 }

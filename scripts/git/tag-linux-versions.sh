@@ -35,26 +35,30 @@ tag-versions() {
     local end_exclusive=$3
     require-value base_uri
     local versions
-    versions=$(curl -s "$base_uri" | sed 's/.*>\(.*\)<.*/\1/g' | grep .tar.gz | cut -d- -f2 | sed 's/\.tar\.gz//' | sort -V)
-    versions=$(start-at-revision "$start_inclusive")
-    versions=$(stop-at-revision "$end_exclusive")
-    for version in "${versions[@]}"; do
-        if ! "$(git -C "$(input-directory)"/linux tag | grep -q "^v$version$")"; then
+    versions=$(curl -s "$base_uri" \
+        | sed 's/.*>\(.*\)<.*/\1/g' | grep .tar.gz | cut -d- -f2 | sed 's/\.tar\.gz//' | sort -V \
+        | start-at-revision "$start_inclusive" \
+        | stop-at-revision "$end_exclusive")
+    for version in $versions; do
+        if ! git -C "$(input-directory)/linux" tag | grep -q "^v$version$"; then
             echo -n "Adding tag for Linux $version "
             local date
             date=$(date -d "$(curl -s "$base_uri" | grep "linux-$version.tar.gz" | \
                 cut -d'>' -f3 | tr -s ' ' | cut -d' ' -f2- | rev | cut -d' ' -f2- | rev)" +%s)
             echo "($(date -d "@$date" +"%Y-%m-%d")) ..."
             dirty=1
+            push "$(input-directory)"
+            rm -f ./*.tar.gz*
             wget -q "$base_uri/linux-$version.tar.gz"
             tar xzf ./*.tar.gz*
-            push "$(input-directory)/linux"
+            rm -f ./*.tar.gz*
+            push linux
             git reset -q --hard >/dev/null
             git clean -q -dfx >/dev/null
             git checkout -q --orphan "$version" >/dev/null
             git reset -q --hard >/dev/null
             git clean -q -dfx >/dev/null
-            cp -R "../../linux-$version/." ./
+            cp -R "../linux-$version/." ./
             git add -A >/dev/null
             GIT_COMMITTER_DATE=$date git commit -q --date "$date" -m "v$version" >/dev/null
             git tag "v$version" >/dev/null

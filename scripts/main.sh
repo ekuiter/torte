@@ -23,6 +23,7 @@ api=(
 )
 
 SCRIPTS_DIRECTORY=$(dirname "$0") # scripts directory
+DOCKER_CONTAINER_NAME_PREFIX="eval" # prefix for naming Docker containers
 DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
 DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
 DOCKER_OUTPUT_FILE_PREFIX=output # prefix for output files inside Docker containers
@@ -32,7 +33,7 @@ KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storin
 source "$SCRIPTS_DIRECTORY/helpers.sh" # miscellaneous helpers
 source "$SCRIPTS_DIRECTORY/paths.sh" # functions for dealing with input/output paths
 source "$SCRIPTS_DIRECTORY/experiment.sh" # functions for running stages and loading experiments
-source "$SCRIPTS_DIRECTORY/extraction.sh" # functions for extracting kconfig models
+source "$SCRIPTS_DIRECTORY/kconfig.sh" # functions for extracting kconfig models
 
 # define stubs for API functions
 for function in "${api[@]}"; do
