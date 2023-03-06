@@ -2,7 +2,8 @@
 # ./read-statistics.sh [skip-sloc]
 # counts number of source lines of codes using cloc
 
-# todo: skip if already counted
+SCRIPT_OPTION=$1
+
 add-revision() {
     local system=$1
     local revision=$2
@@ -13,7 +14,7 @@ add-revision() {
     local date
     date=$(date -d "@$time" +"%Y-%m-%d")
     echo "$system,$revision,$time,$date" >> "$(output-directory)/date.csv"
-    if [[ $option != skip-sloc ]]; then
+    if [[ $SCRIPT_OPTION != skip-sloc ]]; then
         (cd "input/$system"; cloc --git "$revision" > "$(output-directory)/$revision.txt")
         local sloc
         sloc=$(grep ^SUM < "$(output-directory)/$revision.txt" | tr -s ' ' | cut -d' ' -f5)
@@ -23,11 +24,9 @@ add-revision() {
     fi
 }
 
-option=$1
 # shellcheck source=../../scripts/main.sh
 source main.sh load-config
 echo system,revision,time,date > "$(output-directory)/date.csv"
 echo system,revision,sloc > "$(output-directory)/sloc.csv"
-# shellcheck source=../../scripts/main.sh
-source main.sh load-subjects
+load-subjects
 join-tables "$(output-directory)/date.csv" "$(output-directory)/sloc.csv" 2 > "$(output-csv)"

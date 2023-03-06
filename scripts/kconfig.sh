@@ -82,8 +82,6 @@ compile-kconfig-binding() {
         echo "Failed to compile Kconfig binding $kconfig_binding_name for $system at $revision" 1>&2
         return
     fi
-
-    # todo: return binding file, then pass it to extract-kconfig-model
 }
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
@@ -104,7 +102,7 @@ extract-kconfig-model() {
         fi
     done
     echo "Reading feature model for $system at $revision"
-    trap 'ec=$?; (( ec != 0 )) && (rm -f '"$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"',*,'"$extractor"'* && echo FAIL) || (echo SUCCESS)' EXIT # todo remove this?
+    trap 'ec=$?; (( ec != 0 )) && rm -f '"$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"',*,'"$extractor"'*' EXIT
     mkdir -p "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system"
     push "$(input-directory)/$system"
     if [[ -z $kconfig_binding_file ]]; then
@@ -144,5 +142,51 @@ extract-kconfig-model() {
     done
     pop
     echo "$system,$revision,$kconfig_binding_file,$kconfig_file" >> "$(output-csv)"
+    trap - EXIT
     # todo: improve output, improve error log
+}
+
+# defines API functions for extracting kconfig models
+# sets the global EXTRACTOR and KCONFIG_BINDING variables
+# shellcheck disable=SC2317
+register-kconfig-extractor() {
+    EXTRACTOR=$1
+    KCONFIG_BINDING=$2
+    require-value EXTRACTOR KCONFIG_BINDING
+
+    add-kconfig-binding() {
+        local system=$1
+        local revision=$2
+        local kconfig_binding_files_spec=$3
+        require-value system revision kconfig_binding_files_spec
+        kconfig-checkout "$system" "$revision" "$kconfig_binding_files_spec"
+        compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files_spec"
+    }
+
+    add-kconfig-model() {
+        local system=$1
+        local revision=$2
+        local kconfig_binding_file=$3
+        local kconfig_file=$4
+        local env=$5
+        require-value system revision kconfig_file
+        kconfig-checkout "$system" "$revision"
+        extract-kconfig-model "$EXTRACTOR" "$KCONFIG_BINDING" \
+            "$system" "$revision" "$kconfig_binding_file" "$kconfig_file" "$env"
+    }
+
+    add-kconfig() {
+        local system=$1
+        local revision=$2
+        local kconfig_binding_files_spec=$3
+        local kconfig_file=$4
+        local env=$5
+        require-value system revision kconfig_binding_files_spec kconfig_file
+        kconfig-checkout "$system" "$revision" "$kconfig_binding_files_spec"
+        compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files_spec"
+        extract-kconfig-model "$EXTRACTOR" "$KCONFIG_BINDING" \
+            "$system" "$revision" "" "$kconfig_file" "$env"
+    }
+
+    echo system,tag,kconfig-binding,kconfig-file > "$(output-csv)"
 }

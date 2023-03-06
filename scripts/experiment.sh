@@ -1,13 +1,15 @@
 #!/bin/bash
 
 # runs a stage of some experiment in a Docker container
-# reads the global config_file variable
+# reads the global CONFIG_FILE variable
 run-stage() {
     local stage=$1
     local dockerfile=$2
     local input_directory=$3
     require-host
     require-value CONFIG_FILE stage dockerfile input_directory
+    exec > >(append "$(output-log main)")
+    exec 2> >(append "$(output-err main)" >&2)
     local flags=
     if [[ $# -lt 4 ]]; then
         command=(/bin/bash)
@@ -20,12 +22,10 @@ run-stage() {
         rm -rf "$(output-prefix "$stage")*"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
-            docker build -f "$dockerfile" -t "${DOCKER_PREFIX}_$stage" "$SCRIPTS_DIRECTORY"
+            docker build -m32G -f "$dockerfile" -t "${DOCKER_PREFIX}_$stage" "$SCRIPTS_DIRECTORY"
         fi
         mkdir -p "$(output-directory "$stage")"
-        # todo: do not pass --name, instead stop containers via image name
         docker run --rm $flags \
-            --name "${DOCKER_PREFIX}_$stage" \
             -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
             -e DOCKER_RUNNING=y \
@@ -71,7 +71,6 @@ clean() {
     require-host
     load-config "$1"
     rm -rf "$OUTPUT_DIRECTORY"
-    # todo: use sudo if necessary (or find a way to create files with the right permissions)
 }
 
 # runs the experiment defined in the given config file
@@ -85,7 +84,7 @@ run() {
 
 # stops a running experiment
 stop() {
-    readarray -t containers < <(docker ps -q --filter="name=$DOCKER_PREFIX")
+    readarray -t containers < <(docker ps | awk '$2 ~ /^eval_/ {print $1}')
     if [[ ${#containers[@]} -gt 0 ]]; then
         docker kill "${containers[@]}"
     fi
