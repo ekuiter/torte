@@ -101,29 +101,3 @@ def to_kconfigreader(sexpr):
   return "<unsupported>"
 
 [print(to_kconfigreader(f)) for f in sexprs]
-
-# FeatureIDE export
-
-# sexprs = [parse_sexp(sexpr) for sexpr in sexprs]
-# features = uniq([x for x in flatten(sexprs) if x not in ('not', 'conj', 'disj')])
-
-# def to_xml(sexpr):
-#   if isinstance(sexpr, str):
-#     return "<var>" + sexpr + "</var>"
-#   return "<" + sexpr[0] + ">" + "".join([to_xml(x) for x in sexpr[1:]]) + "</" + sexpr[0] + ">"
-
-# print("""<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-# <featureModel>
-#   <properties/>
-#   <struct>
-#     <and mandatory="true" name="root">""")
-# [print('      <feature name="' + f + '"/>') for f in features]
-# print("""    </and>
-#   </struct>
-#   <constraints>""")
-# [print("    <rule>" + to_xml(f) + "</rule>") for f in sexprs]
-# print("""  </constraints>
-#   <calculations Auto="true" Constraints="true" Features="true" Redundant="true" Tautology="true"/>
-#   <comments/>
-#   <featureOrder userDefined="false"/>
-# </featureModel>""")

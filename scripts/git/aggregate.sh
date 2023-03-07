@@ -14,7 +14,6 @@ stages=("${@:4}")
 require-value file_field stage_field common_fields stages
 
 # todo: hook/eval code for changing the stage (e.g., to only store the iteration in subdirs and csv's)
-
 echo "$common_fields,$stage_field,$file_field" > "$(output-csv)"
 IFS=, read -ra common_fields <<< "$common_fields"
 for stage in "${stages[@]}"; do

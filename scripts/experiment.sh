@@ -19,7 +19,7 @@ run-stage() {
     fi
     if [[ ! -f $(output-log "$stage") ]]; then
         echo "Running stage $stage"
-        echo rm -rf "$(output-prefix "$stage")*" # todo: sudo?
+        rm-safe "$(output-prefix "$stage")"*
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
             docker build \
@@ -105,7 +105,7 @@ load-subjects() {
 clean() {
     require-host
     load-config "$1"
-    rm -rf "$OUTPUT_DIRECTORY" # todo: sudo?
+    rm-safe "$OUTPUT_DIRECTORY"
 }
 
 # runs the experiment defined in the given config file
@@ -114,7 +114,7 @@ run() {
     require-command docker
     load-config "$1"
     mkdir -p "$OUTPUT_DIRECTORY"
-    rm -f "$(output-log main)" "$(output-err main)"
+    rm-safe "$(output-prefix main)"*
     experiment-stages
 }
 

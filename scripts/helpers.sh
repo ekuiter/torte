@@ -184,3 +184,8 @@ stop-at-revision() {
         sed -n '/'"$end_exclusive"'/q;p'
     fi
 }
+
+# removes files and reports an error when there are permission issues
+rm-safe() {
+    LC_ALL=C rm -rf "$@" 2> >(grep -q "Permission denied" && error "Could not remove $* due to missing permissions, did you run Docker in rootless mode?")
+}
