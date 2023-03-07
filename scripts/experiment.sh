@@ -19,7 +19,7 @@ run-stage() {
     fi
     if [[ ! -f $(output-log "$stage") ]]; then
         echo "Running stage $stage"
-        rm -rf "$(output-prefix "$stage")*"
+        echo rm -rf "$(output-prefix "$stage")*" # todo: sudo?
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
             docker build \
@@ -45,60 +45,33 @@ run-stage() {
     fi
 }
 
-# runs a stage a given number of time and merges the output files in one aggregate stage
-# assumes that the iterated stage's CSV file describes one output file per line
-run-iterated-stage() {
-    local aggregate_stage=$1
-    local iterations=$2
-    local file_field=$3
-    local stage_field=$4
-    local dockerfile=$5
-    local input_directory=$6
+# merges the output files of two or more stages in a new stage
+run-aggregate-stage() {
+    local new_stage=$1
+    local arguments=("${@:2}")
     require-host
-    require-value aggregate_stage iterations dockerfile input_directory
-    local stages=()
-    for i in $(seq "$iterations"); do
-        local stage="${aggregate_stage}_$i"
-        stages+=("$stage")
-        run-stage "$stage" "$dockerfile" "$input_directory" "${@:7}"
-    done
-    local common_fields
-    common_fields=$(table-fields-except "$(output-csv "${aggregate_stage}_1")" "$file_field")
-    run-aggregate-stage "$aggregate_stage" "$file_field" "$stage_field" "$common_fields" "${stages[@]}"
+    require-value new_stage arguments
+    run-stage "$new_stage" scripts/git/Dockerfile "$OUTPUT_DIRECTORY" ./aggregate.sh "${arguments[@]}"
 }
 
-# merges the output files of two or more stages in one aggregate stage
-# assumes that each stage's CSV file describes one output file per line
-run-aggregate-stage() {
-    local aggregate_stage=$1
+# runs a stage a given number of time and merges the output files in a new stage
+run-iterated-stage() {
+    local iterations=$1
     local file_field=$2
     local stage_field=$3
-    local common_fields=$4
-    local stages=("${@:5}")
+    local new_stage=$4
+    local arguments=("${@:5}")
     require-host
-    require-value aggregate_stage file_field stage_field common_fields stages
-    if [[ ! -f $(output-log "$aggregate_stage") ]]; then
-        echo "Running stage $aggregate_stage"
-        local aggregate_directory="$OUTPUT_DIRECTORY/$aggregate_stage"
-        echo "$common_fields,$stage_field,$file_field" > "$(output-csv "$aggregate_stage")"
-        IFS=, read -ra common_fields <<< "$common_fields"
-        for stage in "${stages[@]}"; do
-            while read -r file; do
-                local new_file="$aggregate_directory/$stage/$file"
-                mkdir -p "$(dirname "$new_file")"
-                cp "$OUTPUT_DIRECTORY/$stage/$file" "$new_file"
-                for common_field in "${common_fields[@]}"; do
-                    echo -n "$(table-lookup "$(output-csv "$stage")" "$file_field" "$file" "$common_field")," >> "$(output-csv "$aggregate_stage")"
-                done
-                new_file=${new_file#"$aggregate_directory/"}
-                # todo: hook/eval code for changing the stage (e.g., to only store the iteration)
-                echo "$stage,$new_file" >> "$(output-csv "$aggregate_stage")"
-            done < <(table-field "$(output-csv "$stage")" "$file_field")
-        done
-        touch "$(output-log "$aggregate_stage")"
-    else
-        echo "Skipping stage $aggregate_stage"
-    fi
+    require-value iterations file_field stage_field new_stage arguments
+    local stages=()
+    for i in $(seq "$iterations"); do
+        local stage="${new_stage}_$i"
+        stages+=("$stage")
+        run-stage "$stage" "${arguments[@]}"
+    done
+    local common_fields
+    common_fields=$(table-fields-except "$(output-csv "${new_stage}_1")" "$file_field")
+    run-aggregate-stage "$new_stage" "$file_field" "$stage_field" "$common_fields" "${stages[@]}"
 }
 
 # prepares an experiment by loading the given config file
@@ -132,7 +105,7 @@ load-subjects() {
 clean() {
     require-host
     load-config "$1"
-    rm -rf "$OUTPUT_DIRECTORY"
+    rm -rf "$OUTPUT_DIRECTORY" # todo: sudo?
 }
 
 # runs the experiment defined in the given config file

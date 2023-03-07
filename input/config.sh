@@ -27,29 +27,30 @@ experiment-stages() {
         `# command` ./read-statistics.sh skip-sloc
 
     run-iterated-stage \
-        `# aggregate stage` kconfigreader \
         `# iterations` 2 \
         `# file field` kconfig-model \
-        `# stage field` extractor_iteration \
+        `# stage field` extractor-iteration \
+        `# stage` kconfigreader \
         `# dockerfile` scripts/kconfigreader/Dockerfile \
         `# input` "$(input-directory)" \
         `# command` ./extract-kconfig.sh
 
     run-iterated-stage \
-        `# aggregate stage` kclause \
         `# iterations` 2 \
         `# file field` kconfig-model \
-        `# stage field` extractor_iteration \
+        `# stage field` extractor-iteration \
+        `# stage` kclause \
         `# dockerfile` scripts/kclause/Dockerfile \
         `# input` "$(input-directory)" \
         `# command` ./extract-kconfig.sh
 
     run-aggregate-stage \
-        `# aggregate stage` kconfig-models \
+        `# stage` kconfig-models \
         `# file field` kconfig-model \
         `# stage field` extractor \
-        `# common fields` system,revision,extractor_iteration \
+        `# common fields` system,revision,extractor-iteration \
         `# stages` kconfigreader kclause
+
         
     # run-stage transform-into-cnf-with-kconfigreader scripts/kconfigreader/Docker "$(output-directory kconfig-models)" ./transform-into-cnf.sh
     #todo: put number of features, variables, time etc into CSV
