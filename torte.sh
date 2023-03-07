@@ -1,2 +1,2 @@
 #!/bin/bash
-scripts/torte.sh "$@"
+"$(dirname "$0")"/scripts/torte.sh "$@"
