@@ -22,5 +22,8 @@ RUN git clone https://github.com/skrieter/javasmt-native.git \
     && git -C javasmt-native checkout 58cca175e9c52e9d72e908fa0a4ba2de6ecc0acb
 RUN printf "util\nevaluation\nformula\nformula-analysis\nformula-analysis-javasmt\njavasmt-native" > build.cfg \
     && ./build.sh -c
-COPY evaluation-cnf ./evaluation-cnf
+COPY featjar/evaluation-cnf ./evaluation-cnf
 RUN mvn install -f evaluation-cnf/pom.xml
+WORKDIR /home
+COPY *.sh featjar/*.sh ./
+RUN chmod +x *.sh

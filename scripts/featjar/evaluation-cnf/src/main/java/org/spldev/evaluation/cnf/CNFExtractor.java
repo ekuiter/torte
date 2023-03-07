@@ -43,10 +43,10 @@ public class CNFExtractor extends Evaluator {
 
 	private void evaluateForParameters(Parameters parameters, Transformation transformation) {
 		// todo: re-add old ASE behavior
-		if ((transformation.toString().equals("z3") && !parameters.modelPath.contains(",kclause.")) ||
-			(transformation.toString().equals("kconfigreader") && !parameters.modelPath.contains(",kconfigreader."))) {
-			return;
-		}
+		// if ((transformation.toString().equals("z3") && !parameters.modelPath.contains(",kclause.")) ||
+		// 	(transformation.toString().equals("kconfigreader") && !parameters.modelPath.contains(",kconfigreader."))) {
+		// 	return;
+		// }
 		tabFormatter.setTabLevel(2);
 		transformation.setParameters(parameters);
 		Wrapper wrapper = new Wrapper(transformation);

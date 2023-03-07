@@ -70,5 +70,5 @@ tag-revisions() {
     done
 }
 
-# shellcheck source=../../scripts/main.sh
-source main.sh load-subjects
+# shellcheck source=../../scripts/torte.sh
+source torte.sh load-subjects

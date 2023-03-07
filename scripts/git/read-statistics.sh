@@ -24,8 +24,8 @@ add-revision() {
     fi
 }
 
-# shellcheck source=../../scripts/main.sh
-source main.sh load-config
+# shellcheck source=../../scripts/torte.sh
+source torte.sh load-config
 echo system,revision,time,date > "$(output-directory)/date.csv"
 echo system,revision,sloc > "$(output-directory)/sloc.csv"
 load-subjects

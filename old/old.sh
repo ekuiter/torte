@@ -1,29 +1,3 @@
-# stage 2a: transform .model files into .dimacs (FeatureIDE), .smt (z3), and .model (kconfigreader-transform)
-if [[ ! -d output/intermediate ]] || [[ ! -d output/dimacs ]]; then
-    rm -rf output/stage2_output
-    mkdir -p output/stage2_output output/intermediate output/dimacs
-    ls output/models > output/stage2_output/models.txt
-    cp -r output/models output/stage2_output/models
-
-    # build and run Docker image (analogous to above)
-    if [[ $SKIP_BUILD != y ]]; then
-        docker build -f stage2/Dockerfile -t stage2 stage2
-    fi
-    docker run --rm -m $MEMORY_LIMIT -e TIMEOUT_TRANSFORM -v $PWD/output/stage2_output:/home/spldev/evaluation-cnf/output stage2 evaluation-cnf/transform.sh
-
-    # arrange files for further processing
-    for file in output/stage2_output/*/temp/*.@(dimacs|smt|model|stats); do
-        newfile=$(basename $file | sed 's/\.model_/,/g' | sed 's/_0\././g' | sed 's/hierarchy_/hierarchy,/g')
-        if [[ $newfile != *.stats ]] || [[ $newfile == *hierarchy* ]]; then
-            cp $file output/intermediate/$newfile
-        fi
-    done
-    mv output/intermediate/*.dimacs output/dimacs || true
-else
-    echo Skipping stage 2a
-
-fi
-
 # stage 2b: transform .smt and .model files into .dimacs with z3 and kconfigreader-transform
 if ! ls output/dimacs | grep -q z3; then
     for reader in ${READERS[@]}; do

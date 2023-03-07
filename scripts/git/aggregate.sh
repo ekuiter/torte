@@ -2,10 +2,10 @@
 # ./aggregate.sh
 # merges the output files of two or more stages in a new stage
 # assumes that each stage's CSV file describes one output file per line
-# assumes that the input directory is the root output directory
+# assumes that the input directory is the root output directory, also makes some assumptions about its layout
 
-# shellcheck source=../../scripts/main.sh
-source main.sh load-config
+# shellcheck source=../../scripts/torte.sh
+source torte.sh load-config
 
 file_field=$1
 stage_field=$2

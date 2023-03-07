@@ -8,8 +8,8 @@ run-stage() {
     local input_directory=$3
     require-host
     require-value CONFIG_FILE stage dockerfile input_directory
-    exec > >(append "$(output-log main)")
-    exec 2> >(append "$(output-err main)" >&2)
+    exec > >(append "$(output-log torte)")
+    exec 2> >(append "$(output-err torte)" >&2)
     local flags=
     if [[ $# -lt 4 ]]; then
         command=(/bin/bash)
@@ -19,7 +19,7 @@ run-stage() {
     fi
     if [[ ! -f $(output-log "$stage") ]]; then
         echo "Running stage $stage"
-        rm-safe "$(output-prefix "$stage")"*
+        rm-safe "$(output-prefix "$stage")"/ "$(output-prefix "$stage")".*
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
             docker build \
@@ -40,6 +40,7 @@ run-stage() {
             2> >(append "$(output-err "$stage")" >&2)
         copy-output-files "$stage"
         rmdir --ignore-fail-on-non-empty "$(output-directory "$stage")"
+        # todo: delete err file if empty
     else
         echo "Skipping stage $stage"
     fi
@@ -101,7 +102,8 @@ load-subjects() {
     experiment-subjects
 }
 
-# removes all output files specified by the given config file, does not touch input files or Docker images
+# removes all output files specified by the given config file
+# does not touch input files or Docker images
 clean() {
     require-host
     load-config "$1"
@@ -114,7 +116,7 @@ run() {
     require-command docker
     load-config "$1"
     mkdir -p "$OUTPUT_DIRECTORY"
-    rm-safe "$(output-prefix main)"*
+    rm-safe "$(output-prefix torte)".*
     experiment-stages
 }
 

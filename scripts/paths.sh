@@ -29,6 +29,13 @@ output-prefix() {
     fi
 }
 
+# returns a file with a given extension for the input of the current stage
+input-file() {
+    local extension=$1
+    require-value extension
+    echo "$(input-directory)/$DOCKER_OUTPUT_FILE_PREFIX.$extension"
+}
+
 # returns a file with a given extension for the output of a given stage
 output-file() {
     local extension=$1
@@ -37,10 +44,13 @@ output-file() {
     echo "$(output-prefix "$stage").$extension"
 }
 
-# standard output files
-output-csv() { output-file csv "$1"; } # for experimental results
-output-log() { output-file log "$1"; } # for human-readable output (by default, output of Docker container)
-output-err() { output-file err "$1"; } # for human-readable errors
+# standard files for experimental results, human-readable output, and human-readable errors
+input-csv() { input-file csv; }
+input-log() { input-file log; }
+input-err() { input-file err; }
+output-csv() { output-file csv "$1"; }
+output-log() { output-file log "$1"; }
+output-err() { output-file err "$1"; }
 
 # moves all output files of a given stage into the root output directory
 copy-output-files() {

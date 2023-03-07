@@ -6,6 +6,7 @@
 export INPUT_DIRECTORY=input # path to system repositories
 export OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
 export SKIP_DOCKER_BUILD= # y if building Docker images should be skipped, useful for loading imported images
+export TRANSFORM_INTO_CNF_TIMEOUT=5 # transformation timeout in seconds
 
 experiment-stages() {
     run-stage \
@@ -51,8 +52,21 @@ experiment-stages() {
         `# common fields` system,revision,extractor-iteration \
         `# stages` kconfigreader kclause
 
-        
-    # run-stage transform-into-cnf-with-kconfigreader scripts/kconfigreader/Docker "$(output-directory kconfig-models)" ./transform-into-cnf.sh
+    # todo: specify input models as below
+    # error handling for missing models
+    # specify used transformation
+    # write csv file
+    # move stats into csv file
+    run-stage evaluation-cnf scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform-into-cnf.sh
+
+    # for file in output/stage2_output/*/temp/*.@(dimacs|smt|model|stats); do
+    #     newfile=$(basename $file | sed 's/\.model_/,/g' | sed 's/_0\././g' | sed 's/hierarchy_/hierarchy,/g')
+    #     if [[ $newfile != *.stats ]] || [[ $newfile == *hierarchy* ]]; then
+    #         cp $file output/intermediate/$newfile
+    #     fi
+    # done
+    # mv output/intermediate/*.dimacs output/dimacs || true
+    
     #todo: put number of features, variables, time etc into CSV
 }
 
@@ -117,7 +131,6 @@ kclause-post-binding-hook() {
 
 #ANALYSES="void dead core" # analyses to run on feature models, see run-...-analysis functions
 #ANALYSES="void" # analyses to run on feature models, see run-...-analysis functions
-# TIMEOUT_TRANSFORM=180 # transformation timeout in seconds
 # TIMEOUT_ANALYZE=1800 # analysis timeout in seconds
 # RANDOM_SEED=2302101557 # seed for choosing core/dead features
 # NUM_FEATURES=1 # number of randomly chosen core/dead features

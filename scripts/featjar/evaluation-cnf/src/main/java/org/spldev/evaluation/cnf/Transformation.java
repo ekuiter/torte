@@ -37,7 +37,7 @@ public abstract class Transformation implements Serializable {
 	@SuppressWarnings("StaticInitializerReferencesSubClass")
 	public static Transformation[] transformations = new Transformation[] {
 		// todo
-		//new FeatureIDE(),
+		new FeatureIDE(),
 		new Z3(),
 		new KConfigReader()
 	};
