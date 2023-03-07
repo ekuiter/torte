@@ -13,6 +13,7 @@ api=(
     experiment-stages
     experiment-subjects
     kconfig-post-checkout-hook
+    kclause-post-binding-hook
 
     # implemented in Docker containers
     add-system

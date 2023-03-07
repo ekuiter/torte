@@ -1,43 +1,3 @@
-
-# stage 1: extract feature models as .model files with kconfigreader-extract and kclause
-if [[ ! -d output/models ]]; then
-    # clean up previous (incomplete) files
-    rm -rf output/kconfigreader output/kclause
-    mkdir -p output/models
-
-    # extract feature models with kconfigreader and kclause
-    for reader in ${READERS[@]}; do
-        # build Docker image
-        if [[ $SKIP_BUILD != y ]]; then
-            docker build -f stage1/$reader/Dockerfile -t stage1_$reader stage1
-        fi
-
-        # run evaluation script inside Docker container
-        # for other evaluations, you can run other scripts (e.g., extract_all.sh)
-        docker run --rm -m $MEMORY_LIMIT -e N -v $PWD/output/stage1_${reader}_output:/home/output -v $PWD/input:/home/input stage1_$reader ./input/extract.sh
-        
-        # arrange files for further processing
-        for system in output/stage1_${reader}_output/models/*; do
-            system=$(basename $system)
-            for file in output/stage1_${reader}_output/models/$system/*.model; do
-                cp output/stage1_${reader}_output/models/$system/$(basename $file) output/models/$system,$(basename $file)
-            done
-        done
-    done
-
-    # add hierarchical models from Knüppel's "Is there a mismatch" paper
-    rm -f output/models/*.xml
-    i=0
-    while [ $i -ne $N ]; do
-        i=$(($i+1))
-        for h in ${HIERARCHIES[@]}; do
-            cp input/hierarchies/$h.xml output/models/$(basename $h .xml),$i,hierarchy.xml
-        done
-    done
-else
-    echo Skipping stage 1
-fi
-
 # stage 2a: transform .model files into .dimacs (FeatureIDE), .smt (z3), and .model (kconfigreader-transform)
 if [[ ! -d output/intermediate ]] || [[ ! -d output/dimacs ]]; then
     rm -rf output/stage2_output
@@ -61,6 +21,7 @@ if [[ ! -d output/intermediate ]] || [[ ! -d output/dimacs ]]; then
     mv output/intermediate/*.dimacs output/dimacs || true
 else
     echo Skipping stage 2a
+
 fi
 
 # stage 2b: transform .smt and .model files into .dimacs with z3 and kconfigreader-transform

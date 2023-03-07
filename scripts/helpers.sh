@@ -66,7 +66,7 @@ replace-times() {
     fi
 }
 
-# joins two CSV files on the first n columns, assumes that the first line contains a header
+# joins two CSV files on the first n fields, assumes that the first line contains a header
 join-tables() {
     local a=$1
     local b=$2
@@ -81,6 +81,42 @@ join-tables() {
         <(replace-times $n , \# < "$a" | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
         <(replace-times $n , \# < "$b" | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
         | replace-times $n \# ,
+}
+
+# gets the index of a named field in a CSV file
+table-field-index() {
+    local file=$1
+    local field=$2
+    require-value file field
+    sed 's/,/\n/g;q' < "$file" | nl | grep "$field" | cut -f1 | xargs
+}
+
+# gets all values of a named field in a CSV file
+table-field() {
+    local file=$1
+    local field=$2
+    require-value file field
+    # shellcheck disable=SC2094
+    cut -d, -f "$(table-field-index "$file" "$field")" < "$file" | tail -n+2
+}
+
+# select field from CSV file where key equals value
+table-lookup() {
+    local file=$1
+    local key=$2
+    local value=$3
+    local field=$4
+    require-value file key value field
+    # shellcheck disable=SC2094
+    awk -F, '$'"$(table-field-index "$file" "$key")"' == "'"$value"'" {print $'"$(table-field-index "$file" "$field")"'}' < "$file"
+}
+
+# returns all fields from a CSV file except the given field
+table-fields-except() {
+    local file=$1
+    local field=$2
+    require-value file field
+    head -n1 < "$file" | sed 's/'"$field"'//' | sed 's/,,/,/' | sed 's/,$//g' | sed 's/^,//g'
 }
 
 # silently push directory

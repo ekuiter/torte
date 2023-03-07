@@ -8,11 +8,51 @@ export OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
 export SKIP_DOCKER_BUILD= # y if building Docker images should be skipped, useful for loading imported images
 
 experiment-stages() {
-    run-stage 1 scripts/git/Dockerfile "$(input-directory)" ./clone-systems.sh
-    run-stage 2 scripts/git/Dockerfile "$(input-directory)" ./tag-linux-versions.sh
-    run-stage 3 scripts/git/Dockerfile "$(input-directory)" ./read-statistics.sh skip-sloc
-    run-stage 4 scripts/kconfigreader/Dockerfile "$(input-directory)" ./extract-kconfig.sh
-    run-stage 5 scripts/kclause/Dockerfile "$(input-directory)" ./extract-kconfig.sh
+    run-stage \
+        `# stage` clone-systems \
+        `# dockerfile` scripts/git/Dockerfile \
+        `# input` "$(input-directory)" \
+        `# command` ./clone-systems.sh
+
+    run-stage \
+        `# stage` tag-linux-revisions \
+        `# dockerfile` scripts/git/Dockerfile \
+        `# input` "$(input-directory)" \
+        `# command` ./tag-linux-revisions.sh
+
+    run-stage \
+        `# stage` read-statistics \
+        `# dockerfile` scripts/git/Dockerfile \
+        `# input` "$(input-directory)" \
+        `# command` ./read-statistics.sh skip-sloc
+
+    run-iterated-stage \
+        `# aggregate stage` kconfigreader \
+        `# iterations` 2 \
+        `# file field` kconfig-model \
+        `# stage field` extractor_iteration \
+        `# dockerfile` scripts/kconfigreader/Dockerfile \
+        `# input` "$(input-directory)" \
+        `# command` ./extract-kconfig.sh
+
+    run-iterated-stage \
+        `# aggregate stage` kclause \
+        `# iterations` 2 \
+        `# file field` kconfig-model \
+        `# stage field` extractor_iteration \
+        `# dockerfile` scripts/kclause/Dockerfile \
+        `# input` "$(input-directory)" \
+        `# command` ./extract-kconfig.sh
+
+    run-aggregate-stage \
+        `# aggregate stage` kconfig-models \
+        `# file field` kconfig-model \
+        `# stage field` extractor \
+        `# common fields` system,revision,extractor_iteration \
+        `# stages` kconfigreader kclause
+        
+    # run-stage transform-into-cnf-with-kconfigreader scripts/kconfigreader/Docker "$(output-directory kconfig-models)" ./transform-into-cnf.sh
+    #todo: put number of features, variables, time etc into CSV
 }
 
 experiment-subjects() {
@@ -61,23 +101,26 @@ kconfig-post-checkout-hook() {
     fi
 }
 
+kclause-post-binding-hook() {
+    system=$1
+    revision=$2
+    require-value system revision
+
+    if [[ $system == embtoolkit ]]; then
+        # fix incorrect feature names, which Kclause interprets as a binary subtraction operator
+        sed -i 's/-/_/g' "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause"
+    fi
+}
+
 # a version is sys,tag/revision,arch,iteration
 
-#READERS="kconfigreader kclause" # Docker containers with Kconfig extractors
-#READERS="kclause" # Docker containers with Kconfig extractors
 #ANALYSES="void dead core" # analyses to run on feature models, see run-...-analysis functions
 #ANALYSES="void" # analyses to run on feature models, see run-...-analysis functions
-#N=
-# ITERATIONS=1 # number of iterations
 # TIMEOUT_TRANSFORM=180 # transformation timeout in seconds
 # TIMEOUT_ANALYZE=1800 # analysis timeout in seconds
 # RANDOM_SEED=2302101557 # seed for choosing core/dead features
 # NUM_FEATURES=1 # number of randomly chosen core/dead features
-# SKIP_ANALYSIS=n # whether to only extract and transform feature models, omitting an analysis
 # MEMORY_LIMIT=128g # memory limit for Docker containers
-
-# evaluated hierarchical feature models
-#HIERARCHIES=""
 
 # evaluated (#)SAT solvers
 # we choose all winning SAT solvers in SAT competitions

@@ -98,7 +98,7 @@ def to_kconfigreader(sexpr):
     return "(" + "|".join([to_kconfigreader(x) for x in sexpr[1:]]) + ")"
   if sexpr[0] == "not":
     return "!" + to_kconfigreader(sexpr[1])
-  return "bla"
+  return "<unsupported>"
 
 [print(to_kconfigreader(f)) for f in sexprs]
 

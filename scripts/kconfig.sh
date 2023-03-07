@@ -16,10 +16,10 @@ kconfig-checkout() {
     if [[ -n $kconfig_binding_files_spec ]]; then
         # make sure all dependencies for the kconfig binding are compiled
         # make config sometimes asks for integers (not easily simulated with "yes"), which is why we add a timeout
-        make "$kconfig_binding_files" >/dev/null \
-            || (yes | make allyesconfig >/dev/null) \
-            || (yes | make xconfig >/dev/null) \
-            || (yes "" | timeout 20s make config >/dev/null) \
+        make "$kconfig_binding_files" >/dev/null 2>&1 \
+            || (yes | make allyesconfig >/dev/null 2>&1) \
+            || (yes | make xconfig >/dev/null 2>&1) \
+            || (yes "" | timeout 20s make config >/dev/null 2>&1) \
             || true
         strip -N main "$kconfig_binding_directory"/*.o || true
     fi
@@ -74,7 +74,7 @@ compile-kconfig-binding() {
         fi
     done
 
-    local cmd="gcc ../../$kconfig_binding_name.c $kconfig_binding_files -I $kconfig_binding_directory -Wall -Werror=switch $gcc_arguments -Wno-format -o $kconfig_binding_output_file"
+    local cmd="gcc ../../$kconfig_binding_name.c $kconfig_binding_files -I $kconfig_binding_directory -w -Werror=switch$gcc_arguments -o $kconfig_binding_output_file"
     (echo "$cmd" && eval "$cmd") || true
     chmod +x "$kconfig_binding_output_file" || true
     pop
@@ -82,6 +82,7 @@ compile-kconfig-binding() {
         echo "Failed to compile Kconfig binding $kconfig_binding_name for $system at $revision" 1>&2
         return
     fi
+    echo "$system,$revision,$kconfig_binding_output_file" >> "$(output-directory)/kconfig-bindings.csv"
 }
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
@@ -95,14 +96,12 @@ extract-kconfig-model() {
     local kconfig_file=$6
     local env=$7
     require-value extractor kconfig_binding system revision kconfig_file
-    for file in "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision,"*",$extractor.model"; do
-        if [[ -f $file ]]; then
-            echo "Skipping Kconfig model for $system at $revision"
-            return
-        fi
-    done
-    echo "Reading feature model for $system at $revision"
-    trap 'ec=$?; (( ec != 0 )) && rm -f '"$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"',*,'"$extractor"'*' EXIT
+    if [[ -f $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.model ]]; then
+        echo "Skipping Kconfig model for $system at $revision"
+        return
+    fi
+    echo "Extracting Kconfig model for $system at $revision"
+    trap 'ec=$?; (( ec != 0 )) && rm -f '"$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"'*' EXIT
     mkdir -p "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system"
     push "$(input-directory)/$system"
     if [[ -z $kconfig_binding_file ]]; then
@@ -111,39 +110,39 @@ extract-kconfig-model() {
     if [[ -n $env ]]; then
         env="$(echo '' -e "$6" | sed 's/,/ -e /g')"
     fi
-    i=0
-    local N=1 # todo: iterations
-    while [[ $i -ne $N ]]; do
-        i=$((i+1))
-        local model
-        model="$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision,$i,$extractor.model"
-        if [[ $extractor == kconfigreader ]]; then
-            start=$(date +%s.%N)
-            cmd="/home/kconfigreader/run.sh de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf $kconfig_binding_file $kconfig_file $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision,$i,$extractor"
-            (echo "$cmd" && eval "$cmd") || true
-            end=$(date +%s.%N)
-        elif [[ $extractor == kclause ]]; then
-            start=$(date +%s.%N)
-            cmd="$kconfig_binding_file --extract -o $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision,$i,$extractor.kclause $env $kconfig_file"
-            (echo "$cmd" && eval "$cmd") || true
-            cmd="$kconfig_binding_file --configs $env $kconfig_file > $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision,$i,$extractor.features"
-            (echo "$cmd" && eval "$cmd") || true
-            if [[ $extractor == embtoolkit ]]; then
-                # fix incorrect feature names, which Kclause interprets as a binary subtraction operator
-                sed -i 's/-/_/g' "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision,$i,$extractor.kclause"
-            fi
-            cmd="kclause < $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision,$i,$extractor.kclause > $model"
-            (echo "$cmd" && eval "$cmd") || true
-            end=$(date +%s.%N)
-            cmd="python3 /home/kclause2kconfigreader.py $model > $model.tmp && mv $model.tmp $model"
-            (echo "$cmd" && eval "$cmd") || true
-        fi
-        echo "#item time $(echo "($end - $start) * 1000000000 / 1" | bc)" >> "$model"
-    done
+    local kconfig_model
+    local start
+    local cmd
+    local end
+    kconfig_model="$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.model"
+    if [[ $extractor == kconfigreader ]]; then
+        start=$(date +%s.%N)
+        cmd="/home/kconfigreader/run.sh de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf $kconfig_binding_file $kconfig_file $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"
+        (echo "$cmd" && eval "$cmd") || true
+        end=$(date +%s.%N)
+    elif [[ $extractor == kclause ]]; then
+        start=$(date +%s.%N)
+        cmd="$kconfig_binding_file --extract -o $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause $env $kconfig_file"
+        (echo "$cmd" && eval "$cmd") || true
+        cmd="$kconfig_binding_file --configs $env $kconfig_file > $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.features"
+        (echo "$cmd" && eval "$cmd") || true
+        kclause-post-binding-hook "$system" "$revision"
+        cmd="kclause < $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause > $kconfig_model"
+        (echo "$cmd" && eval "$cmd") || true
+        end=$(date +%s.%N)
+        cmd="python3 /home/kclause2kconfigreader.py $kconfig_model > $kconfig_model.tmp && mv $kconfig_model.tmp $kconfig_model"
+        (echo "$cmd" && eval "$cmd") || true
+    fi
+    echo "#item time $(echo "($end - $start) * 1000000000 / 1" | bc)" >> "$kconfig_model"
     pop
-    echo "$system,$revision,$kconfig_binding_file,$kconfig_file" >> "$(output-csv)"
     trap - EXIT
-    # todo: improve output, improve error log
+    if [[ -f $kconfig_model ]]; then
+        kconfig_binding_file=${kconfig_binding_file#"$(output-directory)/"}
+        kconfig_model=${kconfig_model#"$(output-directory)/"}
+        echo "$system,$revision,$kconfig_binding_file,$kconfig_file,$kconfig_model" >> "$(output-csv)"
+    else
+        echo "Failed to extract Kconfig model for $system at $revision"
+    fi
 }
 
 # defines API functions for extracting kconfig models
@@ -154,6 +153,7 @@ register-kconfig-extractor() {
     KCONFIG_BINDING=$2
     require-value EXTRACTOR KCONFIG_BINDING
 
+    # todo: separate binding and model stages?
     add-kconfig-binding() {
         local system=$1
         local revision=$2
@@ -188,5 +188,6 @@ register-kconfig-extractor() {
             "$system" "$revision" "" "$kconfig_file" "$env"
     }
 
-    echo system,tag,kconfig-binding,kconfig-file > "$(output-csv)"
+    echo system,revision,kconfig-binding > "$(output-directory)/kconfig-bindings.csv"
+    echo system,revision,kconfig-binding,kconfig-file,kconfig-model > "$(output-csv)"
 }
