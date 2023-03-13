@@ -57,8 +57,10 @@ experiment-stages() {
     # specify used transformation
     # write csv file
     # move stats into csv file
-    run-stage evaluation-cnf scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform-into-cnf.sh
-
+    #run-stage evaluation-cnf scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform-into-cnf.sh
+    
+    run-stage featjar2 scripts/featjar2/Dockerfile "$(output-directory kconfig-models)"
+    
     # for file in output/stage2_output/*/temp/*.@(dimacs|smt|model|stats); do
     #     newfile=$(basename $file | sed 's/\.model_/,/g' | sed 's/_0\././g' | sed 's/hierarchy_/hierarchy,/g')
     #     if [[ $newfile != *.stats ]] || [[ $newfile == *hierarchy* ]]; then
