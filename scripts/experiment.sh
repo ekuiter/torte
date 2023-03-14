@@ -33,6 +33,15 @@ clean-stage-output() {
     rm-safe "$(output-directory "$stage")"
 }
 
+# removes all output for the given experiment stage
+clean-stage() {
+    local stage=$1
+    require-host
+    require-value stage
+    clean-stage-output "$stage"
+    rm-safe "$(output-prefix "$stage")".*
+}
+
 # runs a stage of some experiment in a Docker container
 # reads the global CONFIG_FILE variable
 run-stage() {
@@ -52,8 +61,7 @@ run-stage() {
     fi
     if ! has-stage-log "$stage"; then
         echo "Running stage $stage"
-        clean-stage-output "$stage"
-        rm-safe "$(output-prefix "$stage")".*
+        clean-stage "$stage"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
             docker build \
@@ -74,12 +82,20 @@ run-stage() {
             > >(append "$(output-log "$stage")") \
             2> >(append "$(output-err "$stage")" >&2)
         copy-output-files "$stage"
-        if [[ ! -s "$(output-err "$stage")" ]]; then
+        if is-file-empty "$(output-err "$stage")"; then
             rm "$(output-err "$stage")"
         fi
     else
         echo "Skipping stage $stage"
     fi
+}
+
+# skips a stage, useful to comment out a stage temporarily
+skip-stage() {
+    local stage=$1
+    require-host
+    require-value stage
+    echo "Skipping stage $stage"
 }
 
 # merges the output files of two or more stages in a new stage
@@ -175,7 +191,7 @@ run() {
     require-command docker
     load-config "$1"
     mkdir -p "$OUTPUT_DIRECTORY"
-    rm-safe "$(output-prefix torte)".*
+    clean-stage torte
     experiment-stages
 }
 

@@ -79,8 +79,7 @@ compile-kconfig-binding() {
     chmod +x "$kconfig_binding_output_file" || true
     pop
     if [[ ! -f $kconfig_binding_output_file ]]; then
-        echo "Failed to compile Kconfig binding $kconfig_binding_name for $system at $revision" 1>&2
-        return
+        kconfig_binding_output_file=NA
     fi
     echo "$system,$revision,$kconfig_binding_output_file" >> "$(output-directory)/kconfig-bindings.csv"
 }
@@ -137,13 +136,13 @@ extract-kconfig-model() {
     echo "#item time $(echo "($end - $start) * 1000000000 / 1" | bc)" >> "$kconfig_model"
     pop
     trap - EXIT
-    if [[ -f $kconfig_model ]]; then
-        kconfig_binding_file=${kconfig_binding_file#"$(output-directory)/"}
-        kconfig_model=${kconfig_model#"$(output-directory)/"}
-        echo "$system,$revision,$kconfig_binding_file,$kconfig_file,$kconfig_model" >> "$(output-csv)"
+    kconfig_binding_file=${kconfig_binding_file#"$(output-directory)/"}
+    if is-file-empty "$kconfig_model"; then
+        kconfig_model=NA
     else
-        echo "Failed to extract Kconfig model for $system at $revision"
+        kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
+    echo "$system,$revision,$kconfig_binding_file,$kconfig_file,$kconfig_model" >> "$(output-csv)"
 }
 
 # defines API functions for extracting kconfig models

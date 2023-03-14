@@ -202,16 +202,29 @@ memory-limit() {
     echo "$((MEMORY_LIMIT-further_limit))"
 }
 
-# measures the time needed to execute a command
+# measures the time needed to execute a command, setting an optional timeout
+# if the timeout is 0, no timeout is set
 measure-time() {
+    local timeout=$1
+    require-value timeout
     require-command bc
-    local command=("$@")
+    local command=("${@:2}")
     echo "${command[@]}"
     local start
     start=$(date +%s.%N)
-    "${command[@]}"
+    local exit_code
+    timeout "$timeout" "${command[@]}" || exit_code=$?
+    if [[ $exit_code -eq 124 ]]; then
+        echo "timeout occurred"
+    fi
     local end
     end=$(date +%s.%N)
     echo "time: $(echo "($end - $start) * 1000000000 / 1" | bc)ns"
     echo
+}
+
+is-file-empty() {
+    local file=$1
+    require-value file
+    [[ ! -f "$file" ]] || [[ ! -s "$file" ]]
 }

@@ -44,34 +44,73 @@ experiment-stages() {
         `# common fields` system,revision,iteration \
         `# stage transformer` "" \
         `# stages` kconfigreader kclause
+    
+    run-stage \
+        `# stage` featureide-dimacs \
+        `# dockerfile` scripts/featjar/Dockerfile \
+        `# input` "$(output-directory kconfig-models)" \
+        `# command` ./transform.sh \
+        `# file field` kconfig-model \
+        `# output field ` dimacs-file \
+        `# input extension` model \
+        `# output extension` dimacs \
+        `# transformation` ModelToDIMACSFeatureIDE \
+        `# timeout in seconds` 10
+
+    run-stage \
+        `# stage` featureide-model \
+        `# dockerfile` scripts/featjar/Dockerfile \
+        `# input` "$(output-directory kconfig-models)" \
+        `# command` ./transform.sh \
+        `# file field` kconfig-model \
+        `# output field ` model-file \
+        `# input extension` model \
+        `# output extension` model \
+        `# transformation` ModelToModelFeatureIDE \
+        `# timeout in seconds` 10
+
+    run-stage \
+        `# stage` kconfigreader-dimacs \
+        `# dockerfile` scripts/kconfigreader/Dockerfile \
+        `# input` "$(output-directory featureide-model)" \
+        `# command` ./transform-into-cnf.sh \
+        `# timeout in seconds` 10
+
+    run-stage \
+        `# stage` featjar-dimacs \
+        `# dockerfile` scripts/featjar/Dockerfile \
+        `# input` "$(output-directory kconfig-models)" \
+        `# command` ./transform.sh \
+        `# file field` kconfig-model \
+        `# output field ` dimacs-file \
+        `# input extension` model \
+        `# output extension` dimacs \
+        `# transformation` ModelToDIMACSFeatJAR \
+        `# timeout in seconds` 10
+
+    skip-stage \
+        `# stage` z3-smt \
+        `# dockerfile` scripts/featjar/Dockerfile \
+        `# input` "$(output-directory kconfig-models)" \
+        `# command` ./transform.sh \
+        `# file field` kconfig-model \
+        `# output field ` smt-file \
+        `# input extension` model \
+        `# output extension` smt \
+        `# transformation` ModelToSMTZ3 \
+        `# timeout in seconds` 10
 
     # todo: filter stage that removes input files before executing another stage
-
     # error handling for missing models
-    # write csv file
     # move stats into csv file
-    #run-stage evaluation-cnf scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform-into-cnf.sh
-    
-    # run-stage dimacs-featureide scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform.sh \
-    #     `# file field` kconfig-model \
-    #     `# input extension` model \
-    #     `# output extension` dimacs \
-    #     `# transformation` ModelToDIMACSFeatureIDE \
-    #     `# timeout in seconds` 10
 
-    # run-stage model-featureide scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform.sh \
+    # run-aggregate-stage \
+    #     `# stage` kconfig-models \
     #     `# file field` kconfig-model \
-    #     `# input extension` model \
-    #     `# output extension` model \
-    #     `# transformation` ModelToModelFeatureIDE \
-    #     `# timeout in seconds` 10
-
-    # run-stage dimacs-featjar scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform.sh \
-    #     `# file field` kconfig-model \
-    #     `# input extension` model \
-    #     `# output extension` dimacs \
-    #     `# transformation` ModelToDIMACSFeatJAR \
-    #     `# timeout in seconds` 10
+    #     `# stage field` extractor \
+    #     `# common fields` system,revision,iteration \
+    #     `# stage transformer` "" \
+    #     `# stages` kconfigreader kclause
     
     # for file in output/stage2_output/*/temp/*.@(dimacs|smt|model|stats); do
     #     newfile=$(basename $file | sed 's/\.model_/,/g' | sed 's/_0\././g' | sed 's/hierarchy_/hierarchy,/g')
