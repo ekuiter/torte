@@ -1,5 +1,38 @@
 #!/bin/bash
 
+# returns whether there is an output log for the given experiment stage
+has-stage-log() {
+    local stage=$1
+    require-host
+    require-value stage
+    [[ -f $(output-log "$stage") ]]
+}
+
+has-stage-output() {
+    local stage=$1
+    require-host
+    require-value stage
+    has-stage-log "$stage" && [[ -d $(output-directory "$stage") ]]
+}
+
+# requires that there is cached output for the given experiment stage
+require-stage-output() {
+    local stage=$1
+    require-host
+    require-value stage
+    if ! has-stage-output "$stage"; then
+        error "Required cached output for stage $stage is missing, please re-run stage $stage."
+    fi
+}
+
+# removes cached output for the given experiment stage, spares top-level output files
+clean-stage-output() {
+    local stage=$1
+    require-host
+    require-value stage
+    rm-safe "$(output-directory "$stage")"
+}
+
 # runs a stage of some experiment in a Docker container
 # reads the global CONFIG_FILE variable
 run-stage() {
@@ -7,7 +40,7 @@ run-stage() {
     local dockerfile=$2
     local input_directory=$3
     require-host
-    require-value CONFIG_FILE stage dockerfile input_directory
+    require-value stage dockerfile input_directory
     exec > >(append "$(output-log torte)")
     exec 2> >(append "$(output-err torte)" >&2)
     local flags=
@@ -17,9 +50,10 @@ run-stage() {
     else
         command=("${@:4}")
     fi
-    if [[ ! -f $(output-log "$stage") ]]; then
+    if ! has-stage-log "$stage"; then
         echo "Running stage $stage"
-        rm-safe "$(output-prefix "$stage")"/ "$(output-prefix "$stage")".*
+        clean-stage-output "$stage"
+        rm-safe "$(output-prefix "$stage")".*
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
             docker build \
@@ -34,13 +68,15 @@ run-stage() {
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
             -e DOCKER_RUNNING=y \
             --rm \
+             -m "$(memory-limit)G" \
             "${DOCKER_PREFIX}_$stage" \
             "${command[@]}" \
             > >(append "$(output-log "$stage")") \
             2> >(append "$(output-err "$stage")" >&2)
         copy-output-files "$stage"
-        rmdir --ignore-fail-on-non-empty "$(output-directory "$stage")"
-        # todo: delete err file if empty
+        if [[ ! -s "$(output-err "$stage")" ]]; then
+            rm "$(output-err "$stage")"
+        fi
     else
         echo "Skipping stage $stage"
     fi
@@ -50,9 +86,20 @@ run-stage() {
 run-aggregate-stage() {
     local new_stage=$1
     local arguments=("${@:2}")
+    local stages=("${@:6}")
     require-host
     require-value new_stage arguments
+    if ! has-stage-log "$new_stage"; then
+        for stage in "${stages[@]}"; do
+            require-stage-output "$stage"
+        done
+    fi
     run-stage "$new_stage" scripts/git/Dockerfile "$OUTPUT_DIRECTORY" ./aggregate.sh "${arguments[@]}"
+    if [[ $AUTO_CLEAN_STAGES == y ]]; then
+        for stage in "${stages[@]}"; do
+            clean-stage-output "$stage"
+        done
+    fi
 }
 
 # runs a stage a given number of time and merges the output files in a new stage
@@ -71,8 +118,11 @@ run-iterated-stage() {
         run-stage "$stage" "${arguments[@]}"
     done
     local common_fields
+    if [[ ! -f "$(output-csv "${new_stage}_1")" ]]; then
+        error "Required output CSV for stage ${new_stage}_1 is missing, please re-run stage ${new_stage}_1."
+    fi
     common_fields=$(table-fields-except "$(output-csv "${new_stage}_1")" "$file_field")
-    run-aggregate-stage "$new_stage" "$file_field" "$stage_field" "$common_fields" "${stages[@]}"
+    run-aggregate-stage "$new_stage" "$file_field" "$stage_field" "$common_fields" "cat - | rev | cut -d_ -f1 | rev" "${stages[@]}"
 }
 
 # prepares an experiment by loading the given config file
@@ -93,7 +143,16 @@ load-config() {
     fi
     # shellcheck source=../input/config.sh
     source "$CONFIG_FILE"
-    require-variable CONFIG_FILE INPUT_DIRECTORY OUTPUT_DIRECTORY SKIP_DOCKER_BUILD
+     # path to system repositories
+    INPUT_DIRECTORY=${INPUT_DIRECTORY:-input}
+    # path to resulting outputs, created if necessary
+    OUTPUT_DIRECTORY=${OUTPUT_DIRECTORY:-output}
+    # y if building Docker images should be skipped, useful for loading imported images
+    SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-}
+     # memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
+    MEMORY_LIMIT=${MEMORY_LIMIT:-$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024))}
+    # y if the sources of aggregate stages should be automatically cleaned
+    AUTO_CLEAN_STAGES=${AUTO_CLEAN_STAGES:-}
 }
 
 # loads a config file and adds all experiment subjects

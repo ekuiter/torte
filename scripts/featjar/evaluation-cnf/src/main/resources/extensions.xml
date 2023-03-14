@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<extensions>
-	<point id="org.spldev.util.cli.CLIFunctionManager">
-		<extension id="org.spldev.evaluation.cnf.CNFExtractor" />
-	</point>
-</extensions>

@@ -1,0 +1,8 @@
+plugins {
+    id 'de.featjar.java-application'
+}
+
+dependencies {
+    implementation 'de.featjar:formula-analysis-javasmt'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}

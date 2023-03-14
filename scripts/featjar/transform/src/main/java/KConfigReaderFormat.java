@@ -1,6 +1,3 @@
-package org.spldev.evaluation.cnf;
-
-import de.ovgu.featureide.fm.core.PluginID;
 import de.ovgu.featureide.fm.core.base.*;
 import de.ovgu.featureide.fm.core.editing.NodeCreator;
 import de.ovgu.featureide.fm.core.io.AFeatureModelFormat;
@@ -14,12 +11,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Alternatively, we could use FeatureIDE's MODELFormat.
- * But, MODELFormat does not read non-Boolean constraints correctly and writes only CNFs.
+ * Format for reading KConfigReader .model files.
+ * Alternatively, we could use FeatureIDE's {@link de.ovgu.featureide.fm.core.io.propositionalModel.MODELFormat}.
+ * However, that format does not read non-Boolean constraints correctly and writes only CNFs.
  */
 public class KConfigReaderFormat extends AFeatureModelFormat {
-	static class KconfigNodeReader extends NodeReader {
-		KconfigNodeReader() {
+	private static class KConfigNodeReader extends NodeReader {
+		KConfigNodeReader() {
 			try {
 				Field field = NodeReader.class.getDeclaredField("symbols");
 				field.setAccessible(true);
@@ -30,8 +28,8 @@ public class KConfigReaderFormat extends AFeatureModelFormat {
 		}
 	}
 
-	static class KconfigNodeWriter extends NodeWriter {
-		KconfigNodeWriter(Node root) {
+	private static class KConfigNodeWriter extends NodeWriter {
+		KConfigNodeWriter(Node root) {
 			super(root);
 			setEnforceBrackets(true);
 			try {
@@ -50,8 +48,6 @@ public class KConfigReaderFormat extends AFeatureModelFormat {
 		}
 	}
 
-	public static final String ID = PluginID.PLUGIN_ID + ".format.fm." + KConfigReaderFormat.class.getSimpleName();
-
 	private static String fixNonBooleanConstraints(String l) {
 		return l.replace("=", "_")
 				.replace(":", "_")
@@ -67,7 +63,7 @@ public class KConfigReaderFormat extends AFeatureModelFormat {
 	public ProblemList read(IFeatureModel featureModel, CharSequence source) {
 		setFactory(featureModel);
 
-		final NodeReader nodeReader = new KconfigNodeReader();
+		final NodeReader nodeReader = new KConfigNodeReader();
 		List<Node> constraints = source.toString().lines() //
 			.map(String::trim) //
 			.filter(l -> !l.isEmpty()) //
@@ -108,7 +104,7 @@ public class KConfigReaderFormat extends AFeatureModelFormat {
 				node = (Node) method.invoke(node);
 				// append constraint to the built .model file
 				sb.append(fixNonBooleanConstraints(
-						new KconfigNodeWriter(node).nodeToString().replace(" ", ""))).append("\n");
+						new KConfigNodeWriter(node).nodeToString().replace(" ", ""))).append("\n");
 			}
 			return sb.toString();
 		} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
@@ -117,15 +113,6 @@ public class KConfigReaderFormat extends AFeatureModelFormat {
 		return null;
 	}
 
-	/**
-	 * Adds the given propositional node to the given feature model. The current
-	 * implementation is naive in that it does not attempt to interpret any
-	 * constraint as {@link IFeatureStructure structure}.
-	 *
-	 * @param featureModel feature model to edit
-	 * @param node         propositional node to add
-	 * @param variables    the variables of the propositional node
-	 */
 	private void addNodeToFeatureModel(IFeatureModel featureModel, Node node, Collection<String> variables) {
 		// Add a feature for each variable.
 		for (final String variable : variables) {
@@ -153,7 +140,7 @@ public class KConfigReaderFormat extends AFeatureModelFormat {
 
 	@Override
 	public String getId() {
-		return ID;
+		return KConfigReaderFormat.class.getCanonicalName();
 	}
 
 	@Override
@@ -168,7 +155,7 @@ public class KConfigReaderFormat extends AFeatureModelFormat {
 
 	@Override
 	public String getName() {
-		return "kconfigreader";
+		return "KConfigReader .model";
 	}
 
 }

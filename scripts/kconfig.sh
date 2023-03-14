@@ -116,6 +116,7 @@ extract-kconfig-model() {
     local end
     kconfig_model="$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.model"
     if [[ $extractor == kconfigreader ]]; then
+        # todo: migrate start,end, and cmd to use measure-time
         start=$(date +%s.%N)
         cmd="/home/kconfigreader/run.sh de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf $kconfig_binding_file $kconfig_file $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"
         (echo "$cmd" && eval "$cmd") || true
@@ -161,6 +162,7 @@ register-kconfig-extractor() {
         require-value system revision kconfig_binding_files_spec
         kconfig-checkout "$system" "$revision" "$kconfig_binding_files_spec"
         compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files_spec"
+        git-clean "$(input-directory)/$system"
     }
 
     add-kconfig-model() {
@@ -173,6 +175,7 @@ register-kconfig-extractor() {
         kconfig-checkout "$system" "$revision"
         extract-kconfig-model "$EXTRACTOR" "$KCONFIG_BINDING" \
             "$system" "$revision" "$kconfig_binding_file" "$kconfig_file" "$env"
+        git-clean "$(input-directory)/$system"
     }
 
     add-kconfig() {
@@ -186,6 +189,7 @@ register-kconfig-extractor() {
         compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files_spec"
         extract-kconfig-model "$EXTRACTOR" "$KCONFIG_BINDING" \
             "$system" "$revision" "" "$kconfig_file" "$env"
+        git-clean "$(input-directory)/$system"
     }
 
     echo system,revision,kconfig-binding > "$(output-directory)/kconfig-bindings.csv"

@@ -107,8 +107,13 @@ table-lookup() {
     local value=$3
     local field=$4
     require-value file key value field
+    local idx
+    idx=$(table-field-index "$file" "$field")
+    if [[ -z "$idx" ]]; then
+        error "Field $field not found in file $file."
+    fi
     # shellcheck disable=SC2094
-    awk -F, '$'"$(table-field-index "$file" "$key")"' == "'"$value"'" {print $'"$(table-field-index "$file" "$field")"'}' < "$file"
+    awk -F, '$'"$(table-field-index "$file" "$key")"' == "'"$value"'" {print $'"$idx"'}' < "$file"
 }
 
 # returns all fields from a CSV file except the given field
@@ -188,4 +193,25 @@ stop-at-revision() {
 # removes files and reports an error when there are permission issues
 rm-safe() {
     LC_ALL=C rm -rf "$@" 2> >(grep -q "Permission denied" && error "Could not remove $* due to missing permissions, did you run Docker in rootless mode?")
+}
+
+# returns the memory limit, optionally adding a further limit
+memory-limit() {
+    require-value MEMORY_LIMIT
+    local further_limit=${1:-0}
+    echo "$((MEMORY_LIMIT-further_limit))"
+}
+
+# measures the time needed to execute a command
+measure-time() {
+    require-command bc
+    local command=("$@")
+    echo "${command[@]}"
+    local start
+    start=$(date +%s.%N)
+    "${command[@]}"
+    local end
+    end=$(date +%s.%N)
+    echo "time: $(echo "($end - $start) * 1000000000 / 1" | bc)ns"
+    echo
 }

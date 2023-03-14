@@ -1,12 +1,4 @@
 #!/bin/bash
-# first, we set up the experiment's global variables
-# next, we define the kconfig models to analyze
-# finally, we define and combine analysis stages
-
-export INPUT_DIRECTORY=input # path to system repositories
-export OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
-export SKIP_DOCKER_BUILD= # y if building Docker images should be skipped, useful for loading imported images
-export TRANSFORM_INTO_CNF_TIMEOUT=5 # transformation timeout in seconds
 
 experiment-stages() {
     run-stage \
@@ -30,7 +22,7 @@ experiment-stages() {
     run-iterated-stage \
         `# iterations` 2 \
         `# file field` kconfig-model \
-        `# stage field` extractor-iteration \
+        `# stage field` iteration \
         `# stage` kconfigreader \
         `# dockerfile` scripts/kconfigreader/Dockerfile \
         `# input` "$(input-directory)" \
@@ -39,7 +31,7 @@ experiment-stages() {
     run-iterated-stage \
         `# iterations` 2 \
         `# file field` kconfig-model \
-        `# stage field` extractor-iteration \
+        `# stage field` iteration \
         `# stage` kclause \
         `# dockerfile` scripts/kclause/Dockerfile \
         `# input` "$(input-directory)" \
@@ -49,17 +41,37 @@ experiment-stages() {
         `# stage` kconfig-models \
         `# file field` kconfig-model \
         `# stage field` extractor \
-        `# common fields` system,revision,extractor-iteration \
+        `# common fields` system,revision,iteration \
+        `# stage transformer` "" \
         `# stages` kconfigreader kclause
 
-    # todo: specify input models as below
+    # todo: filter stage that removes input files before executing another stage
+
     # error handling for missing models
-    # specify used transformation
     # write csv file
     # move stats into csv file
     #run-stage evaluation-cnf scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform-into-cnf.sh
     
-    run-stage featjar2 scripts/featjar2/Dockerfile "$(output-directory kconfig-models)"
+    # run-stage dimacs-featureide scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform.sh \
+    #     `# file field` kconfig-model \
+    #     `# input extension` model \
+    #     `# output extension` dimacs \
+    #     `# transformation` ModelToDIMACSFeatureIDE \
+    #     `# timeout in seconds` 10
+
+    # run-stage model-featureide scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform.sh \
+    #     `# file field` kconfig-model \
+    #     `# input extension` model \
+    #     `# output extension` model \
+    #     `# transformation` ModelToModelFeatureIDE \
+    #     `# timeout in seconds` 10
+
+    # run-stage dimacs-featjar scripts/featjar/Dockerfile "$(output-directory kconfig-models)" ./transform.sh \
+    #     `# file field` kconfig-model \
+    #     `# input extension` model \
+    #     `# output extension` dimacs \
+    #     `# transformation` ModelToDIMACSFeatJAR \
+    #     `# timeout in seconds` 10
     
     # for file in output/stage2_output/*/temp/*.@(dimacs|smt|model|stats); do
     #     newfile=$(basename $file | sed 's/\.model_/,/g' | sed 's/_0\././g' | sed 's/hierarchy_/hierarchy,/g')
@@ -136,7 +148,6 @@ kclause-post-binding-hook() {
 # TIMEOUT_ANALYZE=1800 # analysis timeout in seconds
 # RANDOM_SEED=2302101557 # seed for choosing core/dead features
 # NUM_FEATURES=1 # number of randomly chosen core/dead features
-# MEMORY_LIMIT=128g # memory limit for Docker containers
 
 # evaluated (#)SAT solvers
 # we choose all winning SAT solvers in SAT competitions
