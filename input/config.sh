@@ -11,7 +11,7 @@ experiment-stages() {
     # read basic statistics for each system
     run-stage `# stage` read-statistics `# dockerfile` "" `# input directory` "" `# command` ./read-statistics.sh #skip-sloc
 
-    force-run-below
+    #force-run-below
     
     # use a given extractor to extract a kconfig model for each specified experiment subject
     extract-with() {

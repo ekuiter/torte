@@ -208,7 +208,7 @@ mutate-table-field() {
     field-transformer() {
         value=$1
         require-value value
-        echo "$value" | eval "$field_transformer"
+        echo "$value" | eval "$field_transformer" # todo: how to pass second argument, the file?
     }
 
     echo "$(IFS=,; echo "${fields[*]}")"

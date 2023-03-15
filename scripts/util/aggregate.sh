@@ -45,3 +45,12 @@ for stage in "${stages[@]}"; do
         fi
     done < <(table-field "$old_csv_file" "$file_field")
 done
+
+files=()
+for stage in "${stages[@]}"; do
+    files+=("$(input-directory)/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv")
+done
+aggregate-tables "$stage_field" "$stage_transformer" "${files[@]}" > aoeu # todo: rename variables and improve transformer for iterated stages
+cat aoeu
+mutate-table-field "aoeu" "$file_field" "cat"
+error X
