@@ -53,8 +53,11 @@ public class Transform implements ICommand {
         if (!Files.exists(inputPath)) {
             throw new IllegalArgumentException("input file " + inputPath + " does not exist");
         }
-        FeatJAR.log().info(String.format("transforming %s into %s with timeout %s and transformation %s",
-                inputPath, outputPath, timeout, transformation.getClass().getSimpleName()));
+        FeatJAR.log().info("transforming");
+        FeatJAR.log().info(String.format("input: %s", inputPath));
+        FeatJAR.log().info(String.format("output: %s", outputPath));
+        FeatJAR.log().info(String.format("timeout: %s", timeout));
+        FeatJAR.log().info(String.format("transformation: %s", transformation.getClass().getSimpleName()));
         try {
             transformation.transform(inputPath, outputPath, timeout);
         } catch (Exception e) {

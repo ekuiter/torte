@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y \
 RUN git clone https://github.com/FeatureIDE/FeatJAR.git
 WORKDIR /home/FeatJAR
 COPY featjar/repo.txt scripts/
+# increment to re-clone, todo: replace by exact versions
+RUN echo 1
 RUN scripts/clone.bat \
     && ./gradlew assemble
 COPY featjar/transform transform

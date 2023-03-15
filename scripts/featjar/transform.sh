@@ -21,12 +21,9 @@ while read -r file; do
     new_file=$(dirname "$file")/$(basename "$file" ".$input_extension").$output_extension
     output="$(output-directory)/$new_file"
     mkdir -p "$(dirname "$output")"
-    # todo: measure-time 0
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$libs/" \
-        java \
+    measure-time 0 java \
         `# setting a lower memory limit is necessary to avoid that the process is killed erroneously` \
         "-Xmx$(memory-limit 1)G" \
-         -cp "$libs/*" \
          -jar $jar \
         --command transform \
         --timeout "${timeout}000" \

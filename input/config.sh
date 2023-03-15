@@ -88,7 +88,7 @@ experiment-stages() {
         `# transformation` ModelToDIMACSFeatJAR \
         `# timeout in seconds` 10
 
-    skip-stage \
+    run-stage \
         `# stage` z3-smt \
         `# dockerfile` scripts/featjar/Dockerfile \
         `# input` "$(output-directory kconfig-models)" \
