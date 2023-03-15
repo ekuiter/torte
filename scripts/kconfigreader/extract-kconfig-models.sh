@@ -1,5 +1,5 @@
 #!/bin/bash
-# ./extract-kconfig.sh
+# ./extract-kconfig-models.sh
 # compiles kconfig bindings and extracts kconfig models using kconfigreader
 
 # shellcheck source=../../scripts/torte.sh

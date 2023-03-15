@@ -207,7 +207,7 @@ memory-limit() {
 measure-time() {
     local timeout=$1
     require-value timeout
-    require-command bc
+    require-command bc # todo: do this without bc, so Dockerfiles can be simpler
     local command=("${@:2}")
     echo "${command[@]}"
     local start

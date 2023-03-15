@@ -48,17 +48,31 @@ run-stage() {
     local stage=$1
     local dockerfile=$2
     local input_directory=$3
+    local command=("${@:4}")
     require-host
-    require-value stage dockerfile input_directory
+    require-value stage
+    if [[ -z $dockerfile ]]; then
+        dockerfile=util
+    fi
+    if [[ ! $dockerfile =~ / ]]; then
+        dockerfile=scripts/$dockerfile/Dockerfile
+    fi
+    if [[ -z $input_directory ]]; then
+        input_directory=$(input-directory)
+    else
+        if [[ ! $input_directory =~ / ]]; then
+            input_directory=$(output-directory $input_directory)
+        fi
+    fi
+    local flags=
+    if [[ -z ${command[*]} ]]; then
+        command=("./$stage.sh")
+    fi
+    if [[ ${command[*]} == /bin/bash ]]; then
+        flags=-it
+    fi
     exec > >(append "$(output-log torte)")
     exec 2> >(append "$(output-err torte)" >&2)
-    local flags=
-    if [[ $# -lt 4 ]]; then
-        command=(/bin/bash)
-        flags=-it
-    else
-        command=("${@:4}")
-    fi
     if ! has-stage-log "$stage"; then
         echo "Running stage $stage"
         clean-stage "$stage"
@@ -98,6 +112,14 @@ skip-stage() {
     echo "Skipping stage $stage"
 }
 
+# runs a stage by dropping into an interactive shell
+debug-stage() {
+    local stage=$1
+    local dockerfile=$2
+    local input_directory=$3
+    run-stage "$stage" "$dockerfile" "$input_directory" /bin/bash
+}
+
 # merges the output files of two or more stages in a new stage
 run-aggregate-stage() {
     local new_stage=$1
@@ -110,7 +132,7 @@ run-aggregate-stage() {
             require-stage-output "$stage"
         done
     fi
-    run-stage "$new_stage" scripts/git/Dockerfile "$OUTPUT_DIRECTORY" ./aggregate.sh "${arguments[@]}"
+    run-stage "$new_stage" "" "$OUTPUT_DIRECTORY" ./aggregate.sh "${arguments[@]}"
     if [[ $AUTO_CLEAN_STAGES == y ]]; then
         for stage in "${stages[@]}"; do
             clean-stage-output "$stage"

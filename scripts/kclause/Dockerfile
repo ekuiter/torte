@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 
 # install (the tested version of) kmax/kclause
 WORKDIR /home
+# todo: remove sed z3, as we have a separate container for that
 RUN git clone https://github.com/paulgazz/kmax.git \
   && cd kmax \
   && git checkout c6e83a07d4f916267cb9e718c0b2de42ecfe4147 \

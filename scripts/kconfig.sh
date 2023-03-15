@@ -130,7 +130,7 @@ extract-kconfig-model() {
         cmd="kclause < $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause > $kconfig_model"
         (echo "$cmd" && eval "$cmd") || true
         end=$(date +%s.%N)
-        cmd="python3 /home/kclause2kconfigreader.py $kconfig_model > $kconfig_model.tmp && mv $kconfig_model.tmp $kconfig_model"
+        cmd="python3 /home/kclause2model.py $kconfig_model > $kconfig_model.tmp && mv $kconfig_model.tmp $kconfig_model"
         (echo "$cmd" && eval "$cmd") || true
     fi
     echo "#item time $(echo "($end - $start) * 1000000000 / 1" | bc)" >> "$kconfig_model"

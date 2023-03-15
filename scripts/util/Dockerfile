@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     wget
 
 WORKDIR /home
-COPY *.sh git/*.sh ./
+COPY *.sh util/*.sh ./
 RUN chmod +x *.sh \
     && git config --global --add safe.directory '*' \
     && git config --global user.email "anon@example.com" \

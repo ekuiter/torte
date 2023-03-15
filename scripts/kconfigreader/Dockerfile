@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 # - dumpconf (which is compiled against the projects' Kconfig implementations)
 # - evaluation scripts
 # - CNF transformer
-COPY kconfigreader/TransformIntoCNF.scala kconfigreader/src/main/scala/
+COPY kconfigreader/TransformIntoDIMACS.scala kconfigreader/src/main/scala/
 RUN cd kconfigreader && sbt mkrun
 COPY *.sh kconfigreader/*.sh kconfigreader/dumpconf.c ./
 RUN chmod +x *.sh \

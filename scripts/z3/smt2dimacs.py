@@ -19,4 +19,5 @@ goal = z3.Goal()
 with open(sys.argv[1], 'rb') as file:
   goal.add(z3.parse_smt2_string(file.read()))
 goal = z3.Then("simplify", "elim-and", "tseitin-cnf")(goal)[0]
-print(goal.dimacs())
+with open(sys.argv[2], 'w') as file:
+  file.write(goal.dimacs())

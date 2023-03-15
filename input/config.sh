@@ -1,41 +1,32 @@
 #!/bin/bash
 
+# defines the stages of the experiment in order of their execution
 experiment-stages() {
-    run-stage \
-        `# stage` clone-systems \
-        `# dockerfile` scripts/git/Dockerfile \
-        `# input` "$(input-directory)" \
-        `# command` ./clone-systems.sh
+    # clone the systems specified as experiment subjects
+    run-stage `# stage` clone-systems
 
-    run-stage \
-        `# stage` tag-linux-revisions \
-        `# dockerfile` scripts/git/Dockerfile \
-        `# input` "$(input-directory)" \
-        `# command` ./tag-linux-revisions.sh
+    # tag old Linux revisions that are not included in its Git history
+    run-stage `# stage` tag-linux-revisions
 
-    run-stage \
-        `# stage` read-statistics \
-        `# dockerfile` scripts/git/Dockerfile \
-        `# input` "$(input-directory)" \
-        `# command` ./read-statistics.sh skip-sloc
+    # read basic statistics for each system
+    run-stage `# stage` read-statistics `# dockerfile` "" `# input directory` "" `# command` ./read-statistics.sh skip-sloc
 
-    run-iterated-stage \
-        `# iterations` 2 \
-        `# file field` kconfig-model \
-        `# stage field` iteration \
-        `# stage` kconfigreader \
-        `# dockerfile` scripts/kconfigreader/Dockerfile \
-        `# input` "$(input-directory)" \
-        `# command` ./extract-kconfig.sh
+    # use a given extractor to extract a kconfig model for each specified experiment subject
+    extract-with() {
+        extractor=$1
+        require-value extractor
+        run-iterated-stage \
+            `# iterations` 2 \
+            `# file field` kconfig-model \
+            `# stage field` iteration \
+            `# stage` "$extractor" \
+            `# dockerfile` "$extractor" \
+            `# input directory` "" \
+            `# command` ./extract-kconfig-models.sh
+    }
 
-    run-iterated-stage \
-        `# iterations` 2 \
-        `# file field` kconfig-model \
-        `# stage field` iteration \
-        `# stage` kclause \
-        `# dockerfile` scripts/kclause/Dockerfile \
-        `# input` "$(input-directory)" \
-        `# command` ./extract-kconfig.sh
+    extract-with kconfigreader
+    extract-with kclause
 
     run-aggregate-stage \
         `# stage` kconfig-models \
@@ -45,84 +36,60 @@ experiment-stages() {
         `# stage transformer` "" \
         `# stages` kconfigreader kclause
     
+    # use featjar to transform kconfig models into various formats and then into DIMACS
+    transform-with() {
+        transformation=$1
+        output_extension=$2
+        require-value transformation output_extension
+        run-stage \
+            `# stage` "$transformation" \
+            `# dockerfile` featjar \
+            `# input directory` kconfig-models \
+            `# command` ./transform.sh \
+            `# file field` kconfig-model \
+            `# output field ` "$output_extension-file" \
+            `# input extension` "model" \
+            `# output extension` "$output_extension" \
+            `# transformation` "$transformation" \
+            `# timeout in seconds` 10
+    }
+
+    transform-with modeltodimacsfeatureide dimacs
+    transform-with modeltomodelfeatureide model
+    transform-with modeltosmtz3 smt
+    transform-with modeltodimacsfeatjar dimacs
+
     run-stage \
-        `# stage` featureide-dimacs \
-        `# dockerfile` scripts/featjar/Dockerfile \
-        `# input` "$(output-directory kconfig-models)" \
-        `# command` ./transform.sh \
-        `# file field` kconfig-model \
-        `# output field ` dimacs-file \
-        `# input extension` model \
-        `# output extension` dimacs \
-        `# transformation` ModelToDIMACSFeatureIDE \
+        `# stage` modeltodimacskconfigreader \
+        `# dockerfile` kconfigreader \
+        `# input directory` modeltomodelfeatureide \
+        `# command` ./transform-into-dimacs.sh \
         `# timeout in seconds` 10
 
     run-stage \
-        `# stage` featureide-model \
-        `# dockerfile` scripts/featjar/Dockerfile \
-        `# input` "$(output-directory kconfig-models)" \
-        `# command` ./transform.sh \
-        `# file field` kconfig-model \
-        `# output field ` model-file \
-        `# input extension` model \
-        `# output extension` model \
-        `# transformation` ModelToModelFeatureIDE \
+        `# stage` smttodimacsz3 \
+        `# dockerfile` z3 \
+        `# input directory` modeltosmtz3 \
+        `# command` ./transform-into-dimacs.sh \
         `# timeout in seconds` 10
 
-    run-stage \
-        `# stage` kconfigreader-dimacs \
-        `# dockerfile` scripts/kconfigreader/Dockerfile \
-        `# input` "$(output-directory featureide-model)" \
-        `# command` ./transform-into-cnf.sh \
-        `# timeout in seconds` 10
+    run-aggregate-stage \
+        `# stage` dimacs \
+        `# file field` dimacs-file \
+        `# stage field` transformation \
+        `# common fields` "" \
+        `# stage transformer` "" \
+        `# stages` modeltodimacsfeatureide modeltodimacskconfigreader
 
-    run-stage \
-        `# stage` featjar-dimacs \
-        `# dockerfile` scripts/featjar/Dockerfile \
-        `# input` "$(output-directory kconfig-models)" \
-        `# command` ./transform.sh \
-        `# file field` kconfig-model \
-        `# output field ` dimacs-file \
-        `# input extension` model \
-        `# output extension` dimacs \
-        `# transformation` ModelToDIMACSFeatJAR \
-        `# timeout in seconds` 10
-
-    run-stage \
-        `# stage` z3-smt \
-        `# dockerfile` scripts/featjar/Dockerfile \
-        `# input` "$(output-directory kconfig-models)" \
-        `# command` ./transform.sh \
-        `# file field` kconfig-model \
-        `# output field ` smt-file \
-        `# input extension` model \
-        `# output extension` smt \
-        `# transformation` ModelToSMTZ3 \
-        `# timeout in seconds` 10
-
-    # todo: filter stage that removes input files before executing another stage
-    # error handling for missing models
-    # move stats into csv file
-
-    # run-aggregate-stage \
-    #     `# stage` kconfig-models \
-    #     `# file field` kconfig-model \
-    #     `# stage field` extractor \
-    #     `# common fields` system,revision,iteration \
-    #     `# stage transformer` "" \
-    #     `# stages` kconfigreader kclause
-    
-    # for file in output/stage2_output/*/temp/*.@(dimacs|smt|model|stats); do
-    #     newfile=$(basename $file | sed 's/\.model_/,/g' | sed 's/_0\././g' | sed 's/hierarchy_/hierarchy,/g')
-    #     if [[ $newfile != *.stats ]] || [[ $newfile == *hierarchy* ]]; then
-    #         cp $file output/intermediate/$newfile
-    #     fi
-    # done
-    # mv output/intermediate/*.dimacs output/dimacs || true
-    
-    #todo: put number of features, variables, time etc into CSV
+    # todos:
+    # - reorder run-stage args to "input-dir output-dir/stage dockerfile command"
+    # - filter stage that removes input files before executing another stage
+    # - error handling for missing models
+    # - move stats on formulas into csv file
+    # - put number of features, variables, time etc into CSV
 }
 
+# defines the experiment subjects
 experiment-subjects() {
     add-system busybox https://github.com/mirror/busybox
     add-system linux https://github.com/torvalds/linux
@@ -134,10 +101,12 @@ experiment-subjects() {
         add-kconfig busybox "$revision" scripts/kconfig/*.o Config.in ""
     done
 
+    # todo: facet around architectures?
     linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
     add-kconfig linux v2.6.13 scripts/kconfig/*.o arch/i386/Kconfig $linux_env
 }
 
+# called after a system has been checked out during kconfig model extraction
 kconfig-post-checkout-hook() {
     system=$1
     revision=$2
@@ -169,6 +138,7 @@ kconfig-post-checkout-hook() {
     fi
 }
 
+# called after a kconfig binding has been executed during kconfig model extraction
 kclause-post-binding-hook() {
     system=$1
     revision=$2
@@ -179,8 +149,6 @@ kclause-post-binding-hook() {
         sed -i 's/-/_/g' "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause"
     fi
 }
-
-# a version is sys,tag/revision,arch,iteration
 
 #ANALYSES="void dead core" # analyses to run on feature models, see run-...-analysis functions
 #ANALYSES="void" # analyses to run on feature models, see run-...-analysis functions

@@ -6,7 +6,7 @@ import scala.collection.mutable.ListBuffer
 import de.fosd.typechef.featureexpr.sat.{SATFeatureExpr}
 import de.fosd.typechef.featureexpr._
 
-object TransformIntoCNF extends App {
+object TransformIntoDIMACS extends App {
     if (args.length != 2) {
         println("wrong usage");
         sys.exit(1)

@@ -5,7 +5,6 @@
 # shellcheck source=../../scripts/torte.sh
 source torte.sh load-config
 jar=/home/FeatJAR/transform/build/libs/transform-0.1.0-SNAPSHOT-all.jar
-libs=/home/FeatJAR/transform/libs
 file_field=$1
 output_field=$2
 input_extension=$3
@@ -15,7 +14,6 @@ timeout=$6
 require-value file_field output_field input_extension output_extension transformation timeout
 
 echo "$file_field,$output_field,transformation" > "$(output-csv)"
-# todo: how to best load z3?
 while read -r file; do
     input="$(input-directory)/$file"
     new_file=$(dirname "$file")/$(basename "$file" ".$input_extension").$output_extension
