@@ -15,9 +15,11 @@ add-revision() {
     date=$(date -d "@$time" +"%Y-%m-%d")
     echo "$system,$revision,$time,$date" >> "$(output-directory)/date.csv"
     if [[ $SCRIPT_OPTION != skip-sloc ]]; then
-        (cd "input/$system"; cloc --git "$revision" > "$(output-directory)/$revision.txt")
+        local sloc_file="$(output-directory)/$system/$revision.txt"
+        mkdir -p "$(output-directory)/$system"
+        (cd "input/$system"; cloc --git "$revision" > "$sloc_file")
         local sloc
-        sloc=$(grep ^SUM < "$(output-directory)/$revision.txt" | tr -s ' ' | cut -d' ' -f5)
+        sloc=$(grep ^SUM < "$sloc_file" | tr -s ' ' | cut -d' ' -f5)
         echo "$system,$revision,$sloc" >> "$(output-directory)/sloc.csv"
     else
         echo "$system,$revision,NA" >> "$(output-directory)/sloc.csv"
@@ -26,7 +28,7 @@ add-revision() {
 
 # shellcheck source=../../scripts/torte.sh
 source torte.sh load-config
-echo system,revision,time,date > "$(output-directory)/date.csv"
-echo system,revision,sloc > "$(output-directory)/sloc.csv"
+echo system,revision,committer_date_unix,committer_date_readable > "$(output-directory)/date.csv"
+echo system,revision,source_lines_of_code > "$(output-directory)/sloc.csv"
 load-subjects
-join-tables "$(output-directory)/date.csv" "$(output-directory)/sloc.csv" 2 > "$(output-csv)"
+join-tables "$(output-directory)/date.csv" "$(output-directory)/sloc.csv" > "$(output-csv)"

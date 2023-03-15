@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# returns the input directory
+# returns the root input directory
 input-directory() {
     if [[ -z $DOCKER_RUNNING ]]; then
         echo "$INPUT_DIRECTORY"
@@ -20,15 +20,6 @@ output-directory() {
     fi
 }
 
-# returns a prefix for all output files for a given stage
-output-prefix() {
-    if [[ -z $DOCKER_RUNNING ]]; then
-        output-directory "$1"
-    else
-        echo "$DOCKER_OUTPUT_DIRECTORY/$DOCKER_OUTPUT_FILE_PREFIX"
-    fi
-}
-
 # returns a file with a given extension for the input of the current stage
 input-file() {
     local extension=$1
@@ -41,7 +32,7 @@ output-file() {
     local extension=$1
     local stage=$2
     require-value extension
-    echo "$(output-prefix "$stage").$extension"
+    echo "$(output-directory "$stage")/$DOCKER_OUTPUT_FILE_PREFIX.$extension"
 }
 
 # standard files for experimental results, human-readable output, and human-readable errors
@@ -52,15 +43,20 @@ output-csv() { output-file csv "$1"; }
 output-log() { output-file log "$1"; }
 output-err() { output-file err "$1"; }
 
-# moves all output files of a given stage into the root output directory
-copy-output-files() {
+# returns whether the given experiment stage is done
+stage-done() {
     local stage=$1
     require-host
     require-value stage
-    shopt -s nullglob
-    for output_file in "$(output-directory "$stage")"/"$DOCKER_OUTPUT_FILE_PREFIX"*; do
-        local extension=${output_file#*.}
-        cp "$output_file" "$(output-file "$extension" "$stage")"
-    done
-    shopt -u nullglob
+    [[ -d $(output-directory "$stage") ]]
+}
+
+# requires that he given experiment stage is done
+require-stage-done() {
+    local stage=$1
+    require-host
+    require-value stage
+    if ! stage-done "$stage"; then
+        error "Stage $stage not done yet, please run stage $stage."
+    fi
 }

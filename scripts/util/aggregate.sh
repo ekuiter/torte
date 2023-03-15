@@ -10,12 +10,9 @@ source torte.sh load-config
 file_field=$1
 stage_field=$2
 common_fields=$3
-stage_transformer=$4
+stage_transformer=${4:-cat -}
 stages=("${@:5}")
 require-value file_field stage_field stages
-if [[ -z "$stage_transformer" ]]; then
-    stage_transformer="cat -"
-fi
 
 stage-transformer() {
     stage=$1
@@ -29,7 +26,7 @@ fi
 echo "$stage_field,$file_field" >> "$(output-csv)"
 IFS=, read -ra common_fields <<< "$common_fields"
 for stage in "${stages[@]}"; do
-    old_csv_file="$(input-directory)/$stage.csv"
+    old_csv_file="$(input-directory)/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv"
     while read -r file; do
         if [[ $file == NA ]]; then
             new_file=NA

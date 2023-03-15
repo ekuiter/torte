@@ -48,10 +48,10 @@ tag-revisions() {
             echo "($(date -d "@$date" +"%Y-%m-%d")) ..."
             dirty=1
             push "$(input-directory)"
-            rm -f ./*.tar.gz*
+            rm-safe ./*.tar.gz*
             wget -q "$base_uri/linux-$revision.tar.gz"
             tar xzf ./*.tar.gz*
-            rm -f ./*.tar.gz*
+            rm-safe ./*.tar.gz*
             push linux
             git reset -q --hard >/dev/null
             git clean -q -dfx >/dev/null
@@ -63,7 +63,7 @@ tag-revisions() {
             GIT_COMMITTER_DATE=$date git commit -q --date "$date" -m "v$revision" >/dev/null
             git tag "v$revision" >/dev/null
             pop
-            rm -rf "linux-$revision"
+            rm-safe "linux-$revision"
         else
             echo "Skipping tag for Linux $revision"
         fi

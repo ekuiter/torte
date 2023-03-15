@@ -9,15 +9,17 @@ experiment-stages() {
     run-stage `# stage` tag-linux-revisions
 
     # read basic statistics for each system
-    run-stage `# stage` read-statistics `# dockerfile` "" `# input directory` "" `# command` ./read-statistics.sh skip-sloc
+    run-stage `# stage` read-statistics `# dockerfile` "" `# input directory` "" `# command` ./read-statistics.sh #skip-sloc
 
+    force-run-below
+    
     # use a given extractor to extract a kconfig model for each specified experiment subject
     extract-with() {
         extractor=$1
         require-value extractor
         run-iterated-stage \
             `# iterations` 2 \
-            `# file field` kconfig-model \
+            `# file field` kconfig-model-file \
             `# stage field` iteration \
             `# stage` "$extractor" \
             `# dockerfile` "$extractor" \
@@ -26,15 +28,18 @@ experiment-stages() {
     }
 
     extract-with kconfigreader
-    extract-with kclause
+    #extract-with kclause
+
+    return
 
     run-aggregate-stage \
         `# stage` kconfig-models \
-        `# file field` kconfig-model \
+        `# file field` kconfig-model-file \
         `# stage field` extractor \
         `# common fields` system,revision,iteration \
         `# stage transformer` "" \
         `# stages` kconfigreader kclause
+
     
     # use featjar to transform kconfig models into various formats and then into DIMACS
     transform-with() {
@@ -92,18 +97,19 @@ experiment-stages() {
 # defines the experiment subjects
 experiment-subjects() {
     add-system busybox https://github.com/mirror/busybox
-    add-system linux https://github.com/torvalds/linux
+    #add-system linux https://github.com/torvalds/linux
 
-    add-revision linux v2.5.45
-    add-revision linux v2.5.46
+    # add-revision linux v2.5.45
+    # add-revision linux v2.5.46
 
     for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
+        add-revision busybox "$revision"
         add-kconfig busybox "$revision" scripts/kconfig/*.o Config.in ""
     done
 
     # todo: facet around architectures?
-    linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
-    add-kconfig linux v2.6.13 scripts/kconfig/*.o arch/i386/Kconfig $linux_env
+    # linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
+    # add-kconfig linux v2.6.13 scripts/kconfig/*.o arch/i386/Kconfig $linux_env
 }
 
 # called after a system has been checked out during kconfig model extraction
@@ -118,7 +124,9 @@ kconfig-post-checkout-hook() {
         touch make/Config.in.generated make/external.in.generated config/custom.in
     fi
     if [[ $system == buildroot ]]; then
-        touch .br2-external.in .br2-external.in.paths .br2-external.in.toolchains .br2-external.in.openssl .br2-external.in.jpeg .br2-external.in.menus .br2-external.in.skeleton .br2-external.in.init
+        touch .br2-external.in .br2-external.in.paths .br2-external.in.toolchains \
+            .br2-external.in.openssl .br2-external.in.jpeg .br2-external.in.menus \
+            .br2-external.in.skeleton .br2-external.in.init
         # ignore generated Kconfig files in buildroot
         find ./ -type f -name "*Config.in" -exec sed -i 's/source "\$.*//g' {} \;
     fi
@@ -127,14 +135,19 @@ kconfig-post-checkout-hook() {
         touch generated/Config.in generated/Config.probed
     fi
     if [[ $system == linux ]]; then
+        replace() {
+            regex=$1
+            require-value regex
+            find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex//g" {} \;
+        }
         # ignore all constraints that use the newer $(success,...) syntax
-        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*default \$(.*//g" {} \;
-        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*depends on \$(.*//g" {} \;
-        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*def_bool \$(.*//g" {} \;
+        replace "\s*default \$(.*"
+        replace "\s*depends on \$(.*"
+        replace "\s*def_bool \$(.*"
         # ugly hack for linux 6.0
-        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*def_bool ((.*//g" {} \;
-        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*//g" {} \;
-        find ./ -type f -name "*Kconfig*" -exec sed -i "s/\s*\$(as-instr,endbr64).*//g" {} \;
+        replace "\s*def_bool ((.*"
+        replace "\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*"
+        replace "\s*\$(as-instr,endbr64).*"
     fi
 }
 

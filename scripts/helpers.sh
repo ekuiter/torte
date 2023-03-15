@@ -66,21 +66,166 @@ replace-times() {
     fi
 }
 
-# joins two CSV files on the first n fields, assumes that the first line contains a header
-join-tables() {
-    local a=$1
-    local b=$2
+# returns common or exclusive fields of two CSV files
+diff-fields() {
+    local first_file=$1
+    local second_file=$2
+    require-value first_file second_file
+    local flags=${3:--12}
+    comm "$flags" \
+        <(head -n1 < "$first_file" | tr , "\n" | sort) \
+        <(head -n1 < "$second_file" | tr , "\n" | sort)
+}
+
+# returns common fields of any number of CSV files
+common-fields() {
+    if [[ $# -eq 0 ]]; then
+        error "At least one file expected."
+    fi
+    if [[ $# -eq 1 ]]; then
+        head -n1 < "$1" | tr , "\n" | sort
+        return
+    fi
+    local tmp_1
+    tmp_1=$(mktemp)
+    local tmp_2
+    tmp_2=$(mktemp)
+    cat "$1" > "$tmp_1"
+    while [[ $# -ge 2 ]]; do
+        shift
+        diff-fields "$tmp_1" "$1" | tr "\n" , > "$tmp_2"
+        cat "$tmp_2" > "$tmp_1"
+    done
+    tr , "\n" < "$tmp_1"
+    rm-safe "$tmp_1" "$tmp_2"
+}
+
+# joins two CSV files on the first n fields
+# assumes that the first line contains a header and that the string '###' is not used
+join-tables-by-prefix() {
+    local first_file=$1
+    local second_file=$2
     local n=${3:-1}
     ((n--))
-    require-value a b
+    local escape_sequence=\#\#\#
+    require-value first_file second_file
     join -t, \
-        <(replace-times $n , \# < "$a" | head -n1) \
-        <(replace-times $n , \# < "$b" | head -n1) \
-        | replace-times $n \# ,
+        <(replace-times $n , $escape_sequence < "$first_file" | head -n1) \
+        <(replace-times $n , $escape_sequence < "$second_file" | head -n1) \
+        | replace-times $n $escape_sequence ,
     join -t, \
-        <(replace-times $n , \# < "$a" | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
-        <(replace-times $n , \# < "$b" | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
-        | replace-times $n \# ,
+        <(replace-times $n , $escape_sequence < "$first_file" | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
+        <(replace-times $n , $escape_sequence < "$second_file" | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
+        | replace-times $n $escape_sequence ,
+}
+
+# joins two CSV files on at least one common fields
+join-two-tables() {
+    local first_file=$1
+    local second_file=$2
+    require-value first_file second_file
+    local common_fields
+    common_fields=$(diff-fields "$first_file" "$second_file" -12)
+    fields_left=$(diff-fields "$first_file" "$second_file" -23)
+    fields_right=$(diff-fields "$first_file" "$second_file" -13)
+    add-fields() {
+        file=$1
+        require-value file
+        xargs -I {} echo -n \<\(table-field "$file" {} y\)" "
+    }
+    local first_file_tmp
+    first_file_tmp=$(mktemp)
+    local second_file_tmp
+    second_file_tmp=$(mktemp)
+    eval "paste -d, $(cat <(echo "$common_fields") <(echo "$fields_left") | add-fields "$first_file")" > "$first_file_tmp"
+    eval "paste -d, $(cat <(echo "$common_fields") <(echo "$fields_right") | add-fields "$second_file")" > "$second_file_tmp"
+    join-tables-by-prefix "$first_file_tmp" "$second_file_tmp" "$(echo "$common_fields" | wc -l)"
+    rm-safe "$first_file_tmp" "$second_file_tmp"
+}
+
+# joins any number of CSV files on t least one common fields
+join-tables() {
+    if [[ $# -eq 0 ]]; then
+        error "At least one file expected."
+    fi
+    if [[ $# -eq 1 ]]; then
+        cat "$1"
+        return
+    fi
+    local tmp_1
+    tmp_1=$(mktemp)
+    local tmp_2
+    tmp_2=$(mktemp)
+    cat "$1" > "$tmp_1"
+    while [[ $# -ge 2 ]]; do
+        shift
+        join-two-tables "$tmp_1" "$1" > "$tmp_2"
+        cat "$tmp_2" > "$tmp_1"
+    done
+    cat "$tmp_1"
+    rm-safe "$tmp_1" "$tmp_2"
+}
+
+# aggregates any number of CSV files, keeping common fields and adding an aggregate column
+aggregate-tables() {
+    local source_field=$1
+    local source_transformer=${2:-cat -}
+    local files=("${@:3}")
+    local common_fields
+    readarray -t common_fields < <(common-fields "${files[@]}")
+    require-value source_field files
+    if [[ -z "${common_fields[*]}" ]]; then
+        error "Expected at least one common field."
+    fi
+
+    source-transformer() {
+        value=$1
+        require-value value
+        echo "$value" | eval "$source_transformer"
+    }
+
+    echo "$(IFS=,; echo "${common_fields[*]}"),$source_field"
+    for file in "${files[@]}"; do
+        # shellcheck disable=SC2094
+        while read -r line; do
+            for common_field in "${common_fields[@]}"; do
+                echo -n "$(echo "$line" | cut -d, -f "$(table-field-index "$file" "$common_field")"),"
+            done
+            source-transformer "$file"
+        done < <(tail -n+2 < "$file")
+    done
+}
+
+# mutates a field in a CSV file
+mutate-table-field() {
+    local file=$1
+    local field=$2
+    local field_transformer=${3:-cat -}
+    local fields
+    readarray -t fields < <(head -n1 "$file" | tr , "\n")
+    require-value file field
+
+    field-transformer() {
+        value=$1
+        require-value value
+        echo "$value" | eval "$field_transformer"
+    }
+
+    echo "$(IFS=,; echo "${fields[*]}")"
+    # shellcheck disable=SC2094
+    while read -r line; do
+        new_line=""
+        for current_field in "${fields[@]}"; do
+            local value
+            value=$(echo "$line" | cut -d, -f "$(table-field-index "$file" "$current_field")")
+            if [[ $current_field == "$field" ]]; then
+                new_line+="$(field-transformer "$value"),"
+            else
+                new_line+="$value,"
+            fi
+        done
+        echo "${new_line::-1}"
+    done < <(tail -n+2 < "$file")
 }
 
 # gets the index of a named field in a CSV file
@@ -91,16 +236,22 @@ table-field-index() {
     sed 's/,/\n/g;q' < "$file" | nl | grep "$field" | cut -f1 | xargs
 }
 
-# gets all values of a named field in a CSV file
+# gets all values of a named field in a CSV file, optionally including the header
 table-field() {
     local file=$1
     local field=$2
+    local include_header=$3
     require-value file field
+    if [[ $include_header == y ]]; then
+        local start_at_line=1
+    else
+        local start_at_line=2
+    fi
     # shellcheck disable=SC2094
-    cut -d, -f "$(table-field-index "$file" "$field")" < "$file" | tail -n+2
+    cut -d, -f "$(table-field-index "$file" "$field")" < "$file" | tail -n+$start_at_line
 }
 
-# select field from CSV file where key equals value
+# select field from CSV file where a (primary) key equals a value
 table-lookup() {
     local file=$1
     local key=$2
@@ -227,4 +378,12 @@ is-file-empty() {
     local file=$1
     require-value file
     [[ ! -f "$file" ]] || [[ ! -s "$file" ]]
+}
+
+rm-if-empty() {
+    local file=$1
+    require-value file
+    if is-file-empty "$file"; then
+        rm-safe "$file"
+    fi
 }

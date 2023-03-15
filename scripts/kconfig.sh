@@ -100,7 +100,7 @@ extract-kconfig-model() {
         return
     fi
     echo "Extracting Kconfig model for $system at $revision"
-    trap 'ec=$?; (( ec != 0 )) && rm -f '"$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"'*' EXIT
+    trap 'ec=$?; (( ec != 0 )) && rm-safe '"$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"'*' EXIT
     mkdir -p "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system"
     push "$(input-directory)/$system"
     if [[ -z $kconfig_binding_file ]]; then
@@ -130,7 +130,9 @@ extract-kconfig-model() {
         cmd="kclause < $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause > $kconfig_model"
         (echo "$cmd" && eval "$cmd") || true
         end=$(date +%s.%N)
-        cmd="python3 /home/kclause2model.py $kconfig_model > $kconfig_model.tmp && mv $kconfig_model.tmp $kconfig_model"
+        local kconfig_model_tmp
+        kconfig_model_tmp=$(mktemp)
+        cmd="python3 /home/kclause2model.py $kconfig_model > $kconfig_model_tmp && mv $kconfig_model_tmp $kconfig_model"
         (echo "$cmd" && eval "$cmd") || true
     fi
     echo "#item time $(echo "($end - $start) * 1000000000 / 1" | bc)" >> "$kconfig_model"
@@ -191,6 +193,6 @@ register-kconfig-extractor() {
         git-clean "$(input-directory)/$system"
     }
 
-    echo system,revision,kconfig-binding > "$(output-directory)/kconfig-bindings.csv"
-    echo system,revision,kconfig-binding,kconfig-file,kconfig-model > "$(output-csv)"
+    echo system,revision,kconfig-binding-file > "$(output-directory)/kconfig-bindings.csv"
+    echo system,revision,kconfig-binding-file,kconfig-file,kconfig-model-file > "$(output-csv)"
 }
