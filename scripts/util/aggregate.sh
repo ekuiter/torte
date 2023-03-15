@@ -54,3 +54,4 @@ aggregate-tables "$stage_field" "$stage_transformer" "${files[@]}" > aoeu # todo
 cat aoeu
 mutate-table-field "aoeu" "$file_field" "cat"
 error X
+#own field for storing na values and errors?
