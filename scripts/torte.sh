@@ -4,7 +4,6 @@
 # example: ./torte.sh clean run
 
 set -e # exit on error
-shopt -s expand_aliases # enable aliases
 trap "echo ERROR! >&2" ERR # set error handler
 
 # API functions
@@ -30,6 +29,7 @@ DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
 DOCKER_OUTPUT_FILE_PREFIX=output # prefix for output files inside Docker containers
 KCONFIG_MODELS_OUTPUT_DIRECTORY=kconfig-models # output directory for storing kconfig models
 KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storing Kconfig bindings
+TRANSIENT_STAGE=transient # name for transient stages
 
 source "$SCRIPTS_DIRECTORY/helpers.sh" # miscellaneous helpers
 source "$SCRIPTS_DIRECTORY/paths.sh" # functions for dealing with input/output paths

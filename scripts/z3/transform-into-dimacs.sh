@@ -7,7 +7,7 @@ source torte.sh load-config
 timeout=$1
 require-value timeout
 
-echo "smt-file,dimacs-file,transformation" > "$(output-csv)"
+echo "smt-file,dimacs-file,dimacs-transformation" > "$(output-csv)"
 while read -r file; do
     input="$(input-directory)/$file"
     new_file=$(dirname "$file")/$(basename "$file" .smt).dimacs

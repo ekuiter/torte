@@ -10,17 +10,15 @@ experiment-stages() {
 
     # read basic statistics for each system
     run-stage `# stage` read-statistics `# dockerfile` "" `# input directory` "" `# command` ./read-statistics.sh #skip-sloc
-
-    #force-run-below
     
     # use a given extractor to extract a kconfig model for each specified experiment subject
     extract-with() {
         extractor=$1
         require-value extractor
         run-iterated-stage \
+            `# iteration field` iteration \
             `# iterations` 2 \
-            `# file field` kconfig-model-file \
-            `# stage field` iteration \
+            `# file fields` kconfig-binding-file,kconfig-model-file \
             `# stage` "$extractor" \
             `# dockerfile` "$extractor" \
             `# input directory` "" \
@@ -28,19 +26,15 @@ experiment-stages() {
     }
 
     extract-with kconfigreader
-    #extract-with kclause
-
-    return
+    extract-with kclause
 
     run-aggregate-stage \
-        `# stage` kconfig-models \
-        `# file field` kconfig-model-file \
+        `# stage` kconfig \
         `# stage field` extractor \
-        `# common fields` system,revision,iteration \
         `# stage transformer` "" \
+        `# file fields` kconfig-binding-file,kconfig-model-file \
         `# stages` kconfigreader kclause
 
-    
     # use featjar to transform kconfig models into various formats and then into DIMACS
     transform-with() {
         transformation=$1
@@ -49,11 +43,10 @@ experiment-stages() {
         run-stage \
             `# stage` "$transformation" \
             `# dockerfile` featjar \
-            `# input directory` kconfig-models \
+            `# input directory` kconfig \
             `# command` ./transform.sh \
-            `# file field` kconfig-model \
-            `# output field ` "$output_extension-file" \
-            `# input extension` "model" \
+            `# file field` kconfig-model-file \
+            `# input extension` model \
             `# output extension` "$output_extension" \
             `# transformation` "$transformation" \
             `# timeout in seconds` 10
@@ -70,6 +63,7 @@ experiment-stages() {
         `# input directory` modeltomodelfeatureide \
         `# command` ./transform-into-dimacs.sh \
         `# timeout in seconds` 10
+    run-join-into modeltomodelfeatureide modeltodimacskconfigreader
 
     run-stage \
         `# stage` smttodimacsz3 \
@@ -77,14 +71,15 @@ experiment-stages() {
         `# input directory` modeltosmtz3 \
         `# command` ./transform-into-dimacs.sh \
         `# timeout in seconds` 10
+    run-join-into modeltosmtz3 smttodimacsz3
 
     run-aggregate-stage \
         `# stage` dimacs \
-        `# file field` dimacs-file \
         `# stage field` transformation \
-        `# common fields` "" \
         `# stage transformer` "" \
-        `# stages` modeltodimacsfeatureide modeltodimacskconfigreader
+        `# file fields` dimacs-file \
+        `# stages` modeltodimacsfeatureide modeltodimacskconfigreader smttodimacsz3
+    run-join-into kconfig dimacs
 
     # todos:
     # - reorder run-stage args to "input-dir output-dir/stage dockerfile command"

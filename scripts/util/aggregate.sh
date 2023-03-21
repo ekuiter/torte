@@ -1,57 +1,26 @@
 #!/bin/bash
 # ./aggregate.sh
 # merges the output files of two or more stages in a new stage
-# assumes that each stage's CSV file describes one output file per line
 # assumes that the input directory is the root output directory, also makes some assumptions about its layout
 
 # shellcheck source=../../scripts/torte.sh
 source torte.sh load-config
 
-file_field=$1
-stage_field=$2
-common_fields=$3
-stage_transformer=${4:-cat -}
-stages=("${@:5}")
-require-value file_field stage_field stages
+stage_field=$1
+stage_transformer=${2:-$(lambda-identity)}
+file_fields=$3
+stages=("${@:4}")
+require-value stage_field stages
+lambda-to-function stage-transformer "$stage_transformer"
+source_transformer="$(lambda value "basename \$(dirname \$(stage-transformer \$value))")"
 
-stage-transformer() {
-    stage=$1
-    require-value stage
-    echo "$stage" | eval "$stage_transformer"
-}
-
-if [[ -n $common_fields ]]; then
-    echo -n "$common_fields," > "$(output-csv)"
-fi
-echo "$stage_field,$file_field" >> "$(output-csv)"
-IFS=, read -ra common_fields <<< "$common_fields"
+csv_files=()
 for stage in "${stages[@]}"; do
-    old_csv_file="$(input-directory)/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv"
-    while read -r file; do
-        if [[ $file == NA ]]; then
-            new_file=NA
-            echo "not all files were available, see NA values:" 1>&2 # todo: better NA reporting
-            cat "$old_csv_file" 1>&2
-        else
-            old_file="$(input-directory)/$stage/$file"
-            new_file="$(output-directory)/$(stage-transformer "$stage")/$file"
-            mkdir -p "$(dirname "$new_file")"
-            cp "$old_file" "$new_file"
-            for common_field in "${common_fields[@]}"; do
-                echo -n "$(table-lookup "$old_csv_file" "$file_field" "$file" "$common_field")," >> "$(output-csv)"
-            done
-            new_file=${new_file#"$(output-directory)/"}
-            echo "$(stage-transformer "$stage"),$new_file" >> "$(output-csv)"
-        fi
-    done < <(table-field "$old_csv_file" "$file_field")
+    csv_files+=("$(input-directory)/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv")
+    cp -R "$(input-directory)/$stage" "$(output-directory)/$(stage-transformer "$stage")"
 done
 
-files=()
-for stage in "${stages[@]}"; do
-    files+=("$(input-directory)/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv")
-done
-aggregate-tables "$stage_field" "$stage_transformer" "${files[@]}" > aoeu # todo: rename variables and improve transformer for iterated stages
-cat aoeu
-mutate-table-field "aoeu" "$file_field" "cat"
-error X
-#own field for storing na values and errors?
+aggregate-tables "$stage_field" "$source_transformer" "${csv_files[@]}" > "$(output-csv)"
+tmp=$(mktemp)
+mutate-table-field "$(output-csv)" "$file_fields" "$stage_field" "$(lambda value,context_value echo "\$context_value/\$value")" > "$tmp"
+mv "$tmp" "$(output-csv)"

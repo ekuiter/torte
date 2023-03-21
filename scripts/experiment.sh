@@ -11,12 +11,11 @@ clean-stage() {
 # runs a stage of some experiment in a Docker container
 # reads the global CONFIG_FILE variable
 run-stage() {
-    local stage=$1
+    local stage=${1:-$TRANSIENT_STAGE}
     local dockerfile=${2:-util}
     local input_directory=${3:-$(input-directory)}
     local command=("${@:4}")
     require-host
-    require-value stage
     if [[ ! -f $dockerfile ]] && [[ -f scripts/$dockerfile/Dockerfile ]]; then
         dockerfile=scripts/$dockerfile/Dockerfile
     fi
@@ -33,7 +32,7 @@ run-stage() {
     mkdir -p "$(output-directory "$DOCKER_PREFIX")"
     exec > >(append "$(output-log "$DOCKER_PREFIX")")
     exec 2> >(append "$(output-err "$DOCKER_PREFIX")" >&2)
-    if ! stage-done "$stage" || [[ $FORCE_RUN == y ]]; then
+    if [[ $FORCE_RUN == y ]] || ! stage-done "$stage"; then
         echo "Running stage $stage"
         clean-stage "$stage"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
@@ -57,6 +56,9 @@ run-stage() {
             2> >(append "$(output-err "$stage")" >&2)
         rm-if-empty "$(output-log "$stage")"
         rm-if-empty "$(output-err "$stage")"
+        if [[ $stage == "$TRANSIENT_STAGE" ]]; then
+            clean-stage "$stage"
+        fi
     else
         echo "Skipping stage $stage"
     fi
@@ -82,7 +84,7 @@ debug-stage() {
 run-aggregate-stage() {
     local new_stage=$1
     local arguments=("${@:2}")
-    local stages=("${@:6}")
+    local stages=("${@:5}")
     require-host
     require-value new_stage arguments
     if ! stage-done "$new_stage"; then
@@ -95,25 +97,47 @@ run-aggregate-stage() {
 
 # runs a stage a given number of time and merges the output files in a new stage
 run-iterated-stage() {
-    local iterations=$1
-    local file_field=$2
-    local stage_field=$3
+    local iteration_field=$1
+    local iterations=$2
+    local file_fields=$3
     local new_stage=$4
     local arguments=("${@:5}")
     require-host
-    require-value iterations file_field stage_field new_stage arguments
+    require-value iteration_field iterations new_stage arguments
     local stages=()
     for i in $(seq "$iterations"); do
         local stage="${new_stage}_$i"
         stages+=("$stage")
         run-stage "$stage" "${arguments[@]}"
     done
-    local common_fields
     if [[ ! -f "$(output-csv "${new_stage}_1")" ]]; then
         error "Required output CSV for stage ${new_stage}_1 is missing, please re-run stage ${new_stage}_1."
     fi
-    common_fields=$(table-fields-except "$(output-csv "${new_stage}_1")" "$file_field")
-    run-aggregate-stage "$new_stage" "$file_field" "$stage_field" "$common_fields" "cat - | rev | cut -d_ -f1 | rev" "${stages[@]}"
+    run-aggregate-stage "$new_stage" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "$file_fields" "${stages[@]}"
+}
+
+# runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
+# only run if the specified file does not exist yet
+run-util-unless() {
+    local file=$1
+    local command=("${@:2}")
+    require-value file command
+    if is-file-empty "$OUTPUT_DIRECTORY/$file"; then
+        run-stage \
+        `# stage` "" \
+        `# dockerfile` "" \
+        `# input directory` "$OUTPUT_DIRECTORY" \
+        `# command` bash -c "source torte.sh load-config; cd \"\$(input-directory)\"; $(IFS=';'; echo "${command[*]}")"
+    fi
+}
+
+run-join-into() {
+    local first_stage=$1
+    local second_stage=$2
+    require-value first_stage second_stage
+    run-util-unless "$second_stage/output.csv.old" \
+        "mv $second_stage/output.csv $second_stage/output.csv.old" \
+        "join-tables $first_stage/output.csv $second_stage/output.csv.old > $second_stage/output.csv"
 }
 
 # forces all subsequent stages to be run (again)

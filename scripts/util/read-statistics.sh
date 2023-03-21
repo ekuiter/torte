@@ -15,7 +15,8 @@ add-revision() {
     date=$(date -d "@$time" +"%Y-%m-%d")
     echo "$system,$revision,$time,$date" >> "$(output-directory)/date.csv"
     if [[ $SCRIPT_OPTION != skip-sloc ]]; then
-        local sloc_file="$(output-directory)/$system/$revision.txt"
+        local sloc_file
+        sloc_file="$(output-directory)/$system/$revision.txt"
         mkdir -p "$(output-directory)/$system"
         (cd "input/$system"; cloc --git "$revision" > "$sloc_file")
         local sloc

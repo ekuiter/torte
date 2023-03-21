@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # echos and appends to a file
-alias append="tee -a"
+append() {
+    tee -a
+}
 
 # logs an error and exit
 error() {
@@ -46,11 +48,50 @@ require-host() {
 # returns whether a function is not defined, useful for providing fallback implementations
 unless-function() { ! declare -F "$1" >/dev/null; }
 
+# creates a lambda function that can be passed around
+lambda() {
+    local arguments=$1
+    local body="${*:2}"
+    require-value arguments body
+    IFS=, read -ra arguments <<< "$arguments"
+    code="() { "
+    local i=0
+    for argument in "${arguments[@]}"; do
+        ((i+=1))
+        code+="local $argument=\$$i; require-value $argument; "
+    done
+    echo "$code $body; }"
+}
+
+# a lambda for the identity function
+lambda-identity() {
+    lambda value echo "\$value"
+}
+
+# stores a lambda function as a function in the global namespace
+lambda-to-function() {
+    local name=$1
+    local lambda=$2
+    require-value name lambda
+    eval "$name$lambda"
+}
+
 # if not defined, defines a function with a given name doing nothing
 define-stub() {
     function=$1
     require-value function
     eval "unless-function $function && $function() { :; } || true"
+}
+
+# returns whether an array contains an element
+array-contains() {
+    local element=$1
+    local array=("${@:2}")
+    require-value element
+    for e in "${array[@]}"; do
+        [[ "$e" == "$element" ]] && return 0
+    done
+    return 1
 }
 
 # replaces a given search string for a given number of times per line, operates on standard input
@@ -119,7 +160,7 @@ join-tables-by-prefix() {
         | replace-times $n $escape_sequence ,
 }
 
-# joins two CSV files on at least one common fields
+# joins two CSV files on at least one common field
 join-two-tables() {
     local first_file=$1
     local second_file=$2
@@ -169,21 +210,15 @@ join-tables() {
 # aggregates any number of CSV files, keeping common fields and adding an aggregate column
 aggregate-tables() {
     local source_field=$1
-    local source_transformer=${2:-cat -}
+    local source_transformer=${2:-$(lambda-identity)}
     local files=("${@:3}")
     local common_fields
+    lambda-to-function source-transformer "$source_transformer"
     readarray -t common_fields < <(common-fields "${files[@]}")
     require-value source_field files
     if [[ -z "${common_fields[*]}" ]]; then
         error "Expected at least one common field."
     fi
-
-    source-transformer() {
-        value=$1
-        require-value value
-        echo "$value" | eval "$source_transformer"
-    }
-
     echo "$(IFS=,; echo "${common_fields[*]}"),$source_field"
     for file in "${files[@]}"; do
         # shellcheck disable=SC2094
@@ -199,18 +234,14 @@ aggregate-tables() {
 # mutates a field in a CSV file
 mutate-table-field() {
     local file=$1
-    local field=$2
-    local field_transformer=${3:-cat -}
+    local mutated_fields=$2
+    local context_field=$3
+    local field_transformer=${4:-$(lambda-identity)}
     local fields
+    IFS=, read -ra mutated_fields <<< "$mutated_fields"
     readarray -t fields < <(head -n1 "$file" | tr , "\n")
-    require-value file field
-
-    field-transformer() {
-        value=$1
-        require-value value
-        echo "$value" | eval "$field_transformer" # todo: how to pass second argument, the file?
-    }
-
+    lambda-to-function field-transformer "$field_transformer"
+    require-value file
     echo "$(IFS=,; echo "${fields[*]}")"
     # shellcheck disable=SC2094
     while read -r line; do
@@ -218,8 +249,12 @@ mutate-table-field() {
         for current_field in "${fields[@]}"; do
             local value
             value=$(echo "$line" | cut -d, -f "$(table-field-index "$file" "$current_field")")
-            if [[ $current_field == "$field" ]]; then
-                new_line+="$(field-transformer "$value"),"
+            if array-contains "$current_field" "${mutated_fields[@]}"; then
+                local context_value=""
+                if [[ -n $context_field ]]; then
+                    context_value=$(echo "$line" | cut -d, -f "$(table-field-index "$file" "$context_field")")
+                fi
+                new_line+="$(field-transformer "$value" "$context_value"),"
             else
                 new_line+="$value,"
             fi
@@ -233,7 +268,12 @@ table-field-index() {
     local file=$1
     local field=$2
     require-value file field
-    sed 's/,/\n/g;q' < "$file" | nl | grep "$field" | cut -f1 | xargs
+    local idx
+    idx=$(sed 's/,/\n/g;q' < "$file" | nl | grep "\s$field$" | cut -f1 | xargs)
+    if [[ -z $idx ]]; then
+        error "Table field $field does not exist in file $file."
+    fi
+    echo "$idx"
 }
 
 # gets all values of a named field in a CSV file, optionally including the header
@@ -248,6 +288,8 @@ table-field() {
         local start_at_line=2
     fi
     # shellcheck disable=SC2094
+    local idx
+    idx=$(table-field-index "$file" "$field")
     cut -d, -f "$(table-field-index "$file" "$field")" < "$file" | tail -n+$start_at_line
 }
 

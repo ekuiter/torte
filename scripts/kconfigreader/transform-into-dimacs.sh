@@ -7,7 +7,7 @@ source torte.sh load-config
 timeout=$1
 require-value timeout
 
-echo "kconfig-model,dimacs-file,transformation" > "$(output-csv)"
+echo "model-file,dimacs-file,dimacs-transformation" > "$(output-csv)"
 while read -r file; do
     input="$(input-directory)/$file"
     new_file=$(dirname "$file")/$(basename "$file" .model).dimacs
@@ -19,4 +19,4 @@ while read -r file; do
         new_file=NA
     fi
     echo "$file,$new_file,ModelToDIMACSKConfigReader" >> "$(output-csv)"
-done < <(table-field "$(input-csv)" kconfig-model)
+done < <(table-field "$(input-csv)" kconfig-model-file)
