@@ -3,48 +3,40 @@
 # defines the stages of the experiment in order of their execution
 experiment-stages() {
     # clone the systems specified as experiment subjects
-    run-stage `# stage` clone-systems
+    run-stage --stage clone-systems
 
     # tag old Linux revisions that are not included in its Git history
-    run-stage `# stage` tag-linux-revisions
+    run-stage --stage tag-linux-revisions
 
     # read basic statistics for each system
-    run-stage `# stage` read-statistics `# dockerfile` "" `# input directory` "" `# command` ./read-statistics.sh #skip-sloc
-    
+    run-stage --stage read-statistics --command ./read-statistics.sh #skip-sloc
+
     # use a given extractor to extract a kconfig model for each specified experiment subject
-    extract-with() {
-        extractor=$1
-        require-value extractor
+    extract-with(extractor) {
         run-iterated-stage \
-            `# iteration field` iteration \
-            `# iterations` 2 \
-            `# file fields` kconfig-binding-file,kconfig-model-file \
-            `# stage` "$extractor" \
-            `# dockerfile` "$extractor" \
-            `# input directory` "" \
-            `# command` ./extract-kconfig-models.sh
+            --stage "$extractor" \
+            --iterations 2 \
+            --file-fields kconfig-binding-file,kconfig-model-file \
+            --dockerfile "$extractor" \
+            --command ./extract-kconfig-models.sh
     }
 
     extract-with kconfigreader
     extract-with kclause
 
     run-aggregate-stage \
-        `# stage` kconfig \
-        `# stage field` extractor \
-        `# stage transformer` "" \
-        `# file fields` kconfig-binding-file,kconfig-model-file \
-        `# stages` kconfigreader kclause
+        --stage kconfig \
+        --stage-field extractor \
+        --file-fields kconfig-binding-file,kconfig-model-file \
+        --stages kconfigreader kclause
 
     # use featjar to transform kconfig models into various formats and then into DIMACS
-    transform-with() {
-        transformation=$1
-        output_extension=$2
-        require-value transformation output_extension
+    transform-with(transformation, output_extension) {
         run-stage \
-            `# stage` "$transformation" \
-            `# dockerfile` featjar \
-            `# input directory` kconfig \
-            `# command` ./transform.sh \
+            --stage "$transformation" \
+            --dockerfile featjar \
+            --input-directory kconfig \
+            --command ./transform.sh \
             `# file field` kconfig-model-file \
             `# input extension` model \
             `# output extension` "$output_extension" \
@@ -52,33 +44,33 @@ experiment-stages() {
             `# timeout in seconds` 10
     }
 
+
     transform-with modeltodimacsfeatureide dimacs
     transform-with modeltomodelfeatureide model
     transform-with modeltosmtz3 smt
     transform-with modeltodimacsfeatjar dimacs
 
     run-stage \
-        `# stage` modeltodimacskconfigreader \
-        `# dockerfile` kconfigreader \
-        `# input directory` modeltomodelfeatureide \
-        `# command` ./transform-into-dimacs.sh \
+        --stage modeltodimacskconfigreader \
+        --dockerfile kconfigreader \
+        --input-directory modeltomodelfeatureide \
+        --command ./transform-into-dimacs.sh \
         `# timeout in seconds` 10
     run-join-into modeltomodelfeatureide modeltodimacskconfigreader
 
     run-stage \
-        `# stage` smttodimacsz3 \
-        `# dockerfile` z3 \
-        `# input directory` modeltosmtz3 \
-        `# command` ./transform-into-dimacs.sh \
+        --stage smttodimacsz3 \
+        --dockerfile z3 \
+        --input-directory modeltosmtz3 \
+        --command ./transform-into-dimacs.sh \
         `# timeout in seconds` 10
     run-join-into modeltosmtz3 smttodimacsz3
 
     run-aggregate-stage \
-        `# stage` dimacs \
-        `# stage field` transformation \
-        `# stage transformer` "" \
-        `# file fields` dimacs-file \
-        `# stages` modeltodimacsfeatureide modeltodimacskconfigreader smttodimacsz3
+        --stage dimacs \
+        --stage-field transformation \
+        --file-fields dimacs-file \
+        --stages modeltodimacsfeatureide modeltodimacskconfigreader smttodimacsz3
     run-join-into kconfig dimacs
 
     # todos:
@@ -99,20 +91,16 @@ experiment-subjects() {
 
     for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
         add-revision busybox "$revision"
-        add-kconfig busybox "$revision" scripts/kconfig/*.o Config.in ""
+        add-kconfig busybox "$revision" Config.in scripts/kconfig/*.o ""
     done
 
     # todo: facet around architectures?
     # linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
-    # add-kconfig linux v2.6.13 scripts/kconfig/*.o arch/i386/Kconfig $linux_env
+    # add-kconfig linux v2.6.13 arch/i386/Kconfig scripts/kconfig/*.o $linux_env
 }
 
 # called after a system has been checked out during kconfig model extraction
-kconfig-post-checkout-hook() {
-    system=$1
-    revision=$2
-    require-value system revision
-
+kconfig-post-checkout-hook(system, revision) {
     # the following hacks may impair accuracy, but are necessary to extract a kconfig model
     if [[ $system == freetz-ng ]]; then
         # ugly hack because freetz-ng is weird
@@ -130,11 +118,7 @@ kconfig-post-checkout-hook() {
         touch generated/Config.in generated/Config.probed
     fi
     if [[ $system == linux ]]; then
-        replace() {
-            regex=$1
-            require-value regex
-            find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex//g" {} \;
-        }
+        replace(regex) { find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex//g" {} \;; }
         # ignore all constraints that use the newer $(success,...) syntax
         replace "\s*default \$(.*"
         replace "\s*depends on \$(.*"
@@ -147,11 +131,7 @@ kconfig-post-checkout-hook() {
 }
 
 # called after a kconfig binding has been executed during kconfig model extraction
-kclause-post-binding-hook() {
-    system=$1
-    revision=$2
-    require-value system revision
-
+kclause-post-binding-hook(system, revision) {
     if [[ $system == embtoolkit ]]; then
         # fix incorrect feature names, which Kclause interprets as a binary subtraction operator
         sed -i 's/-/_/g' "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause"

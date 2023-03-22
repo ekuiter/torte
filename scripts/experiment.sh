@@ -1,39 +1,34 @@
 #!/bin/bash
 
 # removes all output for the given experiment stage
-clean-stage() {
-    local stage=$1
+clean-stage(stage) {
     require-host
-    require-value stage
     rm-safe "$(output-directory "$stage")"
 }
 
 # runs a stage of some experiment in a Docker container
 # reads the global CONFIG_FILE variable
-run-stage() {
-    local stage=${1:-$TRANSIENT_STAGE}
-    local dockerfile=${2:-util}
-    local input_directory=${3:-$(input-directory)}
-    local command=("${@:4}")
+run-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...) {
     require-host
-    if [[ ! -f $dockerfile ]] && [[ -f scripts/$dockerfile/Dockerfile ]]; then
-        dockerfile=scripts/$dockerfile/Dockerfile
-    fi
-    if [[ ! -d $input_directory ]] && [[ -d $(output-directory "$input_directory") ]]; then
-        input_directory=$(output-directory "$input_directory")
-    fi
-    local flags=
-    if [[ -z ${command[*]} ]]; then
-        command=("./$stage.sh")
-    fi
-    if [[ ${command[*]} == /bin/bash ]]; then
-        flags=-it
-    fi
-    mkdir -p "$(output-directory "$DOCKER_PREFIX")"
-    exec > >(append "$(output-log "$DOCKER_PREFIX")")
-    exec 2> >(append "$(output-err "$DOCKER_PREFIX")" >&2)
     if [[ $FORCE_RUN == y ]] || ! stage-done "$stage"; then
         echo "Running stage $stage"
+        input_directory=${input_directory:-$(input-directory)}
+        if [[ ! -f $dockerfile ]] && [[ -f scripts/$dockerfile/Dockerfile ]]; then
+            dockerfile=scripts/$dockerfile/Dockerfile
+        fi
+        if [[ ! -d $input_directory ]] && [[ -d $(output-directory "$input_directory") ]]; then
+            input_directory=$(output-directory "$input_directory")
+        fi
+        local flags=
+        if is-array-empty command; then
+            command=("./$stage.sh")
+        fi
+        if [[ ${command[*]} == /bin/bash ]]; then
+            flags=-it
+        fi
+        mkdir -p "$(output-directory "$DOCKER_PREFIX")"
+        exec > >(tee -a "$(output-log "$DOCKER_PREFIX")")
+        exec 2> >(tee -a "$(output-err "$DOCKER_PREFIX")" >&2)
         clean-stage "$stage"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
@@ -52,8 +47,8 @@ run-stage() {
              -m "$(memory-limit)G" \
             "${DOCKER_PREFIX}_$stage" \
             "${command[@]}" \
-            > >(append "$(output-log "$stage")") \
-            2> >(append "$(output-err "$stage")" >&2)
+            > >(tee -a "$(output-log "$stage")") \
+            2> >(tee -a "$(output-err "$stage")" >&2)
         rm-if-empty "$(output-log "$stage")"
         rm-if-empty "$(output-err "$stage")"
         if [[ $stage == "$TRANSIENT_STAGE" ]]; then
@@ -65,76 +60,53 @@ run-stage() {
 }
 
 # skips a stage, useful to comment out a stage temporarily
-skip-stage() {
-    local stage=$1
-    require-host
-    require-value stage
+skip-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...) {
     echo "Skipping stage $stage"
 }
 
 # runs a stage by dropping into an interactive shell
-debug-stage() {
-    local stage=$1
-    local dockerfile=$2
-    local input_directory=$3
+debug-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=) {
     run-stage "$stage" "$dockerfile" "$input_directory" /bin/bash
 }
 
 # merges the output files of two or more stages in a new stage
-run-aggregate-stage() {
-    local new_stage=$1
-    local arguments=("${@:2}")
-    local stages=("${@:5}")
-    require-host
-    require-value new_stage arguments
-    if ! stage-done "$new_stage"; then
-        for stage in "${stages[@]}"; do
-            require-stage-done "$stage"
+run-aggregate-stage(stage, stage_field, file_fields=, stage_transformer=, stages...) {
+    if ! stage-done "$stage"; then
+        local current_stage
+        for current_stage in "${stages[@]}"; do
+            require-stage-done "$current_stage"
         done
     fi
-    run-stage "$new_stage" "" "$OUTPUT_DIRECTORY" ./aggregate.sh "${arguments[@]}"
+    run-stage "$stage" "" "$OUTPUT_DIRECTORY" ./aggregate.sh "$stage_field" "$file_fields" "$stage_transformer" "${stages[@]}"
 }
 
 # runs a stage a given number of time and merges the output files in a new stage
-run-iterated-stage() {
-    local iteration_field=$1
-    local iterations=$2
-    local file_fields=$3
-    local new_stage=$4
-    local arguments=("${@:5}")
-    require-host
-    require-value iteration_field iterations new_stage arguments
-    local stages=()
-    for i in $(seq "$iterations"); do
-        local stage="${new_stage}_$i"
-        stages+=("$stage")
-        run-stage "$stage" "${arguments[@]}"
-    done
-    if [[ ! -f "$(output-csv "${new_stage}_1")" ]]; then
-        error "Required output CSV for stage ${new_stage}_1 is missing, please re-run stage ${new_stage}_1."
+run-iterated-stage(stage, iterations, iteration_field=iteration, file_fields=, dockerfile=util, input_directory=, command...) {
+    if [[ $iterations -lt 1 ]]; then
+        error "At least one iteration is required for stage $stage."
     fi
-    run-aggregate-stage "$new_stage" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "$file_fields" "${stages[@]}"
+    local stages=()
+    local i
+    for i in $(seq "$iterations"); do
+        local current_stage="${stage}_$i"
+        stages+=("$current_stage")
+        run-stage "$current_stage" "$dockerfile" "$input_directory" "${command[@]}"
+    done
+    if [[ ! -f "$(output-csv "${stage}_1")" ]]; then
+        error "Required output CSV for stage ${stage}_1 is missing, please re-run stage ${stage}_1."
+    fi
+    run-aggregate-stage "$stage" "$iteration_field" "$file_fields" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "${stages[@]}"
 }
 
 # runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
 # only run if the specified file does not exist yet
-run-util-unless() {
-    local file=$1
-    local command=("${@:2}")
-    require-value file command
+run-util-unless(file, command...) {
     if is-file-empty "$OUTPUT_DIRECTORY/$file"; then
-        run-stage \
-        `# stage` "" \
-        `# dockerfile` "" \
-        `# input directory` "$OUTPUT_DIRECTORY" \
-        `# command` bash -c "source torte.sh load-config; cd \"\$(input-directory)\"; $(IFS=';'; echo "${command[*]}")"
+        run-stage "" "" "$OUTPUT_DIRECTORY" bash -c "source torte.sh load-config; cd \"\$(input-directory)\"; $(to-list command "; ")"
     fi
 }
 
-run-join-into() {
-    local first_stage=$1
-    local second_stage=$2
-    require-value first_stage second_stage
+run-join-into(first_stage, second_stage) {
     run-util-unless "$second_stage/output.csv.old" \
         "mv $second_stage/output.csv $second_stage/output.csv.old" \
         "join-tables $first_stage/output.csv $second_stage/output.csv.old > $second_stage/output.csv"
@@ -176,24 +148,24 @@ load-config() {
 }
 
 # loads a config file and adds all experiment subjects
-load-subjects() {
-    load-config "$1"
+load-subjects(config_file=) {
+    load-config "$config_file"
     experiment-subjects
 }
 
 # removes all output files specified by the given config file
 # does not touch input files or Docker images
-clean() {
+clean(config_file=) {
     require-host
-    load-config "$1"
+    load-config "$config_file"
     rm-safe "$OUTPUT_DIRECTORY"
 }
 
 # runs the experiment defined in the given config file
-run() {
+run(config_file=) {
     require-host
     require-command docker
-    load-config "$1"
+    load-config "$config_file"
     mkdir -p "$OUTPUT_DIRECTORY"
     clean-stage "$DOCKER_PREFIX"
     experiment-stages

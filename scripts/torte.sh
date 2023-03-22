@@ -31,6 +31,7 @@ KCONFIG_MODELS_OUTPUT_DIRECTORY=kconfig-models # output directory for storing kc
 KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storing Kconfig bindings
 TRANSIENT_STAGE=transient # name for transient stages
 
+source "$SCRIPTS_DIRECTORY/bootstrap.sh" # modifies bash to allow for succinct function definitions
 source "$SCRIPTS_DIRECTORY/helpers.sh" # miscellaneous helpers
 source "$SCRIPTS_DIRECTORY/paths.sh" # functions for dealing with input/output paths
 source "$SCRIPTS_DIRECTORY/experiment.sh" # functions for running stages and loading experiments

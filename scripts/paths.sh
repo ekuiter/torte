@@ -10,9 +10,8 @@ input-directory() {
 }
 
 # returns the directory for all outputs for a given stage
-output-directory() {
+output-directory(stage=) {
     if [[ -z $DOCKER_RUNNING ]]; then
-        local stage=$1
         require-value stage
         echo "$OUTPUT_DIRECTORY/$stage"
     else
@@ -21,17 +20,12 @@ output-directory() {
 }
 
 # returns a file with a given extension for the input of the current stage
-input-file() {
-    local extension=$1
-    require-value extension
+input-file(extension) {
     echo "$(input-directory)/$DOCKER_OUTPUT_FILE_PREFIX.$extension"
 }
 
 # returns a file with a given extension for the output of a given stage
-output-file() {
-    local extension=$1
-    local stage=$2
-    require-value extension
+output-file(extension, stage=) {
     echo "$(output-directory "$stage")/$DOCKER_OUTPUT_FILE_PREFIX.$extension"
 }
 
@@ -39,23 +33,19 @@ output-file() {
 input-csv() { input-file csv; }
 input-log() { input-file log; }
 input-err() { input-file err; }
-output-csv() { output-file csv "$1"; }
-output-log() { output-file log "$1"; }
-output-err() { output-file err "$1"; }
+output-csv(stage=) { output-file csv "$stage"; }
+output-log(stage=) { output-file log "$stage"; }
+output-err(stage=) { output-file err "$stage"; }
 
 # returns whether the given experiment stage is done
-stage-done() {
-    local stage=$1
+stage-done(stage) {
     require-host
-    require-value stage
     [[ -d $(output-directory "$stage") ]]
 }
 
 # requires that he given experiment stage is done
-require-stage-done() {
-    local stage=$1
+require-stage-done(stage) {
     require-host
-    require-value stage
     if ! stage-done "$stage"; then
         error "Stage $stage not done yet, please run stage $stage."
     fi

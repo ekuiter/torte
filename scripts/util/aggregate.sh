@@ -4,11 +4,11 @@
 # assumes that the input directory is the root output directory, also makes some assumptions about its layout
 
 # shellcheck source=../../scripts/torte.sh
-source torte.sh load-config
+source torte.sh load-config 
 
 stage_field=$1
-stage_transformer=${2:-$(lambda-identity)}
-file_fields=$3
+file_fields=$2
+stage_transformer=${3:-$(lambda-identity)}
 stages=("${@:4}")
 require-value stage_field stages
 lambda-to-function stage-transformer "$stage_transformer"
