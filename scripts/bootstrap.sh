@@ -10,11 +10,29 @@ source() {
     sed -E 's/^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{\s*/\1() { eval "$(parse-arguments \1 \2)";/' < "$script" > "$tmp"
     builtin source "$tmp"
     rm "$tmp"
+
+    # this can also be done at compile-time, but it is inefficient:
+    # local regex='^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{(.*)'
+    # local line
+    # while read -r line; do
+    #     local function_name variable_specs remainder
+    #     function_name=$(echo "$line" | sed -nE "s/$regex/\1/p")
+    #     variable_specs=$(echo "$line" | sed -nE "s/$regex/\2/p")
+    #     remainder=$(echo "$line" | sed -nE "s/$regex/\3/p")
+    #     if [[ -n $function_name ]]; then
+    #         line="$function_name() { "
+    #         # shellcheck disable=SC2086
+    #         line+=$(parse-arguments "$function_name" $variable_specs)
+    #         line+=" $remainder "
+    #     fi
+    #     echo "$line" >> "$tmp"
+    # done < "$script"
 }
 
 # generates code that parses function arguments in a flexible way
 # e.g., fn(a, b, c=3) can be called with positional arguments as "fn 1 2 3" or with named arguments as "fn --a 1 --b 2"
 # allows default values and variadic arguments
+# todo: either allow positional or named arguments to improve performance
 parse-arguments() {
     local function_name=$1
     local variable_specs=("${@:2}")
