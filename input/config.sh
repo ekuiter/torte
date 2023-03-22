@@ -10,7 +10,7 @@ experiment-stages() {
 
     # read basic statistics for each system
     run-stage --stage read-statistics --command ./read-statistics.sh #skip-sloc
-
+    
     # use a given extractor to extract a kconfig model for each specified experiment subject
     extract-with(extractor) {
         run-iterated-stage \
@@ -44,12 +44,12 @@ experiment-stages() {
             `# timeout in seconds` 10
     }
 
-
     transform-with modeltodimacsfeatureide dimacs
     transform-with modeltomodelfeatureide model
     transform-with modeltosmtz3 smt
     transform-with modeltodimacsfeatjar dimacs
 
+    force-run-below
     run-stage \
         --stage modeltodimacskconfigreader \
         --dockerfile kconfigreader \

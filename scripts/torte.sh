@@ -37,9 +37,18 @@ source "$SCRIPTS_DIRECTORY/paths.sh" # functions for dealing with input/output p
 source "$SCRIPTS_DIRECTORY/experiment.sh" # functions for running stages and loading experiments
 source "$SCRIPTS_DIRECTORY/kconfig.sh" # functions for extracting kconfig models
 
+# prints a banner
+banner() {
+    echo "$DOCKER_PREFIX" | sed -E s/./=/g
+    echo "$DOCKER_PREFIX"
+    echo "$DOCKER_PREFIX" | sed -E s/./=/g
+    echo
+}
+
 # prints help information
 help() {
-    echo "usage: $0 [command]..."
+    banner
+    echo "usage: $(basename "$0") [command]..."
     echo
     echo "commands:"
     echo "run [config-file]      runs the experiment defined in the given config file (default: input/config.sh)"

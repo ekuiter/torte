@@ -18,7 +18,9 @@ while read -r file; do
     new_file=$(dirname "$file")/$(basename "$file" ".$input_extension").$output_extension
     output="$(output-directory)/$new_file"
     mkdir -p "$(dirname "$output")"
-    measure-time 0 java \
+    subject="$transformation: $file"
+    log "$subject" "$(yellow-color)transform"
+    measure-time "$timeout" java \
         `# setting a lower memory limit is necessary to avoid that the process is killed erroneously` \
         "-Xmx$(memory-limit 1)G" \
          -jar $jar \
@@ -27,7 +29,10 @@ while read -r file; do
         --input "$input" \
         --output "$output" \
         --transformation "$transformation"
-    if is-file-empty "$output"; then
+    if ! is-file-empty "$output"; then
+        log "$subject" "$(green-color)done"
+    else
+        log "$subject" "$(red-color)fail"
         new_file=NA
     fi
     echo "$file,$new_file,$transformation" >> "$(output-csv)"

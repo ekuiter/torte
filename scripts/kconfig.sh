@@ -45,11 +45,12 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
     kconfig_binding_directory=$(kconfig-binding-directory "$kconfig_binding_files_spec")
     local kconfig_binding_output_file
     kconfig_binding_output_file=$(output-directory)/$KCONFIG_BINDINGS_OUTPUT_DIRECTORY/$system/$revision.$kconfig_binding_name
+    local subject="$kconfig_binding_name: $system@$revision"
     if [[ -f $kconfig_binding_output_file ]]; then
-        echo "Skipping Kconfig binding $kconfig_binding_name for $system at $revision"
+        log "$subject" "$(blue-color)skip"
         return
     fi
-    echo "Compiling Kconfig binding $kconfig_binding_name for $system at $revision"
+    log "$subject" "$(yellow-color)compile"
     mkdir -p "$(output-directory)/$KCONFIG_BINDINGS_OUTPUT_DIRECTORY/$system"
     push "$(input-directory)/$system"
 
@@ -66,7 +67,10 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
     (echo "$cmd" && eval "$cmd") || true
     chmod +x "$kconfig_binding_output_file" || true
     pop
-    if [[ ! -f $kconfig_binding_output_file ]]; then
+    if [[ -f $kconfig_binding_output_file ]]; then
+        log "$subject" "$(green-color)done"
+    else
+        log "$subject" "$(red-color)fail"
         kconfig_binding_output_file=NA
     fi
     echo "$system,$revision,$kconfig_binding_output_file" >> "$(output-directory)/kconfig-bindings.csv"
@@ -79,11 +83,12 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
     if [[ -n $env ]]; then
         env="$(echo '' -e "$env" | sed 's/,/ -e /g')"
     fi
+    local subject="$extractor: $system@$revision"
     if [[ -f $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.model ]]; then
-        echo "Skipping Kconfig model for $system at $revision"
+        log "$subject" "$(blue-color)skip"
         return
     fi
-    echo "Extracting Kconfig model for $system at $revision"
+    log "$subject" "$(yellow-color)extract"
     trap 'ec=$?; (( ec != 0 )) && rm-safe '"$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"'*' EXIT
     mkdir -p "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system"
     push "$(input-directory)/$system"
@@ -118,8 +123,10 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
     trap - EXIT
     kconfig_binding_file=${kconfig_binding_file#"$(output-directory)/"}
     if is-file-empty "$kconfig_model"; then
+        log "$subject" "$(red-color)fail"
         kconfig_model=NA
     else
+        log "$subject" "$(green-color)done"
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
     echo "$system,$revision,$kconfig_binding_file,$kconfig_file,$kconfig_model" >> "$(output-csv)"

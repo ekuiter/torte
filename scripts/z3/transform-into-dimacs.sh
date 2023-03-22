@@ -13,9 +13,14 @@ while read -r file; do
     new_file=$(dirname "$file")/$(basename "$file" .smt).dimacs
     output="$(output-directory)/$new_file"
     mkdir -p "$(dirname "$output")"
+    subject="SMTToDIMACSZ3: $file"
+    log "$subject" "$(yellow-color)transform"
     measure-time "$timeout" \
         python3 smt2dimacs.py "$input" "$output"
-    if is-file-empty "$output"; then
+    if ! is-file-empty "$output"; then
+        log "$subject" "$(green-color)done"
+    else
+        log "$subject" "$(red-color)fail"
         new_file=NA
     fi
     echo "$file,$new_file,SMTToDIMACSZ3" >> "$(output-csv)"

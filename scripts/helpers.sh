@@ -1,9 +1,56 @@
 #!/bin/bash
 
+# logs a new message
+new-log(arguments...) {
+    echo -e "[$DOCKER_PREFIX] \r\033[0K${arguments[*]}"
+}
+
+# changes the current log message
+update-log(arguments...) {
+    echo -e "[$DOCKER_PREFIX] \r\033[1A\033[0K${arguments[*]}"
+}
+
+# logs a message that is always printed to the console output
+CURRENT_SUBJECT=""
+log(subject, state=) {
+    local command
+    if [[ $subject != "$CURRENT_SUBJECT" ]]; then
+        command=new-log
+    else
+        command=update-log
+    fi
+    if [[ -z $DOCKER_RUNNING ]] && ! tail -n1 "$(output-log "$DOCKER_PREFIX")" | grep -q "$subject"; then
+        command=new-log
+    fi
+    CURRENT_SUBJECT=$subject
+    "$command" "$(printf %-80s "$(bold-text)$subject$(default-text)") $state$(default-text)"
+}
+
+default-text() { echo -e "\033[0m"; }
+bold-text() { echo -e "\033[1m"; }
+red-color() { echo -e "\033[0;31m"; }
+green-color() { echo -e "\033[0;32m"; }
+yellow-color() { echo -e "\033[0;33m"; }
+blue-color() { echo -e "\033[0;34m"; }
+
 # logs an error and exit
 error(arguments...) {
     echo "${arguments[@]}" 1>&2
     exit 1
+}
+
+# appends standard input to a file
+write-all(file) {
+    tee >(cat -v >> "$file")
+}
+
+# appends standard input to a file, omits irrelevant output on console
+write-log(file) {
+    if [[ $VERBOSE == y ]]; then
+        write-all "$file"
+    else
+        write-all "$file" | grep -oP "\[$DOCKER_PREFIX\] \K.*"
+    fi
 }
 
 # requires that the given commands are available
@@ -12,16 +59,6 @@ require-command(commands...) {
     for command in "${commands[@]}"; do
         if ! command -v "$command" &> /dev/null; then
             error "Required command $command is missing, please install manually."
-        fi
-    done
-}
-
-# requires that the given variables are set
-require-variable(variables...) {
-    local variable
-    for variable in "${variables[@]}"; do
-        if [[ -z ${!variable+x} ]]; then
-            error "Required variable $variable is not set, please set it to some value."
         fi
     done
 }
@@ -356,7 +393,9 @@ stop-at-revision(end_exclusive=) {
 # removes files and reports an error when there are permission issues
 rm-safe(files...) {
     require-array files
-    LC_ALL=C rm -rf "${files[@]}" 2> >(grep -q "Permission denied" && error "Could not remove ${files[*]} due to missing permissions, did you run Docker in rootless mode?")
+    LC_ALL=C rm -rf "${files[@]}" \
+        2> >(grep -q "Permission denied" \
+            && error "Could not remove ${files[*]} due to missing permissions, did you run Docker in rootless mode?")
 }
 
 # returns the memory limit, optionally adding a further limit

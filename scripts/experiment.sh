@@ -10,8 +10,8 @@ clean-stage(stage) {
 # reads the global CONFIG_FILE variable
 run-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...) {
     require-host
+    log "$stage"
     if [[ $FORCE_RUN == y ]] || ! stage-done "$stage"; then
-        echo "Running stage $stage"
         input_directory=${input_directory:-$(input-directory)}
         if [[ ! -f $dockerfile ]] && [[ -f scripts/$dockerfile/Dockerfile ]]; then
             dockerfile=scripts/$dockerfile/Dockerfile
@@ -19,43 +19,47 @@ run-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...)
         if [[ ! -d $input_directory ]] && [[ -d $(output-directory "$input_directory") ]]; then
             input_directory=$(output-directory "$input_directory")
         fi
-        local flags=
+        local build_flags=
+        local run_flags=
         if is-array-empty command; then
             command=("./$stage.sh")
         fi
-        if [[ ${command[*]} == /bin/bash ]]; then
-            flags=-it
+        if [[ ! $VERBOSE == y ]]; then
+            build_flags=-q
         fi
-        mkdir -p "$(output-directory "$DOCKER_PREFIX")"
-        exec > >(tee -a "$(output-log "$DOCKER_PREFIX")")
-        exec 2> >(tee -a "$(output-err "$DOCKER_PREFIX")" >&2)
+        if [[ ${command[*]} == /bin/bash ]]; then
+            run_flags=-it
+        fi
         clean-stage "$stage"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
-            docker build \
+            log "$stage" "$(yellow-color)build"
+            docker build $build_flags \
                 -f "$dockerfile"\
                 -t "${DOCKER_PREFIX}_$stage" \
                 --ulimit nofile=20000:20000 \
-                "$SCRIPTS_DIRECTORY"
+                "$SCRIPTS_DIRECTORY" >/dev/null
         fi
         mkdir -p "$(output-directory "$stage")"
-        docker run $flags \
+        log "$stage" "$(yellow-color)run"
+        docker run $run_flags \
             -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
             -e DOCKER_RUNNING=y \
             --rm \
-             -m "$(memory-limit)G" \
+            -m "$(memory-limit)G" \
             "${DOCKER_PREFIX}_$stage" \
             "${command[@]}" \
-            > >(tee -a "$(output-log "$stage")") \
-            2> >(tee -a "$(output-err "$stage")" >&2)
+            > >(write-all "$(output-log "$stage")") \
+            2> >(write-all "$(output-err "$stage")" >&2)
         rm-if-empty "$(output-log "$stage")"
         rm-if-empty "$(output-err "$stage")"
         if [[ $stage == "$TRANSIENT_STAGE" ]]; then
             clean-stage "$stage"
         fi
+        log "$stage" "$(green-color)done"
     else
-        echo "Skipping stage $stage"
+        log "$stage" "$(blue-color)skip"
     fi
 }
 
@@ -145,6 +149,8 @@ load-config() {
     MEMORY_LIMIT=${MEMORY_LIMIT:-$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024))}
     # y if every following stage should be forced to run regardless of whether is is already done
     FORCE_RUN=${FORCE_RUN:-}
+    # y if console output should be verbose
+    VERBOSE=${VERBOSE:-}
 }
 
 # loads a config file and adds all experiment subjects
@@ -165,10 +171,14 @@ clean(config_file=) {
 run(config_file=) {
     require-host
     require-command docker
+    banner
     load-config "$config_file"
     mkdir -p "$OUTPUT_DIRECTORY"
     clean-stage "$DOCKER_PREFIX"
-    experiment-stages
+    mkdir -p "$(output-directory "$DOCKER_PREFIX")"
+    experiment-stages \
+        > >(write-log "$(output-log "$DOCKER_PREFIX")") \
+        2> >(write-all "$(output-err "$DOCKER_PREFIX")" >&2)
 }
 
 # stops a running experiment
