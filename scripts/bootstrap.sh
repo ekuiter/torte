@@ -4,12 +4,12 @@
 # e.g., fn(a, b, c=3) { echo $a $b $c; } works as intuitively expected
 source() {
     local script=$1
-    local tmp
-    tmp=$(mktemp)
+    local temporary_source
+    local -r temporary_source=$(mktemp) # todo: make local -r the default
     # shellcheck disable=SC2016
-    sed -E 's/^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{\s*/\1() { eval "$(parse-arguments \1 \2)";/' < "$script" > "$tmp"
-    builtin source "$tmp"
-    rm "$tmp"
+    sed -E 's/^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{\s*/\1() { eval "$(parse-arguments \1 \2)";/' < "$script" > "$temporary_source"
+    builtin source "$temporary_source"
+    rm "$temporary_source"
 
     # this can also be done at compile-time, but it is inefficient:
     # local regex='^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{(.*)'

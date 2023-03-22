@@ -2,17 +2,17 @@
 # ./clone-systems.sh
 # clones system repositories using git
 
-add-system() {
-    local system=$1
-    local url=$2
-    require-value system url
+load-config
+
+add-system(system, url) {
+    local subject="git-clone: $system"
     if [[ ! -d "$(input-directory)/$system" ]]; then
-        echo "Cloning system $system"
+        log "$subject" "$(yellow-color)clone"
         git clone "$url" "$(input-directory)/$system"
+        log "$subject" "$(green-color)done"
     else
-        echo "Skipping clone for system $system"
+        log "$subject" "$(blue-color)skip"
     fi
 }
 
-# shellcheck source=../../scripts/torte.sh
-source torte.sh load-subjects
+load-subjects

@@ -2,9 +2,8 @@
 # ./transform-into-dimacs.sh
 # transforms Boolean SMT files into conjunctive normal form (DIMACS)
 
-# shellcheck source=../../scripts/torte.sh
-source torte.sh load-config
-timeout=$1
+load-config
+timeout=$2
 require-value timeout
 
 echo "smt-file,dimacs-file,dimacs-transformation" > "$(output-csv)"

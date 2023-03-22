@@ -22,7 +22,7 @@ run-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...)
         local build_flags=
         local run_flags=
         if is-array-empty command; then
-            command=("./$stage.sh")
+            command=("$stage.sh")
         fi
         if [[ ! $VERBOSE == y ]]; then
             build_flags=-q
@@ -49,7 +49,7 @@ run-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...)
             --rm \
             -m "$(memory-limit)G" \
             "${DOCKER_PREFIX}_$stage" \
-            "${command[@]}" \
+            ./torte.sh "${command[@]}" \
             > >(write-all "$(output-log "$stage")") \
             2> >(write-all "$(output-err "$stage")" >&2)
         rm-if-empty "$(output-log "$stage")"
@@ -81,7 +81,7 @@ run-aggregate-stage(stage, stage_field, file_fields=, stage_transformer=, stages
             require-stage-done "$current_stage"
         done
     fi
-    run-stage "$stage" "" "$OUTPUT_DIRECTORY" ./aggregate.sh "$stage_field" "$file_fields" "$stage_transformer" "${stages[@]}"
+    run-stage "$stage" "" "$OUTPUT_DIRECTORY" aggregate.sh "$stage_field" "$file_fields" "$stage_transformer" "${stages[@]}"
 }
 
 # runs a stage a given number of time and merges the output files in a new stage

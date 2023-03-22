@@ -5,9 +5,9 @@
 # useful to add old revisions before the first Git tag v2.6.12
 # by default, tags all revisions between 2.5.45 and 2.6.12, as these use Kconfig
 
-add-system() {
-    local system=$1
-    require-value system
+load-config
+
+add-system(system, url=) {
     if [[ $system == linux ]]; then
         if [[ ! -d $(input-directory)/linux ]]; then
             error "Linux has not been cloned yet. Please prepend a stage that runs clone-systems.sh."
@@ -29,23 +29,19 @@ add-system() {
     fi
 }
 
-tag-revisions() {
-    local base_uri=$1
-    local start_inclusive=$2
-    local end_exclusive=$3
-    require-value base_uri
+tag-revisions(base_uri, start_inclusive=, end_inclusive=) {
     local revisions
     revisions=$(curl -s "$base_uri" \
         | sed 's/.*>\(.*\)<.*/\1/g' | grep .tar.gz | cut -d- -f2 | sed 's/\.tar\.gz//' | sort -V \
         | start-at-revision "$start_inclusive" \
         | stop-at-revision "$end_exclusive")
     for revision in $revisions; do
+        local subject="tag-revision: linux@$revision"
         if ! git -C "$(input-directory)/linux" tag | grep -q "^v$revision$"; then
-            echo -n "Adding tag for Linux $revision "
+            log "$subject" "$(yellow-color)add"
             local date
             date=$(date -d "$(curl -s "$base_uri" | grep "linux-$revision.tar.gz" | \
                 cut -d'>' -f3 | tr -s ' ' | cut -d' ' -f2- | rev | cut -d' ' -f2- | rev)" +%s)
-            echo "($(date -d "@$date" +"%Y-%m-%d")) ..."
             dirty=1
             push "$(input-directory)"
             rm-safe ./*.tar.gz*
@@ -64,11 +60,11 @@ tag-revisions() {
             git tag "v$revision" >/dev/null
             pop
             rm-safe "linux-$revision"
+            log "$subject" "$(green-color)done"
         else
-            echo "Skipping tag for Linux $revision"
+            log "$subject" "$(blue-color)skip"
         fi
     done
 }
 
-# shellcheck source=../../scripts/torte.sh
-source torte.sh load-subjects
+load-subjects

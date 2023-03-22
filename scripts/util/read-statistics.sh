@@ -2,13 +2,12 @@
 # ./read-statistics.sh [skip-sloc]
 # counts number of source lines of codes using cloc
 
-SCRIPT_OPTION=$1
+load-config
+SCRIPT_OPTION=$2
 
-add-revision() {
-    local system=$1
-    local revision=$2
-    require-value system revision
-    echo "Reading statistics for $system $revision"
+add-revision(system, revision) {
+    local subject="read-statistics: $system@$revision"
+    log "$subject" "$(yellow-color)read"
     local time
     time=$(git -C "$(input-directory)/$system" --no-pager log -1 -s --format=%ct "$revision")
     local date
@@ -18,17 +17,18 @@ add-revision() {
         local sloc_file
         sloc_file="$(output-directory)/$system/$revision.txt"
         mkdir -p "$(output-directory)/$system"
-        (cd "input/$system"; cloc --git "$revision" > "$sloc_file")
+        push "input/$system"
+        cloc --git "$revision" > "$sloc_file"
+        pop
         local sloc
         sloc=$(grep ^SUM < "$sloc_file" | tr -s ' ' | cut -d' ' -f5)
         echo "$system,$revision,$sloc" >> "$(output-directory)/sloc.csv"
     else
         echo "$system,$revision,NA" >> "$(output-directory)/sloc.csv"
     fi
+    log "$subject" "$(green-color)done"
 }
 
-# shellcheck source=../../scripts/torte.sh
-source torte.sh load-config
 echo system,revision,committer_date_unix,committer_date_readable > "$(output-directory)/date.csv"
 echo system,revision,source_lines_of_code > "$(output-directory)/sloc.csv"
 load-subjects

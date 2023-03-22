@@ -1,7 +1,6 @@
 #!/bin/bash
 # main entry point, runs whatever functions it is passed
 # behaves differently if run inside Docker by relying on the DOCKER_RUNNING environment variable
-# example: ./torte.sh clean run
 
 set -e # exit on error
 trap "echo ERROR! >&2" ERR # set error handler
@@ -36,6 +35,7 @@ source "$SCRIPTS_DIRECTORY/helpers.sh" # miscellaneous helpers
 source "$SCRIPTS_DIRECTORY/paths.sh" # functions for dealing with input/output paths
 source "$SCRIPTS_DIRECTORY/experiment.sh" # functions for running stages and loading experiments
 source "$SCRIPTS_DIRECTORY/kconfig.sh" # functions for extracting kconfig models
+source "$SCRIPTS_DIRECTORY/transformation.sh" # functions for transforming files
 
 # prints a banner
 banner() {
@@ -48,7 +48,7 @@ banner() {
 # prints help information
 help() {
     banner
-    echo "usage: $(basename "$0") [command]..."
+    echo "usage: $(basename "$0") [command [option]...]"
     echo
     echo "commands:"
     echo "run [config-file]      runs the experiment defined in the given config file (default: input/config.sh)"
@@ -65,8 +65,9 @@ done
 # run all given functions
 if [[ -z "$*" ]]; then
     run ""
+elif [[ $# -ge 1 ]] && [[ -f "$1" ]]; then
+    # shellcheck disable=SC1090
+    source "$1" "${@:2}"
 else
-    for command in "$@"; do
-        $command
-    done
+    "$@"
 fi

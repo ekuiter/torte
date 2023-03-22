@@ -9,7 +9,7 @@ experiment-stages() {
     run-stage --stage tag-linux-revisions
 
     # read basic statistics for each system
-    run-stage --stage read-statistics --command ./read-statistics.sh #skip-sloc
+    run-stage --stage read-statistics --command read-statistics.sh # skip-sloc
     
     # use a given extractor to extract a kconfig model for each specified experiment subject
     extract-with(extractor) {
@@ -18,7 +18,7 @@ experiment-stages() {
             --iterations 2 \
             --file-fields kconfig-binding-file,kconfig-model-file \
             --dockerfile "$extractor" \
-            --command ./extract-kconfig-models.sh
+            --command extract-kconfig-models.sh
     }
 
     extract-with kconfigreader
@@ -36,7 +36,7 @@ experiment-stages() {
             --stage "$transformation" \
             --dockerfile featjar \
             --input-directory kconfig \
-            --command ./transform.sh \
+            --command transform.sh \
             `# file field` kconfig-model-file \
             `# input extension` model \
             `# output extension` "$output_extension" \
@@ -49,12 +49,11 @@ experiment-stages() {
     transform-with modeltosmtz3 smt
     transform-with modeltodimacsfeatjar dimacs
 
-    force-run-below
     run-stage \
         --stage modeltodimacskconfigreader \
         --dockerfile kconfigreader \
         --input-directory modeltomodelfeatureide \
-        --command ./transform-into-dimacs.sh \
+        --command transform-into-dimacs.sh \
         `# timeout in seconds` 10
     run-join-into modeltomodelfeatureide modeltodimacskconfigreader
 
@@ -62,7 +61,7 @@ experiment-stages() {
         --stage smttodimacsz3 \
         --dockerfile z3 \
         --input-directory modeltosmtz3 \
-        --command ./transform-into-dimacs.sh \
+        --command transform-into-dimacs.sh \
         `# timeout in seconds` 10
     run-join-into modeltosmtz3 smttodimacsz3
 

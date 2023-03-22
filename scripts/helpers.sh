@@ -19,7 +19,7 @@ log(subject, state=) {
     else
         command=update-log
     fi
-    if [[ -z $DOCKER_RUNNING ]] && ! tail -n1 "$(output-log "$DOCKER_PREFIX")" | grep -q "$subject"; then
+    if [[ -z $DOCKER_RUNNING ]] && ! tail -n1 "$(output-log "$DOCKER_PREFIX")" | grep -q "m$subject\^"; then
         command=new-log
     fi
     CURRENT_SUBJECT=$subject
@@ -138,7 +138,7 @@ lambda-identity() {
 }
 
 # stores a lambda function as a function in the global namespace
-lambda-to-function(name, lambda) {
+compile-lambda(name, lambda) {
     eval "$name$lambda"
 }
 
@@ -248,7 +248,7 @@ aggregate-tables(source_field, source_transformer=, files...) {
     source_transformer=${source_transformer:-$(lambda-identity)}
     require-array files
     local common_fields
-    lambda-to-function source-transformer "$source_transformer"
+    compile-lambda source-transformer "$source_transformer"
     readarray -t common_fields < <(common-fields "${files[@]}")
     if [[ -z "${common_fields[*]}" ]]; then
         error "Expected at least one common field."
@@ -274,7 +274,7 @@ mutate-table-field(file, mutated_fields=, context_field=, field_transformer=) {
     local fields
     fields=$(head -n1 "$file")
     to-array fields
-    lambda-to-function field-transformer "$field_transformer"
+    compile-lambda field-transformer "$field_transformer"
     to-list fields
     while read -r line; do
         new_line=""

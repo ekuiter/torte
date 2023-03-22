@@ -3,15 +3,13 @@
 # merges the output files of two or more stages in a new stage
 # assumes that the input directory is the root output directory, also makes some assumptions about its layout
 
-# shellcheck source=../../scripts/torte.sh
-source torte.sh load-config 
-
-stage_field=$1
-file_fields=$2
-stage_transformer=${3:-$(lambda-identity)}
-stages=("${@:4}")
+load-config
+stage_field=$2
+file_fields=$3
+stage_transformer=${4:-$(lambda-identity)}
+stages=("${@:5}")
 require-value stage_field stages
-lambda-to-function stage-transformer "$stage_transformer"
+compile-lambda stage-transformer "$stage_transformer"
 source_transformer="$(lambda value "basename \$(dirname \$(stage-transformer \$value))")"
 
 csv_files=()

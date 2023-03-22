@@ -2,14 +2,13 @@
 # ./transform.sh file-field output-field input-extension output-extension transformation timeout
 # transforms files from an input format into an output format using FeatJAR
 
-# shellcheck source=../../scripts/torte.sh
-source torte.sh load-config
+load-config
 jar=/home/FeatJAR/transform/build/libs/transform-0.1.0-SNAPSHOT-all.jar
-file_field=$1
-input_extension=$2
-output_extension=$3
-transformation=$4
-timeout=$5
+file_field=$2
+input_extension=$3
+output_extension=$4
+transformation=$5
+timeout=$6
 require-value file_field input_extension output_extension transformation timeout
 
 echo "$file_field,$output_extension-file,$output_extension-transformation" > "$(output-csv)"
