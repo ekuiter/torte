@@ -13,13 +13,13 @@ while read -r file; do
     output="$(output-directory)/$new_file"
     mkdir -p "$(dirname "$output")"
     subject="ModelToDIMACSKConfigReader: $file"
-    log "$subject" "$(yellow-color)transform"
+    log "$subject" "$(echo-yellow transform)"
     measure-time "$timeout" \
         /home/kconfigreader/run.sh de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"
     if ! is-file-empty "$output"; then
-        log "$subject" "$(green-color)done"
+        log "$subject" "$(echo-green "done")"
     else
-        log "$subject" "$(red-color)fail"
+        log "$subject" "$(echo-red fail)"
         new_file=NA
     fi
     echo "$file,$new_file,ModelToDIMACSKConfigReader" >> "$(output-csv)"

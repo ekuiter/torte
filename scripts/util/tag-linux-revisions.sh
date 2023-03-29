@@ -38,7 +38,7 @@ tag-revisions(base_uri, start_inclusive=, end_inclusive=) {
     for revision in $revisions; do
         local subject="tag-revision: linux@$revision"
         if ! git -C "$(input-directory)/linux" tag | grep -q "^v$revision$"; then
-            log "$subject" "$(yellow-color)add"
+            log "$subject" "$(echo-yellow add)"
             local date
             date=$(date -d "$(curl -s "$base_uri" | grep "linux-$revision.tar.gz" | \
                 cut -d'>' -f3 | tr -s ' ' | cut -d' ' -f2- | rev | cut -d' ' -f2- | rev)" +%s)
@@ -60,9 +60,9 @@ tag-revisions(base_uri, start_inclusive=, end_inclusive=) {
             git tag "v$revision" >/dev/null
             pop
             rm-safe "linux-$revision"
-            log "$subject" "$(green-color)done"
+            log "$subject" "$(echo-green "done")"
         else
-            log "$subject" "$(blue-color)skip"
+            log "$subject" "$(echo-blue skip)"
         fi
     done
 }

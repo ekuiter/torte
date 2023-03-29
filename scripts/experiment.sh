@@ -33,7 +33,7 @@ run-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...)
         clean-stage "$stage"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
-            log "$stage" "$(yellow-color)build"
+            log "$stage" "$(echo-yellow build)"
             docker build $build_flags \
                 -f "$dockerfile"\
                 -t "${DOCKER_PREFIX}_$stage" \
@@ -41,7 +41,7 @@ run-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...)
                 "$SCRIPTS_DIRECTORY" >/dev/null
         fi
         mkdir -p "$(output-directory "$stage")"
-        log "$stage" "$(yellow-color)run"
+        log "$stage" "$(echo-yellow run)"
         docker run $run_flags \
             -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
@@ -57,9 +57,9 @@ run-stage(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...)
         if [[ $stage == "$TRANSIENT_STAGE" ]]; then
             clean-stage "$stage"
         fi
-        log "$stage" "$(green-color)done"
+        log "$stage" "$(echo-green "done")"
     else
-        log "$stage" "$(blue-color)skip"
+        log "$stage" "$(echo-blue skip)"
     fi
 }
 

@@ -7,11 +7,11 @@ load-config
 add-system(system, url) {
     local subject="git-clone: $system"
     if [[ ! -d "$(input-directory)/$system" ]]; then
-        log "$subject" "$(yellow-color)clone"
+        log "$subject" "$(echo-yellow clone)"
         git clone "$url" "$(input-directory)/$system"
-        log "$subject" "$(green-color)done"
+        log "$subject" "$(echo-green "done")"
     else
-        log "$subject" "$(blue-color)skip"
+        log "$subject" "$(echo-blue skip)"
     fi
 }
 

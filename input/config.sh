@@ -57,6 +57,8 @@ experiment-stages() {
         `# timeout in seconds` 10
     run-join-into modeltomodelfeatureide modeltodimacskconfigreader
 
+    force-run-below
+    
     run-stage \
         --stage smttodimacsz3 \
         --dockerfile z3 \

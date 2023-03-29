@@ -23,15 +23,14 @@ log(subject, state=) {
         command=new-log
     fi
     CURRENT_SUBJECT=$subject
-    "$command" "$(printf %-80s "$(bold-text)$subject$(default-text)") $state$(default-text)"
+    "$command" "$(printf %-80s "$(echo-bold "$subject")")" "$state"
 }
 
-default-text() { echo -e "\033[0m"; }
-bold-text() { echo -e "\033[1m"; }
-red-color() { echo -e "\033[0;31m"; }
-green-color() { echo -e "\033[0;32m"; }
-yellow-color() { echo -e "\033[0;33m"; }
-blue-color() { echo -e "\033[0;34m"; }
+echo-bold(text) { echo -e "\033[1m$text\033[0m"; }
+echo-red(text) { echo -e "\033[0;31m$text\033[0m"; }
+echo-green(text) { echo -e "\033[0;32m$text\033[0m"; }
+echo-yellow(text) { echo -e "\033[0;33m$text\033[0m"; }
+echo-blue(text) { echo -e "\033[0;34m$text\033[0m"; }
 
 # logs an error and exit
 error(arguments...) {
@@ -100,7 +99,7 @@ require-array(variable) {
 
 # returns whether an array contains a given element
 array-contains(element, array...) {
-    local E
+    local e
     for e in "${array[@]}"; do
         [[ "$e" == "$element" ]] && return 0
     done
