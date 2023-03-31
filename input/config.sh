@@ -3,17 +3,17 @@
 # defines the stages of the experiment in order of their execution
 experiment-stages() {
     # clone the systems specified as experiment subjects
-    run-stage --stage clone-systems
+    run --stage clone-systems
 
     # tag old Linux revisions that are not included in its Git history
-    run-stage --stage tag-linux-revisions
+    run --stage tag-linux-revisions
 
     # read basic statistics for each system
-    run-stage --stage read-statistics --command read-statistics.sh # skip-sloc
+    run --stage read-statistics --command read-statistics.sh # skip-sloc
     
     # use a given extractor to extract a kconfig model for each specified experiment subject
     extract-with(extractor) {
-        run-iterated-stage \
+        iterate \
             --stage "$extractor" \
             --iterations 2 \
             --file-fields kconfig-binding-file,kconfig-model-file \
@@ -24,7 +24,7 @@ experiment-stages() {
     extract-with kconfigreader
     extract-with kclause
 
-    run-aggregate-stage \
+    aggregate \
         --stage kconfig \
         --stage-field extractor \
         --file-fields kconfig-binding-file,kconfig-model-file \
@@ -32,7 +32,7 @@ experiment-stages() {
 
     # use featjar to transform kconfig models into various formats and then into DIMACS
     transform-with(transformation, output_extension) {
-        run-stage \
+        run \
             --stage "$transformation" \
             --dockerfile featjar \
             --input-directory kconfig \
@@ -49,33 +49,30 @@ experiment-stages() {
     transform-with modeltosmtz3 smt
     transform-with modeltodimacsfeatjar dimacs
 
-    run-stage \
+    run \
         --stage modeltodimacskconfigreader \
         --dockerfile kconfigreader \
         --input-directory modeltomodelfeatureide \
         --command transform-into-dimacs.sh \
         `# timeout in seconds` 10
-    run-join-into modeltomodelfeatureide modeltodimacskconfigreader
-
-    force-run-below
+    join-into modeltomodelfeatureide modeltodimacskconfigreader
     
-    run-stage \
+    run \
         --stage smttodimacsz3 \
         --dockerfile z3 \
         --input-directory modeltosmtz3 \
         --command transform-into-dimacs.sh \
         `# timeout in seconds` 10
-    run-join-into modeltosmtz3 smttodimacsz3
+    join-into modeltosmtz3 smttodimacsz3
 
-    run-aggregate-stage \
+    aggregate \
         --stage dimacs \
         --stage-field transformation \
         --file-fields dimacs-file \
         --stages modeltodimacsfeatureide modeltodimacskconfigreader smttodimacsz3
-    run-join-into kconfig dimacs
+    join-into kconfig dimacs
 
     # todos:
-    # - reorder run-stage args to "input-dir output-dir/stage dockerfile command"
     # - filter stage that removes input files before executing another stage
     # - error handling for missing models
     # - move stats on formulas into csv file

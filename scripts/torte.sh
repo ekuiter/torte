@@ -31,9 +31,10 @@ KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storin
 TRANSIENT_STAGE=transient # name for transient stages
 
 source "$SCRIPTS_DIRECTORY/bootstrap.sh" # modifies bash to allow for succinct function definitions
-source "$SCRIPTS_DIRECTORY/helpers.sh" # miscellaneous helpers
-source "$SCRIPTS_DIRECTORY/paths.sh" # functions for dealing with input/output paths
-source "$SCRIPTS_DIRECTORY/experiment.sh" # functions for running stages and loading experiments
+source "$SCRIPTS_DIRECTORY/helper.sh" # miscellaneous helpers
+source "$SCRIPTS_DIRECTORY/path.sh" # functions for dealing with input/output paths
+source "$SCRIPTS_DIRECTORY/stage.sh" # functions for running stages
+source "$SCRIPTS_DIRECTORY/experiment.sh" # functions for running experiments
 source "$SCRIPTS_DIRECTORY/kconfig.sh" # functions for extracting kconfig models
 source "$SCRIPTS_DIRECTORY/transformation.sh" # functions for transforming files
 
@@ -42,10 +43,10 @@ help() {
     echo "usage: $(basename "$0") [command [option]...]"
     echo
     echo "commands:"
-    echo "run [config-file]      runs the experiment defined in the given config file (default: input/config.sh)"
-    echo "clean [config-file]    removes all output files specified by the given config file (default: input/config.sh)"
-    echo "stop                   stops a running experiment"
-    echo "help                   prints help information"
+    echo "run-experiment [config-file]   runs the given experiment file (default: input/config.sh)"
+    echo "clean-experiment [config-file] removes all output files for the gives experiment (default: input/config.sh)"
+    echo "stop-experiments               stops all running experiments"
+    echo "help                           prints help information"
 }
 
 # define stubs for API functions
@@ -55,7 +56,7 @@ done
 
 # run all given functions
 if [[ -z "$*" ]]; then
-    run ""
+    run-experiment
 elif [[ $# -ge 1 ]] && [[ -f "$1" ]]; then
     # shellcheck disable=SC1090
     source "$1" "${@:2}"
