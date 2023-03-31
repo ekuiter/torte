@@ -42,11 +42,14 @@ source "$SCRIPTS_DIRECTORY/transformation.sh" # functions for transforming files
 help() {
     echo "usage: $(basename "$0") [command [option]...]"
     echo
+    echo "environment variables:"
+    echo "EXPERIMENT_FILE   experiment to load (default: input/experiment.sh)"
+    echo
     echo "commands:"
-    echo "run-experiment [config-file]   runs the given experiment file (default: input/config.sh)"
-    echo "clean-experiment [config-file] removes all output files for the gives experiment (default: input/config.sh)"
-    echo "stop-experiments               stops all running experiments"
-    echo "help                           prints help information"
+    echo "run-experiment    runs the experiment"
+    echo "clean-experiment  removes all output files for the experiment"
+    echo "stop-experiment   stops the experiment"
+    echo "help              prints help information"
 }
 
 # define stubs for API functions
@@ -54,7 +57,10 @@ for function in "${api[@]}"; do
     define-stub "$function"
 done
 
-# run all given functions
+# load experiment file
+load-experiment
+
+# run the given function
 if [[ -z "$*" ]]; then
     run-experiment
 elif [[ $# -ge 1 ]] && [[ -f "$1" ]]; then

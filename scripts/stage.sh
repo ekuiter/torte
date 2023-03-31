@@ -7,7 +7,7 @@ clean(stage) {
 }
 
 # runs a stage of some experiment in a Docker container
-# reads the global CONFIG_FILE variable
+# reads the EXPERIMENT_FILE environment variable
 run(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...) {
     require-host
     log "$stage"
@@ -32,7 +32,7 @@ run(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...) {
         fi
         clean "$stage"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
-            cp "$CONFIG_FILE" "$SCRIPTS_DIRECTORY/_config.sh"
+            cp "$EXPERIMENT_FILE" "$SCRIPTS_DIRECTORY/_experiment.sh"
             log "$stage" "$(echo-progress build)"
             docker build $build_flags \
                 -f "$dockerfile"\
@@ -106,7 +106,7 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, dockerfile=u
 # only run if the specified file does not exist yet
 run-transient-unless(file, command...) {
     if is-file-empty "$OUTPUT_DIRECTORY/$file"; then
-        run "" "" "$OUTPUT_DIRECTORY" bash -c "source torte.sh load-config; cd \"\$(input-directory)\"; $(to-list command "; ")"
+        run "" "" "$OUTPUT_DIRECTORY" bash -c "cd \"\$(input-directory)\"; $(to-list command "; ")"
     fi
 }
 

@@ -2,7 +2,6 @@
 # ./read-statistics.sh [skip-sloc]
 # counts number of source lines of codes using cloc
 
-load-config
 SCRIPT_OPTION=$2
 
 add-revision(system, revision) {

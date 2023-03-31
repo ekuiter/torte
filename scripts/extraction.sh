@@ -165,3 +165,15 @@ register-kconfig-extractor() {
     echo system,revision,binding-file > "$(output-directory)/kconfig-bindings.csv"
     echo system,revision,binding-file,kconfig-file,model-file > "$(output-csv)"
 }
+
+# compiles kconfig bindings and extracts kconfig models using kclause
+extract-with-kclause() {
+    register-kconfig-extractor kclause kextractor
+    experiment-subjects
+}
+
+# compiles kconfig bindings and extracts kconfig models using kconfigreader
+extract-with-kconfigreader() {
+    register-kconfig-extractor kconfigreader dumpconf
+    experiment-subjects
+}

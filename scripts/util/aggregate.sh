@@ -3,7 +3,6 @@
 # merges the output files of two or more stages in a new stage
 # assumes that the input directory is the root output directory, also makes some assumptions about its layout
 
-load-config
 stage_field=$2
 file_fields=$3
 stage_transformer=${4:-$(lambda-identity)}

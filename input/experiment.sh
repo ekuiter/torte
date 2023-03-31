@@ -18,7 +18,7 @@ experiment-stages() {
             --iterations 2 \
             --file-fields binding-file,model-file \
             --dockerfile "$extractor" \
-            --command extract-kconfig-models.sh
+            --command "extract-with-$extractor"
     }
 
     extract-with kconfigreader
@@ -50,6 +50,7 @@ experiment-stages() {
     transform-with-featjar model_to_dimacs_featjar dimacs
     return
 
+    # todo: remove all .sh scripts in scripts
     run \
         --stage modeltodimacskconfigreader \
         --dockerfile kconfigreader \

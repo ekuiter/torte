@@ -5,8 +5,6 @@
 # useful to add old revisions before the first Git tag v2.6.12
 # by default, tags all revisions between 2.5.45 and 2.6.12, as these use Kconfig
 
-load-config
-
 add-system(system, url=) {
     if [[ $system == linux ]]; then
         if [[ ! -d $(input-directory)/linux ]]; then

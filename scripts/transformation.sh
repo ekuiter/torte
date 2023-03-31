@@ -31,7 +31,6 @@ transform-files(csv_file, input_extension, output_extension, transformer_name, t
 
 # transforms SMT files into DIMACS using Z3
 transform-smt-to-dimacs-z3(timeout) {
-    load-config
     transform-files \
         "$(input-csv)" \
         smt \
@@ -43,7 +42,6 @@ transform-smt-to-dimacs-z3(timeout) {
 
 # transforms kconfigreader model files into DIMACS using kconfigreader
 transform-model-to-dimacs-kconfigreader(timeout) {
-    load-config
     transform-files \
         "$(input-csv)" \
         model \
@@ -56,7 +54,6 @@ transform-model-to-dimacs-kconfigreader(timeout) {
 # transforms files into various formats using FeatJAR
 transform-with-featjar(input_extension, output_extension, transformer, timeout) {
     local jar=/home/FeatJAR/transform/build/libs/transform-0.1.0-SNAPSHOT-all.jar
-    load-config # todo: always load config in torte.sh? pass config_file as env?
     transform-files \
         "$(input-csv)" \
         "$input_extension" \

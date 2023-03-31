@@ -2,7 +2,6 @@
 # ./transform-into-dimacs.sh
 # transforms Boolean SMT files into conjunctive normal form (DIMACS)
 
-load-config
 timeout=$2
 require-value timeout
 
