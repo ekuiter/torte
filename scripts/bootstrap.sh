@@ -99,7 +99,7 @@ parse-arguments() {
         if [[ $variable_spec =~ \.\.\.$ ]]; then
             variable=$(echo "$variable_spec" | cut -d. -f1)
             code+="elif [[ \"$variable\" == \"\$argument\" ]]; then "
-            code+="shift; while [[ \$# -gt 0 ]] && [[ ! \$1 == \"--\"* ]]; do $variable+=(\"\$1\"); shift; done; "
+            code+="shift; while [[ \$# -gt 0 ]]; do $variable+=(\"\$1\"); shift; done; "
             continue
         elif [[ $variable_spec =~ = ]]; then
             variable=$(echo "$variable_spec" | cut -d= -f1)

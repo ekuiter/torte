@@ -35,7 +35,7 @@ source "$SCRIPTS_DIRECTORY/helper.sh" # miscellaneous helpers
 source "$SCRIPTS_DIRECTORY/path.sh" # functions for dealing with input/output paths
 source "$SCRIPTS_DIRECTORY/stage.sh" # functions for running stages
 source "$SCRIPTS_DIRECTORY/experiment.sh" # functions for running experiments
-source "$SCRIPTS_DIRECTORY/kconfig.sh" # functions for extracting kconfig models
+source "$SCRIPTS_DIRECTORY/extraction.sh" # functions for extracting kconfig models
 source "$SCRIPTS_DIRECTORY/transformation.sh" # functions for transforming files
 
 # prints help information

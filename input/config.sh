@@ -16,7 +16,7 @@ experiment-stages() {
         iterate \
             --stage "$extractor" \
             --iterations 2 \
-            --file-fields kconfig-binding-file,kconfig-model-file \
+            --file-fields binding-file,model-file \
             --dockerfile "$extractor" \
             --command extract-kconfig-models.sh
     }
@@ -27,27 +27,28 @@ experiment-stages() {
     aggregate \
         --stage kconfig \
         --stage-field extractor \
-        --file-fields kconfig-binding-file,kconfig-model-file \
+        --file-fields binding-file,model-file \
         --stages kconfigreader kclause
 
     # use featjar to transform kconfig models into various formats and then into DIMACS
-    transform-with(transformation, output_extension) {
+    transform-with-featjar(transformer, output_extension) {
         run \
-            --stage "$transformation" \
+            --stage "$transformer" \
             --dockerfile featjar \
             --input-directory kconfig \
-            --command transform.sh \
-            `# file field` kconfig-model-file \
-            `# input extension` model \
-            `# output extension` "$output_extension" \
-            `# transformation` "$transformation" \
-            `# timeout in seconds` 10
+            --command transform-with-featjar \
+            --input-extension model \
+            --output-extension "$output_extension" \
+            --transformer "$transformer" \
+            --timeout 10
     }
 
-    transform-with modeltodimacsfeatureide dimacs
-    transform-with modeltomodelfeatureide model
-    transform-with modeltosmtz3 smt
-    transform-with modeltodimacsfeatjar dimacs
+    force
+    transform-with-featjar model_to_dimacs_featureide dimacs
+    transform-with-featjar model_to_model_featureide model
+    transform-with-featjar model_to_smt_z3 smt
+    transform-with-featjar model_to_dimacs_featjar dimacs
+    return
 
     run \
         --stage modeltodimacskconfigreader \

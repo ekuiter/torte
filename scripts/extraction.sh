@@ -162,6 +162,6 @@ register-kconfig-extractor() {
         git-clean "$(input-directory)/$system"
     }
 
-    echo system,revision,kconfig-binding-file > "$(output-directory)/kconfig-bindings.csv"
-    echo system,revision,kconfig-binding-file,kconfig-file,kconfig-model-file > "$(output-csv)"
+    echo system,revision,binding-file > "$(output-directory)/kconfig-bindings.csv"
+    echo system,revision,binding-file,kconfig-file,model-file > "$(output-csv)"
 }

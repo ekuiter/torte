@@ -12,7 +12,7 @@ update-log(arguments...) {
 
 # logs a message that is always printed to the console output
 CURRENT_SUBJECT=""
-log(subject, state=) {
+log(subject, state=) { # todo: make subject optional
     state=${state:-$(echo-progress)}
     local command
     if [[ $subject != "$CURRENT_SUBJECT" ]]; then

@@ -23,4 +23,4 @@ while read -r file; do
         new_file=NA
     fi
     echo "$file,$new_file,ModelToDIMACSKConfigReader" >> "$(output-csv)"
-done < <(table-field "$(input-csv)" kconfig-model-file)
+done < <(table-field "$(input-csv)" model-file)
