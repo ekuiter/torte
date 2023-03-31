@@ -13,6 +13,7 @@ update-log(arguments...) {
 # logs a message that is always printed to the console output
 CURRENT_SUBJECT=""
 log(subject, state=) {
+    state=${state:-$(echo-progress)}
     local command
     if [[ $subject != "$CURRENT_SUBJECT" ]]; then
         command=new-log
@@ -23,14 +24,19 @@ log(subject, state=) {
         command=new-log
     fi
     CURRENT_SUBJECT=$subject
-    "$command" "$(printf %-80s "$(echo-bold "$subject")")" "$state"
+    "$command" "$(printf %20s "$state")" "$(printf %-80s "$(echo-bold "$subject")")"
 }
 
-echo-bold(text) { echo -e "\033[1m$text\033[0m"; }
-echo-red(text) { echo -e "\033[0;31m$text\033[0m"; }
-echo-green(text) { echo -e "\033[0;32m$text\033[0m"; }
-echo-yellow(text) { echo -e "\033[0;33m$text\033[0m"; }
-echo-blue(text) { echo -e "\033[0;34m$text\033[0m"; }
+echo-bold(text=) { echo -e "\033[1m$text\033[0m"; }
+echo-red(text=) { echo -e "\033[0;31m$text\033[0m"; }
+echo-green(text=) { echo -e "\033[0;32m$text\033[0m"; }
+echo-yellow(text=) { echo -e "\033[0;33m$text\033[0m"; }
+echo-blue(text=) { echo -e "\033[0;34m$text\033[0m"; }
+
+echo-fail() { echo-red fail; }
+echo-progress(state=) { echo-yellow "$state"; }
+echo-done() { echo-green "done"; }
+echo-skip() { echo-blue skip; }
 
 # logs an error and exit
 error(arguments...) {

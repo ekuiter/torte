@@ -37,17 +37,8 @@ source "$SCRIPTS_DIRECTORY/experiment.sh" # functions for running stages and loa
 source "$SCRIPTS_DIRECTORY/kconfig.sh" # functions for extracting kconfig models
 source "$SCRIPTS_DIRECTORY/transformation.sh" # functions for transforming files
 
-# prints a banner
-banner() {
-    echo "$DOCKER_PREFIX" | sed -E s/./=/g
-    echo "$DOCKER_PREFIX"
-    echo "$DOCKER_PREFIX" | sed -E s/./=/g
-    echo
-}
-
 # prints help information
 help() {
-    banner
     echo "usage: $(basename "$0") [command [option]...]"
     echo
     echo "commands:"

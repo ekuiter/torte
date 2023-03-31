@@ -18,7 +18,7 @@ while read -r file; do
     output="$(output-directory)/$new_file"
     mkdir -p "$(dirname "$output")"
     subject="$transformation: $file"
-    log "$subject" "$(echo-yellow transform)"
+    log "$subject" "$(echo-progress transform)"
     measure-time "$timeout" java \
         `# setting a lower memory limit is necessary to avoid that the process is killed erroneously` \
         "-Xmx$(memory-limit 1)G" \
@@ -29,9 +29,9 @@ while read -r file; do
         --output "$output" \
         --transformation "$transformation"
     if ! is-file-empty "$output"; then
-        log "$subject" "$(echo-green "done")"
+        log "$subject" "$(echo-done)"
     else
-        log "$subject" "$(echo-red fail)"
+        log "$subject" "$(echo-fail)"
         new_file=NA
     fi
     echo "$file,$new_file,$transformation" >> "$(output-csv)"

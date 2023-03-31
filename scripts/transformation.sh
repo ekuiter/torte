@@ -31,12 +31,12 @@ transform-file(file, input_extension, output_extension, transformation, transfor
     mkdir -p "$(dirname "$output")"
     subject="$transformation: $file"
     compile-lambda transformer "$transformer"
-    log "$subject" "$(echo-yellow transform)"
+    log "$subject" "$(echo-progress transform)"
     measure-time "$timeout" "$(transformer "$input" "$output")"
     if ! is-file-empty "$output"; then
-        log "$subject" "$(echo-green "done")"
+        log "$subject" "$(echo-done)"
     else
-        log "$subject" "$(echo-red fail)"
+        log "$subject" "$(echo-fail)"
         new_file=NA
     fi
     echo "$file,$new_file,$transformation"

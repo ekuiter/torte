@@ -13,13 +13,13 @@ while read -r file; do
     output="$(output-directory)/$new_file"
     mkdir -p "$(dirname "$output")"
     subject="SMTToDIMACSZ3: $file"
-    log "$subject" "$(echo-yellow transform)"
+    log "$subject" "$(echo-progress transform)"
     measure-time "$timeout" \
         python3 smt2dimacs.py "$input" "$output"
     if ! is-file-empty "$output"; then
-        log "$subject" "$(echo-green "done")"
+        log "$subject" "$(echo-done)"
     else
-        log "$subject" "$(echo-red fail)"
+        log "$subject" "$(echo-fail)"
         new_file=NA
     fi
     echo "$file,$new_file,SMTToDIMACSZ3" >> "$(output-csv)"
