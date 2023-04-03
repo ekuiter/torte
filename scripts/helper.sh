@@ -12,7 +12,8 @@ update-log(arguments...) {
 
 # logs a message that is always printed to the console output
 CURRENT_SUBJECT=""
-log(subject, state=) { # todo: make subject optional
+log(subject=, state=) { # todo: make subject optional
+    subject=${subject:-$CURRENT_SUBJECT}
     state=${state:-$(echo-progress)}
     local command
     if [[ $subject != "$CURRENT_SUBJECT" ]]; then
@@ -20,7 +21,7 @@ log(subject, state=) { # todo: make subject optional
     else
         command=update-log
     fi
-    if [[ -z $DOCKER_RUNNING ]] && ! tail -n1 "$(output-log "$DOCKER_PREFIX")" | grep -q "m$subject\^"; then
+    if is-host && ! tail -n1 "$(output-log "$DOCKER_PREFIX")" | grep -q "m$subject\^"; then
         command=new-log
     fi
     CURRENT_SUBJECT=$subject
@@ -78,9 +79,14 @@ require-value(variables...) {
     done
 }
 
+# returns whether we are in a Docker container
+is-host() {
+    [[ -z $IS_DOCKER_RUNNING ]]
+}
+
 # requires that we are not in a Docker container
 require-host() {
-    if [[ -n $DOCKER_RUNNING ]]; then
+    if ! is-host; then
         error "Cannot be run inside a Docker container."
     fi
 }

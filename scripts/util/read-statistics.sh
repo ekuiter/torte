@@ -5,8 +5,7 @@
 SCRIPT_OPTION=$2
 
 add-revision(system, revision) {
-    local subject="read-statistics: $system@$revision"
-    log "$subject" "$(echo-progress read)"
+    log "read-statistics: $system@$revision" "$(echo-progress read)"
     local time
     time=$(git -C "$(input-directory)/$system" --no-pager log -1 -s --format=%ct "$revision")
     local date
@@ -25,7 +24,7 @@ add-revision(system, revision) {
     else
         echo "$system,$revision,NA" >> "$(output-directory)/sloc.csv"
     fi
-    log "$subject" "$(echo-done)"
+    log "" "$(echo-done)"
 }
 
 echo system,revision,committer_date_unix,committer_date_readable > "$(output-directory)/date.csv"

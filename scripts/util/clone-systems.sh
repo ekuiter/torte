@@ -3,13 +3,14 @@
 # clones system repositories using git
 
 add-system(system, url) {
-    local subject="git-clone: $system"
+    local subject=""
+    log "git-clone: $system"
     if [[ ! -d "$(input-directory)/$system" ]]; then
-        log "$subject" "$(echo-progress clone)"
+        log "" "$(echo-progress clone)"
         git clone "$url" "$(input-directory)/$system"
-        log "$subject" "$(echo-done)"
+        log "" "$(echo-done)"
     else
-        log "$subject" "$(echo-skip)"
+        log "" "$(echo-skip)"
     fi
 }
 

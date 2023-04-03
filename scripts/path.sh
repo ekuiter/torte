@@ -2,7 +2,7 @@
 
 # returns the root input directory
 input-directory() {
-    if [[ -z $DOCKER_RUNNING ]]; then
+    if is-host; then
         echo "$INPUT_DIRECTORY"
     else
         echo "$DOCKER_INPUT_DIRECTORY"
@@ -11,7 +11,7 @@ input-directory() {
 
 # returns the directory for all outputs for a given stage
 output-directory(stage=) {
-    if [[ -z $DOCKER_RUNNING ]]; then
+    if is-host; then
         require-value stage
         echo "$OUTPUT_DIRECTORY/$stage"
     else

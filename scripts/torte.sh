@@ -1,6 +1,6 @@
 #!/bin/bash
-# main entry point, runs whatever functions it is passed
-# behaves differently if run inside Docker by relying on the DOCKER_RUNNING environment variable
+# main entry point, runs whatever function it is passed
+# behaves differently if run inside Docker
 
 set -e # exit on error
 trap "echo ERROR! >&2" ERR # set error handler
@@ -35,6 +35,7 @@ source "$SCRIPTS_DIRECTORY/helper.sh" # miscellaneous helpers
 source "$SCRIPTS_DIRECTORY/path.sh" # functions for dealing with input/output paths
 source "$SCRIPTS_DIRECTORY/stage.sh" # functions for running stages
 source "$SCRIPTS_DIRECTORY/experiment.sh" # functions for running experiments
+source "$SCRIPTS_DIRECTORY/docker.sh" # functions for working with Docker containers
 source "$SCRIPTS_DIRECTORY/extraction.sh" # functions for extracting kconfig models
 source "$SCRIPTS_DIRECTORY/transformation.sh" # functions for transforming files
 
@@ -49,6 +50,7 @@ help() {
     echo "run-experiment    runs the experiment"
     echo "clean-experiment  removes all output files for the experiment"
     echo "stop-experiment   stops the experiment"
+    echo "uninstall         removes all Docker containers and images"
     echo "help              prints help information"
 }
 

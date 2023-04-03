@@ -45,7 +45,7 @@ run(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...) {
         docker run $run_flags \
             -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
-            -e DOCKER_RUNNING=y \
+            -e IS_DOCKER_RUNNING=y \
             --rm \
             -m "$(memory-limit)G" \
             "${DOCKER_PREFIX}_$stage" \
@@ -106,7 +106,7 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, dockerfile=u
 # only run if the specified file does not exist yet
 run-transient-unless(file, command...) {
     if is-file-empty "$OUTPUT_DIRECTORY/$file"; then
-        run "" "" "$OUTPUT_DIRECTORY" bash -c "cd \"\$(input-directory)\"; $(to-list command "; ")"
+        run "" "" "$OUTPUT_DIRECTORY" bash -c "source torte.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
     fi
 }
 

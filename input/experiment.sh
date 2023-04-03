@@ -36,7 +36,7 @@ experiment-stages() {
             --stage "$transformer" \
             --dockerfile featjar \
             --input-directory kconfig \
-            --command transform-with-featjar \
+            --command transform-featjar \
             --input-extension model \
             --output-extension "$output_extension" \
             --transformer "$transformer" \
@@ -45,33 +45,37 @@ experiment-stages() {
 
     force
     transform-with-featjar model_to_dimacs_featureide dimacs
-    transform-with-featjar model_to_model_featureide model
+    transform-with-featjar model_to_model_featureide featureide.model
     transform-with-featjar model_to_smt_z3 smt
     transform-with-featjar model_to_dimacs_featjar dimacs
-    return
 
     # todo: remove all .sh scripts in scripts
     run \
-        --stage modeltodimacskconfigreader \
+        --stage model_to_dimacs_kconfigreader \
         --dockerfile kconfigreader \
-        --input-directory modeltomodelfeatureide \
-        --command transform-into-dimacs.sh \
-        `# timeout in seconds` 10
-    join-into modeltomodelfeatureide modeltodimacskconfigreader
-    
-    run \
-        --stage smttodimacsz3 \
-        --dockerfile z3 \
-        --input-directory modeltosmtz3 \
-        --command transform-into-dimacs.sh \
-        `# timeout in seconds` 10
-    join-into modeltosmtz3 smttodimacsz3
+        --input-directory model_to_model_featureide \
+        --command transform-kconfigreader \
+        --input-extension featureide.model \
+        --output-extension dimacs \
+        --timeout 10
+    join-into model_to_model_featureide model_to_dimacs_kconfigreader
 
+    run \
+        --stage smt_to_dimacs_z3 \
+        --dockerfile z3 \
+        --input-directory model_to_smt_z3 \
+        --command transform-z3 \
+        --input-extension smt \
+        --output-extension dimacs \
+        --timeout 10
+    join-into model_to_smt_z3 smt_to_dimacs_z3
+
+    # todo: make stage field optional
     aggregate \
         --stage dimacs \
-        --stage-field transformation \
+        --stage-field transformer \
         --file-fields dimacs-file \
-        --stages modeltodimacsfeatureide modeltodimacskconfigreader smttodimacsz3
+        --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
     join-into kconfig dimacs
 
     # todos:

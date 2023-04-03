@@ -4,7 +4,7 @@
 # this has no effect besides defining variables and functions
 # sets several global variables
 load-experiment() {
-    if [[ -z $DOCKER_RUNNING ]]; then
+    if is-host; then
         EXPERIMENT_FILE=${EXPERIMENT_FILE:-input/experiment.sh}
     else
         EXPERIMENT_FILE=${EXPERIMENT_FILE:-_experiment.sh}
@@ -55,7 +55,7 @@ run-experiment() {
 
 # stops the experiment
 stop-experiment() {
-    readarray -t containers < <(docker ps | awk '$2 ~ /^'"$DOCKER_PREFIX"'_/ {print $1}')
+    readarray -t containers < <(docker ps | tail -n+2 | awk '$2 ~ /^'"$DOCKER_PREFIX"'_/ {print $1}')
     if [[ ${#containers[@]} -gt 0 ]]; then
         docker kill "${containers[@]}"
     fi
