@@ -22,7 +22,7 @@ run(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=, command...) {
         local build_flags=
         local run_flags=
         if is-array-empty command; then
-            command=("$stage.sh")
+            command=("$stage")
         fi
         if [[ ! $VERBOSE == y ]]; then
             build_flags=-q
@@ -74,6 +74,24 @@ debug(stage=$TRANSIENT_STAGE, dockerfile=util, input_directory=) {
 }
 
 # merges the output files of two or more stages in a new stage
+# assumes that the input directory is the root output directory, also makes some assumptions about its layout
+aggregate-helper(stage_field, file_fields=, stage_transformer=, stages...) {
+    stage_transformer=${stage_transformer:-$(lambda-identity)}
+    require-array stages
+    compile-lambda stage-transformer "$stage_transformer"
+    source_transformer="$(lambda value "stage-transformer \$(basename \$(dirname \$value))")"
+    csv_files=()
+    for stage in "${stages[@]}"; do
+        csv_files+=("$(input-directory)/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv")
+        cp -R "$(input-directory)/$stage" "$(output-directory)/$(stage-transformer "$stage")"
+    done
+    aggregate-tables "$stage_field" "$source_transformer" "${csv_files[@]}" > "$(output-csv)"
+    tmp=$(mktemp)
+    mutate-table-field "$(output-csv)" "$file_fields" "$stage_field" "$(lambda value,context_value echo "\$context_value/\$value")" > "$tmp"
+    mv "$tmp" "$(output-csv)"
+}
+
+# merges the output files of two or more stages in a new stage
 aggregate(stage, stage_field, file_fields=, stage_transformer=, stages...) {
     if ! stage-done "$stage"; then
         local current_stage
@@ -81,7 +99,7 @@ aggregate(stage, stage_field, file_fields=, stage_transformer=, stages...) {
             require-stage-done "$current_stage"
         done
     fi
-    run "$stage" "" "$OUTPUT_DIRECTORY" aggregate.sh "$stage_field" "$file_fields" "$stage_transformer" "${stages[@]}"
+    run "$stage" "" "$OUTPUT_DIRECTORY" aggregate-helper "$stage_field" "$file_fields" "$stage_transformer" "${stages[@]}"
 }
 
 # runs a stage a given number of time and merges the output files in a new stage

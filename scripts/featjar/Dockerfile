@@ -16,5 +16,5 @@ RUN scripts/clone.bat \
 COPY featjar/transform transform
 RUN ./gradlew assemble
 WORKDIR /home
-COPY *.sh featjar/*.sh ./
+COPY *.sh ./
 RUN chmod +x *.sh

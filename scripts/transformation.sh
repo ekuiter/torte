@@ -29,7 +29,7 @@ transform-files(csv_file, input_extension, output_extension, transformer_name, t
 }
 
 # transforms files into various formats using FeatJAR
-transform-featjar(input_extension, output_extension, transformer, timeout) {
+transform-with-featjar(input_extension, output_extension, transformer, timeout) {
     local jar=/home/FeatJAR/transform/build/libs/transform-0.1.0-SNAPSHOT-all.jar
     transform-files \
         "$(input-csv)" \
@@ -49,7 +49,7 @@ transform-featjar(input_extension, output_extension, transformer, timeout) {
 }
 
 # transforms kconfigreader model files into DIMACS using kconfigreader
-transform-kconfigreader(input_extension, output_extension, timeout) {
+transform-with-kconfigreader(input_extension, output_extension, timeout) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -60,7 +60,7 @@ transform-kconfigreader(input_extension, output_extension, timeout) {
 }
 
 # transforms SMT files into DIMACS using Z3
-transform-z3(input_extension, output_extension, timeout) {
+transform-with-z3(input_extension, output_extension, timeout) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \

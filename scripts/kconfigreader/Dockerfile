@@ -35,6 +35,6 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 # - CNF transformer
 COPY kconfigreader/TransformIntoDIMACS.scala kconfigreader/src/main/scala/
 RUN cd kconfigreader && sbt mkrun
-COPY *.sh kconfigreader/*.sh kconfigreader/dumpconf.c ./
+COPY *.sh kconfigreader/dumpconf.c ./
 RUN chmod +x *.sh \
     && git config --global --add safe.directory '*'

@@ -9,7 +9,7 @@ experiment-stages() {
     run --stage tag-linux-revisions
 
     # read basic statistics for each system
-    run --stage read-statistics --command read-statistics.sh # skip-sloc
+    run --stage read-statistics
     
     # use a given extractor to extract a kconfig model for each specified experiment subject
     extract-with(extractor) {
@@ -36,25 +36,23 @@ experiment-stages() {
             --stage "$transformer" \
             --dockerfile featjar \
             --input-directory kconfig \
-            --command transform-featjar \
+            --command transform-with-featjar \
             --input-extension model \
             --output-extension "$output_extension" \
             --transformer "$transformer" \
             --timeout 10
     }
 
-    force
     transform-with-featjar model_to_dimacs_featureide dimacs
     transform-with-featjar model_to_model_featureide featureide.model
     transform-with-featjar model_to_smt_z3 smt
     transform-with-featjar model_to_dimacs_featjar dimacs
 
-    # todo: remove all .sh scripts in scripts
     run \
         --stage model_to_dimacs_kconfigreader \
         --dockerfile kconfigreader \
         --input-directory model_to_model_featureide \
-        --command transform-kconfigreader \
+        --command transform-with-kconfigreader \
         --input-extension featureide.model \
         --output-extension dimacs \
         --timeout 10
@@ -64,7 +62,7 @@ experiment-stages() {
         --stage smt_to_dimacs_z3 \
         --dockerfile z3 \
         --input-directory model_to_smt_z3 \
-        --command transform-z3 \
+        --command transform-with-z3 \
         --input-extension smt \
         --output-extension dimacs \
         --timeout 10

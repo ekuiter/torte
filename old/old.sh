@@ -1,19 +1,3 @@
-# stage 2b: transform .smt and .model files into .dimacs with z3 and kconfigreader-transform
-if ! ls output/dimacs | grep -q z3; then
-    for reader in ${READERS[@]}; do
-        rm -rf output/stage2_${reader}_output
-        mkdir -p output/stage2_${reader}_output
-        cp output/intermediate/*.@(smt|model) output/stage2_${reader}_output
-        if [[ $SKIP_BUILD != y ]]; then
-            docker build -f stage1/$reader/Dockerfile -t stage1_$reader stage1
-        fi
-        docker run --rm -m $MEMORY_LIMIT -e TIMEOUT_TRANSFORM -v $PWD/output/stage2_${reader}_output:/home/output stage1_$reader ./transform.sh
-        cp output/stage2_${reader}_output/*.dimacs output/dimacs || true
-    done
-else
-    echo Skipping stage 2b
-fi
-
 # stage 2c: collect statistics in CSV file
 res=output/results_transform.csv
 err=output/error_transform.log

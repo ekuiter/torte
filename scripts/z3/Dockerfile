@@ -8,5 +8,5 @@ RUN apt-get update && apt-get install -y \
 # todo: upgrade z3 to 4.12.1, see https://github.com/Z3Prover/z3/issues/6577
 
 WORKDIR /home
-COPY *.sh z3/*.sh z3/*.py ./
+COPY *.sh z3/*.py ./
 RUN chmod +x *.sh
