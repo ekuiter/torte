@@ -26,9 +26,16 @@ DOCKER_PREFIX=torte # prefix for naming Docker images and containers
 DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
 DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
 DOCKER_OUTPUT_FILE_PREFIX=output # prefix for output files inside Docker containers
-KCONFIG_MODELS_OUTPUT_DIRECTORY=kconfig-models # output directory for storing kconfig models
+KCONFIG_MODELS_OUTPUT_DIRECTORY= # output directory for storing kconfig models
 KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storing Kconfig bindings
 TRANSIENT_STAGE=transient # name for transient stages
+PATH_SEPARATOR=/ # separator for building paths
+INPUT_DIRECTORY=input # path to system repositories
+OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
+SKIP_DOCKER_BUILD= # y if building Docker images should be skipped, useful for loading imported images
+MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024)) # memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
+FORCE_RUN= # y if every stage should be forced to run regardless of whether is is already done
+VERBOSE= # y if console output should be verbose
 
 source "$SCRIPTS_DIRECTORY/bootstrap.sh" # modifies bash to allow for succinct function definitions
 source "$SCRIPTS_DIRECTORY/helper.sh" # miscellaneous helpers

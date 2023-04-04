@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # defines the stages of the experiment in order of their execution
-experiment-stages() {
+experiment-stages() {    
+    force
     # clone the systems specified as experiment subjects
     run --stage clone-systems
 
@@ -17,7 +18,7 @@ experiment-stages() {
             --stage "$extractor" \
             --iterations 2 \
             --file-fields binding-file,model-file \
-            --dockerfile "$extractor" \
+            --image "$extractor" \
             --command "extract-with-$extractor"
     }
 
@@ -34,7 +35,7 @@ experiment-stages() {
     transform-with-featjar(transformer, output_extension) {
         run \
             --stage "$transformer" \
-            --dockerfile featjar \
+            --image featjar \
             --input-directory kconfig \
             --command transform-with-featjar \
             --input-extension model \
@@ -50,31 +51,33 @@ experiment-stages() {
 
     run \
         --stage model_to_dimacs_kconfigreader \
-        --dockerfile kconfigreader \
+        --image kconfigreader \
         --input-directory model_to_model_featureide \
         --command transform-with-kconfigreader \
         --input-extension featureide.model \
-        --output-extension dimacs \
         --timeout 10
     join-into model_to_model_featureide model_to_dimacs_kconfigreader
 
     run \
         --stage smt_to_dimacs_z3 \
-        --dockerfile z3 \
+        --image z3 \
         --input-directory model_to_smt_z3 \
         --command transform-with-z3 \
-        --input-extension smt \
-        --output-extension dimacs \
         --timeout 10
     join-into model_to_smt_z3 smt_to_dimacs_z3
 
-    # todo: make stage field optional
     aggregate \
         --stage dimacs \
-        --stage-field transformer \
+        --directory-field dimacs-transformer \
         --file-fields dimacs-file \
         --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
     join-into kconfig dimacs
+
+    run \
+        --stage satgraf \
+        --image satgraf \
+        --input-directory dimacs \
+        --command transform-with-satgraf
 
     # todos:
     # - filter stage that removes input files before executing another stage
@@ -136,7 +139,7 @@ kconfig-post-checkout-hook(system, revision) {
 kclause-post-binding-hook(system, revision) {
     if [[ $system == embtoolkit ]]; then
         # fix incorrect feature names, which Kclause interprets as a binary subtraction operator
-        sed -i 's/-/_/g' "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause"
+        sed -i 's/-/_/g' "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")"
     fi
 }
 

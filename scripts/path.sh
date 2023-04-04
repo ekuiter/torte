@@ -24,7 +24,23 @@ input-file(extension) {
     echo "$(input-directory)/$DOCKER_OUTPUT_FILE_PREFIX.$extension"
 }
 
+# returns a file at a given (created if necessary) path for the output of a given stage
+output-path(components...) {
+    local new_components=()
+    for component in "${components[@]}"; do
+        if [ -z "$component" ]; then
+            continue
+        fi
+        new_components+=("$component")
+    done
+    local path
+    path=$(output-directory)/$(printf '%s\n' "${new_components[@]}" | paste -sd"$PATH_SEPARATOR")
+    mkdir -p "$(dirname "$path")"
+    echo "$path"
+}
+
 # returns a file with a given extension for the output of a given stage
+# todo: merge with output-path
 output-file(extension, stage=) {
     echo "$(output-directory "$stage")/$DOCKER_OUTPUT_FILE_PREFIX.$extension"
 }

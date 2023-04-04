@@ -49,3 +49,18 @@ uninstall() {
         docker rmi -f "$image"
     done
 }
+
+# start a web server for browsing output files
+browse() {
+    local database_file
+    database_file=$(mktemp)
+    chmod 0777 "$database_file"
+    docker run \
+        -v "$OUTPUT_DIRECTORY:/srv" \
+        -v "$database_file:/database.db" \
+        -u "$(id -u):$(id -g)" \
+        -p 8080:80 \
+        -it --entrypoint /bin/sh \
+        filebrowser/filebrowser \
+        -c "/filebrowser config init; /filebrowser config set --auth.method=noauth; /filebrowser"
+}

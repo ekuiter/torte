@@ -15,23 +15,6 @@ load-experiment() {
     fi
     # shellcheck source=../input/experiment.sh
     source "$EXPERIMENT_FILE"
-     # path to system repositories
-    INPUT_DIRECTORY=${INPUT_DIRECTORY:-input}
-    # path to resulting outputs, created if necessary
-    OUTPUT_DIRECTORY=${OUTPUT_DIRECTORY:-output}
-    # y if building Docker images should be skipped, useful for loading imported images
-    SKIP_DOCKER_BUILD=${SKIP_DOCKER_BUILD:-}
-     # memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
-    MEMORY_LIMIT=${MEMORY_LIMIT:-$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024))}
-    # y if every stage should be forced to run regardless of whether is is already done
-    FORCE_RUN=${FORCE_RUN:-}
-    # y if console output should be verbose
-    VERBOSE=${VERBOSE:-}
-}
-
-# loads a config file and adds all experiment subjects
-load-subjects() { # todo: remove
-    experiment-subjects
 }
 
 # removes all output files for the experiment

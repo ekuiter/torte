@@ -44,14 +44,13 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
     local kconfig_binding_directory
     kconfig_binding_directory=$(kconfig-binding-directory "$kconfig_binding_files_spec")
     local kconfig_binding_output_file
-    kconfig_binding_output_file=$(output-directory)/$KCONFIG_BINDINGS_OUTPUT_DIRECTORY/$system/$revision.$kconfig_binding_name
+    kconfig_binding_output_file="$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision.$kconfig_binding_name")"
     log "$kconfig_binding_name: $system@$revision"
     if [[ -f $kconfig_binding_output_file ]]; then
         log "" "$(echo-skip)"
         return
     fi
     log "" "$(echo-progress compile)"
-    mkdir -p "$(output-directory)/$KCONFIG_BINDINGS_OUTPUT_DIRECTORY/$system"
     push "$(input-directory)/$system"
 
     # determine which Kconfig constructs this system uses
@@ -73,44 +72,43 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
         log "" "$(echo-fail)"
         kconfig_binding_output_file=NA
     fi
-    echo "$system,$revision,$kconfig_binding_output_file" >> "$(output-directory)/kconfig-bindings.csv"
+    echo "$system,$revision,$kconfig_binding_output_file" >> "$(output-path kconfig-bindings.csv)"
 }
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
 extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file, kconfig_binding_file=, env=) {
-    kconfig_binding_file=${kconfig_binding_file:-$(output-directory)/$KCONFIG_BINDINGS_OUTPUT_DIRECTORY/$system/$revision.$kconfig_binding}
+    kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision.$kconfig_binding")}
     if [[ -n $env ]]; then
         env="$(echo '' -e "$env" | sed 's/,/ -e /g')"
     fi
     log "$extractor: $system@$revision"
-    if [[ -f $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.model ]]; then
+    if [[ -f $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model") ]]; then
         log "" "$(echo-skip)"
         return
     fi
     log "" "$(echo-progress extract)"
-    trap 'ec=$?; (( ec != 0 )) && rm-safe '"$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"'*' EXIT
-    mkdir -p "$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system"
+    trap 'ec=$?; (( ec != 0 )) && rm-safe '"$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")"'*' EXIT
     push "$(input-directory)/$system"
     local kconfig_model
     local start
     local cmd
     local end
-    kconfig_model="$(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.model"
+    kconfig_model="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model")"
     if [[ $extractor == kconfigreader ]]; then
         # todo: migrate start,end, and cmd to use measure-time
         start=$(date +%s.%N)
-        cmd="/home/kconfigreader/run.sh de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf $kconfig_binding_file $kconfig_file $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision"
+        cmd="/home/kconfigreader/run.sh de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf $kconfig_binding_file $kconfig_file $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")"
         (echo "$cmd" && eval "$cmd") || true
         end=$(date +%s.%N)
     elif [[ $extractor == kclause ]]; then
         start=$(date +%s.%N)
-        cmd="$kconfig_binding_file --extract -o $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause $env $kconfig_file"
+        cmd="$kconfig_binding_file --extract -o $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause") $env $kconfig_file"
         (echo "$cmd" && eval "$cmd") || true
-        cmd="$kconfig_binding_file --configs $env $kconfig_file > $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.features"
+        cmd="$kconfig_binding_file --configs $env $kconfig_file > $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.features")"
         (echo "$cmd" && eval "$cmd") || true
         kclause-post-binding-hook "$system" "$revision"
-        cmd="kclause < $(output-directory)/$KCONFIG_MODELS_OUTPUT_DIRECTORY/$system/$revision.kclause > $kconfig_model"
+        cmd="kclause < $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause") > $kconfig_model"
         (echo "$cmd" && eval "$cmd") || true
         end=$(date +%s.%N)
         local kconfig_model_tmp
@@ -162,7 +160,7 @@ register-kconfig-extractor() {
         git-clean "$(input-directory)/$system"
     }
 
-    echo system,revision,binding-file > "$(output-directory)/kconfig-bindings.csv"
+    echo system,revision,binding-file > "$(output-path kconfig-bindings.csv)"
     echo system,revision,binding-file,kconfig-file,model-file > "$(output-csv)"
 }
 

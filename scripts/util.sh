@@ -27,27 +27,26 @@ read-statistics() {
         time=$(git -C "$(input-directory)/$system" --no-pager log -1 -s --format=%ct "$revision")
         local date
         date=$(date -d "@$time" +"%Y-%m-%d")
-        echo "$system,$revision,$time,$date" >> "$(output-directory)/date.csv"
+        echo "$system,$revision,$time,$date" >> "$(output-path date.csv)"
         if [[ $STATISTICS_OPTION != skip-sloc ]]; then
             local sloc_file
-            sloc_file="$(output-directory)/$system/$revision.txt"
-            mkdir -p "$(output-directory)/$system"
+            sloc_file=$(output-path "$system" "$revision.txt")
             push "input/$system"
             cloc --git "$revision" > "$sloc_file"
             pop
             local sloc
             sloc=$(grep ^SUM < "$sloc_file" | tr -s ' ' | cut -d' ' -f5)
-            echo "$system,$revision,$sloc" >> "$(output-directory)/sloc.csv"
+            echo "$system,$revision,$sloc" >> "$(output-path sloc.csv)"
         else
-            echo "$system,$revision,NA" >> "$(output-directory)/sloc.csv"
+            echo "$system,$revision,NA" >> "$(output-path sloc.csv)"
         fi
         log "" "$(echo-done)"
     }
 
-    echo system,revision,committer_date_unix,committer_date_readable > "$(output-directory)/date.csv"
-    echo system,revision,source_lines_of_code > "$(output-directory)/sloc.csv"
+    echo system,revision,committer_date_unix,committer_date_readable > "$(output-path date.csv)"
+    echo system,revision,source_lines_of_code > "$(output-path sloc.csv)"
     experiment-subjects
-    join-tables "$(output-directory)/date.csv" "$(output-directory)/sloc.csv" > "$(output-csv)"
+    join-tables "$(output-path date.csv)" "$(output-path sloc.csv)" > "$(output-csv)"
 }
 
 # adds Linux revisions to the Linux Git repository

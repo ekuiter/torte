@@ -12,7 +12,7 @@ update-log(arguments...) {
 
 # logs a message that is always printed to the console output
 CURRENT_SUBJECT=""
-log(subject=, state=) { # todo: make subject optional
+log(subject=, state=) {
     subject=${subject:-$CURRENT_SUBJECT}
     state=${state:-$(echo-progress)}
     local command
@@ -255,7 +255,7 @@ join-tables() {
 }
 
 # aggregates any number of CSV files, keeping common fields and adding an aggregate column
-aggregate-tables(source_field, source_transformer=, files...) {
+aggregate-tables(source_field=, source_transformer=, files...) {
     source_transformer=${source_transformer:-$(lambda-identity)}
     require-array files
     local common_fields
@@ -264,16 +264,29 @@ aggregate-tables(source_field, source_transformer=, files...) {
     if [[ -z "${common_fields[*]}" ]]; then
         error "Expected at least one common field."
     fi
-    echo "$(to-list common_fields),$source_field"
+    echo -n "$(to-list common_fields)"
+    if [[ -n "$source_field" ]]; then
+        echo ",$source_field"
+    else
+        echo
+    fi
     local file
     for file in "${files[@]}"; do
         # shellcheck disable=SC2094
         while read -r line; do
             local common_field
             for common_field in "${common_fields[@]}"; do
-                echo -n "$(echo "$line" | cut -d, -f "$(table-field-index "$file" "$common_field")"),"
+                if [[ "$common_field" != "${common_fields[0]}" ]]; then
+                    echo -n ,
+                fi
+                echo -n "$(echo "$line" | cut -d, -f "$(table-field-index "$file" "$common_field")")"
             done
-            source-transformer "$file"
+            if [[ -n "$source_field" ]]; then
+                echo -n ,
+                source-transformer "$file"
+            else
+                echo
+            fi
         done < <(tail -n+2 < "$file")
     done
 }
@@ -416,7 +429,7 @@ memory-limit(further_limit=0) {
 
 # measures the time needed to execute a command, setting an optional timeout
 # if the timeout is 0, no timeout is set
-measure-time(timeout, command...) {
+measure-time(timeout=0, command...) {
     require-array command
     require-command bc # todo: do this without bc, so Dockerfiles can be simpler
     echo "${command[@]}"
