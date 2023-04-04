@@ -2,8 +2,7 @@ FROM ubuntu:22.04
 
 RUN apt-get update && apt-get install -y \
     git \
-    openjdk-11-jdk \
-    bc
+    openjdk-11-jdk
 WORKDIR /home
 # todo: pin exact versions of repositories
 RUN git clone https://github.com/ekuiter/SATGraf.git

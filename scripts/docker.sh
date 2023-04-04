@@ -63,4 +63,5 @@ browse() {
         -it --entrypoint /bin/sh \
         filebrowser/filebrowser \
         -c "/filebrowser config init; /filebrowser config set --auth.method=noauth; /filebrowser"
+    rm-safe "$database_file"
 }

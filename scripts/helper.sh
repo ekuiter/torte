@@ -429,21 +429,20 @@ memory-limit(further_limit=0) {
 
 # measures the time needed to execute a command, setting an optional timeout
 # if the timeout is 0, no timeout is set
-measure-time(timeout=0, command...) {
+evaluate(timeout=0, command...) {
     require-array command
-    require-command bc # todo: do this without bc, so Dockerfiles can be simpler
-    echo "${command[@]}"
+    echo "evaluate_command=${command[*]}"
     local start
-    start=$(date +%s.%N)
-    local exit_code
+    start=$(date +%s%N)
+    local exit_code=0
     timeout "$timeout" "${command[@]}" || exit_code=$?
+    echo "evaluate_exit_code=$exit_code"
     if [[ $exit_code -eq 124 ]]; then
-        echo "timeout occurred"
+        echo "evaluate_timeout=y"
     fi
     local end
-    end=$(date +%s.%N)
-    echo "time: $(echo "($end - $start) * 1000000000 / 1" | bc)ns"
-    echo
+    end=$(date +%s%N)
+    echo "evaluate_time=$((end - start))"
 }
 
 is-file-empty(file) {

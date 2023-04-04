@@ -2,6 +2,8 @@
 
 # defines the stages of the experiment in order of their execution
 experiment-stages() {
+    force
+    
     # clone the systems specified as experiment subjects
     run --stage clone-systems
 
@@ -87,15 +89,19 @@ experiment-stages() {
 
 # defines the experiment subjects
 experiment-subjects() {
-    add-system busybox https://github.com/mirror/busybox
+    add-system --system busybox --url https://github.com/mirror/busybox
     #add-system linux https://github.com/torvalds/linux
 
     # add-revision linux v2.5.45
     # add-revision linux v2.5.46
 
     for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
-        add-revision busybox "$revision"
-        add-kconfig busybox "$revision" Config.in scripts/kconfig/*.o ""
+        add-revision --system busybox --revision "$revision"
+        add-kconfig \
+            --system busybox \
+            --revision "$revision" \
+            --kconfig-file Config.in \
+            --kconfig-binding-files scripts/kconfig/*.o
     done
 
     # todo: facet around architectures?

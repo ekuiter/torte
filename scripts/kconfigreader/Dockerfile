@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
   gcc-9 \
   g++-9 \
   && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+# todo: remove bc
 
 # copy and set up
 # - dumpconf (which is compiled against the projects' Kconfig implementations)
