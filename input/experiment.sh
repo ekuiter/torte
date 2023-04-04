@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # defines the stages of the experiment in order of their execution
-experiment-stages() {    
-    force
+experiment-stages() {
     # clone the systems specified as experiment subjects
     run --stage clone-systems
 
@@ -74,7 +73,7 @@ experiment-stages() {
     join-into kconfig dimacs
 
     run \
-        --stage satgraf \
+        --stage community-structure \
         --image satgraf \
         --input-directory dimacs \
         --command transform-with-satgraf

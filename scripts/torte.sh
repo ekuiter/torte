@@ -58,7 +58,10 @@ help() {
     echo "run-experiment    runs the experiment"
     echo "clean-experiment  removes all output files for the experiment"
     echo "stop-experiment   stops the experiment"
+    echo "save [directory]  saves all experiment-related Docker images, input, and output in the given directory"
+    echo "load [directory]  loads all Docker images in the given directory"
     echo "uninstall         removes all Docker containers and images"
+    echo "browse            start a web server for browsing output files"
     echo "help              prints help information"
 }
 
