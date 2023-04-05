@@ -166,5 +166,5 @@ plot(stage, type, fields, arguments...) {
     else
         file=$stage
     fi
-    run-transient-unless "" "plot-helper ${file#"$OUTPUT_DIRECTORY/"} $type $fields ${arguments[*]}"
+    run-transient-unless "" "plot-helper \"${file#"$OUTPUT_DIRECTORY/"}\" \"$type\" \"$fields\" ${arguments[*]}"
 }

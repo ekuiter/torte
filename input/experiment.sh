@@ -22,7 +22,6 @@ experiment-stages() {
             --command "extract-with-$extractor"
     }
 
-    force
     extract-with --extractor kconfigreader
     extract-with --extractor kclause
 
