@@ -65,6 +65,11 @@ help() {
     echo "help              prints help information"
 }
 
+# check installed commands
+if is-host; then
+    require-command docker make
+fi
+
 # define stubs for API functions
 for function in "${api[@]}"; do
     define-stub "$function"

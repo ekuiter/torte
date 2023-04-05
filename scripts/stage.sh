@@ -36,7 +36,7 @@ run(stage=$TRANSIENT_STAGE, image=util, input_directory=, command...) {
         fi
         clean "$stage"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
-            cp "$EXPERIMENT_FILE" "$SCRIPTS_DIRECTORY/_experiment.sh"
+            compile-script "$EXPERIMENT_FILE" > "$SCRIPTS_DIRECTORY/_experiment.gen.sh"
             log "" "$(echo-progress build)"
             docker build $build_flags \
                 -f "$dockerfile"\

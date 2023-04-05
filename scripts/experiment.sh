@@ -6,15 +6,16 @@
 load-experiment() {
     if is-host; then
         EXPERIMENT_FILE=${EXPERIMENT_FILE:-input/experiment.sh}
+        cp "$EXPERIMENT_FILE" "$SCRIPTS_DIRECTORY/_experiment.sh"
     else
-        EXPERIMENT_FILE=${EXPERIMENT_FILE:-_experiment.sh}
+        EXPERIMENT_FILE=_experiment.sh
     fi
     if [[ ! -f $EXPERIMENT_FILE ]]; then
         echo "Please provide an experiment in $EXPERIMENT_FILE."
         exit 1
     fi
     # shellcheck source=../input/experiment.sh
-    source "$EXPERIMENT_FILE"
+    source "$SCRIPTS_DIRECTORY/_experiment.sh"
 }
 
 # removes all output files for the experiment
@@ -27,7 +28,6 @@ clean-experiment() {
 # runs the experiment
 run-experiment() {
     require-host
-    require-command docker
     mkdir -p "$OUTPUT_DIRECTORY"
     clean "$DOCKER_PREFIX"
     mkdir -p "$(output-directory "$DOCKER_PREFIX")"

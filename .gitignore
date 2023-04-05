@@ -2,3 +2,4 @@
 /output*
 /export*
 _*.sh
+*.gen.sh

@@ -11,7 +11,7 @@ Take your pick:
 
 ## Getting Started
 
-- Install [Docker](https://docs.docker.com/get-docker/) on a Linux system. On Windows, usage via WSL should be possible (but is untested).
+- Install [GNU Make](https://www.gnu.org/software/make/) and [Docker](https://docs.docker.com/get-docker/) on a Linux system. On Windows, usage via WSL should be possible (but is untested).
   To avoid permission issues with created files, use [rootless mode](https://docs.docker.com/engine/security/rootless/).
 - Define an experiment in `input/experiment.sh` or change an existing experiment's parameters.
 - Run the experiment with `./torte.sh`. Stop a running experiment with `Ctrl+Z`, then `./torte.sh stop`.

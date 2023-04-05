@@ -2,14 +2,24 @@
 
 # a small preprocessor that allows more succinct function definitions
 # e.g., fn(a, b, c=3) { echo $a $b $c; } works as intuitively expected
-source() {
+
+compile-script() {
     local script=$1
-    local temporary_source
-    local -r temporary_source=$(mktemp) # todo: make local -r the default
     # shellcheck disable=SC2016
-    sed -E 's/^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{\s*/\1() { eval "$(parse-arguments \1 \2)";/' < "$script" > "$temporary_source"
-    builtin source "$temporary_source"
-    rm "$temporary_source"
+    sed -E 's/^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{\s*/\1() { eval "$(parse-arguments \1 \2)";/' < "$script"
+    echo
+}
+
+source() {
+    local script
+    script=$1
+    local generated_script
+    # todo: make local -r the default
+    local -r generated_script=$(dirname "$script")/$(basename "$script" .sh).gen.sh
+    if command -v make &> /dev/null; then
+        make -f <(printf "%s\n\t%s\n" '%.gen.sh : %.sh' "$(dirname "$0")"'/bootstrap.sh $< > $@') "$generated_script"
+    fi
+    builtin source "$generated_script"
 
     # this can also be done at compile-time, but it is inefficient:
     # local regex='^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{(.*)'
@@ -132,3 +142,7 @@ parse-arguments() {
 
     echo "$code"
 }
+
+if [[ $0 =~ bootstrap.sh ]]; then
+    compile-script "$1"
+fi
