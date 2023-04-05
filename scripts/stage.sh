@@ -8,7 +8,8 @@ clean(stage) {
 
 # runs a stage of some experiment in a Docker container
 # reads the EXPERIMENT_FILE environment variable
-run(stage=$TRANSIENT_STAGE, image=util, input_directory=, command...) {
+run(stage=, image=util, input_directory=, command...) {
+    stage=${stage:-$TRANSIENT_STAGE}
     require-host
     local readable_stage=$stage
     if [[ $stage == "$TRANSIENT_STAGE" ]]; then
@@ -39,7 +40,7 @@ run(stage=$TRANSIENT_STAGE, image=util, input_directory=, command...) {
             compile-script "$EXPERIMENT_FILE" > "$SCRIPTS_DIRECTORY/_experiment.gen.sh"
             log "" "$(echo-progress build)"
             docker build $build_flags \
-                -f "$dockerfile"\
+                -f "$dockerfile" \
                 -t "${DOCKER_PREFIX}_$stage" \
                 --ulimit nofile=20000:20000 \
                 "$SCRIPTS_DIRECTORY" >/dev/null
@@ -69,7 +70,7 @@ run(stage=$TRANSIENT_STAGE, image=util, input_directory=, command...) {
 }
 
 # skips a stage, useful to comment out a stage temporarily
-skip(stage=$TRANSIENT_STAGE, image=util, input_directory=, command...) {
+skip(stage=, image=util, input_directory=, command...) {
     echo "Skipping stage $stage"
 }
 

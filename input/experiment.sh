@@ -10,7 +10,7 @@ experiment-stages() {
 
     # read basic statistics for each system
     run --stage read-statistics
-    plot --stage read-statistics --type scatter --fields committer_date_unix,source_lines_of_code
+    #plot --stage read-statistics --type scatter --fields committer_date_unix,source_lines_of_code
 
     # use a given extractor to extract a kconfig model for each specified experiment subject
     extract-with(extractor) {

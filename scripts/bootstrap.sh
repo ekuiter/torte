@@ -3,11 +3,19 @@
 # a small preprocessor that allows more succinct function definitions
 # e.g., fn(a, b, c=3) { echo $a $b $c; } works as intuitively expected
 
+sedd() {
+    export -f parse-arguments
+    local regex='^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{(.*)$'
+    echo 'array-contains(element, array...) {' | sed -E "s/$regex/echo '\1() {' \$(parse-arguments \"\1\" \2) '\3'/e"
+}
+
 compile-script() {
     local script=$1
+    local regex='^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{(.*)'
     # shellcheck disable=SC2016
-    sed -E 's/^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{\s*/\1() { eval "$(parse-arguments \1 \2)";/' < "$script"
-    echo
+    # sed -E 's/'"$regex"'/\1() { eval "$(parse-arguments \1 \2)"; \3/' < "$script" # interpreted version
+    export -f parse-arguments
+    sed -E "s/$regex/echo '\1() {' \$(parse-arguments \"\1\" \2) '\3'/e" < "$script" # compiled version
 }
 
 source() {
@@ -17,26 +25,9 @@ source() {
     # todo: make local -r the default
     local -r generated_script=$(dirname "$script")/$(basename "$script" .sh).gen.sh
     if command -v make &> /dev/null; then
-        make -f <(printf "%s\n\t%s\n" '%.gen.sh : %.sh' "$(dirname "$0")"'/bootstrap.sh $< > $@') "$generated_script"
+        make -f <(printf "%s\n\t%s\n" '%.gen.sh : %.sh' "$(dirname "$0")"'/bootstrap.sh $< > $@') "$generated_script" > /dev/null
     fi
     builtin source "$generated_script"
-
-    # this can also be done at compile-time, but it is inefficient:
-    # local regex='^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{(.*)'
-    # local line
-    # while read -r line; do
-    #     local function_name variable_specs remainder
-    #     function_name=$(echo "$line" | sed -nE "s/$regex/\1/p")
-    #     variable_specs=$(echo "$line" | sed -nE "s/$regex/\2/p")
-    #     remainder=$(echo "$line" | sed -nE "s/$regex/\3/p")
-    #     if [[ -n $function_name ]]; then
-    #         line="$function_name() { "
-    #         # shellcheck disable=SC2086
-    #         line+=$(parse-arguments "$function_name" $variable_specs)
-    #         line+=" $remainder "
-    #     fi
-    #     echo "$line" >> "$tmp"
-    # done < "$script"
 }
 
 # generates code that parses function arguments in a flexible way
