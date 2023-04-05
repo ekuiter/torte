@@ -317,7 +317,6 @@ void myconfdump(FILE *out)
 int main(int ac, char **av)
 {
 	struct stat tmpstat;
-	char *arch = getenv("ARCH");
 
 	setlocale(LC_ALL, "");
 
@@ -326,13 +325,9 @@ int main(int ac, char **av)
 		exit(EXIT_FAILURE);
 	}
 
-	if (!arch) {
-		fputs("setting arch ", stderr);
-		arch = strdup ("x86");
-	}
-	fprintf(stderr, "using arch %s\n", arch);
-	setenv("ARCH", arch, 1);
-	setenv("KERNELVERSION", "2.6.30-vamos", 1);
+	// only sets these variables if not already set
+	setenv("ARCH", "x86", 0);
+	setenv("KERNELVERSION", "kcu", 0);
 	conf_parse(av[1]);
 	fprintf(stdout, "\n.\n");
 	myconfdump(stdout);

@@ -5,7 +5,10 @@ RUN apt-get update && apt-get install -y \
     git \
     cloc \
     curl \
-    wget
+    wget \
+    ruby-dev \
+    build-essential
+RUN gem install youplot
 
 WORKDIR /home
 COPY *.sh ./

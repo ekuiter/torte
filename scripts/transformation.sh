@@ -11,25 +11,25 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
     output="$(output-directory)/$new_file"
     mkdir -p "$(dirname "$output")"
     compile-lambda transformer "$transformer"
-    local evaluate_output_file
-    evaluate_output_file=$(mktemp)
+    local output_log
+    output_log=$(mktemp)
     log "$transformer_name: $file" "$(echo-progress transform)"
     # shellcheck disable=SC2046
-    evaluate "$timeout" $(transformer "$input" "$output") | tee "$evaluate_output_file"
+    evaluate "$timeout" $(transformer "$input" "$output") | tee "$output_log"
     if ! is-file-empty "$output"; then
         log "" "$(echo-done)"
     else
         log "" "$(echo-fail)"
         new_file=NA
     fi
-    echo -n "$file,${new_file#./},$transformer_name,$(grep -oP "^evaluate_time=\K.*" < "$evaluate_output_file")" >> "$(output-csv)"
+    echo -n "$file,${new_file#./},$transformer_name,$(grep -oP "^evaluate_time=\K.*" < "$output_log")" >> "$(output-csv)"
     if [[ -n $data_extractor ]]; then
         compile-lambda data-extractor "$data_extractor"
-        echo ",$(data-extractor "$evaluate_output_file")" >> "$(output-csv)"
+        echo ",$(data-extractor "$output" "$output_log")" >> "$(output-csv)"
     else
         echo >> "$(output-csv)"
     fi
-    rm-safe "$evaluate_output_file"
+    rm-safe "$output_log"
 }
 
 # transforms a list of files from one file format into another
@@ -45,8 +45,19 @@ transform-files(csv_file, input_extension, output_extension, transformer_name, t
     done < <(table-field "$csv_file" "$input_extension-file") # todo: ignore NA values
 }
 
+# returns additional data fields for DIMACS files
+dimacs-data-fields() {
+    echo dimacs-variables,dimacs-literals
+}
+
+# returns a data extractor lambda for DIMACS files
+dimacs-data-extractor() {
+    # shellcheck disable=SC2016
+    lambda output,output_log echo '$(grep -E ^p < "$output" | cut -d" " -f3),$(grep -E "^[^pc]" < "$output" | grep -Fo " " | wc -l)'
+}
+
 # transforms files into various formats using FeatJAR
-transform-with-featjar(input_extension, output_extension, transformer, timeout=0) {
+transform-with-featjar(input_extension, output_extension, transformer, timeout=0, data_fields=, data_extractor=) {
     local jar=/home/FeatJAR/transform/build/libs/transform-0.1.0-SNAPSHOT-all.jar
     transform-files \
         "$(input-csv)" \
@@ -62,46 +73,57 @@ transform-with-featjar(input_extension, output_extension, transformer, timeout=0
             --input "\$input" \
             --output "\$output" \
             --transformation "${transformer//_/}")" \
-        "" \
-        "" \
+        "$data_fields" \
+        "$data_extractor" \
         "$timeout"
 }
 
+# transforms files into DIMACS using FeatJAR
+transform-into-dimacs-with-featjar() {
+    transform-with-featjar \
+        --data-fields "$(dimacs-data-fields)" \
+        --data-extractor "$(dimacs-data-extractor)" \
+        "$@"
+}
+
 # transforms kconfigreader model files into DIMACS using kconfigreader
-transform-with-kconfigreader(input_extension=model, output_extension=dimacs, timeout=0) {
+transform-into-dimacs-with-kconfigreader(input_extension=model, output_extension=dimacs, timeout=0) {
+    # shellcheck disable=SC2016
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
         model_to_dimacs_kconfigreader \
-        "$(lambda input,output echo /home/kconfigreader/run.sh de.fosd.typechef.kconfig.TransformIntoDIMACS "\$input" "\$output")" \
-        "" \
-        "" \
+        "$(lambda input,output 'echo /home/kconfigreader/run.sh de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
+        "$(dimacs-data-fields)" \
+        "$(dimacs-data-extractor)" \
         "$timeout"
 }
 
 # transforms SMT files into DIMACS using Z3
-transform-with-z3(input_extension=smt, output_extension=dimacs, timeout=0) {
+transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, timeout=0) {
+    # shellcheck disable=SC2016
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
         smt_to_dimacs_z3 \
-        "$(lambda input,output echo python3 smt2dimacs.py "\$input" "\$output")" \
-        "" \
-        "" \
+        "$(lambda input,output 'echo python3 smt2dimacs.py "$input" "$output"')" \
+        "$(dimacs-data-fields)" \
+        "$(dimacs-data-extractor)" \
         "$timeout"
 }
 
 # displays community structure of a DIMACS file with SATGraf
 transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0) {
+    # shellcheck disable=SC2016
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
         dimacs_to_jpg_satgraf \
-        "$(lambda input,output echo ./satgraf.sh "\$input" "\$output")" \
+        "$(lambda input,output 'echo ./satgraf.sh "$input" "$output"')" \
         satgraf-modularity \
-        "$(lambda file cat "\$file" \| grep -v ^evaluate_)" \
+        "$(lambda output,output_log 'grep -v ^evaluate_ < "$output_log"')" \
         "$timeout"
 }

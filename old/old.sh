@@ -1,12 +1,11 @@
+#!/bin/bash
 # stage 2c: collect statistics in CSV file
 res=output/results_transform.csv
 err=output/error_transform.log
 res_miss=output/results_missing.csv
 
 if [ ! -f $res ]; then
-    rm -f $res $err $res_miss
     echo system,tag,time,date,sloc,iteration,source,extract_time,extract_variables,extract_literals,transformation,transform_time,transform_variables,transform_literals >> $res
-    touch $err $res_miss
 
     for system_tag in $(cat $results_stats | cut -d, -f1-2 | tail -n+2); do
         i=0
@@ -19,51 +18,33 @@ if [ ! -f $res ]; then
             # else
             i=$(($i+1))
             for source in kconfigreader kclause hierarchy; do
-                if [ -f output/models/$system_tag,$i,$source* ]; then
-                    model=output/models/$system_tag,$i,$source.model
-                    stats=output/intermediate/$system_tag,$i,hierarchy.stats
-                    echo "Processing $model"
-                    if [ -f $model ]; then
-                        extract_time=$(cat $model | grep "#item time" | cut -d' ' -f3)
-                        extract_variables=$(cat $model | sed "s/)/)\n/g" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
-                        extract_literals=$(cat $model | sed "s/)/)\n/g" | grep "def(" | wc -l)
-                    else
-                        extract_time=NA
-                        extract_variables=$(cat $stats | cut -d' ' -f1)
-                        extract_literals=$(cat $stats | cut -d' ' -f2)
+                # if ! [ -f output/models/$system_tag,$i,$source.model ]; then
+                #     stats=output/intermediate/$system_tag,$i,hierarchy.stats
+                #     extract_time=NA
+                #     extract_variables=$(cat $stats | cut -d' ' -f1)
+                #     extract_literals=$(cat $stats | cut -d' ' -f2)
+                # fi
+                for transformation in featureide z3 kconfigreader; do
+                    if ! [ -f output/dimacs/$system_tag,$i,$source,$transformation* ]; then
+                        echo "WARNING: Missing DIMACS file for $system_tag with source $source and transformation $transformation" | tee -a $err
+                        echo $system_tag,$i,$source,$extract_time,$extract_variables,$extract_literals,$transformation,NA,NA,NA >> $res
+                        for solver in ${SOLVERS[@]}; do
+                            for analysis in ${ANALYSES[@]}; do
+                                if [[ $solver != sharpsat-* ]] || [[ $analysis != core ]]; then
+                                    if [[ $analysis == void ]]; then
+                                        echo $system_tag,$i,$source,$transformation,$solver,$analysis,NA,NA,NA >> $res_miss
+                                    else
+                                        j=0
+                                        while [ $j -ne $NUM_FEATURES ]; do
+                                            j=$(($j+1))
+                                            echo $system_tag,$i,$source,$transformation,$solver,$analysis$j,NA,NA,NA >> $res_miss
+                                        done
+                                    fi
+                                fi
+                            done
+                        done
                     fi
-                    for transformation in z3 kconfigreader; do ## todo: featureide
-                        if ([[ $source == kconfigreader ]] && [[ $transformation == kconfigreader ]]) ||
-                            ([[ $source == kclause ]] && [[ $transformation == z3 ]]) ; then
-                            if [ -f output/dimacs/$system_tag,$i,$source,$transformation* ]; then
-                                dimacs=output/dimacs/$system_tag,$i,$source,$transformation.dimacs
-                                echo Processing $dimacs
-                                transform_time=$(cat $dimacs | grep "c time" | cut -d' ' -f3)
-                                transform_variables=$(cat $dimacs | grep -E ^p | cut -d' ' -f3)
-                                transform_literals=$(cat $dimacs | grep -E "^[^pc]" | grep -Fo ' ' | wc -l)
-                                echo $system_tag,$(cat $results_stats | grep $system_tag | cut -d, -f3-),$i,$source,$extract_time,$extract_variables,$extract_literals,$transformation,$transform_time,$transform_variables,$transform_literals >> $res
-                            else
-                                echo "WARNING: Missing DIMACS file for $system_tag with source $source and transformation $transformation" | tee -a $err
-                                echo $system_tag,$i,$source,$extract_time,$extract_variables,$extract_literals,$transformation,NA,NA,NA >> $res
-                                for solver in ${SOLVERS[@]}; do
-                                    for analysis in ${ANALYSES[@]}; do
-                                        if [[ $solver != sharpsat-* ]] || [[ $analysis != core ]]; then
-                                            if [[ $analysis == void ]]; then
-                                                echo $system_tag,$i,$source,$transformation,$solver,$analysis,NA,NA,NA >> $res_miss
-                                            else
-                                                j=0
-                                                while [ $j -ne $NUM_FEATURES ]; do
-                                                    j=$(($j+1))
-                                                    echo $system_tag,$i,$source,$transformation,$solver,$analysis$j,NA,NA,NA >> $res_miss
-                                                done
-                                            fi
-                                        fi
-                                    done
-                                done
-                            fi
-                        fi
-                    done
-                fi
+                done
             done
         done
     done

@@ -2,8 +2,6 @@
 
 # defines the stages of the experiment in order of their execution
 experiment-stages() {
-    force
-    
     # clone the systems specified as experiment subjects
     run --stage clone-systems
 
@@ -12,19 +10,21 @@ experiment-stages() {
 
     # read basic statistics for each system
     run --stage read-statistics
-    
+    plot --stage read-statistics --type scatter --fields committer_date_unix,source_lines_of_code
+
     # use a given extractor to extract a kconfig model for each specified experiment subject
     extract-with(extractor) {
         iterate \
             --stage "$extractor" \
-            --iterations 2 \
+            --iterations 1 \
             --file-fields binding-file,model-file \
             --image "$extractor" \
             --command "extract-with-$extractor"
     }
 
-    extract-with kconfigreader
-    extract-with kclause
+    force
+    extract-with --extractor kconfigreader
+    extract-with --extractor kclause
 
     aggregate \
         --stage kconfig \
@@ -33,28 +33,32 @@ experiment-stages() {
         --stages kconfigreader kclause
 
     # use featjar to transform kconfig models into various formats and then into DIMACS
-    transform-with-featjar(transformer, output_extension) {
+    transform-with-featjar(transformer, output_extension, command=transform-with-featjar) {
         run \
             --stage "$transformer" \
             --image featjar \
             --input-directory kconfig \
-            --command transform-with-featjar \
+            --command "$command" \
             --input-extension model \
             --output-extension "$output_extension" \
             --transformer "$transformer" \
             --timeout 10
     }
 
-    transform-with-featjar model_to_dimacs_featureide dimacs
-    transform-with-featjar model_to_model_featureide featureide.model
-    transform-with-featjar model_to_smt_z3 smt
-    transform-with-featjar model_to_dimacs_featjar dimacs
+    transform-into-dimacs-with-featjar() {
+        transform-with-featjar --command transform-into-dimacs-with-featjar --output-extension dimacs "$@"
+    }
+
+    transform-into-dimacs-with-featjar --transformer model_to_dimacs_featureide
+    transform-into-dimacs-with-featjar --transformer model_to_dimacs_featjar
+    transform-with-featjar --transformer model_to_model_featureide --output-extension featureide.model
+    transform-with-featjar --transformer model_to_smt_z3 --output-extension smt
 
     run \
         --stage model_to_dimacs_kconfigreader \
         --image kconfigreader \
         --input-directory model_to_model_featureide \
-        --command transform-with-kconfigreader \
+        --command transform-into-dimacs-with-kconfigreader \
         --input-extension featureide.model \
         --timeout 10
     join-into model_to_model_featureide model_to_dimacs_kconfigreader
@@ -63,7 +67,7 @@ experiment-stages() {
         --stage smt_to_dimacs_z3 \
         --image z3 \
         --input-directory model_to_smt_z3 \
-        --command transform-with-z3 \
+        --command transform-into-dimacs-with-z3 \
         --timeout 10
     join-into model_to_smt_z3 smt_to_dimacs_z3
 
@@ -79,12 +83,12 @@ experiment-stages() {
         --image satgraf \
         --input-directory dimacs \
         --command transform-with-satgraf
+    join-into dimacs community-structure
+    join-into read-statistics community-structure
 
     # todos:
     # - filter stage that removes input files before executing another stage
     # - error handling for missing models
-    # - move stats on formulas into csv file
-    # - put number of features, variables, time etc into CSV
 }
 
 # defines the experiment subjects
@@ -95,7 +99,8 @@ experiment-subjects() {
     # add-revision linux v2.5.45
     # add-revision linux v2.5.46
 
-    for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
+    #for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
+    for revision in $(git-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
         add-revision --system busybox --revision "$revision"
         add-kconfig \
             --system busybox \

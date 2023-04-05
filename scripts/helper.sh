@@ -445,12 +445,30 @@ evaluate(timeout=0, command...) {
     echo "evaluate_time=$((end - start))"
 }
 
+# returns whether the given file if is empty
 is-file-empty(file) {
     [[ ! -f "$file" ]] || [[ ! -s "$file" ]]
 }
 
+# removes the given file if it is empty
 rm-if-empty(file) {
     if is-file-empty "$file"; then
         rm-safe "$file"
     fi
+}
+
+# sets environment variables dynamically
+set-environment(environment=) {
+    to-array environment
+    for assignment in "${environment[@]}"; do
+        eval "export $assignment"
+    done
+}
+
+# unsets environment variables dynamically
+unset-environment(environment=) {
+    to-array environment
+    for assignment in "${environment[@]}"; do
+        unset "$(echo "$assignment" | cut -d= -f1)"
+    done
 }

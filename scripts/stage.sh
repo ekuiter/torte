@@ -10,7 +10,12 @@ clean(stage) {
 # reads the EXPERIMENT_FILE environment variable
 run(stage=$TRANSIENT_STAGE, image=util, input_directory=, command...) {
     require-host
-    log "$stage"
+    local readable_stage=$stage
+    if [[ $stage == "$TRANSIENT_STAGE" ]]; then
+        readable_stage="<transient>"
+        clean "$stage"
+    fi
+    log "$readable_stage"
     if [[ $FORCE_RUN == y ]] || ! stage-done "$stage"; then
         input_directory=${input_directory:-$(input-directory)}
         local dockerfile
@@ -32,7 +37,7 @@ run(stage=$TRANSIENT_STAGE, image=util, input_directory=, command...) {
         clean "$stage"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
             cp "$EXPERIMENT_FILE" "$SCRIPTS_DIRECTORY/_experiment.sh"
-            log "$stage" "$(echo-progress build)"
+            log "" "$(echo-progress build)"
             docker build $build_flags \
                 -f "$dockerfile"\
                 -t "${DOCKER_PREFIX}_$stage" \
@@ -40,7 +45,7 @@ run(stage=$TRANSIENT_STAGE, image=util, input_directory=, command...) {
                 "$SCRIPTS_DIRECTORY" >/dev/null
         fi
         mkdir -p "$(output-directory "$stage")"
-        log "$stage" "$(echo-progress run)"
+        log "" "$(echo-progress run)"
         docker run \
             -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
@@ -57,9 +62,9 @@ run(stage=$TRANSIENT_STAGE, image=util, input_directory=, command...) {
         if [[ $stage == "$TRANSIENT_STAGE" ]]; then
             clean "$stage"
         fi
-        log "$stage" "$(echo-done)"
+        log "" "$(echo-done)"
     else
-        log "$stage" "$(echo-skip)"
+        log "" "$(echo-skip)"
     fi
 }
 
@@ -120,23 +125,46 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, 
 
 # runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
 # only run if the specified file does not exist yet
-run-transient-unless(file, command...) {
-    if is-file-empty "$OUTPUT_DIRECTORY/$file"; then
+run-transient-unless(file=, command...) {
+    if [[ -z $file ]] || is-file-empty "$OUTPUT_DIRECTORY/$file"; then
         run "" "" "$OUTPUT_DIRECTORY" bash -c "source torte.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
     fi
 }
 
+# joins the results of the first stage into the results of the second stage
 join-into(first_stage, second_stage) {
-    run-transient-unless "$second_stage/output.csv.old" \
-        "mv $second_stage/output.csv $second_stage/output.csv.old" \
-        "join-tables $first_stage/output.csv $second_stage/output.csv.old > $second_stage/output.csv"
+    run-transient-unless "$second_stage/$DOCKER_OUTPUT_FILE_PREFIX.$first_stage.csv" \
+        "mv $second_stage/$DOCKER_OUTPUT_FILE_PREFIX.csv $second_stage/$DOCKER_OUTPUT_FILE_PREFIX.$first_stage.csv" \
+        "join-tables $first_stage/$DOCKER_OUTPUT_FILE_PREFIX.csv $second_stage/$DOCKER_OUTPUT_FILE_PREFIX.$first_stage.csv > $second_stage/$DOCKER_OUTPUT_FILE_PREFIX.csv"
 }
 
-# forces all subsequent stages to be run (again)
+# forces all subsequent stages to be run
 force() {
     export FORCE_RUN=y
 }
 
+# do not force all subsequent stages to be run
 unforce() {
     export FORCE_RUN=
+}
+
+# plots data on the command line
+plot-helper(file, type, fields, arguments...) {
+    to-array fields
+    local indices=()
+    for field in "${fields[@]}"; do
+        indices+=("$(table-field-index "$file" "$field")")
+    done
+    cut -d, "-f$(to-list indices)" < "$file" | uplot "$type" -d, -H "${arguments[@]}"
+}
+
+# plots data on the command line
+plot(stage, type, fields, arguments...) {
+    local file
+    if [[ ! -f $stage ]] && [[ -f $OUTPUT_DIRECTORY/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv ]]; then
+        file=$OUTPUT_DIRECTORY/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv
+    else
+        file=$stage
+    fi
+    run-transient-unless "" "plot-helper ${file#"$OUTPUT_DIRECTORY/"} $type $fields ${arguments[*]}"
 }
