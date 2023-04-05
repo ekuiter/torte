@@ -7,19 +7,15 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
   python3-dev \
   flex \
   bison \
-  bc \
   libssl-dev \
   libelf-dev \
   wget
-# todo: remove bc
 
 # install (the tested version of) kmax/kclause
 WORKDIR /home
-# todo: remove sed z3, as we have a separate container for that
 RUN git clone https://github.com/paulgazz/kmax.git \
   && cd kmax \
   && git checkout c6e83a07d4f916267cb9e718c0b2de42ecfe4147 \
-  && sed -i 's/z3-solver/z3-solver==4.12.1/' setup.py \
   && python3 setup.py install
 
 # install dependencies of analyzed projects

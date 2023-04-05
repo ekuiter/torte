@@ -84,12 +84,6 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
 extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file, kconfig_binding_file=, environment=, timeout=0) {
     kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision.$kconfig_binding")}
-    local environment_options
-    if [[ -n $environment ]]; then
-        environment_options="$(echo '' -e "$environment" | sed 's/,/ -e /g')"
-    else
-        unset environment_options
-    fi
     log "$extractor: $system@$revision"
     if [[ -f $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model") ]]; then
         log "" "$(echo-skip)"
@@ -112,7 +106,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
                 local time
                 time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
             elif [[ $extractor == kclause ]]; then
-                evaluate "$timeout" /home/kextractor.sh "$kconfig_binding_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")" "$features_file" ${environment_options+"$environment_options"} "$kconfig_file" | tee "$output_log"
+                evaluate "$timeout" /home/kextractor.sh "$kconfig_binding_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")" "$features_file" "$kconfig_file" | tee "$output_log"
                 time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
                 kclause-post-binding-hook "$system" "$revision"
                 evaluate "$timeout" /home/kclause.sh "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")" "$kconfig_model" | tee "$output_log"

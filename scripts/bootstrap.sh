@@ -1,14 +1,8 @@
 #!/bin/bash
-
-# a small preprocessor that allows more succinct function definitions
+# a small preprocessor for Bash scripts that allows more succinct function definitions
 # e.g., fn(a, b, c=3) { echo $a $b $c; } works as intuitively expected
 
-sedd() {
-    export -f parse-arguments
-    local regex='^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{(.*)$'
-    echo 'array-contains(element, array...) {' | sed -E "s/$regex/echo '\1() {' \$(parse-arguments \"\1\" \2) '\3'/e"
-}
-
+# compiles the given script
 compile-script() {
     local script=$1
     local regex='^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{(.*)'
@@ -18,6 +12,7 @@ compile-script() {
     sed -E "s/$regex/echo '\1() {' \$(parse-arguments \"\1\" \2) '\3'/e" < "$script" # compiled version
 }
 
+# overrides Bash's sourcing mechanism so scripts are compiles before inclusion
 source() {
     local script
     script=$1
@@ -33,7 +28,6 @@ source() {
 # generates code that parses function arguments in a flexible way
 # e.g., fn(a, b, c=3) can be called with positional arguments as "fn 1 2 3" or with named arguments as "fn --a 1 --b 2"
 # allows default values and variadic arguments
-# todo: either allow positional or named arguments to improve performance
 parse-arguments() {
     local function_name=$1
     local variable_specs=("${@:2}")
