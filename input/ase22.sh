@@ -23,13 +23,13 @@ experiment-stages() {
     }
 
     extract-with --extractor kconfigreader
-    extract-with --extractor kclause
+    extract-with --extractor kmax
 
     aggregate \
         --stage kconfig \
         --stage-field extractor \
         --file-fields binding-file,model-file \
-        --stages kconfigreader kclause
+        --stages kconfigreader kmax
 
     # use featjar to transform kconfig models into various formats and then into DIMACS
     transform-with-featjar(transformer, output_extension, command=transform-with-featjar) {
@@ -138,10 +138,10 @@ kconfig-post-checkout-hook(system, revision) {
     fi
 }
 
-kclause-post-binding-hook(system, revision) {
+kmax-post-binding-hook(system, revision) {
     if [[ $system == embtoolkit ]]; then
-        # fix incorrect feature names, which Kclause interprets as a binary subtraction operator
-        sed -i 's/-/_/g' "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")"
+        # fix incorrect feature names, which kmax interprets as a binary subtraction operator
+        sed -i 's/-/_/g' "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")"
     fi
 }
 

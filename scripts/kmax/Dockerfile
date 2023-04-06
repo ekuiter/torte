@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-# install (tested) dependencies of kmax/kclause and evaluation scripts
+# install (tested) dependencies of kmax and evaluation scripts
 RUN apt-get update && apt-get install -y --allow-unauthenticated \
   git \
   python3-setuptools \
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
   libelf-dev \
   wget
 
-# install (the tested version of) kmax/kclause
+# install (the tested version of) kmax
 WORKDIR /home
 RUN git clone https://github.com/paulgazz/kmax.git \
   && cd kmax \
@@ -25,6 +25,6 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 # copy and set up
 # - kextractor (which is compiled against the projects' Kconfig implementations)
 # - IO and evaluation scripts
-COPY *.sh kclause/*.sh kclause/*.py kclause/kextractor.c ./
+COPY *.sh kmax/*.sh kmax/*.py kmax/kextractor.c ./
 RUN chmod +x *.sh \
     && git config --global --add safe.directory '*'
