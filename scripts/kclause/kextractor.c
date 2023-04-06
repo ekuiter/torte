@@ -60,7 +60,6 @@ enum {
 };
 static int action = A_NONE;
 static char* action_arg;
-static bool default_env = false;
 static bool verbose = false;
 static char* forceoff = NULL;
 
@@ -161,40 +160,7 @@ void print_symbol_detail(FILE *out, struct symbol *sym, bool force_naked) {
         fprintf(out, "CONFIG_%s", sym->name);
       }
     }
-    /* switch (sym->type) { */
-    /* case S_BOOLEAN: */
-    /* case S_TRISTATE: */
-    /*   if (! force_naked) { */
-    /*     fprintf(out, "(defined CONFIG_%s)", sym->name); */
-    /*     break; */
-    /*   } */
-    /*   // drop through and print config without (defined ... ) */
-    /* case S_UNKNOWN: */
-    /*   /\* /\\* fprintf(out, "%s", sym->name); *\\/ *\/ */
-    /*   /\* fprintf(out, "0"); *\/ */
-    /*   /\* break; *\/ */
-    /*   if (strcmp(sym->name, "y") == 0 || */
-    /*       strcmp(sym->name, "m") == 0 || */
-    /*       strcmp(sym->name, "n") == 0) { */
-    /*     fprintf(out, "\"%s\"", sym->name); */
-    /*     break; */
-    /*   } else { */
-    /*     // unknown configuration variable */
-    /*     // drop through */
-    /*   } */
-    /* case S_INT: */
-    /* case S_HEX: */
-    /* case S_STRING: */
-    /*   fprintf(out, "CONFIG_%s", sym->name); */
-    /*   break; */
-    /* case S_OTHER: */
-    /*   fprintf(stderr, "OTHER SYMBOL TYPE"); */
-    /*   break; */
-    /* } */
   } else {
-    // TODO verify making anonymous choices default to 1.  make choice
-    // blocks mutually exclusive
-    /* fprintf(out, "<choice>"); */
     fprintf(out, "1");
   }
 }
@@ -309,9 +275,7 @@ static void print_symbol(FILE *out, struct symbol *sym) {
 }
 
 void print_python_symbol_detail(FILE *out, struct symbol *sym, bool force_naked) {
-  // TODO: see why not all defaults are coming out, e.g., axtls CONFIG_DOT_NET_FRAMEWORK_BASE, maybe something with expr?
   if (sym->name) {
-    /* fprintf(stderr, "name = %s, type = %d\n", sym->name, sym->type); */
     if (strcmp(sym->name, "y") == 0 ||
         strcmp(sym->name, "m") == 0) {
       fprintf(out, "1");
@@ -326,40 +290,7 @@ void print_python_symbol_detail(FILE *out, struct symbol *sym, bool force_naked)
         fprintf(out, "%s%s", config_prefix, sym->name);
       }
     }
-    /* switch (sym->type) { */
-    /* case S_BOOLEAN: */
-    /* case S_TRISTATE: */
-    /*   if (! force_naked) { */
-    /*     fprintf(out, "(defined CONFIG_%s)", sym->name); */
-    /*     break; */
-    /*   } */
-    /*   // drop through and print config without (defined ... ) */
-    /* case S_UNKNOWN: */
-    /*   /\* /\\* fprintf(out, "%s", sym->name); *\\/ *\/ */
-    /*   /\* fprintf(out, "0"); *\/ */
-    /*   /\* break; *\/ */
-    /*   if (strcmp(sym->name, "y") == 0 || */
-    /*       strcmp(sym->name, "m") == 0 || */
-    /*       strcmp(sym->name, "n") == 0) { */
-    /*     fprintf(out, "\"%s\"", sym->name); */
-    /*     break; */
-    /*   } else { */
-    /*     // unknown configuration variable */
-    /*     // drop through */
-    /*   } */
-    /* case S_INT: */
-    /* case S_HEX: */
-    /* case S_STRING: */
-    /*   fprintf(out, "CONFIG_%s", sym->name); */
-    /*   break; */
-    /* case S_OTHER: */
-    /*   fprintf(stderr, "OTHER SYMBOL TYPE"); */
-    /*   break; */
-    /* } */
   } else {
-    // TODO verify making anonymous choices default to 1.  make choice
-    // blocks mutually exclusive
-    /* fprintf(out, "<choice>"); */
     fprintf(out, "1");
   }
 }
@@ -393,7 +324,6 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 	case E_EQUAL:
     if (strcmp(e->right.sym->name, "y") == 0 ||
         strcmp(e->right.sym->name, "m") == 0) {
-      // TODO: actually print out ==m instead
       print_python_symbol(out, e->left.sym);
     } else if (strcmp(e->right.sym->name, "n") == 0) {
       fprintf(out, " not ");
@@ -410,7 +340,6 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 	case E_UNEQUAL:
     if (strcmp(e->right.sym->name, "y") == 0 ||
         strcmp(e->right.sym->name, "m") == 0) {
-      // TODO: actually print out ==m instead
       fprintf(out, " not ");
       print_python_symbol(out, e->left.sym);
     } else if (strcmp(e->right.sym->name, "n") == 0) {
@@ -467,7 +396,6 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 #endif
 #ifdef ENUM_E_LIST
 	case E_LIST:
-    // TODO: this will break python parser
     //E_LIST is created in menu_finalize and is related to <choice>
     print_python_symbol(out, e->right.sym);
     fprintf(out, " ");
@@ -479,7 +407,6 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 #endif
 #ifdef ENUM_E_CHOICE
 	case E_CHOICE:
-    // TODO: this will break python parser
     //E_LIST is created in menu_finalize and is related to <choice>
     print_python_symbol(out, e->right.sym);
     fprintf(out, " ");
@@ -491,7 +418,6 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 #endif
 #ifdef ENUM_E_RANGE
 	case E_RANGE:
-    // TODO: this will break python
     fprintf(out, "[");
     print_python_symbol(out, e->left.sym);
     print_python_symbol(out, e->right.sym);
@@ -605,9 +531,6 @@ void print_usage(void)
   printf("%s [options] --ACTION Kconfig\n", progname);
   printf("\n");
   printf("OPTIONS\n");
-  printf("-d, --default-env\tuse x86 environment variables\n");
-  printf("                 \tSRCARCH=x86 ARCH=x86_64 KERNELVERSION=kcu\n");
-  printf("-e, --put-env VAR=VAL\tadd variable settings to environment");
   printf("-f, --forceoff var\tturn off var (only for --every* actions)\n");
   printf("-a, --forceoffall file\tturn off all vars in file\n");
   printf("-p, --no-prefix\t\tdon't add the CONFIG_ prefix to vars\n");
@@ -667,9 +590,7 @@ int main(int argc, char **argv)
       {"no-prefix", no_argument, 0, 'p'},
       {"set-prefix", required_argument, 0, 'P'},
       {"direct-dependencies-only", no_argument, 0, 'D'},
-      {"default-env", no_argument, 0, 'd'},
       {"output", required_argument, 0, 'o'},
-      {"put-env", required_argument, 0, 'e'},
       {"verbose", no_argument, 0, 'v'},
       {"help", no_argument, 0, 'h'},
       {0, 0, 0, 0}
@@ -738,12 +659,6 @@ int main(int argc, char **argv)
     case 'D':
       enable_reverse_dependencies = false;
       break;
-    case 'd':
-      default_env = true;
-      break;
-    case 'e':
-      putenv(optarg);
-      break;
     case 'o':
       if ((output_fp = fopen(optarg, "w")) == NULL) {
         fprintf(stderr, "can't open %s for writing\n", optarg);
@@ -768,12 +683,6 @@ int main(int argc, char **argv)
   if (A_NONE == action) {
     fprintf(stderr, "Please specify an action.  For help use -h.\n");
     exit(1);
-  }
-
-  if (default_env) {
-    putenv("SRCARCH=x86");
-    putenv("ARCH=x86_64");
-    putenv("KERNELVERSION=kcu");
   }
 
   if (optind < argc)
@@ -883,9 +792,6 @@ int main(int argc, char **argv)
       case S_HEX:
         // fall through
       case S_STRING:
-        // if not fallen through, is_string will be true.  TODO: emit
-        // bool/nonbool after the switch statement for better
-        // control-flow
 
         switch (sym->type) {
         case S_INT:
@@ -930,6 +836,7 @@ int main(int argc, char **argv)
             print_python_expr(prop->expr, output_fp, E_NONE);
             /* if (is_string) fprintf(output_fp, "\""); */
             fprintf(output_fp, "|(");
+      break;
             if (NULL != prop->visible.expr) {
               print_python_expr(prop->visible.expr, output_fp, E_NONE);
             } else {
@@ -950,7 +857,6 @@ int main(int argc, char **argv)
 
     // print all dependent config vars
     for_all_symbols(i, sym) {
-      // TODO: deal with choice nodes
       if (sym_is_choice(sym)) {
         struct property *prop;
         struct symbol *def_sym;

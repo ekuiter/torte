@@ -24,8 +24,15 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
     fi
     echo -n "$file,${new_file#./},$transformer_name,$(grep -oP "^evaluate_time=\K.*" < "$output_log")" >> "$(output-csv)"
     if [[ -n $data_extractor ]]; then
-        compile-lambda data-extractor "$data_extractor"
-        echo ",$(data-extractor "$output" "$output_log")" >> "$(output-csv)"
+        if ! is-file-empty "$output"; then
+            compile-lambda data-extractor "$data_extractor"
+            echo ",$(data-extractor "$output" "$output_log")" >> "$(output-csv)"
+        else
+            for _ in $(seq 1 $(($(echo a,b,c | tr -cd , | wc -c)+1))); do
+                echo -n ",NA" >> "$(output-csv)"
+            done
+            echo >> "$(output-csv)"
+        fi
     else
         echo >> "$(output-csv)"
     fi
@@ -42,7 +49,7 @@ transform-files(csv_file, input_extension, output_extension, transformer_name, t
     fi
     while read -r file; do
         transform-file "$file" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_extractor" "$timeout"
-    done < <(table-field "$csv_file" "$input_extension-file") # todo: ignore NA values
+    done < <(table-field "$csv_file" "$input_extension-file" | grep -v ^NA$)
 }
 
 # returns additional data fields for DIMACS files

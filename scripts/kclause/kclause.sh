@@ -1,6 +1,6 @@
 #!/bin/bash
-kclause_file=$1
-kconfig_model=$2
-kclause < "$kclause_file" > "$kconfig_model"
-kconfig_model_tmp=$(mktemp)
-python3 /home/kclause2model.py "$kconfig_model" > "$kconfig_model_tmp" && mv "$kconfig_model_tmp" "$kconfig_model"
+kextractor_file=$1
+kclause_file=$2
+kconfig_model=$3
+kclause < "$kextractor_file" > "$kclause_file"
+python3 /home/kclause2model.py "$kclause_file" > "$kconfig_model"

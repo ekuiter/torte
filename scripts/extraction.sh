@@ -106,10 +106,18 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
                 local time
                 time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
             elif [[ $extractor == kclause ]]; then
-                evaluate "$timeout" /home/kextractor.sh "$kconfig_binding_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")" "$features_file" "$kconfig_file" | tee "$output_log"
+                evaluate "$timeout" /home/kextractor.sh \
+                    "$kconfig_binding_file" \
+                    "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")" \
+                    "$features_file" "$kconfig_file" \
+                    | tee "$output_log"
                 time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
                 kclause-post-binding-hook "$system" "$revision"
-                evaluate "$timeout" /home/kclause.sh "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")" "$kconfig_model" | tee "$output_log"
+                evaluate "$timeout" /home/kclause.sh \
+                    "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")" \
+                    "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")" \
+                    "$kconfig_model" \
+                    | tee "$output_log"
                 time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
             fi
             unset-environment "$environment"

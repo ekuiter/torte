@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 WORKDIR /home
 RUN git clone https://github.com/paulgazz/kmax.git \
   && cd kmax \
-  && git checkout c6e83a07d4f916267cb9e718c0b2de42ecfe4147 \
+  && git checkout 5a8780dd9bc17341dc8e16b53224d25607ae2e7b \
   && python3 setup.py install
 
 # install dependencies of analyzed projects

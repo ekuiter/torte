@@ -325,9 +325,6 @@ int main(int ac, char **av)
 		exit(EXIT_FAILURE);
 	}
 
-	// only sets these variables if not already set
-	setenv("ARCH", "x86", 0);
-	setenv("KERNELVERSION", "kcu", 0);
 	conf_parse(av[1]);
 	fprintf(stdout, "\n.\n");
 	myconfdump(stdout);

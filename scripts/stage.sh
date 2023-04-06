@@ -107,6 +107,7 @@ aggregate(stage, file_fields=, stage_field=, stage_transformer=, directory_field
 }
 
 # runs a stage a given number of time and merges the output files in a new stage
+# todo: combine with run, deduce file fields automatically based on suffix -file
 iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, input_directory=, command...) {
     if [[ $iterations -lt 1 ]]; then
         error "At least one iteration is required for stage $stage."

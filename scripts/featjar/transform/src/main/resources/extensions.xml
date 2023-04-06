@@ -6,6 +6,8 @@
 	<point id="Transformations">
 		<extension id="ModelToDIMACSFeatJAR" />
 		<extension id="ModelToDIMACSFeatureIDE" />
+		<extension id="ModelToUVLFeatureIDE" />
+		<extension id="ModelToXMLFeatureIDE" />
 		<extension id="ModelToModelFeatureIDE" />
 		<extension id="ModelToSMTZ3" />
 	</point>

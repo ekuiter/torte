@@ -114,10 +114,15 @@ public class KConfigReaderFormat extends AFeatureModelFormat {
 	}
 
 	private void addNodeToFeatureModel(IFeatureModel featureModel, Node node, Collection<String> variables) {
+		final IFeature rootFeature = factory.createFeature(featureModel, "Root");
+		FeatureUtils.addFeature(featureModel, rootFeature);
+		featureModel.getStructure().setRoot(rootFeature.getStructure());
+
 		// Add a feature for each variable.
 		for (final String variable : variables) {
-			final IFeature feature = factory.createFeature(featureModel, variable.toString());
+			final IFeature feature = factory.createFeature(featureModel, variable);
 			FeatureUtils.addFeature(featureModel, feature);
+			rootFeature.getStructure().addChild(feature.getStructure());
 		}
 
 		// Add a constraint for each conjunctive clause.
