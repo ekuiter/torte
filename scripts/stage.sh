@@ -140,12 +140,12 @@ join-into(first_stage, second_stage) {
 
 # forces all subsequent stages to be run
 force() {
-    export FORCE_RUN=y
+    FORCE_RUN=y
 }
 
 # do not force all subsequent stages to be run
 unforce() {
-    export FORCE_RUN=
+    FORCE_RUN=
 }
 
 # plots data on the command line

@@ -10,8 +10,7 @@ load-experiment(experiment_file=experiments/default.sh) {
         fi
         cp "$experiment_file" "$SCRIPTS_DIRECTORY/_experiment.sh"
     fi
-    # shellcheck source=../experiments/default.sh
-    source "$SCRIPTS_DIRECTORY/_experiment.sh"
+    source-script "$SCRIPTS_DIRECTORY/_experiment.sh"
 }
 
 # removes all output files for the experiment

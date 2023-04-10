@@ -22,8 +22,7 @@ command-help() {
 }
 
 # scripts to include
-export SCRIPTS=(
-    bootstrap.sh # modifies bash to allow for succinct function definitions
+SCRIPTS=(
     helper.sh # miscellaneous helpers
     path.sh # deals with input/output paths
     stage.sh # runs stages
@@ -36,7 +35,7 @@ export SCRIPTS=(
 )
 
 # API functions
-export API=(
+API=(
     # implemented in config files
     experiment-stages # defines the stages of the experiment in order of their execution
     experiment-subjects # defines the experiment subjects
@@ -52,26 +51,25 @@ export API=(
 )
 
 # configuration options, can optionally be overridden in experiment files
-export DOCKER_PREFIX=torte # prefix for naming Docker images and containers
-export DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
-export DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
-export DOCKER_OUTPUT_FILE_PREFIX=output # prefix for output files inside Docker containers
-export KCONFIG_MODELS_OUTPUT_DIRECTORY= # output directory for storing kconfig models
-export KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storing Kconfig bindings
-export TRANSIENT_STAGE=transient # name for transient stages
-export PATH_SEPARATOR=/ # separator for building paths
-export INPUT_DIRECTORY=input # path to system repositories
-export OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
-export SKIP_DOCKER_BUILD= # y if building Docker images should be skipped, useful for loading imported images
-export MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024)) # memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
-export FORCE_RUN= # y if every stage should be forced to run regardless of whether is is already done
-export VERBOSE= # y if console output should be verbose
+DOCKER_PREFIX=torte # prefix for naming Docker images and containers
+DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
+DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
+DOCKER_OUTPUT_FILE_PREFIX=output # prefix for output files inside Docker containers
+KCONFIG_MODELS_OUTPUT_DIRECTORY= # output directory for storing kconfig models
+KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storing Kconfig bindings
+TRANSIENT_STAGE=transient # name for transient stages
+PATH_SEPARATOR=/ # separator for building paths
+INPUT_DIRECTORY=input # path to system repositories
+OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
+SKIP_DOCKER_BUILD= # y if building Docker images should be skipped, useful for loading imported images
+MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024)) # memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
+FORCE_RUN= # y if every stage should be forced to run regardless of whether is is already done
+VERBOSE= # y if console output should be verbose
 
-export SCRIPTS_DIRECTORY
 SCRIPTS_DIRECTORY=$(dirname "$0") # scripts directory
+source "$SCRIPTS_DIRECTORY/bootstrap.sh" # modifies Bash to allow for succinct function definitions
 for script in "${SCRIPTS[@]}"; do
-    # shellcheck disable=SC1090
-    source "$SCRIPTS_DIRECTORY/$script"
+    source-script "$SCRIPTS_DIRECTORY/$script"
 done
 
 initialize "$@"

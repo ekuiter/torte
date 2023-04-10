@@ -13,18 +13,19 @@ compile-script() {
     sed -E "s/$regex/echo '\1() {' \$(parse-arguments \"\1\" \2) '\3'/e" < "$script" # compiled version
 }
 
-# overrides Bash's sourcing mechanism so scripts are compiles before inclusion
-source() {
+# improves Bash's sourcing mechanism so scripts are compiles before inclusion
+source-script() {
     local script
     script=$1
     local generated_script
     # todo: make local -r the default
     local -r generated_script=$(dirname "$script")/$(basename "$script" .sh).gen.sh
     # in Docker containers, make may not be installed (but also not required, as the generated script is already copied into the container)
-    if command -v make &> /dev/null; then
+    if command -v make > /dev/null; then
         make -f <(printf "%s\n\t%s\n" '%.gen.sh : %.sh' "$(dirname "$0")"'/bootstrap.sh $< > $@') "$generated_script" > /dev/null
     fi
-    builtin source "$generated_script"
+    # shellcheck source=/dev/null
+    source "$generated_script"
 }
 
 # generates code that parses function arguments in a flexible way
@@ -136,7 +137,7 @@ parse-arguments() {
     echo "$code"
 }
 
-# compile the given script if this script was executed, not sourced
-if ! (return 0 2>/dev/null); then
+# compile the given script if this script was executed stand-alone
+if [[ -z $DOCKER_PREFIX ]]; then
     compile-script "$1"
 fi

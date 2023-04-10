@@ -71,7 +71,7 @@ write-log(file) {
 require-command(commands...) {
     local command
     for command in "${commands[@]}"; do
-        if ! command -v "$command" &> /dev/null; then
+        if ! command -v "$command" > /dev/null; then
             error "Required command $command is missing, please install manually."
         fi
     done

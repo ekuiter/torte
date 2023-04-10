@@ -7,7 +7,6 @@ initialize(arguments...) {
     done
 
     # load experiment file
-    # todo: self-executing experiment file
     if [[ ${#arguments[@]} -ge 1 ]] && [[ -f "${arguments[0]}" ]]; then 
         load-experiment "${arguments[0]}"
         arguments=("${arguments[@]:1}")
