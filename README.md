@@ -16,6 +16,10 @@ Take your pick:
 - Define an experiment in `experiments/default.sh` or change an existing experiment's parameters.
 - Run the experiment with `./torte.sh`. Stop a running experiment with `Ctrl+Z`, then `./torte.sh stop`.
 
+```
+curl -sS https://raw.githubusercontent.com/ekuiter/torte/main/experiments/default.sh > experiment.sh && bash experiment.sh
+```
+
 ## Versions
 
 | Tool | Version | Date |

@@ -21,7 +21,7 @@ source-script() {
     local -r generated_script=$(dirname "$script")/$(basename "$script" .sh).gen.sh
     # in Docker containers, make may not be installed (but also not required, as the generated script is already copied into the container)
     if command -v make > /dev/null; then
-        make -f <(printf "%s\n\t%s\n" '%.gen.sh : %.sh' "$(dirname "$0")"'/bootstrap.sh $< > $@') "$generated_script" > /dev/null
+        make -f <(printf "%s\n\t%s\n" '%.gen.sh : %.sh' '/bin/bash '"$(dirname "$0")"'/bootstrap.sh $< > $@') "$generated_script" > /dev/null
     fi
     # shellcheck source=/dev/null
     source "$generated_script"
