@@ -19,8 +19,8 @@ run(stage=, image=util, input_directory=, command...) {
     if [[ $FORCE_RUN == y ]] || ! stage-done "$stage"; then
         input_directory=${input_directory:-$(input-directory)}
         local dockerfile
-        if [[ ! -f $image ]] && [[ -f scripts/$image/Dockerfile ]]; then
-            dockerfile=scripts/$image/Dockerfile
+        if [[ ! -f $image ]] && [[ -f $SCRIPTS_DIRECTORY/$image/Dockerfile ]]; then
+            dockerfile=$SCRIPTS_DIRECTORY/$image/Dockerfile
         else
             dockerfile=$image
         fi
