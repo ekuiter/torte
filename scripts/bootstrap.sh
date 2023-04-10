@@ -136,6 +136,7 @@ parse-arguments() {
     echo "$code"
 }
 
-if [[ $0 =~ bootstrap.sh ]]; then
+# compile the given script if this script was executed, not sourced
+if ! return 0 2>/dev/null; then
     compile-script "$1"
 fi
