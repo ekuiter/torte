@@ -59,7 +59,6 @@ dimacs-data-fields() {
 
 # returns a data extractor lambda for DIMACS files
 dimacs-data-extractor() {
-    # shellcheck disable=SC2016
     lambda output,output_log echo '$(grep -E ^p < "$output" | cut -d" " -f3),$(grep -E "^[^pc]" < "$output" | grep -Fo " " | wc -l)'
 }
 
@@ -99,7 +98,6 @@ transform-into-dimacs-with-featjar(input_extension, output_extension, transforme
 
 # transforms kconfigreader model files into DIMACS using kconfigreader
 transform-into-dimacs-with-kconfigreader(input_extension=model, output_extension=dimacs, timeout=0) {
-    # shellcheck disable=SC2016
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -113,7 +111,6 @@ transform-into-dimacs-with-kconfigreader(input_extension=model, output_extension
 
 # transforms SMT files into DIMACS using Z3
 transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, timeout=0) {
-    # shellcheck disable=SC2016
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -127,7 +124,6 @@ transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, time
 
 # displays community structure of a DIMACS file with SATGraf
 transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0) {
-    # shellcheck disable=SC2016
     transform-files \
         "$(input-csv)" \
         "$input_extension" \

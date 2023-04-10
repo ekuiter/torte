@@ -12,19 +12,19 @@ if (return 0 2>/dev/null); then
             echo "Required command git is missing, please install manually."
             exit 1
         fi
-        echo "=========="
+        echo "===="
         echo "NOTE: torte is not installed yet."
         echo "torte (revision $TORTE_REVISION) will now be installed into the directory '$PWD/torte'."
         echo "By default, all experiment data will be stored in the directories '$PWD/input' and '$PWD/output'."
-        echo "=========="
+        echo "===="
         git clone -q "$TORTE_REPOSITORY"
         git -C torte checkout -q "$TORTE_REVISION"
         echo "Installation successful."
-        echo "=========="
+        echo "===="
     fi
     torte/torte.sh "$0" "$@" # run main entry point for the given experiment file
     exit 0 # exit the experiment file's parent shell
 else
-    # if this script is executed directly (./torte.sh), run main entry point
+    # if this script is executed directly, run main entry point
     "$(dirname "$0")"/scripts/torte.sh "$@"
 fi

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # clones system repositories using git
-# shellcheck disable=SC2317
 clone-systems() {
     add-system(system, url) {
         log "git-clone: $system"

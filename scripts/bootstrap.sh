@@ -7,7 +7,6 @@
 compile-script() {
     local script=$1
     local regex='^\s*([a-z0-9-]+)\s*\((.*)\)\s*\{(.*)'
-    # shellcheck disable=SC2016
     # sed -E 's/'"$regex"'/\1() { eval "$(parse-arguments \1 \2)"; \3/' < "$script" # interpreted version
     export -f parse-arguments
     sed -E "s/$regex/echo '\1() {' \$(parse-arguments \"\1\" \2) '\3'/e" < "$script" # compiled version

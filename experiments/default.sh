@@ -1,4 +1,10 @@
 #!/bin/bash
+# ==== BEGIN REPRODUCIBILITY HEADER ====
+# The following line uses curl to reproducibly install and run the specified revision of torte.
+# Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
+# In that case, make sure to check out the correct revision manually and run torte.sh <this file>.
+TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -sS https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+# ==== END REPRODUCIBILITY HEADER ====
 
 experiment-subjects() {
     # add-system linux https://github.com/torvalds/linux

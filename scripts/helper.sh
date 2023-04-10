@@ -277,7 +277,6 @@ aggregate-tables(source_field=, source_transformer=, files...) {
     fi
     local file
     for file in "${files[@]}"; do
-        # shellcheck disable=SC2094
         while read -r line; do
             local common_field
             for common_field in "${common_fields[@]}"; do
@@ -342,7 +341,6 @@ table-field(file, field, include_header=) {
     else
         local start_at_line=2
     fi
-    # shellcheck disable=SC2094
     local idx
     idx=$(table-field-index "$file" "$field")
     cut -d, -f "$(table-field-index "$file" "$field")" < "$file" | tail -n+$start_at_line
@@ -355,7 +353,6 @@ table-lookup(file, key, value, field) {
     if [[ -z "$idx" ]]; then
         error "Field $field not found in file $file."
     fi
-    # shellcheck disable=SC2094
     awk -F, '$'"$(table-field-index "$file" "$key")"' == "'"$value"'" {print $'"$idx"'}' < "$file"
 }
 
