@@ -149,9 +149,9 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
 # defines API functions for extracting kconfig models
 # sets the global EXTRACTOR and KCONFIG_BINDING variables
 # shellcheck disable=SC2317
-register-kconfig-extractor() {
-    EXTRACTOR=$1
-    KCONFIG_BINDING=$2
+register-kconfig-extractor(extractor, kconfig_binding) {
+    EXTRACTOR=$extractor
+    KCONFIG_BINDING=$kconfig_binding
     require-value EXTRACTOR KCONFIG_BINDING
 
     # todo: separate binding and model stages?

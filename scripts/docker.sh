@@ -18,8 +18,8 @@ dangling-images() {
     echo "${dangling_images[@]}"
 }
 
-# saves all experiment-related Docker images, input, and output
-save(directory=export) {
+# exports all experiment-related Docker images, input, and output
+command-export(directory=export) {
     require-command gzip
     mkdir -p "$directory"
     for image in $(images); do
@@ -28,15 +28,15 @@ save(directory=export) {
     cp -R ./*.sh "$SCRIPTS_DIRECTORY" "$(input-directory)" "$OUTPUT_DIRECTORY" export/
 }
 
-# loads all Docker images in the given directory
-load(directory=export) {
+# imports all Docker images in the given directory
+command-import(directory=export) {
     for image_file in "$directory"/*.tar.gz; do
         docker load -i "$image_file"
     done
 }
 
 # removes all Docker containers and images
-uninstall() {
+command-reset() {
     stop-experiment
     readarray -t containers < <(docker ps -a | tail -n+2 | awk '$2 ~ /^'"$DOCKER_PREFIX"'_/ {print $1}')
     for container in $(containers); do
@@ -51,7 +51,7 @@ uninstall() {
 }
 
 # start a web server for browsing output files
-browse() {
+command-browse() {
     local database_file
     database_file=$(mktemp)
     chmod 0777 "$database_file"

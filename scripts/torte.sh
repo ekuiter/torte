@@ -48,27 +48,21 @@ source "$SCRIPTS_DIRECTORY/extraction.sh" # functions for extracting kconfig mod
 source "$SCRIPTS_DIRECTORY/transformation.sh" # functions for transforming files
 
 # prints help information
-help() {
-    echo "usage: $(basename "$0") [command [option]...]"
+command-help() {
+    echo "usage: $(basename "$0") [experiment_file] [command [option]...]"
     echo
-    echo "environment variables:"
-    echo "EXPERIMENT_FILE   experiment to load (default: input/experiment.sh)"
+    echo "experiment_file (default: experiments/default.sh)"
     echo
-    echo "commands:"
-    echo "run-experiment    runs the experiment"
-    echo "clean-experiment  removes all output files for the experiment"
-    echo "stop-experiment   stops the experiment"
-    echo "save [directory]  saves all experiment-related Docker images, input, and output in the given directory"
-    echo "load [directory]  loads all Docker images in the given directory"
-    echo "uninstall         removes all Docker containers and images"
-    echo "browse            start a web server for browsing output files"
-    echo "help              prints help information"
+    echo "command (default: run)"
+    echo "  run                 runs the experiment"
+    echo "  clean               removes all output files for the experiment"
+    echo "  stop                stops the experiment"
+    echo "  export [directory]  saves all experiment-related Docker images, input, and output into the given directory"
+    echo "  import [directory]  loads all Docker images from the given directory"
+    echo "  reset               removes all Docker containers and images"
+    echo "  browse              start a web server for browsing output files"
+    echo "  help                prints help information"
 }
-
-# check installed commands
-if is-host; then
-    require-command docker make
-fi
 
 # define stubs for API functions
 for function in "${api[@]}"; do
@@ -76,14 +70,21 @@ for function in "${api[@]}"; do
 done
 
 # load experiment file
-load-experiment
-
-# run the given function
-if [[ -z "$*" ]]; then
-    run-experiment
-elif [[ $# -ge 1 ]] && [[ -f "$1" ]]; then
-    # shellcheck disable=SC1090
-    source "$1" "${@:2}"
+# todo: self-executing experiment file
+arguments=("$@")
+if [[ ${#arguments[@]} -ge 1 ]] && [[ -f "${arguments[0]}" ]]; then 
+    load-experiment "${arguments[0]}"
+    arguments=("${arguments[@]:1}")
 else
-    "$@"
+    load-experiment
 fi
+
+# run the given command
+if [[ -z "${arguments[*]}" ]]; then
+    arguments=(run)
+fi
+function=${arguments[0]}
+if is-host && has-function "command-$function"; then
+    function=command-$function
+fi
+"$function" "${arguments[@]:1}"

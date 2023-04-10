@@ -7,7 +7,6 @@ clean(stage) {
 }
 
 # runs a stage of some experiment in a Docker container
-# reads the EXPERIMENT_FILE environment variable
 run(stage=, image=util, input_directory=, command...) {
     stage=${stage:-$TRANSIENT_STAGE}
     require-host
@@ -37,7 +36,6 @@ run(stage=, image=util, input_directory=, command...) {
         fi
         clean "$stage"
         if [[ $SKIP_DOCKER_BUILD != y ]]; then
-            compile-script "$EXPERIMENT_FILE" > "$SCRIPTS_DIRECTORY/_experiment.gen.sh"
             log "" "$(echo-progress build)"
             docker build $build_flags \
                 -f "$dockerfile" \

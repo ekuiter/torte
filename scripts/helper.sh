@@ -39,9 +39,17 @@ echo-progress(state=) { echo-yellow "$state"; }
 echo-done() { echo-green "done"; }
 echo-skip() { echo-blue skip; }
 
-# logs an error and exit
+# logs an error and exits
 error(arguments...) {
-    echo "${arguments[@]}" 1>&2
+    echo "ERROR: ${arguments[*]}" 1>&2
+    exit 1
+}
+
+# logs an error, prints help, and exits
+error-help(arguments...) {
+    echo "ERROR: ${arguments[*]}" 1>&2
+    echo 1>&2
+    command-help 1>&2
     exit 1
 }
 
@@ -89,11 +97,12 @@ require-host() {
     if ! is-host; then
         error "Cannot be run inside a Docker container."
     fi
+    require-command docker make
 }
 
-# returns whether a function is not defined, useful for providing fallback implementations
-unless-function(function) {
-    ! declare -F "$function" >/dev/null
+# returns whether a function is defined, useful for providing fallback implementations
+has-function(function) {
+    declare -F "$function" >/dev/null
 }
 
 # returns whether an array is empty
@@ -155,7 +164,7 @@ compile-lambda(name, lambda) {
 
 # if not defined, defines a function with a given name doing nothing
 define-stub(function) {
-    eval "unless-function $function && $function() { :; } || true"
+    eval "! has-function $function && $function() { :; } || true"
 }
 
 # replaces a given search string for a given number of times per line, operates on standard input
@@ -175,22 +184,20 @@ diff-fields(first_file, second_file, flags=-12) {
 }
 
 # returns common fields of any number of CSV files
-common-fields() {
-    if [[ $# -eq 0 ]]; then
-        error "At least one file expected."
-    fi
-    if [[ $# -eq 1 ]]; then
-        head -n1 < "$1" | tr , "\n" | sort
+common-fields(files...) {
+    require-array files
+    if [[ ${#files[@]} -eq 1 ]]; then
+        head -n1 < "${files[0]}" | tr , "\n" | sort
         return
     fi
     local tmp_1
     tmp_1=$(mktemp)
     local tmp_2
     tmp_2=$(mktemp)
-    cat "$1" > "$tmp_1"
-    while [[ $# -ge 2 ]]; do
-        shift
-        diff-fields "$tmp_1" "$1" | tr "\n" , > "$tmp_2"
+    cat "${files[0]}" > "$tmp_1"
+    while [[ ${#files[@]} -ge 2 ]]; do
+        files=("${files[@]:1}")
+        diff-fields "$tmp_1" "${files[0]}" | tr "\n" , > "$tmp_2"
         cat "$tmp_2" > "$tmp_1"
     done
     tr , "\n" < "$tmp_1"
@@ -232,22 +239,20 @@ join-two-tables(first_file, second_file) {
 }
 
 # joins any number of CSV files on t least one common fields
-join-tables() {
-    if [[ $# -eq 0 ]]; then
-        error "At least one file expected."
-    fi
-    if [[ $# -eq 1 ]]; then
-        cat "$1"
+join-tables(files...) {
+    require-array files
+    if [[ ${#files[@]} -eq 1 ]]; then
+        cat "${files[0]}"
         return
     fi
     local tmp_1
     tmp_1=$(mktemp)
     local tmp_2
     tmp_2=$(mktemp)
-    cat "$1" > "$tmp_1"
-    while [[ $# -ge 2 ]]; do
-        shift
-        join-two-tables "$tmp_1" "$1" > "$tmp_2"
+    cat "${files[0]}" > "$tmp_1"
+    while [[ ${#files[@]} -ge 2 ]]; do
+        files=("${files[@]:1}")
+        join-two-tables "$tmp_1" "${files[0]}" > "$tmp_2"
         cat "$tmp_2" > "$tmp_1"
     done
     cat "$tmp_1"

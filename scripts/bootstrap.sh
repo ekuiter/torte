@@ -1,11 +1,12 @@
 #!/bin/bash
 # a small preprocessor for Bash scripts that allows more succinct function definitions
 # e.g., fn(a, b, c=3) { echo $a $b $c; } works as intuitively expected
+# depends on some helpers defined in helper.sh
 
 # compiles the given script
 compile-script() {
     local script=$1
-    local regex='^\s*([a-z0-9-]+)\s*\((.+)\)\s*\{(.*)'
+    local regex='^\s*([a-z0-9-]+)\s*\((.*)\)\s*\{(.*)'
     # shellcheck disable=SC2016
     # sed -E 's/'"$regex"'/\1() { eval "$(parse-arguments \1 \2)"; \3/' < "$script" # interpreted version
     export -f parse-arguments
@@ -19,6 +20,7 @@ source() {
     local generated_script
     # todo: make local -r the default
     local -r generated_script=$(dirname "$script")/$(basename "$script" .sh).gen.sh
+    # in Docker containers, make may not be installed (but also not required, as the generated script is already copied into the container)
     if command -v make &> /dev/null; then
         make -f <(printf "%s\n\t%s\n" '%.gen.sh : %.sh' "$(dirname "$0")"'/bootstrap.sh $< > $@') "$generated_script" > /dev/null
     fi
@@ -124,6 +126,12 @@ parse-arguments() {
             code+="fi; "
         fi
     done
+
+    # decorate special functions that should only be run on the host
+    # this code is specific to this project and can be removed if only simple argument preprocessing is needed
+    if [[ $function_name =~ ^command- ]]; then
+        code+="require-host; "
+    fi
 
     echo "$code"
 }

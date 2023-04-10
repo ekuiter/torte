@@ -38,8 +38,8 @@ experiment-stages() {
             --timeout 10
     }
 
-    transform-into-dimacs-with-featjar() {
-        transform-with-featjar --command transform-into-dimacs-with-featjar --output-extension dimacs "$@"
+    transform-into-dimacs-with-featjar(transformer) {
+        transform-with-featjar --command transform-into-dimacs-with-featjar --output-extension dimacs --transformer "$transformer"
     }
 
     run --stage clone-systems

@@ -86,11 +86,15 @@ transform-with-featjar(input_extension, output_extension, transformer, timeout=0
 }
 
 # transforms files into DIMACS using FeatJAR
-transform-into-dimacs-with-featjar() {
+transform-into-dimacs-with-featjar(input_extension, output_extension, transformer, timeout=0) {
     transform-with-featjar \
         --data-fields "$(dimacs-data-fields)" \
         --data-extractor "$(dimacs-data-extractor)" \
-        "$@"
+        --input-extension "$input_extension" \
+        --input-extension "$input_extension" \
+        --output-extension "$output_extension" \
+        --transformer "$transformer" \
+        --timeout "$timeout"
 }
 
 # transforms kconfigreader model files into DIMACS using kconfigreader

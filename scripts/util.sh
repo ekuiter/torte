@@ -18,8 +18,8 @@ clone-systems() {
 }
 
 # counts number of source lines of codes using cloc
-read-statistics() {
-    STATISTICS_OPTION=$1
+read-statistics(statistics_option=) {
+    STATISTICS_OPTION=$statistics_option
 
     add-revision(system, revision) {
         log "read-statistics: $system@$revision" "$(echo-progress read)"
