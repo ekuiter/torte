@@ -47,7 +47,7 @@ For transparency, we document the changes we make to these tools and known limit
 
 | Tool | Version | Date | Changes | Limitations |
 | - | - | - | - | - |
-| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | x[^1] [^2] | [^3] [^4] [^5] [^6] |
+| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^1] [^2] | [^3] [^4] [^5] [^6] |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | latest | |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | latest | |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 |
