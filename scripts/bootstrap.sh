@@ -8,8 +8,7 @@ compile-script() {
     local script=$1
     local regex='^\s*([a-z0-9-]+)\s*\((.*)\)\s*\{(.*)'
     # sed -E 's/'"$regex"'/\1() { eval "$(parse-arguments \1 \2)"; \3/' < "$script" # interpreted version
-    export -f parse-arguments
-    sed -E "s#$regex#echo '\1() {' \$(bash $(dirname "$0")/bootstrap.sh \"\1\" \2) '\3'#e" < "$script" # compiled version
+    sed -E "s#$regex#echo '\1() {' \$(/bin/bash $(dirname "$0")/bootstrap.sh \"\1\" \2) '\3'#e" < "$script" # compiled version
 }
 
 # improves Bash's sourcing mechanism so scripts are compiles before inclusion
@@ -136,11 +135,13 @@ parse-arguments() {
     echo "$code"
 }
 
-if [[ ! -f $1 ]]; then
-    parse-arguments "$@"
-else
-    # compile the given script if this script was executed stand-alone
-    if [[ -z $DOCKER_PREFIX ]]; then
+# run only if this script was executed stand-alone
+if [[ -z $DOCKER_PREFIX ]]; then
+    if [[ $# -eq 1 ]] && [[ -f $1 ]]; then
+        # compile the given script
         compile-script "$1"
+    else
+        # generate code for argument parsing
+        parse-arguments "$@"
     fi
 fi
