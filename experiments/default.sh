@@ -7,6 +7,8 @@ experiment-subjects() {
     # #add-kconfig linux v2.6.13 arch/i386/Kconfig scripts/kconfig/*.o $linux_env
     # add-kconfig linux v4.17 arch/x86/Kconfig scripts/kconfig/*.o $linux_env
 
+    add-system --system busybox --url https://github.com/mirror/busybox
+    
     for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
     #for revision in $(git-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
         add-revision --system busybox --revision "$revision"

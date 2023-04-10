@@ -3,7 +3,7 @@
 # checks out a subject and prepares it for further processing
 kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
     push "$(input-directory)/$system"
-    git-checkout "$revision" "$PWD"
+    git-checkout "$revision"
     kconfig-post-checkout-hook "$system" "$revision"
     if [[ -n $kconfig_binding_files_spec ]]; then
         local kconfig_binding_files
