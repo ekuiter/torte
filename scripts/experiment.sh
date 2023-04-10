@@ -22,6 +22,7 @@ command-clean() {
 
 # runs the experiment
 command-run() {
+    mkdir -p "$INPUT_DIRECTORY"
     mkdir -p "$OUTPUT_DIRECTORY"
     clean "$DOCKER_PREFIX"
     mkdir -p "$(output-directory "$DOCKER_PREFIX")"
