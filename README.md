@@ -49,8 +49,8 @@ For transparency, we document the changes we make to these tools and known limit
 | - | - | - | - |
 | [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^6] [^9] |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
-| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | latest | | [^12] [^14] [^15] |
-| [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^15] |
+| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | latest | | [^12] [^15] |
+| [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) | 5a8780d | 2023-03-19 | [^4] [^5] [^6] [^7] [^8] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 
