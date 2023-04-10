@@ -47,26 +47,26 @@ For transparency, we document the changes we make to these tools and known limit
 
 | Tool | Version | Date | Changes | Limitations |
 | - | - | - | - | - |
-| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^1] [^2] | [^3] [^4] [^5] [^6] |
+| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | x[^1] [^2] | [^3] [^4] [^5] [^6] |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | latest | |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | latest | |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) | 5a8780d | 2023-03-19 |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 |
 
-[^1] We added the script `TransformIntoDIMACS.scala` to kconfigreader to decouple the extraction and transformation of feature models, so kconfigreader can also transform feature models extracted with other tools (e.g., kmax).
+[^1]: We added the script `TransformIntoDIMACS.scala` to kconfigreader to decouple the extraction and transformation of feature models, so kconfigreader can also transform feature models extracted with other tools (e.g., kmax).
 
-[^2] We majorly revised kconfigreader's native C binding `dumpconf.c`, which is intended to be compiled against a project's Kconfig parser to get accurate feature models.
+[^2]: We majorly revised kconfigreader's native C binding `dumpconf.c`, which is intended to be compiled against a project's Kconfig parser to get accurate feature models.
 Our improved version adapts to the KConfig constructs actually used in a project, which is important to extract evolution histories with evolving KConfig parsers.
 
-[^3] Non-Boolean variability (e.g., constraints on numerical features) is only partially extracted and encoded in extracted feature models.
+[^3]: Non-Boolean variability (e.g., constraints on numerical features) is only partially extracted and encoded in extracted feature models.
 
-[^4] Compiling the native C binding is not possible for all KConfig-based projects (e.g., if the Python-based [Kconfiglib](https://github.com/ulfalizer/Kconfiglib) parser is used).
+[^4]: Compiling the native C binding is not possible for all KConfig-based projects (e.g., if the Python-based [Kconfiglib](https://github.com/ulfalizer/Kconfiglib) parser is used).
 In that case, you can try to reuse a C binding from an existing project with similar KConfig files; however, this may limit the extracted model's accuracy.
 
-[^5] Extraction of Linux >= v4.18 currently yields incorrect models.
+[^5]: Extraction of Linux >= v4.18 currently yields incorrect models.
 
-[^6] It is currently only possible to extract a feature model for a single Linux architecture (given in the `ARCH` environment variable) in a given experiment.
+[^6]: It is currently only possible to extract a feature model for a single Linux architecture (given in the `ARCH` environment variable) in a given experiment.
 
 ## Predefined Experiments
 
