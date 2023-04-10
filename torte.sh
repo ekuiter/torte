@@ -6,7 +6,7 @@ TORTE_REPOSITORY=${TORTE_REPOSITORY:-https://github.com/ekuiter/torte.git}
 TORTE_REVISION=${TORTE_REVISION:-main}
 
 if (return 0 2>/dev/null); then
-    # if this script is sourced from an experiment file, install into the current working directory
+    # if this script is sourced from an experiment file, install into the working directory
     if [[ ! -d torte ]]; then
         if ! command -v git > /dev/null; then
             echo "Required command git is missing, please install manually."
