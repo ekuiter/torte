@@ -52,21 +52,25 @@ read-statistics(statistics_option=) {
 # creates an orphaned branch and tag for each revision
 # useful to add old revisions before the first Git tag v2.6.12
 # by default, tags all revisions between 2.5.45 and 2.6.12, as these use Kconfig
-tag-linux-revisions() {
+tag-linux-revisions(tag_option=) {
+    TAG_OPTION=$tag_option
+    
     add-system(system, url=) {
         if [[ $system == linux ]]; then
             if [[ ! -d $(input-directory)/linux ]]; then
                 error "Linux has not been cloned yet. Please prepend a stage that runs clone-systems.sh."
             fi
 
-            if git -C linux show-branch v2.6.11 2>&1 | grep -q "No revs to be shown."; then
-                git -C linux tag -d v2.6.11 # delete non-commit 2.6.11
+            if git -C "$(input-directory)/linux" show-branch v2.6.11 2>&1 | grep -q "No revs to be shown."; then
+                git -C "$(input-directory)/linux" tag -d v2.6.11 # delete non-commit 2.6.11
             fi
 
-            # could also tag older revisions, but none use Kconfig
-            tag-revisions https://mirrors.edge.kernel.org/pub/linux/kernel/v2.5/ 2.5.45
-            tag-revisions https://mirrors.edge.kernel.org/pub/linux/kernel/v2.6/ 2.6.0 2.6.12
-            # could also add more granular revisions with minor or patch level after 2.6.12, if necessary
+            if [[ $TAG_OPTION != skip-tagging ]]; then
+                # could also tag older revisions, but none use Kconfig
+                tag-revisions https://mirrors.edge.kernel.org/pub/linux/kernel/v2.5/ 2.5.45
+                tag-revisions https://mirrors.edge.kernel.org/pub/linux/kernel/v2.6/ 2.6.0 2.6.12
+                # could also add more granular revisions with minor or patch level after 2.6.12, if necessary
+            fi
 
             if [[ $dirty -eq 1 ]]; then
                 git -C "$(input-directory)/linux" prune

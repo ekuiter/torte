@@ -22,7 +22,7 @@ object TransformIntoDIMACS extends App {
             try {
                 constraints += parser.parse(line)
             } catch {
-                case _: Throwable => System.err.println("could not parse constraint " + line) // todo: shorten string
+                case _: Throwable => System.err.println("could not parse constraint " + line.substring(0, 100))
             }
         }
         line = reader.readLine()

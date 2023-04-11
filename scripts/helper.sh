@@ -12,20 +12,26 @@ update-log(arguments...) {
 
 # logs a message that is always printed to the console output
 CURRENT_SUBJECT=""
+LOG_START=
 log(subject=, state=) {
     subject=${subject:-$CURRENT_SUBJECT}
     state=${state:-$(echo-progress)}
     local command
     if [[ $subject != "$CURRENT_SUBJECT" ]]; then
+        CURRENT_SUBJECT=$subject
         command=new-log
+        LOG_START=$(date +%s%N)
     else
         command=update-log
     fi
     if is-host && ! tail -n1 "$(output-log "$DOCKER_PREFIX")" | grep -q "m$subject\^"; then
         command=new-log
     fi
-    CURRENT_SUBJECT=$subject
-    "$command" "$(printf %20s "$state")" "$(printf %-80s "$(echo-bold "$subject")")"
+    if [[ -n $LOG_START ]] && { [[ $state == $(echo-fail) ]] || [[ $state == $(echo-done) ]]; }; then
+        local elapsed_time=$(($(date +%s%N) - LOG_START))
+        LOG_START=
+    fi
+    "$command" "$(printf %30s "$(format-time "$elapsed_time" "" " ")$state")" "$(printf %-80s "$(echo-bold "$subject")")"
 }
 
 echo-bold(text=) { echo -e "\033[1m$text\033[0m"; }
@@ -65,6 +71,15 @@ write-log(file) {
     else
         write-all "$file" | grep -oP "\[$DOCKER_PREFIX\] \K.*"
     fi
+}
+
+# formats a time in nanoseconds in a human-readable way
+format-time(nanoseconds=, prefix=, suffix=) {
+    if [[ -z $nanoseconds ]]; then
+        return
+    fi
+    local milliseconds="${nanoseconds%??????}"
+    echo "$prefix${milliseconds}ms$suffix"
 }
 
 # requires that the given commands are available
@@ -384,8 +399,8 @@ git-checkout(revision, directory=.) {
     git -C "$directory" checkout -q -f "$revision" > /dev/null
 }
 
-# list all revisions in version order
-git-revisions(system) {
+# list all tag revisions in version order
+git-tag-revisions(system) {
     git -C "$(input-directory)/$system" tag | sort -V
 }
 

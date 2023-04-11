@@ -1,9 +1,12 @@
 #!/bin/bash
 
 # removes all output for the given experiment stage
-clean(stage) {
+clean(stages...) {
+    require-array stages
     require-host
-    rm-safe "$(output-directory "$stage")"
+    for stage in "${stages[@]}"; do
+        rm-safe "$(output-directory "$stage")"
+    done
 }
 
 # runs a stage of some experiment in a Docker container

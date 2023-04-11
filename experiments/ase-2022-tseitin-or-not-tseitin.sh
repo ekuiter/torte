@@ -93,8 +93,8 @@ experiment-subjects() {
     # add-revision linux v2.5.45
     # add-revision linux v2.5.46
 
-    for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
-    #for revision in $(git-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
+    for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
+    #for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
         add-revision --system busybox --revision "$revision"
         add-kconfig \
             --system busybox \

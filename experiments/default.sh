@@ -13,8 +13,8 @@ experiment-subjects() {
 
     add-system --system busybox --url https://github.com/mirror/busybox
     
-    for revision in $(git-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
-    #for revision in $(git-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
+    for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
+    #for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
         add-revision --system busybox --revision "$revision"
         add-kconfig \
             --system busybox \
