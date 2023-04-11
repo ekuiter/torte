@@ -181,4 +181,4 @@ kmax-post-binding-hook(system, revision) {
 #     fi
 # done
 
-# todo: other systems
+# todo: other systems, see https://github.com/ekuiter/tseitin-or-not-tseitin/blob/main/input/extract_ase22.sh and https://github.com/ekuiter/feature-model-repository-pipeline/blob/master/read_models.sh

@@ -64,6 +64,8 @@ It is recommended to check manually whether non-Boolean variability is correctly
 [^4]: We majorly revised the native C bindings `dumpconf.c` (kconfigreader) and `kextractor.c` (kmax), which are intended to be compiled against a system's Kconfig parser to get accurate feature models.
 Our improved versions adapt to the KConfig constructs actually used in a system, which is important to extract evolution histories with evolving KConfig parsers.
 Our changes are generalizations of the original versions of `dumpconf.c` and `kextractor.c` and should pose no threat to validity.
+Specifically, we added support for `E_CHOICE` (treated as `E_LIST`), `P_IMPLY` (treated as `P_SELECT`), and `E_NONE`, `E_LTH`, `E_LEQ`, `E_GTH`, `E_GEQ` (ignored).
+
 
 [^5]: Compiling the native C bindings of kconfigreader and kmax is not possible for all KConfig-based systems (e.g., if the Python-based [Kconfiglib](https://github.com/ulfalizer/Kconfiglib) parser is used).
 In that case, you can try to reuse a C binding from an existing system with similar KConfig files; however, this may limit the extracted model's accuracy.
@@ -101,3 +103,22 @@ Currently, this behavior is not configurable.
 ## Supported Subject Systems
 
 `todo`
+
+## Project History
+
+This project has evolved through several stages and intends to replace them all:
+
+[kmax-vm](https://github.com/ekuiter/kmax-vm) > [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) > [tseitin-or-not-tseitin](https://github.com/ekuiter/tseitin-or-not-tseitin) > [torte](https://github.com/ekuiter/torte)
+
+- [kmax-vm](https://github.com/ekuiter/kmax-vm) was intended to provide an easy-to-use environment for running kmax in a virtual machine using Vagrant/VirtualBox.
+  It is now obsolete due to our Docker integration of kmax.
+- [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) extended [kmax-vm](https://github.com/ekuiter/kmax-vm) and could be used to extract feature models from Kconfig-based software systems with kconfigreader and kmax.
+  The results were stored in the [feature-model-repository](https://github.com/ekuiter/feature-model-repository).
+  Its functionality is completely subsumed by torte and more efficient and reliable due to our Docker integration.
+- [tseitin-or-not-tseitin](https://github.com/ekuiter/tseitin-or-not-tseitin) extended the [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) to allow for transformation and analysis of feature models.
+  It was mostly intended as a replication package for a single academic paper.
+  Its functionality is almost completely subsumed by torte, which can be used to create replication packages for many different experiments.
+
+If you are looking for a curated collection of feature models from various domains, have a look at our [feature-model-benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark).
+
+If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).
