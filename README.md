@@ -35,7 +35,7 @@ By default, this will install torte into the `torte` directory; all experiment d
 - As an alternative to the self-extracting installer shown above, you can clone this repository and run experiments with `./torte.sh <experiment-file>`.
 - A running experiment can be stopped with `Ctrl+C`.
   If this does not respond, try `Ctrl+Z`, then `./torte.sh stop`.
-- Run `./torte.sh help` to get further usage information.
+- Run `./torte.sh help` to get further usage information (e.g., running an experiment over SSH and im-/export of Docker containers).
 - Developers are recommended to use [ShellCheck](https://www.shellcheck.net/) to improve code quality.
 
 ## Bundled Tools
@@ -49,7 +49,7 @@ For transparency, we document the changes we make to these tools and known limit
 | - | - | - | - |
 | [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^6] [^9] |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
-| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | latest | | [^12] [^15] |
+| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | e27aea7 | 2023-04-11 | [^12] [^15] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) | 5a8780d | 2023-03-19 | [^4] [^5] [^6] [^7] [^8] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
@@ -65,7 +65,6 @@ It is recommended to check manually whether non-Boolean variability is correctly
 Our improved versions adapt to the KConfig constructs actually used in a system, which is important to extract evolution histories with evolving KConfig parsers.
 Our changes are generalizations of the original versions of `dumpconf.c` and `kextractor.c` and should pose no threat to validity.
 Specifically, we added support for `E_CHOICE` (treated as `E_LIST`), `P_IMPLY` (treated as `P_SELECT`), and `E_NONE`, `E_LTH`, `E_LEQ`, `E_GTH`, `E_GEQ` (ignored).
-
 
 [^5]: Compiling the native C bindings of kconfigreader and kmax is not possible for all KConfig-based systems (e.g., if the Python-based [Kconfiglib](https://github.com/ulfalizer/Kconfiglib) parser is used).
 In that case, you can try to reuse a C binding from an existing system with similar KConfig files; however, this may limit the extracted model's accuracy.
@@ -98,11 +97,24 @@ Currently, this behavior is not configurable.
 
 ## Predefined Experiments
 
-`todo`
+This is a list of all predefined experiments and their purposes.
+Please create a pull request if you want to publish your own experiment.
+
+| Experiment | Purpose |
+| - | - |
+| `experiments/default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
+| `experiments/ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for our ASE'22 paper "Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses" |
+| `experiments/splc-2023-benchmark.sh` | Evaluation for our SPLC'23 paper draft |
 
 ## Supported Subject Systems
 
-`todo`
+This is a list of all subject systems for which feature-model extraction has been confirmed to work.
+Other systems or revisions may also be supported.
+
+| System | Revisions | Notes |
+| - | - | - |
+| [busybox](https://github.com/mirror/busybox) | 1.3.0 - 1.36.0 | |
+| [linux](https://github.com/torvalds/linux) | 2.6.12 - 4.17 | only x86 architecture tested, => 4.18 currently not supported |
 
 ## Project History
 
@@ -110,7 +122,7 @@ This project has evolved through several stages and intends to replace them all:
 
 [kmax-vm](https://github.com/ekuiter/kmax-vm) > [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) > [tseitin-or-not-tseitin](https://github.com/ekuiter/tseitin-or-not-tseitin) > [torte](https://github.com/ekuiter/torte)
 
-- [kmax-vm](https://github.com/ekuiter/kmax-vm) was intended to provide an easy-to-use environment for running kmax in a virtual machine using Vagrant/VirtualBox.
+- [kmax-vm](https://github.com/ekuiter/kmax-vm) was intended to provide an easy-to-use environment for integrating kmax with [PCLocator](https://github.com/ekuiter/PCLocator) in a virtual machine using Vagrant/VirtualBox.
   It is now obsolete due to our Docker integration of kmax.
 - [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) extended [kmax-vm](https://github.com/ekuiter/kmax-vm) and could be used to extract feature models from Kconfig-based software systems with kconfigreader and kmax.
   The results were stored in the [feature-model-repository](https://github.com/ekuiter/feature-model-repository).

@@ -5,23 +5,13 @@
 TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -sS https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 experiment-subjects() {
-    # add-system linux https://github.com/torvalds/linux
-    # # todo: facet around architectures?
-    # linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc" # todo: where do these come from?
-    # #add-kconfig linux v2.6.13 arch/i386/Kconfig scripts/kconfig/*.o $linux_env
-    # add-kconfig linux v4.17 arch/x86/Kconfig scripts/kconfig/*.o $linux_env
-
     add-system --system busybox --url https://github.com/mirror/busybox
     
-    for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | grep 1_18_0); do
-    #for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
-        add-revision --system busybox --revision "$revision"
-        add-kconfig \
-            --system busybox \
-            --revision "$revision" \
-            --kconfig-file Config.in \
-            --kconfig-binding-files scripts/kconfig/*.o
-    done
+    add-kconfig \
+        --system busybox \
+        --revision 1_18_0 \
+        --kconfig-file Config.in \
+        --kconfig-binding-files scripts/kconfig/*.o
 }
 
 experiment-stages() {
@@ -40,8 +30,7 @@ experiment-stages() {
             --command "$command" \
             --input-extension model \
             --output-extension "$output_extension" \
-            --transformer "$transformer" \
-            --timeout 10
+            --transformer "$transformer"
     }
 
     transform-into-dimacs-with-featjar(transformer) {
@@ -69,16 +58,14 @@ experiment-stages() {
         --image kconfigreader \
         --input-directory model_to_model_featureide \
         --command transform-into-dimacs-with-kconfigreader \
-        --input-extension featureide.model \
-        --timeout 10
+        --input-extension featureide.model
     join-into model_to_model_featureide model_to_dimacs_kconfigreader
 
     run \
         --stage smt_to_dimacs_z3 \
         --image z3 \
         --input-directory model_to_smt_z3 \
-        --command transform-into-dimacs-with-z3 \
-        --timeout 10
+        --command transform-into-dimacs-with-z3
     join-into model_to_smt_z3 smt_to_dimacs_z3
 
     aggregate \
@@ -87,20 +74,4 @@ experiment-stages() {
         --file-fields dimacs-file \
         --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
     join-into kconfig dimacs
-
-    # todos:
-    # - filter stage that removes input files before executing another stage
-    # - error handling for missing models
-}
-
-kconfig-post-checkout-hook(system, revision) {
-    if [[ $system == linux ]]; then
-        replace(regex) { find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex//g" {} \;; }
-        replace "\s*default \$(.*"
-        replace "\s*depends on \$(.*"
-        replace "\s*def_bool \$(.*"
-        replace "\s*def_bool ((.*"
-        replace "\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*"
-        replace "\s*\$(as-instr,endbr64).*"
-    fi
 }

@@ -4,15 +4,24 @@
 # In that case, make sure to check out the correct revision manually and run torte.sh <this-file>.
 TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -sS https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
-PATH_SEPARATOR=_ # remove this to create nested directories instead
+PATH_SEPARATOR=_ # create no nested directories
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
     # we want to extract feature models for the following projects
-    add-system --system linux --url https://github.com/torvalds/linux
     add-system --system busybox --url https://github.com/mirror/busybox
+    add-system --system linux --url https://github.com/torvalds/linux
 
     # select revisions to analyze
+    for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
+        add-revision --system busybox --revision "$revision"
+        add-kconfig \
+            --system busybox \
+            --revision "$revision" \
+            --kconfig-file Config.in \
+            --kconfig-binding-files scripts/kconfig/*.o
+    done
+
     for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v2.6.12 | stop-at-revision v4.18); do
         local arch=x86
         if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
@@ -30,15 +39,6 @@ experiment-subjects() {
             --kconfig-file arch/$arch/Kconfig \
             --kconfig-binding-files scripts/kconfig/*.o \
             --environment ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
-    done
-
-    for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
-        add-revision --system busybox --revision "$revision"
-        add-kconfig \
-            --system busybox \
-            --revision "$revision" \
-            --kconfig-file Config.in \
-            --kconfig-binding-files scripts/kconfig/*.o
     done
 }
 

@@ -1,5 +1,10 @@
 #!/bin/bash
-# experiment for the ASE'22 paper "Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses"
+# The following line uses curl to reproducibly install and run the specified revision of torte.
+# Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
+# In that case, make sure to check out the correct revision manually and run torte.sh <this-file>.
+TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -sS https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+
+# todo: this is still incomplete, no analysis is performed yet, systems are missing
 
 experiment-stages() {
     # clone the systems specified as experiment subjects
@@ -103,7 +108,6 @@ experiment-subjects() {
             --kconfig-binding-files scripts/kconfig/*.o
     done
 
-    # todo: facet around architectures?
     # linux_env="ARCH=x86,SRCARCH=x86,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc"
     # add-kconfig linux v2.6.13 arch/i386/Kconfig scripts/kconfig/*.o $linux_env
 }
@@ -145,7 +149,6 @@ kmax-post-binding-hook(system, revision) {
     fi
 }
 
-#todo
 #ANALYSES="void dead core" # analyses to run on feature models, see run-...-analysis functions
 #ANALYSES="void" # analyses to run on feature models, see run-...-analysis functions
 # TIMEOUT_ANALYZE=1800 # analysis timeout in seconds
@@ -180,5 +183,3 @@ kmax-post-binding-hook(system, revision) {
 #         run linux https://github.com/torvalds/linux $tag scripts/kconfig/*.o arch/x86/Kconfig $linux_env
 #     fi
 # done
-
-# todo: other systems, see https://github.com/ekuiter/tseitin-or-not-tseitin/blob/main/input/extract_ase22.sh and https://github.com/ekuiter/feature-model-repository-pipeline/blob/master/read_models.sh
