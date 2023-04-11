@@ -97,14 +97,14 @@ Currently, this behavior is not configurable.
 
 ## Predefined Experiments
 
-This is a list of all predefined experiments and their purposes.
+This is a list of all predefined experiments in the `experiments` directory and their purposes.
 Please create a pull request if you want to publish your own experiment.
 
 | Experiment | Purpose |
 | - | - |
-| `experiments/default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
-| `experiments/ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for our ASE'22 paper "Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses" |
-| `experiments/splc-2023-benchmark.sh` | Evaluation for our SPLC'23 paper draft |
+| `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
+| `ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for our ASE'22 paper "Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses" |
+| `splc-2023-benchmark.sh` | Evaluation for our SPLC'23 paper draft |
 
 ## Supported Subject Systems
 
