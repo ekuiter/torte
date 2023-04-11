@@ -120,10 +120,11 @@ has-function(function) {
     declare -F "$function" >/dev/null
 }
 
-# returns whether an array is empty
+# returns whether an array (passed as reference) is empty
 is-array-empty(variable) {
-    declare -n variable=$variable
-    [[ ${#variable[@]} -eq 0 ]]
+    variable+='[@]'
+    local array=("${!variable}")
+    [[ ${#array[@]} -eq 0 ]]
 }
 
 # requires that an array is not empty
@@ -150,13 +151,13 @@ to-array(variable) {
 # prints an array as a comma-separated list
 to-list(variable, separator=,,) {
     local list=""
-    declare -n variable_reference=$variable
     if is-array-empty "$variable"; then
         return
     fi
-    local idx
-    for idx in "${!variable_reference[@]}"; do
-        list+="${variable_reference[${idx}]}$separator"
+    variable+='[@]'
+    local array=("${!variable}")
+    for value in "${array[@]}"; do
+        list+="$value$separator"
     done
     echo "${list::-1}"
 }

@@ -37,3 +37,21 @@ command-stop() {
         docker kill "${containers[@]}"
     fi
 }
+
+# runs the experiment on a remote server
+command-ssh(host, command=ssh, directory=.) {
+    require-command ssh scp
+
+    run-ssh(arguments...) {
+        # shellcheck disable=SC2086
+        $command "$host" "${arguments[@]}"
+    }
+
+    run-scp(file) {
+        # shellcheck disable=SC2086
+        scp -r "$file" "$host:$directory"
+    }
+
+    run-scp "$SCRIPTS_DIRECTORY/_experiment.sh"
+    run-ssh "(cd $directory; bash _experiment.sh)"
+}
