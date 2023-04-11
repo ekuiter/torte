@@ -8,11 +8,12 @@ PATH_SEPARATOR=_ # remove this to create nested directories instead
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
-    # we want to extract feature models for Linux
-    add-system linux https://github.com/torvalds/linux
+    # we want to extract feature models for the following projects
+    add-system --system linux --url https://github.com/torvalds/linux
+    add-system --system busybox --url https://github.com/mirror/busybox
 
     # select revisions to analyze
-    for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v3.0 | stop-at-revision v3.1); do
+    for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v2.6.12 | stop-at-revision v4.18); do
         local arch=x86
         if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
             arch=i386 # in old revisions, x86 is called i386
@@ -29,6 +30,15 @@ experiment-subjects() {
             --kconfig-file arch/$arch/Kconfig \
             --kconfig-binding-files scripts/kconfig/*.o \
             --environment ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
+    done
+
+    for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
+        add-revision --system busybox --revision "$revision"
+        add-kconfig \
+            --system busybox \
+            --revision "$revision" \
+            --kconfig-file Config.in \
+            --kconfig-binding-files scripts/kconfig/*.o
     done
 }
 
@@ -73,8 +83,7 @@ experiment-stages() {
             --timeout $TIMEOUT
     }
 
-    # XML and UVL
-    transform-with-featjar --transformer xml --output-extension xml
+    # UVL
     transform-with-featjar --transformer uvl --output-extension uvl
 
     # intermediate formats for CNF transformation

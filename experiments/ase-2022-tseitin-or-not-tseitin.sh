@@ -180,3 +180,5 @@ kmax-post-binding-hook(system, revision) {
 #         run linux https://github.com/torvalds/linux $tag scripts/kconfig/*.o arch/x86/Kconfig $linux_env
 #     fi
 # done
+
+# todo: other systems
