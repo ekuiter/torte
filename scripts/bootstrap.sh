@@ -16,7 +16,6 @@ source-script() {
     local script
     script=$1
     local generated_script
-    # todo: make local -r the default
     local -r generated_script=$(dirname "$script")/$(basename "$script" .sh).gen.sh
     # in Docker containers, make may not be installed (but also not required, as the generated script is already copied into the container)
     if command -v make > /dev/null; then

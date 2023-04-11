@@ -40,7 +40,6 @@ output-path(components...) {
 }
 
 # returns a file with a given extension for the output of a given stage
-# todo: merge with output-path
 output-file(extension, stage=) {
     echo "$(output-directory "$stage")/$DOCKER_OUTPUT_FILE_PREFIX.$extension"
 }

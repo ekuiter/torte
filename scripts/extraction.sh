@@ -82,7 +82,6 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
-# todo: parallelize this (extract n models in parallel) and also parallelize docker containers kconfigreader and kmax
 extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file, kconfig_binding_file=, environment=, timeout=0) {
     kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision.$kconfig_binding")}
     log "$extractor: $system@$revision"
@@ -154,7 +153,6 @@ register-kconfig-extractor(extractor, kconfig_binding) {
     KCONFIG_BINDING=$kconfig_binding
     require-value EXTRACTOR KCONFIG_BINDING
 
-    # todo: separate binding and model stages?
     add-kconfig-binding(system, revision, kconfig_binding_files_spec, environment=) {
         kconfig-checkout "$system" "$revision" "$kconfig_binding_files_spec"
         compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files_spec" "$environment"
