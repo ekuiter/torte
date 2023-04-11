@@ -49,9 +49,16 @@ command-ssh(host, command=ssh, directory=.) {
 
     run-scp(file) {
         # shellcheck disable=SC2086
-        scp -r "$file" "$host:$directory"
+        scp -qr "$file" "$host:$directory"
     }
 
     run-scp "$SCRIPTS_DIRECTORY/_experiment.sh"
-    run-ssh "(cd $directory; bash _experiment.sh)"
+    run-ssh "(cd $directory; screen -dmS $DOCKER_PREFIX bash _experiment.sh)"
+    echo "$DOCKER_PREFIX is now running on $host, opening an SSH session."
+    echo "To view its output, run:"
+    echo "  screen -x $DOCKER_PREFIX (Ctrl+a d to detach)"
+    echo "To stop it, run:"
+    echo "  screen -x $DOCKER_PREFIX (Ctrl+a k y to kill)"
+    echo "  bash _experiment.sh stop"
+    $command "$host"
 }

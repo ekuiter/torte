@@ -11,14 +11,15 @@ command-help() {
     echo "experiment_file (default: experiments/default.sh)"
     echo
     echo "command (default: run)"
-    echo "  run                 runs the experiment"
-    echo "  clean               removes all output files for the experiment"
-    echo "  stop                stops the experiment"
-    echo "  export [directory]  saves all experiment-related Docker images, input, and output into the given directory"
-    echo "  import [directory]  loads all Docker images from the given directory"
-    echo "  reset               removes all Docker containers and images"
-    echo "  browse              start a web server for browsing output files"
-    echo "  help                prints help information"
+    echo "  run                              runs the experiment"
+    echo "  clean                            removes all output files for the experiment"
+    echo "  stop                             stops the experiment"
+    echo "  export [directory]               saves all experiment-related Docker images, input, and output into the given directory"
+    echo "  import [directory]               loads all Docker images from the given directory"
+    echo "  reset                            removes all Docker containers and images"
+    echo "  ssh [host] [command] [directory] runs the experiment on a remote server"
+    echo "  browse                           start a web server for browsing output files"
+    echo "  help                             prints help information"
 }
 
 # scripts to include

@@ -12,11 +12,10 @@ if (return 0 2>/dev/null); then
         exit 1
     fi
     if [[ ! -d torte ]]; then
-        echo "===="
         echo "NOTE: torte is not installed yet."
         echo "torte (revision $TORTE_REVISION) will now be installed into the directory '$PWD/torte'."
         echo "By default, all experiment data will be stored in the directories '$PWD/input' and '$PWD/output'."
-        echo "===="
+        echo
         git clone -q "$TORTE_REPOSITORY"
     fi
     git -C torte checkout -q "$TORTE_REVISION"
