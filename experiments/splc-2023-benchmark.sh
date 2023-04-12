@@ -9,42 +9,24 @@ TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
     # we want to extract feature models for the following projects
-    # add-system --system busybox --url https://github.com/mirror/busybox
+    add-system --system busybox --url https://github.com/mirror/busybox
     add-system --system linux --url https://github.com/torvalds/linux
 
     # select revisions to analyze
-    # for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
-    #     add-revision --system busybox --revision "$revision"
-    #     add-kconfig \
-    #         --system busybox \
-    #         --revision "$revision" \
-    #         --kconfig-file Config.in \
-    #         --kconfig-binding-files scripts/kconfig/*.o
-    # done
-
-    add-kconfig-binding --system --linux --revision v2.6.9 --kconfig_binding_files scripts/kconfig/*.o
-
-    for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | stop-at-revision v2.6.9); do
-        local arch=x86
-        if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
-            arch=i386 # in old revisions, x86 is called i386
-        fi
-
-        # read statistics for each revision
-        add-revision --system linux --revision "$revision"
-
-        # extract feature model for each revision
-        # we only consider the x86 architecture here
-        add-kconfig-model \
-            --system linux \
+    for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
+        add-revision --system busybox --revision "$revision"
+        add-kconfig \
+            --system busybox \
             --revision "$revision" \
-            --kconfig-file arch/$arch/Kconfig \
-            --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$revision")" \
-            --environment ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
+            --kconfig-file Config.in \
+            --kconfig-binding-files scripts/kconfig/*.o
     done
 
-    #for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v2.6.9 | stop-at-revision v4.18); do
-    for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v2.6.9 | stop-at-revision v2.6.12); do
+    linux-tag-revisions() {
+        git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*"
+    }
+
+    add-linux-kconfig(revision, kconfig_binding_file=) {
         local arch=x86
         if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
             arch=i386 # in old revisions, x86 is called i386
@@ -55,20 +37,44 @@ experiment-subjects() {
 
         # extract feature model for each revision
         # we only consider the x86 architecture here
-        add-kconfig \
-            --system linux \
+        local environment=ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
+        if [[ -n $kconfig_binding_file ]]; then
+            add-kconfig-model \
+                --system linux \
+                --revision "$revision" \
+                --kconfig-file arch/$arch/Kconfig \
+                --kconfig-binding-file "$kconfig_binding_file" \
+                --environment "$environment"
+        else
+            add-kconfig \
+                --system linux \
+                --revision "$revision" \
+                --kconfig-file arch/$arch/Kconfig \
+                --kconfig-binding-files scripts/kconfig/*.o \
+                --environment "$environment"
+        fi
+    }
+
+    # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction
+    add-kconfig-binding --system linux --revision v2.6.9 --kconfig_binding_files scripts/kconfig/*.o
+    for revision in $(linux-tag-revisions | stop-at-revision v2.6.9); do
+        add-linux-kconfig \
             --revision "$revision" \
-            --kconfig-file arch/$arch/Kconfig \
-            --kconfig-binding-files scripts/kconfig/*.o \
-            --environment ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
+            --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux v2.6.9)"
+    done
+
+    # after linux 2.6.9, use the kconfig parser of the respective revision
+    for revision in $(linux-tag-revisions | start-at-revision v2.6.9 | stop-at-revision v4.18); do
+        add-linux-kconfig --revision "$revision"
     done
 }
 
 experiment-stages() {
+    force # do not skip stages
+
     # clone Linux, remove non-commit v2.6.11, and read committer dates
     run --stage clone-systems
     run --stage tag-linux-revisions --command tag-linux-revisions
-    #run --stage tag-linux-revisions --command tag-linux-revisions skip-tagging
     run --stage read-statistics --command read-statistics skip-sloc
     
     # extract feature models
@@ -156,7 +162,8 @@ kconfig-post-checkout-hook(system, revision) {
 
 clean-up() {
     # clean up intermediate stages and rearrange output files
-    clean clone-systems tag-linux-revisions read-statistics kconfigreader kmax model_to_model_featureide model_to_smt_z3 plaistedgreenbaum tseitin torte
+    clean clone-systems tag-linux-revisions read-statistics kconfigreader kmax \
+        model_to_model_featureide model_to_smt_z3 plaistedgreenbaum tseitin torte
     rm-safe \
         "$OUTPUT_DIRECTORY"/model/*binding* \
         "$OUTPUT_DIRECTORY"/model/*.features \

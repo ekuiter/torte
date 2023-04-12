@@ -1,5 +1,5 @@
 /.vscode
-/input/*/
+/input*
 /output*
 /export*
 _*.sh

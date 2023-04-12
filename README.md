@@ -57,7 +57,7 @@ Other systems or revisions may also be supported.
 | System | Revisions | Notes |
 | - | - | - |
 | [busybox](https://github.com/mirror/busybox) | 1.3.0 - 1.36.0 | |
-| [linux](https://github.com/torvalds/linux) | 2.6.12 - 4.17 | only x86 architecture tested, => 4.18 currently not supported |
+| [linux](https://github.com/torvalds/linux) | 2.5.45 - 4.17 | only x86 architecture tested, > 4.17 currently not supported |
 
 ## Bundled Tools
 

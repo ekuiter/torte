@@ -39,18 +39,22 @@ command-stop() {
 }
 
 # runs the experiment on a remote server
-command-run-remote(host, directory=.) {
+command-run-remote(host, directory=., screen=) {
     require-command ssh scp
     scp -r "$SCRIPTS_DIRECTORY/_experiment.sh" "$host:$directory"
-    # shellcheck disable=SC2029
-    ssh "$host" "(cd $directory; screen -dmS $DOCKER_PREFIX bash _experiment.sh)"
-    echo "$DOCKER_PREFIX is now running on $host, opening an SSH session."
-    echo "To view its output, run:"
-    echo "  screen -x $DOCKER_PREFIX (Ctrl+a d to detach)"
-    echo "To stop it, run:"
-    echo "  screen -x $DOCKER_PREFIX (Ctrl+a k y to kill)"
-    echo "  bash _experiment.sh stop"
-    ssh "$host"
+    if [[ $screen == y ]]; then
+        # shellcheck disable=SC2029
+        ssh "$host" "(cd $directory; screen -dmS $DOCKER_PREFIX bash _experiment.sh)"
+        echo "$DOCKER_PREFIX is now running on $host, opening an SSH session."
+        echo "To view its output, run:"
+        echo "  screen -x $DOCKER_PREFIX (Ctrl+a d to detach)"
+        echo "To stop it, run:"
+        echo "  screen -x $DOCKER_PREFIX (Ctrl+a k y to kill)"
+        echo "  bash _experiment.sh stop"
+        ssh "$host"
+    else
+        ssh "$host" bash _experiment.sh
+    fi
 }
 
 # downloads and removes results from the remote server
