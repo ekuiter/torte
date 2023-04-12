@@ -19,13 +19,24 @@ all in a declarative and reproducible fashion backed by reusable Docker containe
 
 ## Getting Started
 
-To run torte, you need a Linux system with [curl](https://curl.se/), [Git](https://git-scm.com/), [GNU Make](https://www.gnu.org/software/make/), and [Docker](https://docs.docker.com/get-docker/)(use [rootless mode](https://docs.docker.com/engine/security/rootless/) to avoid permission issues with created files).
-Windows/WSL and macOS should also work, but are untested.
+To run torte, you need
 
-Experiment files in torte are self-executing - so, you can just download an experiment file (e.g., from the `experiments` directory) and run it:
+- a Linux system or Windows with [WSL](https://learn.microsoft.com/windows/wsl/install) (macOS is currently not supported)
+- [curl](https://curl.se/), [Git](https://git-scm.com/), and [GNU Make](https://www.gnu.org/software/make/)
+- [Docker](https://docs.docker.com/get-docker/) ([rootless mode](https://docs.docker.com/engine/security/rootless/) recommended to avoid permission issues with created files).
+
+Experiment files in torte are self-executing - so, you can just download an experiment file (e.g., from the `experiments` directory) and run it.
+
+The following should get you started on a fresh Ubuntu 22.04 installation:
 
 ```
-curl -sS https://raw.githubusercontent.com/ekuiter/torte/main/experiments/default.sh > experiment.sh && bash experiment.sh
+# install and set up dependencies
+sudo apt-get install -y curl git make dbus-user-session
+sudo sh <(curl -fsSL https://get.docker.com)
+dockerd-rootless-setuptool.sh install
+
+# run the default experiment with torte
+curl -sS https://raw.githubusercontent.com/ekuiter/torte/main/experiments/default.sh -o experiment.sh && bash experiment.sh
 ```
 
 By default, this will install torte into the `torte` directory; all experiment data will be stored in the directories `input` and `output` in your working directory.
@@ -37,6 +48,16 @@ By default, this will install torte into the `torte` directory; all experiment d
   If this does not respond, try `Ctrl+Z`, then `./torte.sh stop`.
 - Run `./torte.sh help` to get further usage information (e.g., running an experiment over SSH and im-/export of Docker containers).
 - Developers are recommended to use [ShellCheck](https://www.shellcheck.net/) to improve code quality.
+
+## Supported Subject Systems
+
+This is a list of all subject systems for which feature-model extraction has been confirmed to work.
+Other systems or revisions may also be supported.
+
+| System | Revisions | Notes |
+| - | - | - |
+| [busybox](https://github.com/mirror/busybox) | 1.3.0 - 1.36.0 | |
+| [linux](https://github.com/torvalds/linux) | 2.6.12 - 4.17 | only x86 architecture tested, => 4.18 currently not supported |
 
 ## Bundled Tools
 
@@ -105,16 +126,6 @@ Please create a pull request if you want to publish your own experiment.
 | `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
 | `ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for our ASE'22 paper "Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses" |
 | `splc-2023-benchmark.sh` | Evaluation for our SPLC'23 paper draft |
-
-## Supported Subject Systems
-
-This is a list of all subject systems for which feature-model extraction has been confirmed to work.
-Other systems or revisions may also be supported.
-
-| System | Revisions | Notes |
-| - | - | - |
-| [busybox](https://github.com/mirror/busybox) | 1.3.0 - 1.36.0 | |
-| [linux](https://github.com/torvalds/linux) | 2.6.12 - 4.17 | only x86 architecture tested, => 4.18 currently not supported |
 
 ## Project History
 

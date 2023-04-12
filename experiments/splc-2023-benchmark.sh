@@ -13,16 +13,17 @@ experiment-subjects() {
     add-system --system linux --url https://github.com/torvalds/linux
 
     # select revisions to analyze
-    for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
-        add-revision --system busybox --revision "$revision"
-        add-kconfig \
-            --system busybox \
-            --revision "$revision" \
-            --kconfig-file Config.in \
-            --kconfig-binding-files scripts/kconfig/*.o
-    done
+    # for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
+    #     add-revision --system busybox --revision "$revision"
+    #     add-kconfig \
+    #         --system busybox \
+    #         --revision "$revision" \
+    #         --kconfig-file Config.in \
+    #         --kconfig-binding-files scripts/kconfig/*.o
+    # done
 
-    for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v2.6.12 | stop-at-revision v4.18); do
+    #for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v2.6.12 | stop-at-revision v4.18); do
+    for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | stop-at-revision v2.6.12); do
         local arch=x86
         if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
             arch=i386 # in old revisions, x86 is called i386
@@ -43,11 +44,10 @@ experiment-subjects() {
 }
 
 experiment-stages() {
-    force # do not skip stages
-
     # clone Linux, remove non-commit v2.6.11, and read committer dates
     run --stage clone-systems
-    run --stage tag-linux-revisions --command tag-linux-revisions skip-tagging
+    run --stage tag-linux-revisions --command tag-linux-revisions
+    #run --stage tag-linux-revisions --command tag-linux-revisions skip-tagging
     run --stage read-statistics --command read-statistics skip-sloc
     
     # extract feature models
@@ -116,19 +116,6 @@ experiment-stages() {
         --file-fields dimacs-file \
         --stages plaistedgreenbaum tseitin
     join-into model dimacs
-
-    # clean up intermediate stages and rearrange output files
-    clean clone-systems tag-linux-revisions read-statistics kconfigreader kmax model_to_model_featureide model_to_smt_z3 plaistedgreenbaum tseitin torte
-    rm-safe \
-        "$OUTPUT_DIRECTORY"/model/*binding* \
-        "$OUTPUT_DIRECTORY"/model/*.features \
-        "$OUTPUT_DIRECTORY"/model/*.rsf \
-        "$OUTPUT_DIRECTORY"/model/*.kclause \
-        "$OUTPUT_DIRECTORY"/model/*.kextractor \
-        "$OUTPUT_DIRECTORY"/*/*_output*.csv \
-        "$OUTPUT_DIRECTORY"/*/*output.*.csv \
-        "$OUTPUT_DIRECTORY"/*/*.log \
-        "$OUTPUT_DIRECTORY"/*/*.err
 }
 
 kconfig-post-checkout-hook(system, revision) {
@@ -144,4 +131,19 @@ kconfig-post-checkout-hook(system, revision) {
         replace "\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*"
         replace "\s*\$(as-instr,endbr64).*"
     fi
+}
+
+clean-up() {
+    # clean up intermediate stages and rearrange output files
+    clean clone-systems tag-linux-revisions read-statistics kconfigreader kmax model_to_model_featureide model_to_smt_z3 plaistedgreenbaum tseitin torte
+    rm-safe \
+        "$OUTPUT_DIRECTORY"/model/*binding* \
+        "$OUTPUT_DIRECTORY"/model/*.features \
+        "$OUTPUT_DIRECTORY"/model/*.rsf \
+        "$OUTPUT_DIRECTORY"/model/*.kclause \
+        "$OUTPUT_DIRECTORY"/model/*.kextractor \
+        "$OUTPUT_DIRECTORY"/*/*_output*.csv \
+        "$OUTPUT_DIRECTORY"/*/*output.*.csv \
+        "$OUTPUT_DIRECTORY"/*/*.log \
+        "$OUTPUT_DIRECTORY"/*/*.err
 }

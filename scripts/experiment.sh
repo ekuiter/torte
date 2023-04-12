@@ -39,26 +39,24 @@ command-stop() {
 }
 
 # runs the experiment on a remote server
-command-ssh(host, command=ssh, directory=.) {
+command-run-remote(host, directory=.) {
     require-command ssh scp
-
-    run-ssh(arguments...) {
-        # shellcheck disable=SC2086
-        $command "$host" "${arguments[@]}"
-    }
-
-    run-scp(file) {
-        # shellcheck disable=SC2086
-        scp -qr "$file" "$host:$directory"
-    }
-
-    run-scp "$SCRIPTS_DIRECTORY/_experiment.sh"
-    run-ssh "(cd $directory; screen -dmS $DOCKER_PREFIX bash _experiment.sh)"
+    scp -r "$SCRIPTS_DIRECTORY/_experiment.sh" "$host:$directory"
+    # shellcheck disable=SC2029
+    ssh "$host" "(cd $directory; screen -dmS $DOCKER_PREFIX bash _experiment.sh)"
     echo "$DOCKER_PREFIX is now running on $host, opening an SSH session."
     echo "To view its output, run:"
     echo "  screen -x $DOCKER_PREFIX (Ctrl+a d to detach)"
     echo "To stop it, run:"
     echo "  screen -x $DOCKER_PREFIX (Ctrl+a k y to kill)"
     echo "  bash _experiment.sh stop"
-    $command "$host"
+    ssh "$host"
+}
+
+# downloads and removes results from the remote server
+command-clean-remote(host, directory=.) {
+    require-command ssh scp
+    scp -r "$host:$directory/$OUTPUT_DIRECTORY" "$OUTPUT_DIRECTORY-$host"
+    # shellcheck disable=SC2029
+    ssh "$host" "(cd $directory; bash _experiment.sh rm-safe $INPUT_DIRECTORY $OUTPUT_DIRECTORY $DOCKER_PREFIX _experiment.sh)"
 }

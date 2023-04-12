@@ -17,7 +17,8 @@ command-help() {
     echo "  export [directory]               saves all experiment-related Docker images, input, and output into the given directory"
     echo "  import [directory]               loads all Docker images from the given directory"
     echo "  reset                            removes all Docker containers and images"
-    echo "  ssh [host] [command] [directory] runs the experiment on a remote server"
+    echo "  run-remote [host] [directory]    runs the experiment on a remote server"
+    echo "  clean-remote [host] [directory]  downloads and removes results from the remote server"
     echo "  browse                           start a web server for browsing output files"
     echo "  help                             prints help information"
 }
