@@ -31,12 +31,12 @@ The following should get you started on a fresh Ubuntu 22.04 installation:
 
 ```
 # install and set up dependencies
-sudo apt-get install -y curl git make dbus-user-session
-sudo sh <(curl -fsSL https://get.docker.com)
+sudo apt-get install -y curl git make uidmap dbus-user-session
+curl -fsSL https://get.docker.com | sh
 dockerd-rootless-setuptool.sh install
 
 # run the default experiment with torte
-curl -sS https://raw.githubusercontent.com/ekuiter/torte/main/experiments/default.sh -o experiment.sh && bash experiment.sh
+curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/main/experiments/default.sh -o experiment.sh && bash experiment.sh
 ```
 
 By default, this will install torte into the `torte` directory; all experiment data will be stored in the directories `input` and `output` in your working directory.

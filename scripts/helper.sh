@@ -31,7 +31,7 @@ log(subject=, state=) {
         local elapsed_time=$(($(date +%s%N) - LOG_START))
         LOG_START=
     fi
-    "$command" "$(printf %30s "$(format-time "$elapsed_time" "" " ")$state")" "$(printf %-80s "$(echo-bold "$subject")")"
+    "$command" "$(printf %30s "$(format-time "$elapsed_time" "" " ")$state")" "$(echo-bold "$subject")"
 }
 
 echo-bold(text=) { echo -e "\033[1m$text\033[0m"; }
