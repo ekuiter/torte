@@ -19,11 +19,11 @@ all in a declarative and reproducible fashion backed by reusable Docker containe
 
 ## Getting Started
 
-To run torte, you need
+To run torte, you need:
 
 - a Linux system or Windows with [WSL](https://learn.microsoft.com/windows/wsl/install) (macOS is currently not supported)
 - [curl](https://curl.se/), [Git](https://git-scm.com/), and [GNU Make](https://www.gnu.org/software/make/)
-- [Docker](https://docs.docker.com/get-docker/) ([rootless mode](https://docs.docker.com/engine/security/rootless/) recommended to avoid permission issues with created files).
+- [Docker](https://docs.docker.com/get-docker/) ([rootless mode](https://docs.docker.com/engine/security/rootless/) recommended to avoid permission issues with created files)
 
 Experiment files in torte are self-executing - so, you can just download an experiment file (e.g., from the `experiments` directory) and run it.
 

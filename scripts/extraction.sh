@@ -83,7 +83,8 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
 extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file, kconfig_binding_file=, environment=, timeout=0) {
-    kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision.$kconfig_binding")}
+    kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision")}
+    kconfig_binding_file+=.$kconfig_binding
     log "$extractor: $system@$revision"
     if [[ -f $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model") ]]; then
         log "" "$(echo-skip)"
@@ -140,7 +141,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
         local variables
         variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
         local literals
-        literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | wc -l)
+        literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | wc -l) # todo grep -c
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
     echo "$system,$revision,$kconfig_binding_file,$kconfig_file,$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
@@ -153,9 +154,9 @@ register-kconfig-extractor(extractor, kconfig_binding) {
     KCONFIG_BINDING=$kconfig_binding
     require-value EXTRACTOR KCONFIG_BINDING
 
-    add-kconfig-binding(system, revision, kconfig_binding_files_spec, environment=) {
-        kconfig-checkout "$system" "$revision" "$kconfig_binding_files_spec"
-        compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files_spec" "$environment"
+    add-kconfig-binding(system, revision, kconfig_binding_files, environment=) {
+        kconfig-checkout "$system" "$revision" "$kconfig_binding_files"
+        compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
         git-clean "$(input-directory)/$system"
     }
 

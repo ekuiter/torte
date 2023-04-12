@@ -9,7 +9,7 @@ TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
     # we want to extract feature models for the following projects
-    add-system --system busybox --url https://github.com/mirror/busybox
+    # add-system --system busybox --url https://github.com/mirror/busybox
     add-system --system linux --url https://github.com/torvalds/linux
 
     # select revisions to analyze
@@ -22,8 +22,29 @@ experiment-subjects() {
     #         --kconfig-binding-files scripts/kconfig/*.o
     # done
 
-    #for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v2.6.12 | stop-at-revision v4.18); do
-    for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | stop-at-revision v2.6.12); do
+    add-kconfig-binding --system --linux --revision v2.6.9 --kconfig_binding_files scripts/kconfig/*.o
+
+    for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | stop-at-revision v2.6.9); do
+        local arch=x86
+        if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
+            arch=i386 # in old revisions, x86 is called i386
+        fi
+
+        # read statistics for each revision
+        add-revision --system linux --revision "$revision"
+
+        # extract feature model for each revision
+        # we only consider the x86 architecture here
+        add-kconfig-model \
+            --system linux \
+            --revision "$revision" \
+            --kconfig-file arch/$arch/Kconfig \
+            --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$revision")" \
+            --environment ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
+    done
+
+    #for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v2.6.9 | stop-at-revision v4.18); do
+    for revision in $(git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*" | start-at-revision v2.6.9 | stop-at-revision v2.6.12); do
         local arch=x86
         if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
             arch=i386 # in old revisions, x86 is called i386
