@@ -51,13 +51,14 @@ By default, this will install torte into the `torte` directory; all experiment d
 
 ## Supported Subject Systems
 
-This is a list of all subject systems for which feature-model extraction has been confirmed to work.
+This is a list of all subject systems for which feature-model extraction has been tested and confirmed to work.
 Other systems or revisions may also be supported.
 
-| System | Revisions | Notes |
-| - | - | - |
-| [busybox](https://github.com/mirror/busybox) | 1.3.0 - 1.36.0 | |
-| [linux](https://github.com/torvalds/linux) | 2.5.45 - 4.17 | only x86 architecture tested, > 4.17 currently not supported |
+| System | Revisions | Architectures | Binding | Notes |
+| - | - | - | - | - |
+| [axtls](https://github.com/ekuiter/axTLS) | 1.0.0 - 2.0.0 | - | ... | uses frozen Git copy of original SVN repository |
+| [busybox](https://github.com/mirror/busybox) | 1.3.0 - 1.36.0 | - | ... | |
+| [linux](https://github.com/torvalds/linux) | 2.5.45 - 4.17 | x86 | ... | > 4.17 currently not supported |
 
 ## Bundled Tools
 
@@ -68,7 +69,7 @@ For transparency, we document the changes we make to these tools and known limit
 
 | Tool | Version | Date | Changes and Limitations |
 | - | - | - | - |
-| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^6] [^9] |
+| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^6] [^9] [^16] |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | e27aea7 | 2023-04-11 | [^12] [^15] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
@@ -90,7 +91,7 @@ Specifically, we added support for `E_CHOICE` (treated as `E_LIST`), `P_IMPLY` (
 [^5]: Compiling the native C bindings of kconfigreader and kmax is not possible for all KConfig-based systems (e.g., if the Python-based [Kconfiglib](https://github.com/ulfalizer/Kconfiglib) parser is used).
 In that case, you can try to reuse a C binding from an existing system with similar KConfig files; however, this may limit the extracted model's accuracy.
 
-[^6]: Extraction of Linux >= v4.18 currently yields incorrect models for both kconfigreader and kmax.
+[^6]: Extraction of Linux > v4.17 currently yields incorrect models for both kconfigreader and kmax.
 
 [^7]: We added the script `kclause2model.py` to kmax to translate kclause's pickle files into the kconfigreader's feature-model format.
 This file translates Boolean variability correctly, but non-Boolean variability is not supported.
@@ -115,6 +116,9 @@ We also added a new feature for exporting the community structure visualization 
 
 [^15]: DIMACS files produced by FeatJAR and FeatureIDE do not contain additional variables (i.e., equivalence is preserved).
 Currently, this behavior is not configurable.
+
+[^16]: Feature models and formulas produced by kconfigreader have nondeterministic clause order.
+This does not impact semantics, but it possibly influences the efficiency of solvers.
 
 ## Predefined Experiments
 

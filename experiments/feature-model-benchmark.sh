@@ -1,86 +1,30 @@
 #!/bin/bash
+# The point of this experiment file is to extract feature models for a large and representative selection of Kconfig-based configurable systems and their revisions.
+# More information on some of the systems below can be found in Berger et al.'s "Variability Modeling in the Systems Software Domain" (DOI: 10.1109/TSE.2013.34).
+# Our general strategy is to read feature models for all tagged Git revisions (provided that tags give a meaningful history).
+# We usually compile dumpconf against the project source to get the most accurate translation.
+# Sometimes this is not possible, then we use dumpconf compiled for a Linux version with a similar Kconfig dialect (in most projects, the Kconfig parser is cloned&owned from Linux).
+# It is also possible to read feature models for any other tags/commits (e.g., for every commit that changes a Kconfig file), although usually very old versions won't work (because Kconfig might have only been introduced later) and very recent versions might also not work (because they use new/esoteric Kconfig features not supported by kconfigreader or dumpconf).
+
+# The following Kconfig-based systems are deliberately no included right now:
+# https://github.com/coreboot/coreboot uses a modified Kconfig with wildcards for the source directive
+# https://github.com/Freetz/freetz uses Kconfig, but cannot be parsed with dumpconf, so we use freetz-ng instead (which is newer anyway)
+# https://github.com/rhuitl/uClinux is not so easy to set up, because it depends on vendor files
+# https://github.com/zephyrproject-rtos/zephyr also uses Kconfig, but a modified dialect based on Kconfiglib, which is not compatible with kconfigreader
+# https://github.com/solettaproject/soletta not yet included, many models available at https://github.com/TUBS-ISF/soletta-case-study
+
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run torte.sh <this-file>.
-TORTE_REVISION=753c4a7; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 PATH_SEPARATOR=_ # create no nested directories
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
-    ignore() {
-    # busybox
-    add-system --system busybox --url https://github.com/mirror/busybox
-    
-    for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
-        add-revision --system busybox --revision "$revision"
-        add-kconfig \
-            --system busybox \
-            --revision "$revision" \
-            --kconfig-file Config.in \
-            --kconfig-binding-files scripts/kconfig/*.o
-    done
-
-    # linux
-    add-system --system linux --url https://github.com/torvalds/linux
-    
-    linux-tag-revisions() {
-        git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*"
-    }
-
-    # todo: move into main codebase, linux.sh, for reusability
-    add-linux-kconfig(revision, kconfig_binding_file=) {
-        local arch=x86
-        if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
-            arch=i386 # in old revisions, x86 is called i386
-        fi
-
-        # read statistics for each revision
-        add-revision --system linux --revision "$revision"
-
-        # extract feature model for each revision
-        # we only consider the x86 architecture here
-        local environment=ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
-        if [[ -n $kconfig_binding_file ]]; then
-            add-kconfig-model \
-                --system linux \
-                --revision "$revision" \
-                --kconfig-file arch/$arch/Kconfig \
-                --kconfig-binding-file "$kconfig_binding_file" \
-                --environment "$environment"
-        else
-            add-kconfig \
-                --system linux \
-                --revision "$revision" \
-                --kconfig-file arch/$arch/Kconfig \
-                --kconfig-binding-files scripts/kconfig/*.o \
-                --environment "$environment"
-        fi
-    }
-
-    # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction
-    add-kconfig-binding --system linux --revision v2.6.9 --kconfig_binding_files scripts/kconfig/*.o
-    for revision in $(linux-tag-revisions | stop-at-revision v2.6.9); do
-        add-linux-kconfig \
-            --revision "$revision" \
-            --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux v2.6.9)"
-    done
-
-    # after linux 2.6.9, use the kconfig parser of the respective revision
-    for revision in $(linux-tag-revisions | start-at-revision v2.6.9 | stop-at-revision v4.18); do
-        add-linux-kconfig --revision "$revision"
-    done
-    }
-
-    # axtls
-    add-system --system axtls --url https://github.com/ekuiter/axTLS
-    for revision in $(git-tag-revisions axtls | exclude-revision @); do
-        add-kconfig \
-            --system axtls \
-            --revision "$revision" \
-            --kconfig-file config/Config.in \
-            --kconfig-binding-files config/scripts/config/*.o
-    done
+    :
+    #add-axtls-kconfig-history
+    #add-busybox-kconfig-history
 
     # # buildroot
     # export BR2_EXTERNAL=support/dummy-external
@@ -97,14 +41,12 @@ experiment-subjects() {
     #     run embtoolkit  $tag scripts/kconfig/*.o Kconfig
     # done
 
-    # # fiasco
-    # add-system --system fiasco --url https://github.com/kernkonzept/fiasco
-    # run fiasco  d393c79a5f67bb5466fa69b061ede0f81b6398db c-bindings/linux/v5.0.$BINDING src/Kconfig
+    #add-fiasco-kconfig 58aa50a8aae2e9396f1c8d1d0aa53f2da20262ed # todo: update revision
 
-    # # freetz-ng
-    # add-system --system freetz-ng --url https://github.com/Freetz-NG/freetz-ng
-    # run freetz-ng  88b972a6283bfd65ae1bbf559e53caf7bb661ae3 c-bindings/linux/v5.0.$BINDING config/Config.in
+    add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af # todo: update revision
 
+    #add-linux-kconfig-history --from v3.0 --to v3.5
+   
     # # toybox
     # add-system --system toybox --url https://github.com/landley/toybox
     # for tag in $(git-tag-revisions toybox); do
@@ -225,3 +167,37 @@ clean-up() {
         "$OUTPUT_DIRECTORY"/*/*.log \
         "$OUTPUT_DIRECTORY"/*/*.err
 }
+
+return
+
+#### todo
+
+export BR2_EXTERNAL=support/dummy-external
+export BUILD_DIR=/home/input/buildroot
+export BASE_DIR=/home/input/buildroot
+if echo $KCONFIG | grep -q buildroot; then
+    run linux skip-model v4.17 scripts/kconfig/*.o arch/x86/Kconfig $linux_env
+fi
+
+export BR2_EXTERNAL=support/dummy-external
+export BUILD_DIR=buildroot
+export BASE_DIR=buildroot
+git-checkout buildroot https://github.com/buildroot/buildroot
+for tag in $(git -C buildroot tag | grep -v rc | grep -v _ | grep -v -e '\..*\.'); do
+    run buildroot https://github.com/buildroot/buildroot $tag c-bindings/linux/v4.17.$BINDING Config.in
+done
+
+git-checkout embtoolkit https://github.com/ndmsystems/embtoolkit
+for tag in $(git -C embtoolkit tag | grep -v rc | grep -v -e '-.*-'); do
+    run embtoolkit https://github.com/ndmsystems/embtoolkit $tag scripts/kconfig/*.o Kconfig
+done
+
+git-checkout toybox https://github.com/landley/toybox
+for tag in $(git -C toybox tag); do
+    run toybox https://github.com/landley/toybox $tag c-bindings/linux/v2.6.12.$BINDING Config.in
+done
+
+git-checkout uclibc-ng https://github.com/wbx-github/uclibc-ng
+for tag in $(git -C uclibc-ng tag); do
+    run uclibc-ng https://github.com/wbx-github/uclibc-ng $tag extra/config/zconf.tab.o extra/Configs/Config.in
+done

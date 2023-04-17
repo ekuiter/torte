@@ -2,7 +2,7 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run torte.sh <this-file>.
-TORTE_REVISION=753c4a7; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 # todo: this is still incomplete, no analysis is performed yet, systems are missing
 
@@ -112,8 +112,9 @@ experiment-subjects() {
     # add-kconfig linux v2.6.13 arch/i386/Kconfig scripts/kconfig/*.o $linux_env
 }
 
+# todo: add-hook via lambda in subjects .sh?
 kconfig-post-checkout-hook(system, revision) {
-    # the following hacks may impair accuracy, but are necessary to extract a kconfig model
+    # the following hacks may impair accuracy, but are necessary to extract some kconfig models
     if [[ $system == freetz-ng ]]; then
         # ugly hack because freetz-ng is weird
         touch make/Config.in.generated make/external.in.generated config/custom.in

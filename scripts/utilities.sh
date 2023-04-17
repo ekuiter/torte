@@ -22,6 +22,10 @@ read-statistics(statistics_option=) {
 
     add-revision(system, revision) {
         log "read-statistics: $system@$revision" "$(echo-progress read)"
+        if grep -q "^$system,$revision," "$(output-path date.csv)"; then
+            log "" "$(echo-skip)"
+            return
+        fi
         local time
         time=$(git -C "$(input-directory)/$system" --no-pager log -1 -s --format=%ct "$revision")
         local date
@@ -52,13 +56,14 @@ read-statistics(statistics_option=) {
 # creates an orphaned branch and tag for each revision
 # useful to add old revisions before the first Git tag v2.6.12
 # by default, tags all revisions between 2.5.45 and 2.6.12, as these use Kconfig
+# todo: move to linux.sh, log progress with $phase
 tag-linux-revisions(tag_option=) {
     TAG_OPTION=$tag_option
     
     add-system(system, url=) {
-        if [[ $system == linux ]]; then
+        if [[ -z $DONE_TAGGING_LINUX ]] && [[ $system == linux ]]; then
             if [[ ! -d $(input-directory)/linux ]]; then
-                error "Linux has not been cloned yet. Please prepend a stage that runs clone-systems.sh."
+                error "Linux has not been cloned yet. Please prepend a stage that clones Linux."
             fi
 
             if git -C "$(input-directory)/linux" show-branch v2.6.11 2>&1 | grep -q "No revs to be shown."; then
@@ -76,6 +81,8 @@ tag-linux-revisions(tag_option=) {
                 git -C "$(input-directory)/linux" prune
                 git -C "$(input-directory)/linux" gc
             fi
+
+            DONE_TAGGING_LINUX=y
         fi
     }
 

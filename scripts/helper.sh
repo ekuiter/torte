@@ -432,6 +432,16 @@ stop-at-revision(end_exclusive=) {
     fi
 }
 
+# returns the earlier revision
+min-revision(r1, r2) {
+    printf "%s\n" "$r1" "$r2" | sort -V | head -n1
+}
+
+# returns the later revision
+max-revision(r1, r2) {
+    printf "%s\n" "$r1" "$r2" | sort -V | tail -n+2 | head -n1
+}
+
 # removes files and reports an error when there are permission issues
 rm-safe(files...) {
     require-array files
