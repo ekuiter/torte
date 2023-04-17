@@ -8,11 +8,10 @@ PATH_SEPARATOR=_ # create no nested directories
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
-    # we want to extract feature models for the following projects
+    ignore() {
+    # busybox
     add-system --system busybox --url https://github.com/mirror/busybox
-    add-system --system linux --url https://github.com/torvalds/linux
-
-    # select revisions to analyze
+    
     for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision 1_3_0); do
         add-revision --system busybox --revision "$revision"
         add-kconfig \
@@ -22,10 +21,14 @@ experiment-subjects() {
             --kconfig-binding-files scripts/kconfig/*.o
     done
 
+    # linux
+    add-system --system linux --url https://github.com/torvalds/linux
+    
     linux-tag-revisions() {
         git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*"
     }
 
+    # todo: move into main codebase, linux.sh, for reusability
     add-linux-kconfig(revision, kconfig_binding_file=) {
         local arch=x86
         if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
@@ -67,6 +70,52 @@ experiment-subjects() {
     for revision in $(linux-tag-revisions | start-at-revision v2.6.9 | stop-at-revision v4.18); do
         add-linux-kconfig --revision "$revision"
     done
+    }
+
+    # axtls
+    add-system --system axtls --url https://github.com/ekuiter/axTLS
+    for revision in $(git-tag-revisions axtls | exclude-revision @); do
+        add-kconfig \
+            --system axtls \
+            --revision "$revision" \
+            --kconfig-file config/Config.in \
+            --kconfig-binding-files config/scripts/config/*.o
+    done
+
+    # # buildroot
+    # export BR2_EXTERNAL=support/dummy-external
+    # export BUILD_DIR=buildroot
+    # export BASE_DIR=buildroot
+    # add-system --system buildroot --url https://github.com/buildroot/buildroot
+    # for tag in $(git-tag-revisions buildroot | exclude-revision rc _ "\..*\."); do
+    #     run buildroot  $tag c-bindings/linux/v4.17.$BINDING Config.in
+    # done
+
+    # # embtoolkit
+    # add-system --system embtoolkit --url https://github.com/ndmsystems/embtoolkit
+    # for tag in $(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e "-.*-"); do
+    #     run embtoolkit  $tag scripts/kconfig/*.o Kconfig
+    # done
+
+    # # fiasco
+    # add-system --system fiasco --url https://github.com/kernkonzept/fiasco
+    # run fiasco  d393c79a5f67bb5466fa69b061ede0f81b6398db c-bindings/linux/v5.0.$BINDING src/Kconfig
+
+    # # freetz-ng
+    # add-system --system freetz-ng --url https://github.com/Freetz-NG/freetz-ng
+    # run freetz-ng  88b972a6283bfd65ae1bbf559e53caf7bb661ae3 c-bindings/linux/v5.0.$BINDING config/Config.in
+
+    # # toybox
+    # add-system --system toybox --url https://github.com/landley/toybox
+    # for tag in $(git-tag-revisions toybox); do
+    #     run toybox  $tag c-bindings/linux/v2.6.12.$BINDING Config.in
+    # done
+
+    # # uclibc-ng
+    # add-system --system uclibc-ng --url https://github.com/wbx-github/uclibc-ng
+    # for tag in $(git-tag-revisions uclibc-ng); do
+    #     run uclibc-ng  $tag extra/config/zconf.tab.o extra/Configs/Config.in
+    # done
 }
 
 experiment-stages() {
@@ -146,6 +195,7 @@ experiment-stages() {
 }
 
 kconfig-post-checkout-hook(system, revision) {
+    # todo: move this into main codebase
     # the following hacks may impair accuracy, but are necessary to extract a kconfig model
     if [[ $system == linux ]]; then
         replace(regex) { find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex//g" {} \;; }
