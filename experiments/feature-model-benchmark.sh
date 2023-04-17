@@ -167,37 +167,3 @@ clean-up() {
         "$OUTPUT_DIRECTORY"/*/*.log \
         "$OUTPUT_DIRECTORY"/*/*.err
 }
-
-return
-
-#### todo
-
-export BR2_EXTERNAL=support/dummy-external
-export BUILD_DIR=/home/input/buildroot
-export BASE_DIR=/home/input/buildroot
-if echo $KCONFIG | grep -q buildroot; then
-    run linux skip-model v4.17 scripts/kconfig/*.o arch/x86/Kconfig $linux_env
-fi
-
-export BR2_EXTERNAL=support/dummy-external
-export BUILD_DIR=buildroot
-export BASE_DIR=buildroot
-git-checkout buildroot https://github.com/buildroot/buildroot
-for tag in $(git -C buildroot tag | grep -v rc | grep -v _ | grep -v -e '\..*\.'); do
-    run buildroot https://github.com/buildroot/buildroot $tag c-bindings/linux/v4.17.$BINDING Config.in
-done
-
-git-checkout embtoolkit https://github.com/ndmsystems/embtoolkit
-for tag in $(git -C embtoolkit tag | grep -v rc | grep -v -e '-.*-'); do
-    run embtoolkit https://github.com/ndmsystems/embtoolkit $tag scripts/kconfig/*.o Kconfig
-done
-
-git-checkout toybox https://github.com/landley/toybox
-for tag in $(git -C toybox tag); do
-    run toybox https://github.com/landley/toybox $tag c-bindings/linux/v2.6.12.$BINDING Config.in
-done
-
-git-checkout uclibc-ng https://github.com/wbx-github/uclibc-ng
-for tag in $(git -C uclibc-ng tag); do
-    run uclibc-ng https://github.com/wbx-github/uclibc-ng $tag extra/config/zconf.tab.o extra/Configs/Config.in
-done

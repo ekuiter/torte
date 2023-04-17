@@ -113,6 +113,7 @@ experiment-subjects() {
 }
 
 # todo: add-hook via lambda in subjects .sh?
+#todo:document hacks in readme
 kconfig-post-checkout-hook(system, revision) {
     # the following hacks may impair accuracy, but are necessary to extract some kconfig models
     if [[ $system == freetz-ng ]]; then
@@ -163,24 +164,34 @@ kmax-post-binding-hook(system, revision) {
 #SOLVERS="c2d d4 dpmc gpmc sharpsat-td-arjun1 sharpsat-td-arjun2 sharpsat-td twg"
 #SOLVERS="d4"
 
-# # in old versions, use kconfig-binding from 2.6.12
-# for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | sed -n '/2.6.12/q;p'); do
-# #for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | sed -n '/2.6.0/,$p' | sed -n '/2.6.4/q;p'); do
-#     run linux https://github.com/torvalds/linux $tag /home/output/kconfig-bindings/linux/v2.6.12.$BINDING arch/i386/Kconfig $linux_env
-# done
+return
 
-# for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | sed -n '/2.6.12/,$p'); do
-#     if git -C input/linux ls-tree -r $tag --name-only | grep -q arch/i386; then
-#         run linux https://github.com/torvalds/linux $tag scripts/kconfig/*.o arch/i386/Kconfig $linux_env # in old versions, x86 is called i386
-#     else
-#         run linux https://github.com/torvalds/linux $tag scripts/kconfig/*.o arch/x86/Kconfig $linux_env
-#     fi
-# done
+export BR2_EXTERNAL=support/dummy-external
+export BUILD_DIR=/home/input/buildroot
+export BASE_DIR=/home/input/buildroot
+if echo $KCONFIG | grep -q buildroot; then
+    run linux skip-model v4.17 scripts/kconfig/*.o arch/x86/Kconfig $linux_env
+fi
 
-# for tag in $(git -C input/linux tag | grep -v rc | grep -v tree | sort -V | sed -n '/2.6.35/,$p' | sed -n '/2.6.37/q;p'); do
-#     if git -C input/linux ls-tree -r $tag --name-only | grep -q arch/i386; then
-#         run linux https://github.com/torvalds/linux $tag scripts/kconfig/*.o arch/i386/Kconfig $linux_env # in old versions, x86 is called i386
-#     else
-#         run linux https://github.com/torvalds/linux $tag scripts/kconfig/*.o arch/x86/Kconfig $linux_env
-#     fi
-# done
+export BR2_EXTERNAL=support/dummy-external
+export BUILD_DIR=buildroot
+export BASE_DIR=buildroot
+git-checkout buildroot https://github.com/buildroot/buildroot
+for tag in $(git -C buildroot tag | grep -v rc | grep -v _ | grep -v -e '\..*\.'); do
+    run buildroot https://github.com/buildroot/buildroot $tag c-bindings/linux/v4.17.$BINDING Config.in
+done
+
+git-checkout embtoolkit https://github.com/ndmsystems/embtoolkit
+for tag in $(git -C embtoolkit tag | grep -v rc | grep -v -e '-.*-'); do
+    run embtoolkit https://github.com/ndmsystems/embtoolkit $tag scripts/kconfig/*.o Kconfig
+done
+
+git-checkout toybox https://github.com/landley/toybox
+for tag in $(git -C toybox tag); do
+    run toybox https://github.com/landley/toybox $tag c-bindings/linux/v2.6.12.$BINDING Config.in
+done
+
+git-checkout uclibc-ng https://github.com/wbx-github/uclibc-ng
+for tag in $(git -C uclibc-ng tag); do
+    run uclibc-ng https://github.com/wbx-github/uclibc-ng $tag extra/config/zconf.tab.o extra/Configs/Config.in
+done
