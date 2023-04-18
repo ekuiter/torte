@@ -53,19 +53,19 @@ By default, this will install torte into the `torte` directory; all experiment d
 
 This is a list of all subject systems for which feature-model extraction has been tested and confirmed to work for at least one extraction tool.
 Other systems or revisions may also be supported.
-Detailed system-specific information on potential threats to validity is available in `scripts/subjects.sh`.
+Detailed system-specific information on potential threats to validity is available in the `scripts/subjects` directory.
 
 | System | Revisions | Notes |
 | - | - | - |
-| [axtls](https://github.com/ekuiter/axTLS) | 1.0.0 - 2.0.0 |
-| [buildroot](https://github.com/buildroot/buildroot) | 2009.02 - 2022.05 |
-| [busybox](https://github.com/mirror/busybox) | 1.3.0 - 1.36.0 |
-| [embtoolkit](https://github.com/ndmsystems/embtoolkit) | 1.0.0 - 1.8.0 |
-| [fiasco](https://github.com/kernkonzept/fiasco) | 5eed420 (2023-04-18) |
-| [freetz-ng](https://github.com/Freetz-NG/freetz-ng) | d57a38e (2023-04-18) |
-| [linux](https://github.com/torvalds/linux) | 2.5.45 - 4.17 | only x86 tested |
-| [toybox](https://github.com/landley/toybox) | 0.4.5 - 0.8.9 | should not be used |
-| [uclibc-ng](https://github.com/wbx-github/uclibc-ng) | 1.0.2 - 1.0.40 |
+| [axtls](scripts/subjects/axtls.sh) | 1.0.0 - 2.0.0 |
+| [buildroot](scripts/subjects/buildroot.sh) | 2009.02 - 2022.05 |
+| [busybox](scripts/subjects/busybox.sh) | 1.3.0 - 1.36.0 |
+| [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 |
+| [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) |
+| [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) |
+| [linux](scripts/subjects/linux.sh) | 2.5.45 - 4.17 | only x86 tested |
+| [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | should not be used |
+| [uclibc-ng](scripts/subjects/uclibc-ng.sh) | 1.0.2 - 1.0.40 |
 
 ## Bundled Tools
 
