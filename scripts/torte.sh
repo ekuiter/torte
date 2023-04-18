@@ -31,7 +31,7 @@ SCRIPTS=(
     experiment.sh # runs experiments
     docker.sh # functions for working with Docker containers
     utilities.sh # functions for working with Git repositories and other utilities
-    subjects.sh # configures common experiment subjects
+    subjects/subjects.sh # configures common experiment subjects
     extraction.sh # extracts kconfig models
     transformation.sh # transforms files
     initialization.sh # initializes the script

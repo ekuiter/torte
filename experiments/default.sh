@@ -38,6 +38,8 @@ experiment-stages() {
     }
 
     run --stage clone-systems
+    run --stage tag-linux-revisions
+    run --stage read-statistics
     extract-with --extractor kconfigreader
     extract-with --extractor kmax
     aggregate \
@@ -74,4 +76,12 @@ experiment-stages() {
         --file-fields dimacs-file \
         --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
     join-into kconfig dimacs
+
+    run \
+        --stage community-structure \
+        --image satgraf \
+        --input-directory dimacs \
+        --command transform-with-satgraf
+    join-into dimacs community-structure
+    join-into read-statistics community-structure
 }
