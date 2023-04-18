@@ -13,9 +13,9 @@ torte can currently be used to
 
 - extract feature models from KConfig-based configurable software systems (e.g., the [Linux kernel](https://github.com/torvalds/linux)),
 - transform feature models between various formats (e.g., [FeatureIDE](https://featureide.github.io), [UVL](https://github.com/Universal-Variability-Language), and [DIMACS](https://www.domagoj-babic.com/uploads/ResearchProjects/Spear/dimacs-cnf.pdf)), and
-- evaluate the impacts of such extractions and transformations on feature-model analyses,
+- (soon) evaluate the impacts of such extractions and transformations on feature-model analyses,
 
-all in a declarative and reproducible fashion backed by reusable Docker containers.
+all in a fully declarative and reproducible fashion backed by reusable Docker containers.
 
 ## Getting Started
 
