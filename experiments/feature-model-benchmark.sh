@@ -22,50 +22,23 @@ PATH_SEPARATOR=_ # create no nested directories
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
-    :
-    #add-axtls-kconfig-history
-    #add-busybox-kconfig-history
-
-    # # buildroot
-    # export BR2_EXTERNAL=support/dummy-external
-    # export BUILD_DIR=buildroot
-    # export BASE_DIR=buildroot
-    # add-system --system buildroot --url https://github.com/buildroot/buildroot
-    # for tag in $(git-tag-revisions buildroot | exclude-revision rc _ "\..*\."); do
-    #     run buildroot  $tag c-bindings/linux/v4.17.$BINDING Config.in
-    # done
-
-    # # embtoolkit
-    # add-system --system embtoolkit --url https://github.com/ndmsystems/embtoolkit
-    # for tag in $(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e "-.*-"); do
-    #     run embtoolkit  $tag scripts/kconfig/*.o Kconfig
-    # done
-
-    #add-fiasco-kconfig 58aa50a8aae2e9396f1c8d1d0aa53f2da20262ed # todo: update revision
-
-    add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af # todo: update revision
-
-    #add-linux-kconfig-history --from v3.0 --to v3.5
-   
-    # # toybox
-    # add-system --system toybox --url https://github.com/landley/toybox
-    # for tag in $(git-tag-revisions toybox); do
-    #     run toybox  $tag c-bindings/linux/v2.6.12.$BINDING Config.in
-    # done
-
-    # # uclibc-ng
-    # add-system --system uclibc-ng --url https://github.com/wbx-github/uclibc-ng
-    # for tag in $(git-tag-revisions uclibc-ng); do
-    #     run uclibc-ng  $tag extra/config/zconf.tab.o extra/Configs/Config.in
-    # done
+    add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
+    add-buildroot-kconfig-history --from 2009.05 --to 2022.05
+    add-busybox-kconfig-history --from 1_3_0 --to 1_36_0
+    add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0
+    add-fiasco-kconfig 5eed420385a9fc0055b06f063b4c981a68a35b51
+    add-freetz-ng-kconfig d57a38e12ec6347ecdd4240fa541b722937fa72f
+    add-linux-kconfig-history --from v6.0 --to v6.1
+    #add-toybox-kconfig-history --from 0.4.5 --to 0.8.9
+    add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40
 }
 
 experiment-stages() {
     force # do not skip stages
 
-    # clone Linux, remove non-commit v2.6.11, and read committer dates
+    # clone Linux, add old Linux revisions, and read committer dates
     run --stage clone-systems
-    run --stage tag-linux-revisions --command tag-linux-revisions
+    run --stage tag-linux-revisions
     run --stage read-statistics --command read-statistics skip-sloc
     
     # extract feature models
@@ -78,6 +51,8 @@ experiment-stages() {
     
     extract-with --extractor kconfigreader
     extract-with --extractor kmax
+
+    return
     
     # aggregate all model files in one directory
     aggregate \
@@ -134,22 +109,6 @@ experiment-stages() {
         --file-fields dimacs-file \
         --stages plaistedgreenbaum tseitin
     join-into model dimacs
-}
-
-kconfig-post-checkout-hook(system, revision) {
-    # todo: move this into main codebase
-    # the following hacks may impair accuracy, but are necessary to extract a kconfig model
-    if [[ $system == linux ]]; then
-        replace(regex) { find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex//g" {} \;; }
-        # ignore all constraints that use the newer $(success,...) syntax
-        replace "\s*default \$(.*"
-        replace "\s*depends on \$(.*"
-        replace "\s*def_bool \$(.*"
-        # ugly hack for linux 6.0
-        replace "\s*def_bool ((.*"
-        replace "\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*"
-        replace "\s*\$(as-instr,endbr64).*"
-    fi
 }
 
 clean-up() {

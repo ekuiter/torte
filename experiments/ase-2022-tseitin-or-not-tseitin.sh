@@ -4,8 +4,6 @@
 # In that case, make sure to check out the correct revision manually and run torte.sh <this-file>.
 TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
-# todo: this is still incomplete, no analysis is performed yet, systems are missing
-
 experiment-stages() {
     # clone the systems specified as experiment subjects
     run --stage clone-systems
@@ -112,45 +110,6 @@ experiment-subjects() {
     # add-kconfig linux v2.6.13 arch/i386/Kconfig scripts/kconfig/*.o $linux_env
 }
 
-# todo: add-hook via lambda in subjects .sh?
-#todo:document hacks in readme
-kconfig-post-checkout-hook(system, revision) {
-    # the following hacks may impair accuracy, but are necessary to extract some kconfig models
-    if [[ $system == freetz-ng ]]; then
-        # ugly hack because freetz-ng is weird
-        touch make/Config.in.generated make/external.in.generated config/custom.in
-    fi
-    if [[ $system == buildroot ]]; then
-        touch .br2-external.in .br2-external.in.paths .br2-external.in.toolchains \
-            .br2-external.in.openssl .br2-external.in.jpeg .br2-external.in.menus \
-            .br2-external.in.skeleton .br2-external.in.init
-        # ignore generated Kconfig files in buildroot
-        find ./ -type f -name "*Config.in" -exec sed -i 's/source "\$.*//g' {} \;
-    fi
-    if [[ $system == toybox ]]; then
-        mkdir -p generated
-        touch generated/Config.in generated/Config.probed
-    fi
-    if [[ $system == linux ]]; then
-        replace(regex) { find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex//g" {} \;; }
-        # ignore all constraints that use the newer $(success,...) syntax
-        replace "\s*default \$(.*"
-        replace "\s*depends on \$(.*"
-        replace "\s*def_bool \$(.*"
-        # ugly hack for linux 6.0
-        replace "\s*def_bool ((.*"
-        replace "\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*"
-        replace "\s*\$(as-instr,endbr64).*"
-    fi
-}
-
-kmax-post-binding-hook(system, revision) {
-    if [[ $system == embtoolkit ]]; then
-        # fix incorrect feature names, which kmax interprets as a binary subtraction operator
-        sed -i 's/-/_/g' "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")"
-    fi
-}
-
 #ANALYSES="void dead core" # analyses to run on feature models, see run-...-analysis functions
 #ANALYSES="void" # analyses to run on feature models, see run-...-analysis functions
 # TIMEOUT_ANALYZE=1800 # analysis timeout in seconds
@@ -163,35 +122,3 @@ kmax-post-binding-hook(system, revision) {
 #SOLVERS="sharpsat-countAntom sharpsat-d4 sharpsat-dsharp sharpsat-ganak sharpsat-sharpSAT"
 #SOLVERS="c2d d4 dpmc gpmc sharpsat-td-arjun1 sharpsat-td-arjun2 sharpsat-td twg"
 #SOLVERS="d4"
-
-return
-
-export BR2_EXTERNAL=support/dummy-external
-export BUILD_DIR=/home/input/buildroot
-export BASE_DIR=/home/input/buildroot
-if echo $KCONFIG | grep -q buildroot; then
-    run linux skip-model v4.17 scripts/kconfig/*.o arch/x86/Kconfig $linux_env
-fi
-
-export BR2_EXTERNAL=support/dummy-external
-export BUILD_DIR=buildroot
-export BASE_DIR=buildroot
-git-checkout buildroot https://github.com/buildroot/buildroot
-for tag in $(git -C buildroot tag | grep -v rc | grep -v _ | grep -v -e '\..*\.'); do
-    run buildroot https://github.com/buildroot/buildroot $tag c-bindings/linux/v4.17.$BINDING Config.in
-done
-
-git-checkout embtoolkit https://github.com/ndmsystems/embtoolkit
-for tag in $(git -C embtoolkit tag | grep -v rc | grep -v -e '-.*-'); do
-    run embtoolkit https://github.com/ndmsystems/embtoolkit $tag scripts/kconfig/*.o Kconfig
-done
-
-git-checkout toybox https://github.com/landley/toybox
-for tag in $(git -C toybox tag); do
-    run toybox https://github.com/landley/toybox $tag c-bindings/linux/v2.6.12.$BINDING Config.in
-done
-
-git-checkout uclibc-ng https://github.com/wbx-github/uclibc-ng
-for tag in $(git -C uclibc-ng tag); do
-    run uclibc-ng https://github.com/wbx-github/uclibc-ng $tag extra/config/zconf.tab.o extra/Configs/Config.in
-done

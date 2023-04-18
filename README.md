@@ -51,14 +51,21 @@ By default, this will install torte into the `torte` directory; all experiment d
 
 ## Supported Subject Systems
 
-This is a list of all subject systems for which feature-model extraction has been tested and confirmed to work.
+This is a list of all subject systems for which feature-model extraction has been tested and confirmed to work for at least one extraction tool.
 Other systems or revisions may also be supported.
+Detailed system-specific information on potential threats to validity is available in `scripts/subjects.sh`.
 
-| System | Revisions | Architectures | Binding | Notes |
-| - | - | - | - | - |
-| [axtls](https://github.com/ekuiter/axTLS) | 1.0.0 - 2.0.0 | - | ... | uses frozen Git copy of original SVN repository |
-| [busybox](https://github.com/mirror/busybox) | 1.3.0 - 1.36.0 | - | ... | |
-| [linux](https://github.com/torvalds/linux) | 2.5.45 - 4.17 | x86 | ... | > 4.17 currently not supported |
+| System | Revisions | Notes |
+| - | - | - |
+| [axtls](https://github.com/ekuiter/axTLS) | 1.0.0 - 2.0.0 |
+| [buildroot](https://github.com/buildroot/buildroot) | 2009.02 - 2022.05 |
+| [busybox](https://github.com/mirror/busybox) | 1.3.0 - 1.36.0 |
+| [embtoolkit](https://github.com/ndmsystems/embtoolkit) | 1.0.0 - 1.8.0 |
+| [fiasco](https://github.com/kernkonzept/fiasco) | 5eed420 (2023-04-18) |
+| [freetz-ng](https://github.com/Freetz-NG/freetz-ng) | d57a38e (2023-04-18) |
+| [linux](https://github.com/torvalds/linux) | 2.5.45 - 4.17 | only x86 tested |
+| [toybox](https://github.com/landley/toybox) | 0.4.5 - 0.8.9 | should not be used |
+| [uclibc-ng](https://github.com/wbx-github/uclibc-ng) | 1.0.2 - 1.0.40 |
 
 ## Bundled Tools
 

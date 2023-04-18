@@ -4,6 +4,8 @@
 kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
     push "$(input-directory)/$system"
     git-checkout "$revision"
+    # run system-specific code that may impair accuracy, but is necessary to extract a kconfig model
+    compile-hook kconfig-post-checkout-hook
     kconfig-post-checkout-hook "$system" "$revision"
     if [[ -n $kconfig_binding_files_spec ]]; then
         local kconfig_binding_files
@@ -113,6 +115,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
                     "$features_file" "$kconfig_file" \
                     | tee "$output_log"
                 time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
+                compile-hook kmax-post-binding-hook
                 kmax-post-binding-hook "$system" "$revision"
                 evaluate "$timeout" /home/kclause.sh \
                     "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")" \
@@ -141,7 +144,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
         local variables
         variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
         local literals
-        literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | wc -l) # todo grep -c
+        literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
     echo "$system,$revision,$kconfig_binding_file,$kconfig_file,$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"

@@ -42,8 +42,6 @@ API=(
     # implemented in config files
     experiment-stages # defines the stages of the experiment in order of their execution
     experiment-subjects # defines the experiment subjects
-    kconfig-post-checkout-hook # called after a system has been checked out during kconfig model extraction
-    kmax-post-binding-hook # called after a kconfig binding has been executed during kconfig model extraction
 
     # implemented in Docker containers
     add-system # adds a system (e.g., clone)
