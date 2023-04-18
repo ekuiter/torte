@@ -6,5 +6,4 @@ RUN apt-get update && apt-get install -y \
     && python3 -mpip install z3-solver==4.11.2
 
 WORKDIR /home
-COPY *.sh z3/*.py ./
-RUN chmod +x *.sh
+COPY *.py ./

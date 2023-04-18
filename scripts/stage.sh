@@ -22,8 +22,8 @@ run(stage=, image=util, input_directory=, command...) {
     if [[ $FORCE_RUN == y ]] || ! stage-done "$stage"; then
         input_directory=${input_directory:-$(input-directory)}
         local dockerfile
-        if [[ ! -f $image ]] && [[ -f $SCRIPTS_DIRECTORY/$image/Dockerfile ]]; then
-            dockerfile=$SCRIPTS_DIRECTORY/$image/Dockerfile
+        if [[ ! -f $image ]] && [[ -f $DOCKER_DIRECTORY/$image/Dockerfile ]]; then
+            dockerfile=$DOCKER_DIRECTORY/$image/Dockerfile
         else
             dockerfile=$image
         fi
@@ -44,18 +44,19 @@ run(stage=, image=util, input_directory=, command...) {
                 -f "$dockerfile" \
                 -t "${DOCKER_PREFIX}_$stage" \
                 --ulimit nofile=20000:20000 \
-                "$SCRIPTS_DIRECTORY" >/dev/null
+                "$(dirname "$dockerfile")" >/dev/null
         fi
         mkdir -p "$(output-directory "$stage")"
         log "" "$(echo-progress run)"
         docker run \
             -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
+            -v "$SCRIPTS_DIRECTORY:$DOCKER_SCRIPTS_DIRECTORY" \
             -e IS_DOCKER_RUNNING=y \
             --rm \
             -m "$(memory-limit)G" \
             "${DOCKER_PREFIX}_$stage" \
-            ./torte.sh "${command[@]}" \
+            "$DOCKER_SCRIPTS_DIRECTORY/$DOCKER_PREFIX.sh" "${command[@]}" \
             > >(write-all "$(output-log "$stage")") \
             2> >(write-all "$(output-err "$stage")" >&2)
         rm-if-empty "$(output-log "$stage")"
@@ -129,7 +130,7 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, 
 # only run if the specified file does not exist yet
 run-transient-unless(file=, command...) {
     if [[ -z $file ]] || is-file-empty "$OUTPUT_DIRECTORY/$file"; then
-        run "" "" "$OUTPUT_DIRECTORY" bash -c "source torte.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
+        run "" "" "$OUTPUT_DIRECTORY" bash -c "cd $DOCKER_SCRIPTS_DIRECTORY; source $DOCKER_PREFIX.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
     fi
 }
 

@@ -11,8 +11,6 @@ RUN apt-get update && apt-get install -y \
 RUN gem install youplot
 
 WORKDIR /home
-COPY *.sh ./
-RUN chmod +x *.sh \
-    && git config --global --add safe.directory '*' \
+RUN git config --global --add safe.directory '*' \
     && git config --global user.email "anon@example.com" \
     && git config --global user.name "anon"

@@ -70,7 +70,7 @@ Detailed system-specific information on potential threats to validity is availab
 ## Bundled Tools
 
 The following tools are bundled with torte and can be used in experiments.
-Most tools are not included in this repository, but cloned and built with tool-specific Docker files in the `scripts` directory.
+Most tools are not included in this repository, but cloned and built with tool-specific Docker files in the `docker` directory.
 
 For transparency, we document the changes we make to these tools and known limitations. There are also some general known limitations of torte [^1] [^2].
 

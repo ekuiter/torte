@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-# install (tested) dependencies of kmax and evaluation scripts
+# install (tested) dependencies of kmax
 RUN apt-get update && apt-get install -y --allow-unauthenticated \
   git \
   python3-setuptools \
@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 
 # copy and set up
 # - kextractor (which is compiled against the projects' Kconfig implementations)
-# - IO and evaluation scripts
-COPY *.sh kmax/*.sh kmax/*.py kmax/kextractor.c ./
-RUN chmod +x *.sh \
-    && git config --global --add safe.directory '*'
+# - IO scripts
+COPY *.sh *.py kextractor.c ./
+RUN git config --global --add safe.directory '*'
+RUN chmod +x *.sh

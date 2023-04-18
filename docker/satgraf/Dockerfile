@@ -11,5 +11,5 @@ WORKDIR /home/SATGraf
 RUN chmod +x ./gradlew
 RUN ./gradlew shadowJar
 WORKDIR /home
-COPY *.sh satgraf/*.sh ./
+COPY *.sh ./
 RUN chmod +x *.sh

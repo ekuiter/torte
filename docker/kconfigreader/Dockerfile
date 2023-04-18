@@ -1,11 +1,11 @@
 FROM ubuntu:14.04
 
-# install (tested) dependencies of kconfigreader and evaluation scripts
+# install (tested) dependencies of kconfigreader
 RUN apt-get update && apt-get install -y --allow-unauthenticated \
   git \
   openjdk-7-jdk \
   wget
-COPY kconfigreader/sbt-0.13.6.deb .
+COPY sbt-0.13.6.deb .
 RUN dpkg -i sbt-0.13.6.deb
 
 # install (the tested version of) kconfigreader
@@ -30,10 +30,8 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 
 # copy and set up
 # - dumpconf (which is compiled against the projects' Kconfig implementations)
-# - evaluation scripts
 # - CNF transformer
-COPY kconfigreader/TransformIntoDIMACS.scala kconfigreader/src/main/scala/
+COPY TransformIntoDIMACS.scala kconfigreader/src/main/scala/
 RUN cd kconfigreader && sbt mkrun
-COPY *.sh kconfigreader/dumpconf.c ./
-RUN chmod +x *.sh \
-    && git config --global --add safe.directory '*'
+COPY dumpconf.c ./
+RUN git config --global --add safe.directory '*'
