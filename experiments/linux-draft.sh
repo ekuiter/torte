@@ -5,7 +5,7 @@
 TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 experiment-subjects() {
-    add-linux-kconfig-history --from v2.5.45 --to v2.5.46
+    add-linux-kconfig-history
 }
 
 experiment-stages() {
@@ -71,7 +71,7 @@ experiment-stages() {
             --stage "$stage" \
             --image "$image" \
             --input-directory dimacs \
-            --command solve --solver "$solver" --parser "$parser" --timeout 30
+            --command solve --solver "$solver" --parser "$parser" --timeout 300
     done
     aggregate --stage solve_model_count --stages "${model_count_stages[@]}"
     join-into dimacs solve_model_count
