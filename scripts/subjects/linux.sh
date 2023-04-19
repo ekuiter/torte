@@ -57,7 +57,7 @@ linux-kconfig-binding-file(revision) {
     output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$revision"
 }
 
-add-linux-kconfig-history(from=, to=) {
+add-linux-kconfig-history(from, to) {
     add-linux-system
     # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction, as previous versions cannot be compiled
     local first_binding_revision=v2.6.9
@@ -110,7 +110,7 @@ tag-linux-revisions(tag_option=) {
         fi
     }
 
-    tag-revisions(base_uri, start_inclusive=, end_inclusive=) {
+    tag-revisions(base_uri, start_inclusive=, end_exclusive=) {
         local revisions
         revisions=$(curl -s "$base_uri" \
             | sed 's/.*>\(.*\)<.*/\1/g' | grep .tar.gz | cut -d- -f2 | sed 's/\.tar\.gz//' | sort -V \

@@ -5,7 +5,7 @@
 TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 experiment-subjects() {
-    add-linux-kconfig-history
+    add-linux-kconfig-history --from v2.5.45 --to v6.4
 }
 
 experiment-stages() {
