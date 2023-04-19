@@ -2,7 +2,7 @@
 
 # transforms a file from one file format into another
 # measures the transformation time
-transform-file(file, input_extension, output_extension, transformer_name, transformer, data_extractor=, timeout=0) {
+transform-file(file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0) {
     local input
     input="$(input-directory)/$file"
     local new_file
@@ -28,7 +28,7 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
             compile-lambda data-extractor "$data_extractor"
             echo ",$(data-extractor "$output" "$output_log")" >> "$(output-csv)"
         else
-            for _ in $(seq 1 $(($(echo a,b,c | tr -cd , | wc -c)+1))); do
+            for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
                 echo -n ",NA" >> "$(output-csv)"
             done
             echo >> "$(output-csv)"
@@ -48,7 +48,7 @@ transform-files(csv_file, input_extension, output_extension, transformer_name, t
         echo >> "$(output-csv)"
     fi
     while read -r file; do
-        transform-file "$file" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_extractor" "$timeout"
+        transform-file "$file" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_fields" "$data_extractor" "$timeout"
     done < <(table-field "$csv_file" "$input_extension-file" | grep -v ^NA$)
 }
 
@@ -120,6 +120,7 @@ transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, time
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
         "$timeout"
+    # todo: for DIMACS, some solvers require that "c " lines occur before "p cnf", fix that
 }
 
 # displays community structure of a DIMACS file with SATGraf

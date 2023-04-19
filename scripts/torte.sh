@@ -34,6 +34,7 @@ SCRIPTS=(
     subjects/subjects.sh # configures common experiment subjects
     extraction.sh # extracts kconfig models
     transformation.sh # transforms files
+    analysis.sh # analyzes files
     initialization.sh # initializes the script
 )
 

@@ -1,6 +1,7 @@
 disable=SC1065
 disable=SC2016
 disable=SC2034
+disable=SC2054
 disable=SC2094
 disable=SC2154
 disable=SC2317

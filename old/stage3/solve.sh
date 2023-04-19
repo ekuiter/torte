@@ -11,12 +11,6 @@ run-solver() (
     (timeout $TIMEOUT_ANALYZE ./run.sh $solver input.dimacs 2>$err > $log) || true
     end=`date +%s.%N`
     if grep -q ^mc_int=. $log || grep -q ^mc_double=. $log || grep -q ^mc_log10=. $log; then
-        #todo
-        # satisfiable=$(cat $log | grep -q "^s SATISFIABLE$\|^SATISFIABLE$" && echo TRUE || (cat $log | grep -q "^s UNSATISFIABLE$\|^UNSATISFIABLE$" && echo FALSE || echo NA))
-        # model_count=$(cat $log | sed -z 's/\n# solutions \n/SHARPSAT/g' | grep -oP "((?<=Counting...)\d+(?= models)|(?<=  Counting... )\d+(?= models)|(?<=c model count\.{12}: )\d+|(?<=^s )\d+|(?<=^s mc )\d+|(?<=#SAT \(full\):   		)\d+|(?<=SHARPSAT)\d+|(?<=Number of solutions\t\t\t)[.e+\-\d]+)" || true)
-        # model_count="${model_count:-NA}"
-        # echo $dimacs,$solver,$analysis$suffix,$(echo "($end - $start) * 1000000000 / 1" | bc),$satisfiable,$model_count >> $res
-
         mc_int=$(grep mc_int $log | cut -d= -f2)
         mc_double=$(grep mc_double $log | cut -d= -f2)
         mc_log10=$(grep mc_log10 $log | cut -d= -f2)
