@@ -39,7 +39,7 @@ command-stop() {
 }
 
 # runs the experiment on a remote server
-command-run-remote(host, directory=., screen=) {
+command-run-remote(host, directory=., screen=y) {
     require-command ssh scp
     scp -r "$SCRIPTS_DIRECTORY/_experiment.sh" "$host:$directory"
     if [[ $screen == y ]]; then
