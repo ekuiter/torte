@@ -51,7 +51,7 @@ run(stage=, image=util, input_directory=, command...) {
         docker run \
             -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
             -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
-            -v "$SCRIPTS_DIRECTORY:$DOCKER_SCRIPTS_DIRECTORY" \
+            -v "$(realpath "$SCRIPTS_DIRECTORY"):$DOCKER_SCRIPTS_DIRECTORY" \
             -e IS_DOCKER_RUNNING=y \
             --rm \
             -m "$(memory-limit)G" \
