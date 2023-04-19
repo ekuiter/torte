@@ -58,6 +58,7 @@ linux-kconfig-binding-file(revision) {
 }
 
 add-linux-kconfig-history(from=, to=) {
+    add-linux-system
     # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction, as previous versions cannot be compiled
     local first_binding_revision=v2.6.9
     for revision in $(linux-tag-revisions \
