@@ -149,3 +149,26 @@ tag-linux-revisions(tag_option=) {
 
     experiment-subjects
 }
+
+read-linux-names() {
+    add-revision(system, revision) {
+        if [[ $system == linux ]]; then
+            log "read-linux-name: $system@$revision" "$(echo-progress read)"
+            if grep -q "^$system,$revision," "$(output-csv)"; then
+                log "" "$(echo-skip)"
+                return
+            fi
+            if [[ ! -d $(input-directory)/linux ]]; then
+                error "Linux has not been cloned yet. Please prepend a stage that clones Linux."
+            fi
+            local name
+            name=$({ git -C "$(input-directory)/linux" show "$revision:Makefile" | grep -oP "^NAME = \K.*"; } || true)
+            name=${name:-NA}
+            echo "$system,$revision,$name" >> "$(output-csv)"
+            log "" "$(echo-done)"
+        fi
+    }
+
+    echo system,revision,name > "$(output-csv)"
+    experiment-subjects
+}

@@ -11,7 +11,12 @@ experiment-subjects() {
 experiment-stages() {
     run --stage clone-systems
     run --stage tag-linux-revisions
+    force
+    run --stage read-linux-names
     run --stage read-statistics
+    join-into read-linux-names read-statistics
+    return
+
     #plot --stage read-statistics --type scatter --fields committer_date_unix,source_lines_of_code
 
     extract-with(extractor) {

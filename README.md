@@ -48,6 +48,7 @@ By default, this will install torte into the `torte` directory; all experiment d
   If this does not respond, try `Ctrl+Z`, then `./torte.sh stop`.
 - Run `./torte.sh help` to get further usage information (e.g., running an experiment over SSH and im-/export of Docker containers).
 - Developers are recommended to use [ShellCheck](https://www.shellcheck.net/) to improve code quality.
+- If you encounter the error message `cannot delete ...: Permission denied`, try to switch to Docker rootless mode.
 
 ## Supported Subject Systems
 
