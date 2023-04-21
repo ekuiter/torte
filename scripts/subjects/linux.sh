@@ -30,19 +30,30 @@ add-linux-kconfig(revision, kconfig_binding_file=) {
         arch=i386 # in old revisions, x86 is called i386
     fi
     add-revision --system linux --revision "$revision"
-    local environment=ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
+    # ARCH speficies the architecture of the targeted system, SRCARCH the architecture of the compiling system
+    # SUBARCH is only taken into account for user mode Linux (um), where it specifies the underlying targeted system architecture
+    # here we assume native compilation (no cross-compilation) without user mode Linux
+    # srctree is needed by later revisions to access scripts (e.g., in scripts/Kconfig.include)
+    # CC and LD are also used in scripts/Kconfig.include
+    #local environment=ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
+    local environment=SUBARCH=$arch,ARCH=$arch,SRCARCH=$arch,srctree=.,CC=cc,LD=ld
+    # locate the main Kconfig file, which is arch/.../Kconfig in old revisions and Kconfig in new revisions
+    local kconfig_file
+    kconfig_file=$({ git -C "$(input-directory)/linux" show "$revision:scripts/kconfig/Makefile" | grep "^Kconfig := [^$]" | cut -d' ' -f3; } || true)
+    kconfig_file=${kconfig_file:-arch/\$(SRCARCH)/Kconfig}
+    kconfig_file=${kconfig_file//\$(SRCARCH)/$arch}
     if [[ -n $kconfig_binding_file ]]; then
         add-kconfig-model \
             --system linux \
             --revision "$revision" \
-            --kconfig-file arch/$arch/Kconfig \
+            --kconfig-file "$kconfig_file" \
             --kconfig-binding-file "$kconfig_binding_file" \
             --environment "$environment"
     else
         add-kconfig \
             --system linux \
             --revision "$revision" \
-            --kconfig-file arch/$arch/Kconfig \
+            --kconfig-file "$kconfig_file" \
             --kconfig-binding-files scripts/kconfig/*.o \
             --environment "$environment"
     fi

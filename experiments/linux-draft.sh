@@ -5,17 +5,15 @@
 TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 experiment-subjects() {
-    add-linux-kconfig-history --from v2.5.45 --to v6.4
+    add-linux-kconfig-history --from v2.5.45 --to v6.0
 }
 
 experiment-stages() {
     run --stage clone-systems
     run --stage tag-linux-revisions
-    force
     run --stage read-linux-names
     run --stage read-statistics
     join-into read-linux-names read-statistics
-    return
 
     #plot --stage read-statistics --type scatter --fields committer_date_unix,source_lines_of_code
 
