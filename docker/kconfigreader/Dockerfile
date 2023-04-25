@@ -28,6 +28,21 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
   g++-9 \
   && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-9
 
+# install GNU make 4.4.0.90 and binutils 2.40, which is needed for newer Linux versions
+# todo: decouple compilation of bindings and extraction to not have these version dependencies by Ubuntu 14.04 in kconfigreader
+RUN wget --no-check-certificate https://alpha.gnu.org/gnu/make/make-4.4.0.90.tar.gz \
+  && tar xzvf make-4.4.0.90.tar.gz \
+  && cd make-4.4.0.90 \
+  && ./configure \
+  && make \
+  && make install
+RUN wget --no-check-certificate https://ftp.fau.de/gnu/binutils/binutils-2.35.tar.gz \
+  && tar xzvf binutils-2.35.tar.gz \
+  && cd binutils-2.35 \
+  && ./configure \
+  && make \
+  && make install
+
 # copy and set up
 # - dumpconf (which is compiled against the projects' Kconfig implementations)
 # - CNF transformer
