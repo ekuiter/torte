@@ -44,7 +44,7 @@ analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, 
     fi
     while read -r file; do
         analyze-file "$file" "$analyzer_name" "$analyzer" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code"
-    done < <(table-field "$csv_file" "$input_extension-file" | grep -v ^NA$)
+    done < <(table-field "$csv_file" "$input_extension-file" | grep -v ^NA$ | sort -V)
 }
 
 solve(solver, parser, input_extension=dimacs, timeout=0) {

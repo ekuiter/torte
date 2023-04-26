@@ -158,6 +158,7 @@ These #SAT solvers (available [here](https://github.com/SoftVarE-Group/emse-eval
 
 | Solver | Version | Date | Class |
 | - | - | - | - |
+| [d4](SoftVarE-Group/d4v2) | c1f6842 | 2023-02-15 | #SAT Solver, d-DNNF compiler, PMC
 | SAT4J | 2.3.6 | 2020-12-14 | SAT Solver
 
 #### Collection: sat-competition

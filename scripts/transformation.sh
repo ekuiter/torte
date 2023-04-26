@@ -49,7 +49,7 @@ transform-files(csv_file, input_extension, output_extension, transformer_name, t
     fi
     while read -r file; do
         transform-file "$file" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_fields" "$data_extractor" "$timeout"
-    done < <(table-field "$csv_file" "$input_extension-file" | grep -v ^NA$)
+    done < <(table-field "$csv_file" "$input_extension-file" | grep -v ^NA$ | sort -V)
 }
 
 # returns additional data fields for DIMACS files
