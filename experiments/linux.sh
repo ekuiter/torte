@@ -47,7 +47,10 @@ experiment-stages() {
             --transformer "$transformer"
     }
 
+    transform-with-featjar --transformer model_to_xml_featureide --output-extension xml
+    transform-with-featjar --transformer model_to_uvl_featureide --output-extension uvl
     transform-with-featjar --transformer model_to_smt_z3 --output-extension smt
+
     run \
         --stage dimacs \
         --image z3 \
@@ -56,12 +59,14 @@ experiment-stages() {
     join-into model_to_smt_z3 dimacs
     join-into model dimacs
 
+    run \
+        --stage community-structure \
+        --image satgraf \
+        --input-directory dimacs \
+        --command transform-with-satgraf
+
     local solver_specs=(
-        # ase-2022/countAntom,solver,model-count # todo: currently only returns NA
-        ase-2022/d4,solver,model-count
-        # ase-2022/dsharp,solver,model-count
-        ase-2022/ganak,solver,model-count
-        ase-2022/sharpSAT,solver,model-count
+        emse-2023/d4,solver,model-count
     )
     local model_count_stages=()
     for solver_spec in "${solver_specs[@]}"; do

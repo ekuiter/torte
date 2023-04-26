@@ -64,14 +64,17 @@ Detailed system-specific information on potential threats to validity is availab
 | [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 |
 | [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) |
 | [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) |
-| [linux](scripts/subjects/linux.sh) | 2.5.45 - 4.17 | only x86 tested |
+| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.3 | only x86 architecture tested |
 | [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | should not be used |
 | [uclibc-ng](scripts/subjects/uclibc-ng.sh) | 1.0.2 - 1.0.40 |
 
 ## Bundled Tools
 
-The following tools are bundled with torte and can be used in experiments.
+### Extraction, Transformation, and Analysis
+
+The following tools are bundled with torte and can be used in experiments for extracting, transforming, and analyzing feature models.
 Most tools are not included in this repository, but cloned and built with tool-specific Docker files in the `docker` directory.
+The bundled solvers are listed in a separate table [below](#bundled-solvers).
 
 For transparency, we document the changes we make to these tools and known limitations. There are also some general known limitations of torte [^1] [^2].
 
@@ -128,6 +131,62 @@ Currently, this behavior is not configurable.
 [^16]: Feature models and formulas produced by kconfigreader have nondeterministic clause order.
 This does not impact semantics, but it possibly influences the efficiency of solvers.
 
+### Solvers
+
+The following solvers are bundled with torte and can be used in experiments for analyzing feature-model formulas.
+The bundled solver binaries are available in the `docker/solver` directory.
+Solvers are grouped in collections to allow several versions of the same solver to be used.
+
+In addition to the listed solvers, `z3` (already listed above) can be used as a satisfiability and SMT solver.
+
+#### Collection: emse-2023
+
+These #SAT solvers (available [here](https://github.com/SoftVarE-Group/emse-evaluation-sharpsat/tree/main/solvers)) were used in the evaluations of several papers:
+
+* [Evaluating State-of-the-Art #SAT Solvers on Industrial Configuration Spaces](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2023/2023-EMSE-Sundermann.pdf) (EMSE 2023)
+* [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022)
+
+| Solver | Version | Date | Class |
+| - | - | - | - |
+| countAntom | 1.0 | 2015-05-11 | #SAT Solver
+| d4 | ? | ? | #SAT Solver, d-DNNF compiler
+| dSharp | ? | ? | #SAT Solver, d-DNNF compiler
+| Ganak | ? | ? | #SAT Solver
+| sharpSAT | ? | ? | #SAT Solver
+
+#### Collection: other
+
+| Solver | Version | Date | Class |
+| - | - | - | - |
+| SAT4J | 2.3.6 | 2020-12-14 | SAT Solver
+
+#### Collection: sat-competition
+
+These SAT solvers (binaries copied/compiled from [here](http://www.satcompetition.org/)) were used in the evaluation of the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022).
+Each solver is the gold medal winner in the main track (SAT+UNSAT) of the SAT competition in the year encoded in its file name.
+We were unable to obtain binaries for the winning solvers in 2008 and 2015.
+
+| Year | Solver | Version | Date | Class |
+| - | - | - | - | - |
+| 2002 | zchaff | ? | ? | SAT Solver
+| 2003 | Forklift | ? | ? | SAT Solver
+| 2004 | zchaff | ? | ? | SAT Solver
+| 2005 | SatELiteGTI | ? | ? | SAT Solver
+| 2006 | MiniSat | ? | ? | SAT Solver
+| 2007 | RSat | ? | ? | SAT Solver
+| 2009 | precosat | ? | ? | SAT Solver
+| 2010 | CryptoMiniSat | ? | ? | SAT Solver
+| 2011 | glucose | ? | ? | SAT Solver
+| 2012 | glucose | ? | ? | SAT Solver
+| 2013 | lingeling-aqw | ? | ? | SAT Solver
+| 2014 | lingeling-ayv | ? | ? | SAT Solver
+| 2016 | MapleCOMSPS_DRUP | ? | ? | SAT Solver
+| 2017 | Maple_LCM_Dist | ? | ? | SAT Solver
+| 2018 | MapleLCMDistChronoBT | ? | ? | SAT Solver
+| 2019 | MapleLCMDiscChronoBT-DL-v3 | ? | ? | SAT Solver
+| 2020 | Kissat-sc2020-sat | ? | ? | SAT Solver
+| 2021 | Kissat_MAB | ? | ? | SAT Solver
+
 ## Predefined Experiments
 
 This is a list of all predefined experiments in the `experiments` directory and their purposes.
@@ -135,9 +194,10 @@ Please create a pull request if you want to publish your own experiment.
 
 | Experiment | Purpose |
 | - | - |
+| `ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 | `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
-| `ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for our ASE'22 paper "Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses" |
-| `splc-2023-benchmark.sh` | Evaluation for our SPLC'23 paper draft |
+| `feature-model-benchmark.sh` | Extraction of many Kconfig-based feature models |
+| `linux.sh` | Extraction, Transformation, and Analysis of Linux feature models |
 
 ## Project History
 
