@@ -45,20 +45,23 @@ command-stop() {
 command-run-remote(host, directory=.) {
     require-command ssh scp
     scp -r "$SCRIPTS_DIRECTORY/_experiment.sh" "$host:$directory"
-    local cmd="(cd $directory; "
+    local cmd="(cd $directory;"
     cmd+="  bash _experiment.sh rm-safe $OUTPUT_DIRECTORY $DOCKER_PREFIX; "
     cmd+="  screen -dmSL $DOCKER_PREFIX bash _experiment.sh; "
     cmd+=");"
-    cmd+="alias $DOCKER_PREFIX='screen -x $DOCKER_PREFIX'; "
-    cmd+="alias $DOCKER_PREFIX-stop='screen -X -S $DOCKER_PREFIX kill; bash _experiment.sh stop'; "
+    cmd+="alias $DOCKER_PREFIX-stop='screen -X -S $DOCKER_PREFIX kill; bash $directory/_experiment.sh stop'; "
     ssh "$host" "$cmd"
     echo "$DOCKER_PREFIX is now running on $host, opening an SSH session."
     echo "To view its output, run:"
-    echo "  screen -x $DOCKER_PREFIX (Ctrl+a d to detach)"
+    echo "  $DOCKER_PREFIX (Ctrl+a d to detach)"
     echo "To stop it, run:"
-    echo "  screen -x $DOCKER_PREFIX (Ctrl+a k y to kill)"
-    echo "  bash _experiment.sh stop"
-    ssh "$host"
+    echo "  $DOCKER_PREFIX-stop"
+    cmd=""
+    cmd+="$DOCKER_PREFIX() { screen -x $DOCKER_PREFIX; };"
+    cmd+="$DOCKER_PREFIX-stop() { screen -X -S $DOCKER_PREFIX kill; bash $directory/_experiment.sh stop; };"
+    cmd+="export -f $DOCKER_PREFIX $DOCKER_PREFIX-stop;"
+    cmd+="/bin/bash"
+    ssh -t "$host" "$cmd"
 }
 
 # downloads results from the remote server
