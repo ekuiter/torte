@@ -120,7 +120,6 @@ transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, time
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
         "$timeout"
-    # todo: for DIMACS, some solvers require that "c " lines occur before "p cnf", fix that
 }
 
 # displays community structure of a DIMACS file with SATGraf

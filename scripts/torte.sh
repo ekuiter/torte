@@ -18,7 +18,7 @@ command-help() {
     echo "  import [directory]               loads all Docker images from the given directory"
     echo "  reset                            removes all Docker containers and images"
     echo "  run-remote [host] [directory]    runs the experiment on a remote server"
-    echo "  clean-remote [host] [directory]  downloads and removes results from the remote server"
+    echo "  copy-remote [host] [directory]   downloads results from the remote server"
     echo "  browse                           start a web server for browsing output files"
     echo "  help                             prints help information"
 }

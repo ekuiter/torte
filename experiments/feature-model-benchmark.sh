@@ -12,6 +12,7 @@
 # https://github.com/rhuitl/uClinux is not so easy to set up, because it depends on vendor files
 # https://github.com/zephyrproject-rtos/zephyr also uses Kconfig, but a modified dialect based on Kconfiglib, which is not compatible with kconfigreader
 # https://github.com/solettaproject/soletta not yet included, many models available at https://github.com/TUBS-ISF/soletta-case-study
+# https://github.com/openwrt/openwrt not yet included
 
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).

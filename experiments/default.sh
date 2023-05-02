@@ -47,7 +47,7 @@ experiment-stages() {
         --stage-field extractor \
         --file-fields binding-file,model-file \
         --stages kconfigreader kmax
-    
+
     transform-with-featjar --transformer model_to_xml_featureide --output-extension xml
     transform-with-featjar --transformer model_to_uvl_featureide --output-extension uvl
     transform-into-dimacs-with-featjar --transformer model_to_dimacs_featureide
@@ -85,11 +85,9 @@ experiment-stages() {
     join-into dimacs community-structure
     join-into read-statistics community-structure
 
-    force
-
     local solver_specs=(
         z3,z3,satisfiable
-        emse-2023/countAntom,solver,model-count # todo: currently only returns NA
+        emse-2023/countAntom,solver,model-count
         emse-2023/d4,solver,model-count
         emse-2023/dsharp,solver,model-count
         emse-2023/ganak,solver,model-count

@@ -6,7 +6,7 @@ TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL http
 
 experiment-subjects() {
     #add-linux-kconfig-history --from v2.5.45 --to v6.0
-    add-linux-kconfig-history --from v2.5.45 --to v3.0
+    add-linux-kconfig-history --from v2.5.45 --to v4.0
     #add-linux-kconfig-history --from v6.3 --to v6.4
 }
 
@@ -76,7 +76,7 @@ experiment-stages() {
             --stage "$stage" \
             --image "$image" \
             --input-directory dimacs \
-            --command solve --solver "$solver" --parser "$parser" --timeout 1800
+            --command solve --solver "$solver" --parser "$parser" --timeout 3600
     done
     aggregate --stage solve_model_count --stages "${model_count_stages[@]}"
     join-into dimacs solve_model_count

@@ -48,17 +48,26 @@ run(stage=, image=util, input_directory=, command...) {
         fi
         mkdir -p "$(output-directory "$stage")"
         log "" "$(echo-progress run)"
-        docker run \
-            -v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY" \
-            -v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY" \
-            -v "$(realpath "$SCRIPTS_DIRECTORY"):$DOCKER_SCRIPTS_DIRECTORY" \
-            -e IS_DOCKER_RUNNING=y \
-            --rm \
-            -m "$(memory-limit)G" \
-            "${DOCKER_PREFIX}_$stage" \
-            "$DOCKER_SCRIPTS_DIRECTORY/$DOCKER_PREFIX.sh" "${command[@]}" \
-            > >(write-all "$(output-log "$stage")") \
-            2> >(write-all "$(output-err "$stage")" >&2)
+        local cmd=(docker run)
+        if [[ ${command[*]} == /bin/bash ]]; then
+            cmd+=(-it)
+        fi
+        cmd+=(-v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY")
+        cmd+=(-v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY")
+        cmd+=(-v "$(realpath "$SCRIPTS_DIRECTORY"):$DOCKER_SCRIPTS_DIRECTORY")
+        cmd+=(-e IS_DOCKER_RUNNING=y)
+        cmd+=(--rm)
+        cmd+=(-m "$(memory-limit)G")
+        cmd+=("${DOCKER_PREFIX}_$stage")
+        if [[ ${command[*]} == /bin/bash ]]; then
+            cmd+=("${command[*]}")
+            log "${cmd[*]}"
+        else
+            cmd+=("$DOCKER_SCRIPTS_DIRECTORY/$DOCKER_PREFIX.sh")
+            "${cmd[@]}" "${command[@]}" \
+                > >(write-all "$(output-log "$stage")") \
+                2> >(write-all "$(output-err "$stage")" >&2)
+        fi
         rm-if-empty "$(output-log "$stage")"
         rm-if-empty "$(output-err "$stage")"
         find "$(output-directory "$stage")" -mindepth 1 -type d -empty -delete

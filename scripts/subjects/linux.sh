@@ -35,7 +35,6 @@ add-linux-kconfig(revision, kconfig_binding_file=) {
     # here we assume native compilation (no cross-compilation) without user mode Linux
     # srctree is needed by later revisions to access scripts (e.g., in scripts/Kconfig.include)
     # CC and LD are also used in scripts/Kconfig.include
-    #local environment=ARCH=$arch,SRCARCH=$arch,KERNELVERSION=kcu,srctree=./,CC=cc,LD=ld,RUSTC=rustc
     local environment=SUBARCH=$arch,ARCH=$arch,SRCARCH=$arch,srctree=.,CC=cc,LD=ld
     # locate the main Kconfig file, which is arch/.../Kconfig in old revisions and Kconfig in new revisions
     local kconfig_file
@@ -161,6 +160,7 @@ tag-linux-revisions(tag_option=) {
     experiment-subjects
 }
 
+# extracts code names of linux revisions, just because it's fun :-)
 read-linux-names() {
     add-revision(system, revision) {
         if [[ $system == linux ]]; then

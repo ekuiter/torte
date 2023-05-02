@@ -25,6 +25,7 @@ command-run() {
     mkdir -p "$OUTPUT_DIRECTORY"
     clean "$DOCKER_PREFIX"
     mkdir -p "$(output-directory "$DOCKER_PREFIX")"
+    cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$(output-directory "$DOCKER_PREFIX")/_experiment.sh"
     experiment-stages \
         > >(write-log "$(output-log "$DOCKER_PREFIX")") \
         2> >(write-all "$(output-err "$DOCKER_PREFIX")" >&2)
@@ -39,28 +40,29 @@ command-stop() {
 }
 
 # runs the experiment on a remote server
-command-run-remote(host, directory=., screen=y) {
+# removes previous experiment results and reinstalls evaluation scripts
+# shellcheck disable=SC2029
+command-run-remote(host, directory=.) {
     require-command ssh scp
     scp -r "$SCRIPTS_DIRECTORY/_experiment.sh" "$host:$directory"
-    if [[ $screen == y ]]; then
-        # shellcheck disable=SC2029
-        ssh "$host" "(cd $directory; screen -dmS $DOCKER_PREFIX bash _experiment.sh)"
-        echo "$DOCKER_PREFIX is now running on $host, opening an SSH session."
-        echo "To view its output, run:"
-        echo "  screen -x $DOCKER_PREFIX (Ctrl+a d to detach)"
-        echo "To stop it, run:"
-        echo "  screen -x $DOCKER_PREFIX (Ctrl+a k y to kill)"
-        echo "  bash _experiment.sh stop"
-        ssh "$host"
-    else
-        ssh "$host" bash _experiment.sh
-    fi
+    local cmd="(cd $directory; "
+    cmd+="  bash _experiment.sh rm-safe $OUTPUT_DIRECTORY $DOCKER_PREFIX; "
+    cmd+="  screen -dmSL $DOCKER_PREFIX bash _experiment.sh; "
+    cmd+="  alias $DOCKER_PREFIX='screen -x $DOCKER_PREFIX'; "
+    cmd+="  alias $DOCKER_PREFIX-stop='screen -X -S $DOCKER_PREFIX kill; bash _experiment.sh stop'; "
+    cmd+=")"
+    ssh "$host" "$cmd"
+    echo "$DOCKER_PREFIX is now running on $host, opening an SSH session."
+    echo "To view its output, run:"
+    echo "  screen -x $DOCKER_PREFIX (Ctrl+a d to detach)"
+    echo "To stop it, run:"
+    echo "  screen -x $DOCKER_PREFIX (Ctrl+a k y to kill)"
+    echo "  bash _experiment.sh stop"
+    ssh "$host"
 }
 
-# downloads and removes results from the remote server
-command-clean-remote(host, directory=.) {
-    require-command ssh scp
-    scp -r "$host:$directory/$OUTPUT_DIRECTORY" "$OUTPUT_DIRECTORY-$host"
-    # shellcheck disable=SC2029
-    ssh "$host" "(cd $directory; bash _experiment.sh rm-safe $INPUT_DIRECTORY $OUTPUT_DIRECTORY $DOCKER_PREFIX _experiment.sh)"
+# downloads results from the remote server
+command-copy-remote(host, directory=.) {
+    require-command scp
+    scp -r "$host:$directory/$OUTPUT_DIRECTORY" "$OUTPUT_DIRECTORY-$host-$(date "+%Y-%m-%d")"
 }

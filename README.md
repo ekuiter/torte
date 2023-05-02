@@ -74,13 +74,13 @@ Detailed system-specific information on potential threats to validity is availab
 
 The following tools are bundled with torte and can be used in experiments for extracting, transforming, and analyzing feature models.
 Most tools are not included in this repository, but cloned and built with tool-specific Docker files in the `docker` directory.
-The bundled solvers are listed in a separate table [below](#bundled-solvers).
+The bundled solvers are listed in a separate table [below](#solvers).
 
 For transparency, we document the changes we make to these tools and known limitations. There are also some general known limitations of torte [^1] [^2].
 
 | Tool | Version | Date | Changes and Limitations |
 | - | - | - | - |
-| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^6] [^9] [^16] |
+| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | e27aea7 | 2023-04-11 | [^12] [^15] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
@@ -101,8 +101,6 @@ Specifically, we added support for `E_CHOICE` (treated as `E_LIST`), `P_IMPLY` (
 
 [^5]: Compiling the native C bindings of kconfigreader and kmax is not possible for all KConfig-based systems (e.g., if the Python-based [Kconfiglib](https://github.com/ulfalizer/Kconfiglib) parser is used).
 In that case, you can try to reuse a C binding from an existing system with similar KConfig files; however, this may limit the extracted model's accuracy.
-
-[^6]: Extraction of Linux > v4.17 currently yields incorrect models for both kconfigreader and kmax.
 
 [^7]: We added the script `kclause2model.py` to kmax to translate kclause's pickle files into the kconfigreader's feature-model format.
 This file translates Boolean variability correctly, but non-Boolean variability is not supported.
@@ -158,7 +156,7 @@ These #SAT solvers (available [here](https://github.com/SoftVarE-Group/emse-eval
 
 | Solver | Version | Date | Class |
 | - | - | - | - |
-| [d4](SoftVarE-Group/d4v2) | c1f6842 | 2023-02-15 | #SAT Solver, d-DNNF compiler, PMC
+| [d4](https://github.com/SoftVarE-Group/d4v2) | c1f6842 | 2023-02-15 | #SAT Solver, d-DNNF compiler, PMC
 | SAT4J | 2.3.6 | 2020-12-14 | SAT Solver
 
 #### Collection: sat-competition

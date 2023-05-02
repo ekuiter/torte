@@ -35,7 +35,6 @@ analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeo
 
 # analyzes a list of files
 analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, data_extractor=, timeout=0, ignore_exit_code=) {
-    # todo: make names of columns follow a consistent scheme
     echo -n "$input_extension-file,$input_extension-analyzer,$input_extension-analyzer-time" > "$(output-csv)"
     if [[ -n $data_fields ]]; then
         echo ",$data_fields" >> "$(output-csv)"
@@ -48,7 +47,6 @@ analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, 
 }
 
 solve(solver, parser, input_extension=dimacs, timeout=0) {
-    # todo: make transformer and analyzer names consistent with each other
     analyze-files \
         "$(input-csv)" \
         "$input_extension" \
