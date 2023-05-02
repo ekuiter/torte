@@ -5,34 +5,10 @@
 TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 experiment-stages() {
-    # clone the systems specified as experiment subjects
     run --stage clone-systems
-
-    # tag old Linux revisions that are not included in its Git history
     run --stage tag-linux-revisions
-
-    # read basic statistics for each system
     run --stage read-statistics
-    #plot --stage read-statistics --type scatter --fields committer_date_unix,source_lines_of_code
-
-    # use a given extractor to extract a kconfig model for each specified experiment subject
-    extract-with(extractor) {
-        iterate \
-            --stage "$extractor" \
-            --iterations 1 \
-            --file-fields binding-file,model-file \
-            --image "$extractor" \
-            --command "extract-with-$extractor"
-    }
-
-    extract-with --extractor kconfigreader
-    extract-with --extractor kmax
-
-    aggregate \
-        --stage kconfig \
-        --stage-field extractor \
-        --file-fields binding-file,model-file \
-        --stages kconfigreader kmax
+    extract-kconfig-models
 
     # use featjar to transform kconfig models into various formats and then into DIMACS
     transform-with-featjar(transformer, output_extension, command=transform-with-featjar) {

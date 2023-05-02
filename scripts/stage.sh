@@ -180,3 +180,91 @@ plot(stage, type, fields, arguments...) {
     fi
     run-transient-unless "" "plot-helper \"${file#"$OUTPUT_DIRECTORY/"}\" \"$type\" \"$fields\" ${arguments[*]}"
 }
+
+# clone the systems specified as experiment subjects
+run-clone-systems() {
+    run --stage clone-systems
+}
+
+# tag old Linux revisions that are not included in its Git history
+run-tag-linux-revisions(option=) {
+    run --stage tag-linux-revisions --command tag-linux-revisions "$option"
+}
+
+# read basic statistics for each system
+run-read-statistics(option=) {
+    run --stage read-statistics --command read-statistics "$option"
+}
+
+# extracts kconfig models with the given extractor
+run-extract-kconfig-models-with(extractor, stage=kconfig) {
+    run \
+        --stage "$stage" \
+        --image "$extractor" \
+        --command "extract-kconfig-models-with-$extractor"
+}
+
+# extracts kconfig models with kconfigreader and kmax
+run-extract-kconfig-models(stage=kconfig) {
+    run-extract-kconfig-models-with --extractor kconfigreader --stage kconfigreader
+    run-extract-kconfig-models-with --extractor kmax --stage kmax
+    aggregate \
+        --stage "$stage" \
+        --stage-field extractor \
+        --file-fields binding-file,model-file \
+        --stages kconfigreader kmax
+}
+
+# transforms model files with FeatJAR
+run-transform-models-with-featjar(transformer, output_extension, command=transform-with-featjar, timeout=0) {
+    # shellcheck disable=SC2128
+    run \
+        --stage "$transformer" \
+        --image featjar \
+        --input-directory kconfig \
+        --command "$command" \
+        --input-extension model \
+        --output-extension "$output_extension" \
+        --transformer "$transformer" \
+        --timeout "$timeout"
+}
+
+# transforms model files into DIMACS with FeatJAR
+run-transform-models-into-dimacs-with-featjar(transformer, timeout=0) {
+    run-transform-models-with-featjar \
+        --command transform-into-dimacs-with-featjar \
+        --output-extension dimacs \
+        --transformer "$transformer" \
+        --timeout "$timeout"
+}
+
+# transforms model files into DIMACS
+run-transform-models-into-dimacs(stage=dimacs, timeout=0) {
+    run-transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featureide --timeout "$timeout"
+    run-transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featjar --timeout "$timeout"
+    run-transform-models-with-featjar --transformer model_to_model_featureide --output-extension featureide.model --timeout "$timeout"
+    run-transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --timeout "$timeout"
+
+    run \
+        --stage model_to_dimacs_kconfigreader \
+        --image kconfigreader \
+        --input-directory model_to_model_featureide \
+        --command transform-into-dimacs-with-kconfigreader \
+        --input-extension featureide.model \
+         --timeout "$timeout"
+    join-into model_to_model_featureide model_to_dimacs_kconfigreader
+
+    run \
+        --stage smt_to_dimacs_z3 \
+        --image z3 \
+        --input-directory model_to_smt_z3 \
+        --command transform-into-dimacs-with-z3 \
+         --timeout "$timeout"
+    join-into model_to_smt_z3 smt_to_dimacs_z3
+
+    aggregate \
+        --stage "$stage" \
+        --directory-field dimacs-transformer \
+        --file-fields dimacs-file \
+        --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
+}

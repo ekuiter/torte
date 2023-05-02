@@ -19,16 +19,9 @@ experiment-stages() {
     #join-into read-linux-names read-statistics
 
     #plot --stage read-statistics --type scatter --fields committer_date_unix,source_lines_of_code
-
-    extract-with(extractor) {
-        run \
-            --stage "$extractor" \
-            --image "$extractor" \
-            --command "extract-with-$extractor"
-    }
     
-    #extract-with kconfigreader
-    extract-with kmax
+    #extract-kconfig-models-with kconfigreader
+    extract-kconfig-models-with kmax
     
     aggregate \
         --stage model \

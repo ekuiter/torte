@@ -35,32 +35,13 @@ experiment-subjects() {
 }
 
 experiment-stages() {
-    force # do not skip stages
-
     # clone Linux, add old Linux revisions, and read committer dates
     run --stage clone-systems
     run --stage tag-linux-revisions
     run --stage read-statistics --command read-statistics skip-sloc
     
     # extract feature models
-    extract-with(extractor) {
-        run \
-            --stage "$extractor" \
-            --image "$extractor" \
-            --command "extract-with-$extractor"
-    }
-    
-    extract-with --extractor kconfigreader
-    extract-with --extractor kmax
-
-    return
-    
-    # aggregate all model files in one directory
-    aggregate \
-        --stage model \
-        --stage-field extractor \
-        --file-fields binding-file,model-file \
-        --stages kconfigreader kmax
+    extract-kconfig-models --stage model
     join-into read-statistics model
 
     # transform feature models into various formats
@@ -74,7 +55,7 @@ experiment-stages() {
             --input-extension model \
             --output-extension "$output_extension" \
             --transformer "$transformer" \
-            --timeout $TIMEOUT
+            --timeout "$TIMEOUT"
     }
 
     # UVL
@@ -91,7 +72,7 @@ experiment-stages() {
         --input-directory model_to_model_featureide \
         --command transform-into-dimacs-with-kconfigreader \
         --input-extension featureide.model \
-        --timeout $TIMEOUT
+        --timeout "$TIMEOUT"
     join-into model_to_model_featureide plaistedgreenbaum
 
     # Tseitin CNF tranformation
@@ -100,7 +81,7 @@ experiment-stages() {
         --image z3 \
         --input-directory model_to_smt_z3 \
         --command transform-into-dimacs-with-z3 \
-        --timeout $TIMEOUT
+        --timeout "$TIMEOUT"
     join-into model_to_smt_z3 tseitin
 
     # aggregate all DIMACS files in one directory

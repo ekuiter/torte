@@ -183,13 +183,13 @@ register-kconfig-extractor(extractor, kconfig_binding) {
 }
 
 # compiles kconfig bindings and extracts kconfig models using kmax
-extract-with-kmax() {
+extract-kconfig-models-with-kmax() {
     register-kconfig-extractor kmax kextractor
     experiment-subjects
 }
 
 # compiles kconfig bindings and extracts kconfig models using kconfigreader
-extract-with-kconfigreader() {
+extract-kconfig-models-with-kconfigreader() {
     register-kconfig-extractor kconfigreader dumpconf
     experiment-subjects
 }
