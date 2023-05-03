@@ -147,7 +147,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
         literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
-    echo "$system,$revision,$kconfig_binding_file,$kconfig_file,$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
+    echo "$system,$revision,$kconfig_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
 }
 
 # defines API functions for extracting kconfig models
@@ -179,7 +179,7 @@ register-kconfig-extractor(extractor, kconfig_binding) {
     }
 
     echo system,revision,binding-file > "$(output-path kconfig-bindings.csv)"
-    echo system,revision,binding-file,kconfig-file,model-file,model-features,model-variables,model-literals,model-time > "$(output-csv)"
+    echo system,revision,binding-file,kconfig-file,environment,model-file,model-features,model-variables,model-literals,model-time > "$(output-csv)"
 }
 
 # compiles kconfig bindings and extracts kconfig models using kmax

@@ -77,7 +77,7 @@ add-linux-kconfig-history(from, to) {
         add-linux-kconfig-binding --revision "$first_binding_revision"
         add-linux-kconfig \
             --revision "$revision" \
-            --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux v2.6.9)"
+            --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$first_binding_revision")"
     done
     # after linux 2.6.9, use the kconfig parser of the respective revision
     for revision in $(linux-tag-revisions \
