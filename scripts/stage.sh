@@ -236,6 +236,7 @@ define-stage-helpers() {
         transform-models-with-featjar \
             --command transform-into-dimacs-with-featjar \
             --output-extension dimacs \
+            --input-stage "$input_stage" \
             --transformer "$transformer" \
             --timeout "$timeout"
     }
@@ -246,7 +247,7 @@ define-stage-helpers() {
         transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featureide --input-stage "$input_stage" --timeout "$timeout"
         transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featjar --input-stage "$input_stage" --timeout "$timeout"
         
-                # intermediate formats for CNF transformation
+        # intermediate formats for CNF transformation
         transform-models-with-featjar --transformer model_to_model_featureide --output-extension featureide.model --input-stage "$input_stage" --timeout "$timeout"
         transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --input-stage "$input_stage" --timeout "$timeout"
 
@@ -273,7 +274,7 @@ define-stage-helpers() {
             --stage "$output_stage" \
             --directory-field dimacs-transformer \
             --file-fields dimacs-file \
-            --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
+            --stages model_to_dimacs_featureide model_to_dimacs_featjar model_to_dimacs_kconfigreader smt_to_dimacs_z3
     }
 
     # visualize community structure of DIMACS files as a JPEG file

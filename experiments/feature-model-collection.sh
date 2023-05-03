@@ -17,13 +17,13 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run torte.sh <this-file>.
-TORTE_REVISION=main; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=0d0c78d; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 PATH_SEPARATOR=_ # create no nested directories
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
-    add-axtls-kconfig-history --from release-1.0.0 --to release-1.1.0
+    add-busybox-kconfig-history --from 1_3_0 --to 1_3_1
     # add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
     # add-buildroot-kconfig-history --from 2009.05 --to 2022.05
     # add-busybox-kconfig-history --from 1_3_0 --to 1_36_0
@@ -42,7 +42,7 @@ experiment-stages() {
     read-statistics
     
     # extract feature models
-    extract-kconfig-models --stage model
+    extract-kconfig-models --output-stage model
     join-into read-statistics model
 
     # transform into UVL
@@ -55,7 +55,8 @@ experiment-stages() {
 clean-up() {
     # clean up intermediate stages and rearrange output files
     clean clone-systems tag-linux-revisions read-statistics kconfigreader kmax \
-        model_to_model_featureide model_to_smt_z3 plaistedgreenbaum tseitin torte
+        model_to_model_featureide model_to_smt_z3 model_to_dimacs_kconfigreader \
+        model_to_dimacs_featjar model_to_dimacs_featureide smt_to_dimacs_z3 torte
     rm-safe \
         "$OUTPUT_DIRECTORY"/model/*binding* \
         "$OUTPUT_DIRECTORY"/model/*.features \
@@ -66,4 +67,5 @@ clean-up() {
         "$OUTPUT_DIRECTORY"/*/*output.*.csv \
         "$OUTPUT_DIRECTORY"/*/*.log \
         "$OUTPUT_DIRECTORY"/*/*.err
+    mv "$OUTPUT_DIRECTORY"/model_to_uvl_featureide "$OUTPUT_DIRECTORY"/uvl
 }
