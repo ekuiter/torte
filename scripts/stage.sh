@@ -242,11 +242,15 @@ define-stage-helpers() {
 
     # transforms model files into DIMACS
     transform-models-into-dimacs(input_stage=kconfig, output_stage=dimacs, timeout=0) {
+        # distributive tranformation
         transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featureide --input-stage "$input_stage" --timeout "$timeout"
         transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featjar --input-stage "$input_stage" --timeout "$timeout"
+        
+                # intermediate formats for CNF transformation
         transform-models-with-featjar --transformer model_to_model_featureide --output-extension featureide.model --input-stage "$input_stage" --timeout "$timeout"
         transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --input-stage "$input_stage" --timeout "$timeout"
 
+        # Plaisted-Greenbaum CNF tranformation
         run \
             --stage model_to_dimacs_kconfigreader \
             --image kconfigreader \
@@ -256,6 +260,7 @@ define-stage-helpers() {
             --timeout "$timeout"
         join-into model_to_model_featureide model_to_dimacs_kconfigreader
 
+        # Tseitin CNF tranformation
         run \
             --stage smt_to_dimacs_z3 \
             --image z3 \

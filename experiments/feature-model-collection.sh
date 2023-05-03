@@ -23,74 +23,33 @@ PATH_SEPARATOR=_ # create no nested directories
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
-    add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
-    add-buildroot-kconfig-history --from 2009.05 --to 2022.05
-    add-busybox-kconfig-history --from 1_3_0 --to 1_36_0
-    add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0
-    add-fiasco-kconfig 5eed420385a9fc0055b06f063b4c981a68a35b51
-    add-freetz-ng-kconfig d57a38e12ec6347ecdd4240fa541b722937fa72f
-    add-linux-kconfig-history --from v6.0 --to v6.1
-    #add-toybox-kconfig-history --from 0.4.5 --to 0.8.9
-    add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40
+    add-axtls-kconfig-history --from release-1.0.0 --to release-1.1.0
+    # add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
+    # add-buildroot-kconfig-history --from 2009.05 --to 2022.05
+    # add-busybox-kconfig-history --from 1_3_0 --to 1_36_0
+    # add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0
+    # add-fiasco-kconfig 5eed420385a9fc0055b06f063b4c981a68a35b51
+    # add-freetz-ng-kconfig d57a38e12ec6347ecdd4240fa541b722937fa72f
+    # add-linux-kconfig-history --from v6.0 --to v6.1
+    # #add-toybox-kconfig-history --from 0.4.5 --to 0.8.9
+    # add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40
 }
 
 experiment-stages() {
     # clone Linux, add old Linux revisions, and read committer dates
-    run --stage clone-systems
-    run --stage tag-linux-revisions
-    run --stage read-statistics --command read-statistics skip-sloc
+    clone-systems
+    tag-linux-revisions
+    read-statistics
     
     # extract feature models
     extract-kconfig-models --stage model
     join-into read-statistics model
 
-    # transform feature models into various formats
-    # we skip the distributive CNF transformation, which doesn't work for Linux anyway
-    transform-with-featjar(transformer, output_extension, command=transform-with-featjar) {
-        run \
-            --stage "$transformer" \
-            --image featjar \
-            --input-directory model \
-            --command "$command" \
-            --input-extension model \
-            --output-extension "$output_extension" \
-            --transformer "$transformer" \
-            --timeout "$TIMEOUT"
-    }
+    # transform into UVL
+    transform-models-with-featjar --input-stage model --transformer model_to_uvl_featureide --output-extension uvl --timeout "$timeout"
 
-    # UVL
-    transform-with-featjar --transformer uvl --output-extension uvl
-
-    # intermediate formats for CNF transformation
-    transform-with-featjar --transformer model_to_model_featureide --output-extension featureide.model
-    transform-with-featjar --transformer model_to_smt_z3 --output-extension smt
-    
-    # Plaisted-Greenbaum CNF tranformation
-    run \
-        --stage plaistedgreenbaum \
-        --image kconfigreader \
-        --input-directory model_to_model_featureide \
-        --command transform-into-dimacs-with-kconfigreader \
-        --input-extension featureide.model \
-        --timeout "$TIMEOUT"
-    join-into model_to_model_featureide plaistedgreenbaum
-
-    # Tseitin CNF tranformation
-    run \
-        --stage tseitin \
-        --image z3 \
-        --input-directory model_to_smt_z3 \
-        --command transform-into-dimacs-with-z3 \
-        --timeout "$TIMEOUT"
-    join-into model_to_smt_z3 tseitin
-
-    # aggregate all DIMACS files in one directory
-    aggregate \
-        --stage dimacs \
-        --directory-field dimacs-transformer \
-        --file-fields dimacs-file \
-        --stages plaistedgreenbaum tseitin
-    join-into model dimacs
+    # CNF transformation
+    transform-models-into-dimacs --input-stage model --timeout "$timeout"
 }
 
 clean-up() {

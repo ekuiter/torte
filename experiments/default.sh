@@ -8,13 +8,13 @@ TORTE_REVISION=d425d2e; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL h
 # it serves as a demo and integration test for torte
 # it also returns some common statistics of the model
 
+TIMEOUT=10 # timeout for extraction and transformation in seconds
+
 experiment-subjects() {
     add-busybox-kconfig-history --from 1_18_0 --to 1_18_1
 }
 
 experiment-stages() {
-    local timeout=10
-
     clone-systems
     read-statistics
     extract-kconfig-models

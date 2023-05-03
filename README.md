@@ -190,13 +190,14 @@ We were unable to obtain binaries for the winning solvers in 2008 and 2015.
 
 This is a list of all predefined experiments in the `experiments` directory and their purposes.
 Please create a pull request if you want to publish your own experiment.
+Experiments starting with `draft-` are experimental.
 
 | Experiment | Purpose |
 | - | - |
-| `ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
+| `draft-ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 | `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
-| `feature-model-benchmark.sh` | Extraction of many Kconfig-based feature models |
-| `linux.sh` | Extraction, Transformation, and Analysis of Linux feature models |
+| `feature-model-collection.sh` | Extracts and transforms a collection of feature models |
+| `draft-linux.sh` | Extraction, transformation, and analysis of Linux feature models |
 
 ## Project History
 
