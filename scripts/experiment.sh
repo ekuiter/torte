@@ -26,6 +26,7 @@ command-run() {
     clean "$DOCKER_PREFIX"
     mkdir -p "$(output-directory "$DOCKER_PREFIX")"
     cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$(output-directory "$DOCKER_PREFIX")/_experiment.sh"
+    define-stage-helpers
     experiment-stages \
         > >(write-log "$(output-log "$DOCKER_PREFIX")") \
         2> >(write-all "$(output-err "$DOCKER_PREFIX")" >&2)

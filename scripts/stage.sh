@@ -181,90 +181,171 @@ plot(stage, type, fields, arguments...) {
     run-transient-unless "" "plot-helper \"${file#"$OUTPUT_DIRECTORY/"}\" \"$type\" \"$fields\" ${arguments[*]}"
 }
 
-# clone the systems specified as experiment subjects
-run-clone-systems() {
-    run --stage clone-systems
-}
+# convenience functions for defining commonly used stages
+define-stage-helpers() {
+    # clone the systems specified as experiment subjects
+    clone-systems() {
+        run --stage clone-systems
+    }
 
-# tag old Linux revisions that are not included in its Git history
-run-tag-linux-revisions(option=) {
-    run --stage tag-linux-revisions --command tag-linux-revisions "$option"
-}
+    # tag old Linux revisions that are not included in its Git history
+    tag-linux-revisions(option=) {
+        run --stage tag-linux-revisions --command tag-linux-revisions "$option"
+    }
 
-# read basic statistics for each system
-run-read-statistics(option=) {
-    run --stage read-statistics --command read-statistics "$option"
-}
+    # read basic statistics for each system
+    read-statistics(option=) {
+        run --stage read-statistics --command read-statistics "$option"
+    }
 
-# extracts kconfig models with the given extractor
-run-extract-kconfig-models-with(extractor, stage=kconfig) {
-    run \
-        --stage "$stage" \
-        --image "$extractor" \
-        --command "extract-kconfig-models-with-$extractor"
-}
+    # extracts kconfig models with the given extractor
+    extract-kconfig-models-with(extractor, output_stage=kconfig) {
+        run \
+            --stage "$output_stage" \
+            --image "$extractor" \
+            --command "extract-kconfig-models-with-$extractor"
+    }
 
-# extracts kconfig models with kconfigreader and kmax
-run-extract-kconfig-models(stage=kconfig) {
-    run-extract-kconfig-models-with --extractor kconfigreader --stage kconfigreader
-    run-extract-kconfig-models-with --extractor kmax --stage kmax
-    aggregate \
-        --stage "$stage" \
-        --stage-field extractor \
-        --file-fields binding-file,model-file \
-        --stages kconfigreader kmax
-}
+    # extracts kconfig models with kconfigreader and kmax
+    extract-kconfig-models(output_stage=kconfig) {
+        extract-kconfig-models-with --extractor kconfigreader --output-stage kconfigreader
+        extract-kconfig-models-with --extractor kmax --output-stage kmax
+        aggregate \
+            --stage "$output_stage" \
+            --stage-field extractor \
+            --file-fields binding-file,model-file \
+            --stages kconfigreader kmax
+    }
 
-# transforms model files with FeatJAR
-run-transform-models-with-featjar(transformer, output_extension, command=transform-with-featjar, timeout=0) {
-    # shellcheck disable=SC2128
-    run \
-        --stage "$transformer" \
-        --image featjar \
-        --input-directory kconfig \
-        --command "$command" \
-        --input-extension model \
-        --output-extension "$output_extension" \
-        --transformer "$transformer" \
-        --timeout "$timeout"
-}
+    # transforms model files with FeatJAR
+    transform-models-with-featjar(transformer, output_extension, input_stage=kconfig, command=transform-with-featjar, timeout=0) {
+        # shellcheck disable=SC2128
+        run \
+            --stage "$transformer" \
+            --image featjar \
+            --input-directory "$input_stage" \
+            --command "$command" \
+            --input-extension model \
+            --output-extension "$output_extension" \
+            --transformer "$transformer" \
+            --timeout "$timeout"
+    }
 
-# transforms model files into DIMACS with FeatJAR
-run-transform-models-into-dimacs-with-featjar(transformer, timeout=0) {
-    run-transform-models-with-featjar \
-        --command transform-into-dimacs-with-featjar \
-        --output-extension dimacs \
-        --transformer "$transformer" \
-        --timeout "$timeout"
-}
+    # transforms model files into DIMACS with FeatJAR
+    transform-models-into-dimacs-with-featjar(transformer, input_stage=kconfig, timeout=0) {
+        transform-models-with-featjar \
+            --command transform-into-dimacs-with-featjar \
+            --output-extension dimacs \
+            --transformer "$transformer" \
+            --timeout "$timeout"
+    }
 
-# transforms model files into DIMACS
-run-transform-models-into-dimacs(stage=dimacs, timeout=0) {
-    run-transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featureide --timeout "$timeout"
-    run-transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featjar --timeout "$timeout"
-    run-transform-models-with-featjar --transformer model_to_model_featureide --output-extension featureide.model --timeout "$timeout"
-    run-transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --timeout "$timeout"
+    # transforms model files into DIMACS
+    transform-models-into-dimacs(input_stage=kconfig, output_stage=dimacs, timeout=0) {
+        transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featureide --input-stage "$input_stage" --timeout "$timeout"
+        transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featjar --input-stage "$input_stage" --timeout "$timeout"
+        transform-models-with-featjar --transformer model_to_model_featureide --output-extension featureide.model --input-stage "$input_stage" --timeout "$timeout"
+        transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --input-stage "$input_stage" --timeout "$timeout"
 
-    run \
-        --stage model_to_dimacs_kconfigreader \
-        --image kconfigreader \
-        --input-directory model_to_model_featureide \
-        --command transform-into-dimacs-with-kconfigreader \
-        --input-extension featureide.model \
-         --timeout "$timeout"
-    join-into model_to_model_featureide model_to_dimacs_kconfigreader
+        run \
+            --stage model_to_dimacs_kconfigreader \
+            --image kconfigreader \
+            --input-directory model_to_model_featureide \
+            --command transform-into-dimacs-with-kconfigreader \
+            --input-extension featureide.model \
+            --timeout "$timeout"
+        join-into model_to_model_featureide model_to_dimacs_kconfigreader
 
-    run \
-        --stage smt_to_dimacs_z3 \
-        --image z3 \
-        --input-directory model_to_smt_z3 \
-        --command transform-into-dimacs-with-z3 \
-         --timeout "$timeout"
-    join-into model_to_smt_z3 smt_to_dimacs_z3
+        run \
+            --stage smt_to_dimacs_z3 \
+            --image z3 \
+            --input-directory model_to_smt_z3 \
+            --command transform-into-dimacs-with-z3 \
+            --timeout "$timeout"
+        join-into model_to_smt_z3 smt_to_dimacs_z3
 
-    aggregate \
-        --stage "$stage" \
-        --directory-field dimacs-transformer \
-        --file-fields dimacs-file \
-        --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
+        aggregate \
+            --stage "$output_stage" \
+            --directory-field dimacs-transformer \
+            --file-fields dimacs-file \
+            --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
+    }
+
+    # visualize community structure of DIMACS files as a JPEG file
+    draw-community-structure(input_stage=dimacs, timeout=0) {
+        run \
+            --stage community-structure \
+            --image satgraf \
+            --input-directory "$input_stage" \
+            --command transform-with-satgraf \
+            --timeout "$timeout"
+    }
+
+    # solve DIMACS files
+    solve(parser, input_stage=dimacs, timeout=0, solver_specs...) {
+        local stages=()
+        for solver_spec in "${solver_specs[@]}"; do
+            local solver stage image
+            solver=$(echo "$solver_spec" | cut -d, -f1)
+            stage=${solver//\//_}
+            stage=solve_${stage,,}
+            image=$(echo "$solver_spec" | cut -d, -f2)
+            stages+=("$stage")
+            run \
+                --stage "$stage" \
+                --image "$image" \
+                --input-directory "$input_stage" \
+                --command solve \
+                --solver "$solver" \
+                --parser "$parser" \
+                --timeout "$timeout"
+        done
+        aggregate --stage "solve_$parser" --stages "${stages[@]}"
+    }
+
+    # solve DIMACS files for satisfiability
+    solve-satisfiability(input_stage=dimacs, timeout=0) {
+        local solver_specs=(
+            z3,z3
+            other/sat4j.sh,solver
+            sat-competition/02-zchaff,solver
+            sat-competition/03-Forklift,solver
+            sat-competition/04-zchaff,solver
+            sat-competition/05-SatELiteGTI.sh,solver
+            sat-competition/06-MiniSat,solver
+            sat-competition/07-RSat.sh,solver
+            sat-competition/09-precosat,solver
+            sat-competition/10-CryptoMiniSat,solver
+            sat-competition/11-glucose.sh,solver
+            sat-competition/11-SatELite,solver
+            sat-competition/12-glucose.sh,solver
+            sat-competition/12-SatELite,solver
+            sat-competition/13-lingeling-aqw,solver
+            sat-competition/14-lingeling-ayv,solver
+            sat-competition/16-MapleCOMSPS_DRUP,solver
+            sat-competition/17-Maple_LCM_Dist,solver
+            sat-competition/18-MapleLCMDistChronoBT,solver
+            sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver
+            sat-competition/20-Kissat-sc2020-sat,solver
+            sat-competition/21-Kissat_MAB,solver
+        )
+        solve --parser satisfiable --input-stage "$input_stage" --timeout "$timeout" --solver_specs "${solver_specs[@]}"
+    }
+
+    # solve DIMACS files for model count
+    solve-model-count(input_stage=dimacs, timeout=0) {
+        local solver_specs=(
+            other/d4.sh,solver
+            emse-2023/countAntom,solver
+            emse-2023/d4,solver
+            emse-2023/dsharp,solver
+            emse-2023/ganak,solver
+            emse-2023/sharpSAT,solver
+        )
+        solve --parser model-count --input-stage "$input_stage" --timeout "$timeout" --solver_specs "${solver_specs[@]}"
+    }
+
+    log-output-field(stage, field) {
+        log "$field: $(table-field "$(output-directory "$stage")/output.csv" "$field" | sort | uniq | tr '\n' ' ')"
+    }
 }
