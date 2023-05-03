@@ -194,10 +194,10 @@ Experiments starting with `draft-` are experimental.
 
 | Experiment | Purpose |
 | - | - |
-| `draft-ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 | `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
-| `feature-model-collection.sh` | Extracts and transforms a collection of feature models |
+| `draft-ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 | `draft-linux.sh` | Extraction, transformation, and analysis of Linux feature models |
+| `feature-model-collection.sh` | Extracts and transforms a collection of feature models |
 
 ## Project History
 

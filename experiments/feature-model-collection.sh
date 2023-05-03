@@ -17,22 +17,21 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run torte.sh <this-file>.
-TORTE_REVISION=0d0c78d; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=7b74ee2; [[ -z $DOCKER_PREFIX ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 PATH_SEPARATOR=_ # create no nested directories
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {
-    add-busybox-kconfig-history --from 1_3_0 --to 1_3_1
-    # add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
-    # add-buildroot-kconfig-history --from 2009.05 --to 2022.05
-    # add-busybox-kconfig-history --from 1_3_0 --to 1_36_0
-    # add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0
-    # add-fiasco-kconfig 5eed420385a9fc0055b06f063b4c981a68a35b51
-    # add-freetz-ng-kconfig d57a38e12ec6347ecdd4240fa541b722937fa72f
-    # add-linux-kconfig-history --from v6.0 --to v6.1
-    # #add-toybox-kconfig-history --from 0.4.5 --to 0.8.9
-    # add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40
+    add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
+    add-buildroot-kconfig-history --from 2009.05 --to 2022.05
+    add-busybox-kconfig-history --from 1_3_0 --to 1_36_0
+    add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0
+    add-fiasco-kconfig 5eed420385a9fc0055b06f063b4c981a68a35b51
+    add-freetz-ng-kconfig d57a38e12ec6347ecdd4240fa541b722937fa72f
+    add-linux-kconfig-history --from v6.0 --to v6.1
+    #add-toybox-kconfig-history --from 0.4.5 --to 0.8.9
+    add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40
 }
 
 experiment-stages() {
