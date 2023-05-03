@@ -193,6 +193,11 @@ define-stage-helpers() {
         run --stage tag-linux-revisions --command tag-linux-revisions "$option"
     }
 
+    # extracts code names of linux revisions
+    read-linux-names(option=) {
+        run --stage read-linux-names
+    }
+
     # read basic statistics for each system
     read-statistics(option=) {
         run --stage read-statistics --command read-statistics "$option"

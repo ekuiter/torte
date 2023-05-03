@@ -836,7 +836,6 @@ int main(int argc, char **argv)
             print_python_expr(prop->expr, output_fp, E_NONE);
             /* if (is_string) fprintf(output_fp, "\""); */
             fprintf(output_fp, "|(");
-      break;
             if (NULL != prop->visible.expr) {
               print_python_expr(prop->visible.expr, output_fp, E_NONE);
             } else {
