@@ -21,18 +21,18 @@ experiment-stages() {
     extract-kconfig-models
     join-into read-statistics kconfig
 
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$timeout"
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$timeout"
-    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --timeout "$timeout"
+    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
+    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --timeout "$TIMEOUT"
 
     run \
         --stage dimacs \
         --image z3 \
         --input-directory model_to_smt_z3 \
         --command transform-into-dimacs-with-z3 \
-        --timeout "$timeout"
+        --timeout "$TIMEOUT"
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
 
-    solve --parser model-count --timeout "$timeout" --solver_specs other/d4.sh,solver # todo: second solver
+    solve --parser model-count --timeout "$TIMEOUT" --solver_specs other/d4.sh,solver # todo: second solver
 }

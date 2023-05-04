@@ -19,13 +19,13 @@ experiment-stages() {
     read-statistics
     extract-kconfig-models
     
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$timeout"
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$timeout"
-    transform-models-into-dimacs --timeout "$timeout"
+    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
+    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-models-into-dimacs --timeout "$TIMEOUT"
     
-    draw-community-structure --timeout "$timeout"
-    solve-satisfiability --timeout "$timeout"
-    solve-model-count --timeout "$timeout"
+    draw-community-structure --timeout "$TIMEOUT"
+    solve-satisfiability --timeout "$TIMEOUT"
+    solve-model-count --timeout "$TIMEOUT"
 
     join-into kconfig dimacs
     join-into dimacs community-structure
