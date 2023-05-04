@@ -293,7 +293,7 @@ define-stage-helpers() {
     }
 
     # solve DIMACS files
-    solve(parser, input_stage=dimacs, timeout=0, solver_specs...) {
+    solve(parser, input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image
@@ -309,13 +309,15 @@ define-stage-helpers() {
                 --command solve \
                 --solver "$solver" \
                 --parser "$parser" \
-                --timeout "$timeout"
+                --timeout "$timeout" \
+                --attempts "$attempts" \
+                --reset_timeouts_at "$reset_timeouts_at"
         done
         aggregate --stage "solve_$parser" --stages "${stages[@]}"
     }
 
     # solve DIMACS files for satisfiability
-    solve-satisfiability(input_stage=dimacs, timeout=0) {
+    solve-satisfiability(input_stage=dimacs, timeout=0, attempts=) {
         local solver_specs=(
             z3,z3
             other/sat4j.sh,solver
@@ -340,11 +342,11 @@ define-stage-helpers() {
             sat-competition/20-Kissat-sc2020-sat,solver
             sat-competition/21-Kissat_MAB,solver
         )
-        solve --parser satisfiable --input-stage "$input_stage" --timeout "$timeout" --solver_specs "${solver_specs[@]}"
+        solve --parser satisfiable --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
     }
 
     # solve DIMACS files for model count
-    solve-model-count(input_stage=dimacs, timeout=0) {
+    solve-model-count(input_stage=dimacs, timeout=0, attempts=) {
         local solver_specs=(
             other/d4.sh,solver
             emse-2023/countAntom,solver
@@ -353,7 +355,7 @@ define-stage-helpers() {
             emse-2023/ganak,solver
             emse-2023/sharpSAT,solver
         )
-        solve --parser model-count --input-stage "$input_stage" --timeout "$timeout" --solver_specs "${solver_specs[@]}"
+        solve --parser model-count --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-atli "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
     }
 
     log-output-field(stage, field) {
