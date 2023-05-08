@@ -10,15 +10,17 @@ FROM=v2.5.45
 TO=v6.4
 
 experiment-subjects() {
-    add-linux-kconfig-history --from "$FROM" --to "$TO"
+    add-linux-kconfig-history --from "$FROM" --to "$TO" --architecture all
 }
 
 experiment-stages() {
     clone-systems
     tag-linux-revisions
     read-linux-names
-    read-statistics
-    join-into read-linux-names read-statistics
+    read-linux-architectures
+    read-statistics skip-sloc
+    join-into read-statistics read-linux-names
+    join-into read-statistics read-linux-architectures
     extract-kconfig-models
     join-into read-statistics kconfig
 
@@ -35,8 +37,6 @@ experiment-stages() {
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
 
-    force
     solve --parser model-count --timeout "$TIMEOUT" --attempts "$ATTEMPTS" --reset-timeouts-at "$FROM" --solver_specs other/d4.sh,solver # todo: second solver
-    #todo: arch
-    #todo: iterate for runtime measurement(??)
+    join-into dimacs solve_other_d4.sh
 }

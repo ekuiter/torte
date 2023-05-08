@@ -23,11 +23,14 @@ linux-tag-revisions() {
     git-tag-revisions linux | exclude-revision tree rc "v.*\..*\..*\..*"
 }
 
-add-linux-kconfig(revision, kconfig_binding_file=) {
+linux-architectures(revision) {
+    git -C "$(input-directory)/linux" ls-tree -rd "$revision" --name-only | grep ^arch/ | cut -d/ -f2 | sort | uniq | grep -v '^um$'
+}
+
+add-linux-kconfig(revision, architecture=x86, kconfig_binding_file=) {
     add-linux-system
-    local arch=x86
-    if git -C "$(input-directory)/linux" ls-tree -r "$revision" --name-only | grep -q arch/i386; then
-        arch=i386 # in old revisions, x86 is called i386
+    if [[ $architecture == x86 ]] && linux-architectures "$revision" | grep -q '^i386$'; then
+        architecture=i386 # in old revisions, x86 is called i386
     fi
     add-revision --system linux --revision "$revision"
     # ARCH speficies the architecture of the targeted system, SRCARCH the architecture of the compiling system
@@ -35,23 +38,33 @@ add-linux-kconfig(revision, kconfig_binding_file=) {
     # here we assume native compilation (no cross-compilation) without user mode Linux
     # srctree is needed by later revisions to access scripts (e.g., in scripts/Kconfig.include)
     # CC and LD are also used in scripts/Kconfig.include
-    local environment=SUBARCH=$arch,ARCH=$arch,SRCARCH=$arch,srctree=.,CC=cc,LD=ld
+    if [[ $architecture == um ]]; then
+        error "User mode Linux is currently not supported."
+    fi
+    if [[ $architecture == all ]]; then
+        mapfile -t architectures < <(linux-architectures "$revision")
+        for architecture in "${architectures[@]}"; do
+            add-linux-kconfig "$revision" "$architecture" "$kconfig_binding_file"
+        done
+        return
+    fi
+    local environment=SUBARCH=$architecture,ARCH=$architecture,SRCARCH=$architecture,srctree=.,CC=cc,LD=ld
     # locate the main Kconfig file, which is arch/.../Kconfig in old revisions and Kconfig in new revisions
     local kconfig_file
     kconfig_file=$({ git -C "$(input-directory)/linux" show "$revision:scripts/kconfig/Makefile" | grep "^Kconfig := [^$]" | cut -d' ' -f3; } || true)
     kconfig_file=${kconfig_file:-arch/\$(SRCARCH)/Kconfig}
-    kconfig_file=${kconfig_file//\$(SRCARCH)/$arch}
+    kconfig_file=${kconfig_file//\$(SRCARCH)/$architecture}
     if [[ -n $kconfig_binding_file ]]; then
         add-kconfig-model \
             --system linux \
-            --revision "$revision" \
+            --revision "${revision}[$architecture]" \
             --kconfig-file "$kconfig_file" \
             --kconfig-binding-file "$kconfig_binding_file" \
             --environment "$environment"
     else
         add-kconfig \
             --system linux \
-            --revision "$revision" \
+            --revision "${revision}[$architecture]" \
             --kconfig-file "$kconfig_file" \
             --kconfig-binding-files scripts/kconfig/*.o \
             --environment "$environment"
@@ -67,7 +80,7 @@ linux-kconfig-binding-file(revision) {
     output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$revision"
 }
 
-add-linux-kconfig-history(from, to) {
+add-linux-kconfig-history(from, to, architecture=x86) {
     add-linux-system
     # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction, as previous versions cannot be compiled
     local first_binding_revision=v2.6.9
@@ -77,13 +90,14 @@ add-linux-kconfig-history(from, to) {
         add-linux-kconfig-binding --revision "$first_binding_revision"
         add-linux-kconfig \
             --revision "$revision" \
+            --architecture "$architecture" \
             --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$first_binding_revision")"
     done
     # after linux 2.6.9, use the kconfig parser of the respective revision
     for revision in $(linux-tag-revisions \
         | start-at-revision "$(max-revision "$first_binding_revision" "$from")" \
         | stop-at-revision "$(max-revision "$first_binding_revision" "$to")"); do
-        add-linux-kconfig --revision "$revision"
+        add-linux-kconfig --revision "$revision" --architecture "$architecture"
     done
 }
 
@@ -181,5 +195,30 @@ read-linux-names() {
     }
 
     echo system,revision,name > "$(output-csv)"
+    experiment-subjects
+}
+
+# extracts architectures of linux revisions
+read-linux-architectures() {
+    add-revision(system, revision) {
+        if [[ $system == linux ]]; then
+            log "read-linux-architectures: $system@$revision" "$(echo-progress read)"
+            if grep -q "^$system,$revision," "$(output-csv)"; then
+                log "" "$(echo-skip)"
+                return
+            fi
+            if [[ ! -d $(input-directory)/linux ]]; then
+                error "Linux has not been cloned yet. Please prepend a stage that clones Linux."
+            fi
+            local architectures
+            mapfile -t architectures < <(linux-architectures "$revision")
+            for architecture in "${architectures[@]}"; do
+                echo "$system,$revision,$architecture" >> "$(output-csv)"
+            done
+            log "" "$(echo-done)"
+        fi
+    }
+
+    echo system,revision,architecture > "$(output-csv)"
     experiment-subjects
 }

@@ -2,8 +2,10 @@
 
 # checks out a subject and prepares it for further processing
 kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
+    local revision_clean
+    revision_clean=$(clean-revision "$revision")
     push "$(input-directory)/$system"
-    git-checkout "$revision"
+    git-checkout "$revision_clean"
     # run system-specific code that may impair accuracy, but is necessary to extract a kconfig model
     compile-hook kconfig-post-checkout-hook
     kconfig-post-checkout-hook "$system" "$revision"
@@ -43,6 +45,7 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
         P_PROMPT P_COMMENT P_MENU P_DEFAULT P_CHOICE P_SELECT P_RANGE P_ENV P_SYMBOL E_SYMBOL E_NOT \
         E_EQUAL E_UNEQUAL E_OR E_AND E_LIST E_RANGE E_CHOICE P_IMPLY E_NONE E_LTH E_LEQ E_GTH E_GEQ \
         dir_dep)
+    revision=$(clean-revision "$revision")
     local kconfig_binding_files
     kconfig_binding_files=$(kconfig-binding-files "$kconfig_binding_files_spec")
     local kconfig_binding_directory
@@ -85,7 +88,11 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
 extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file, kconfig_binding_file=, environment=, timeout=0) {
-    kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision")}
+    local revision_clean
+    revision_clean=$(clean-revision "$revision")
+    local architecture
+    architecture=$(get-architecture "$revision")
+    kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision_clean")}
     kconfig_binding_file+=.$kconfig_binding
     log "$extractor: $system@$revision"
     if [[ -f $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model") ]]; then
@@ -147,7 +154,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
         literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
-    echo "$system,$revision,$kconfig_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
+    echo "$system,$revision_clean,$architecture,$kconfig_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
 }
 
 # defines API functions for extracting kconfig models
@@ -179,7 +186,7 @@ register-kconfig-extractor(extractor, kconfig_binding) {
     }
 
     echo system,revision,binding-file > "$(output-path kconfig-bindings.csv)"
-    echo system,revision,binding-file,kconfig-file,environment,model-file,model-features,model-variables,model-literals,model-time > "$(output-csv)"
+    echo system,revision,architecture,binding-file,kconfig-file,environment,model-file,model-features,model-variables,model-literals,model-time > "$(output-csv)"
 }
 
 # compiles kconfig bindings and extracts kconfig models using kmax

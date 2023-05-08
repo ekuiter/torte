@@ -480,6 +480,16 @@ max-revision(r1, r2) {
     printf "%s\n" "$r1" "$r2" | sort -V | tail -n+2 | head -n1
 }
 
+# remove architecture from revision
+clean-revision(revision) {
+    echo "$revision" | cut -d\[ -f1
+}
+
+# get architecture from revision
+get-architecture(revision) {
+    echo "$revision" | cut -d\[ -f2 | cut -d\] -f1
+}
+
 # removes files and reports an error when there are permission issues
 rm-safe(files...) {
     require-array files

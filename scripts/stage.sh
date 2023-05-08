@@ -198,6 +198,11 @@ define-stage-helpers() {
         run --stage read-linux-names
     }
 
+    # extracts architectures of linux revisions
+    read-linux-architectures(option=) {
+        run --stage read-linux-architectures
+    }
+
     # read basic statistics for each system
     read-statistics(option=) {
         run --stage read-statistics --command read-statistics "$option"
