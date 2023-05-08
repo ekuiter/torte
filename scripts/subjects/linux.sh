@@ -28,11 +28,9 @@ linux-architectures(revision) {
 }
 
 add-linux-kconfig(revision, architecture=x86, kconfig_binding_file=) {
-    add-linux-system
     if [[ $architecture == x86 ]] && linux-architectures "$revision" | grep -q '^i386$'; then
         architecture=i386 # in old revisions, x86 is called i386
     fi
-    add-revision --system linux --revision "$revision"
     # ARCH speficies the architecture of the targeted system, SRCARCH the architecture of the compiling system
     # SUBARCH is only taken into account for user mode Linux (um), where it specifies the underlying targeted system architecture
     # here we assume native compilation (no cross-compilation) without user mode Linux
@@ -50,6 +48,8 @@ add-linux-kconfig(revision, architecture=x86, kconfig_binding_file=) {
     fi
     local environment=SUBARCH=$architecture,ARCH=$architecture,SRCARCH=$architecture,srctree=.,CC=cc,LD=ld
     # locate the main Kconfig file, which is arch/.../Kconfig in old revisions and Kconfig in new revisions
+    add-linux-system
+    add-revision --system linux --revision "$revision"
     local kconfig_file
     kconfig_file=$({ git -C "$(input-directory)/linux" show "$revision:scripts/kconfig/Makefile" | grep "^Kconfig := [^$]" | cut -d' ' -f3; } || true)
     kconfig_file=${kconfig_file:-arch/\$(SRCARCH)/Kconfig}
