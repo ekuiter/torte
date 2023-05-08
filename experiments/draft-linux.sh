@@ -8,9 +8,11 @@ TIMEOUT=3600
 ATTEMPTS=5
 FROM=v2.5.45
 TO=v6.4
+FROM=v2.6.10
+TO=v2.6.11
 
 experiment-subjects() {
-    add-linux-kconfig-history --from "$FROM" --to "$TO" --architecture all
+    add-linux-kconfig-history --from "$FROM" --to "$TO" --architecture x86
 }
 
 experiment-stages() {
@@ -24,6 +26,7 @@ experiment-stages() {
     extract-kconfig-models
     join-into read-statistics kconfig
 
+    force
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
     transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
     transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --timeout "$TIMEOUT"
@@ -36,6 +39,7 @@ experiment-stages() {
         --timeout "$TIMEOUT"
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
+    return
 
     solve --parser model-count --timeout "$TIMEOUT" --attempts "$ATTEMPTS" --reset-timeouts-at "$FROM" --solver_specs other/d4.sh,solver # todo: second solver
     join-into dimacs solve_other_d4.sh
