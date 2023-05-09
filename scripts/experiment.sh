@@ -43,15 +43,16 @@ command-stop() {
 # runs the experiment on a remote server
 # removes previous experiment results and reinstalls evaluation scripts
 # shellcheck disable=SC2029
-command-run-remote(host, directory=.) {
+command-run-remote(host, file=experiment.tar.gz, directory=.) {
     require-command ssh scp
-    scp -r "$SCRIPTS_DIRECTORY/_experiment.sh" "$host:$directory"
+    scp -r "$file" "$host:$directory"
     local cmd="(cd $directory;"
+    cmd+="  tar xzvf $(basename "$file"); "
+    cmd+="  rm $(basename "$file"); "
     cmd+="  bash _experiment.sh rm-safe $DOCKER_PREFIX; "
     #cmd+="  bash _experiment.sh rm-safe $OUTPUT_DIRECTORY $DOCKER_PREFIX; "
     cmd+="  screen -dmSL $DOCKER_PREFIX bash _experiment.sh; "
     cmd+=");"
-    cmd+="alias $DOCKER_PREFIX-stop='screen -X -S $DOCKER_PREFIX kill; bash $directory/_experiment.sh stop'; "
     ssh "$host" "$cmd"
     echo "$DOCKER_PREFIX is now running on $host, opening an SSH session."
     echo "To view its output, run $DOCKER_PREFIX (Ctrl+a d to detach)."

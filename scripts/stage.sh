@@ -38,41 +38,58 @@ run(stage=, image=util, input_directory=, command...) {
             build_flags=-q
         fi
         clean "$stage"
-        if [[ $SKIP_DOCKER_BUILD != y ]]; then
+        if [[ -f $image.tar.gz ]]; then
+            if ! docker image inspect "${DOCKER_PREFIX}_$image" > /dev/null 2>&1; then
+                log "" "$(echo-progress load)"
+                docker load -i "$image.tar.gz"
+            fi
+        else
             log "" "$(echo-progress build)"
             docker build $build_flags \
                 -f "$dockerfile" \
-                -t "${DOCKER_PREFIX}_$stage" \
+                -t "${DOCKER_PREFIX}_$image" \
                 --ulimit nofile=20000:20000 \
                 "$(dirname "$dockerfile")" >/dev/null
         fi
-        mkdir -p "$(output-directory "$stage")"
-        log "" "$(echo-progress run)"
-        local cmd=(docker run)
-        if [[ ${command[*]} == /bin/bash ]]; then
-            cmd+=(-it)
-        fi
-        cmd+=(-v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY")
-        cmd+=(-v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY")
-        cmd+=(-v "$(realpath "$SCRIPTS_DIRECTORY"):$DOCKER_SCRIPTS_DIRECTORY")
-        cmd+=(-e IS_DOCKER_RUNNING=y)
-        cmd+=(--rm)
-        cmd+=(-m "$(memory-limit)G")
-        cmd+=("${DOCKER_PREFIX}_$stage")
-        if [[ ${command[*]} == /bin/bash ]]; then
-            cmd+=("${command[*]}")
-            log "${cmd[*]}"
+        if [[ $DOCKER_RUN == y ]]; then
+            mkdir -p "$(output-directory "$stage")"
+            log "" "$(echo-progress run)"
+            local cmd=(docker run)
+            if [[ ${command[*]} == /bin/bash ]]; then
+                cmd+=(-it)
+            fi
+            cmd+=(-v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY")
+            cmd+=(-v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY")
+            cmd+=(-v "$(realpath "$SCRIPTS_DIRECTORY"):$DOCKER_SCRIPTS_DIRECTORY")
+            cmd+=(-e IS_DOCKER_RUNNING=y)
+            cmd+=(--rm)
+            cmd+=(-m "$(memory-limit)G")
+            cmd+=("${DOCKER_PREFIX}_$image")
+            if [[ ${command[*]} == /bin/bash ]]; then
+                cmd+=("${command[*]}")
+                log "${cmd[*]}"
+            else
+                cmd+=("$DOCKER_SCRIPTS_DIRECTORY/$DOCKER_PREFIX.sh")
+                "${cmd[@]}" "${command[@]}" \
+                    > >(write-all "$(output-log "$stage")") \
+                    2> >(write-all "$(output-err "$stage")" >&2)
+            fi
+            rm-if-empty "$(output-log "$stage")"
+            rm-if-empty "$(output-err "$stage")"
+            find "$(output-directory "$stage")" -mindepth 1 -type d -empty -delete
+            if [[ $stage == "$TRANSIENT_STAGE" ]]; then
+                clean "$stage"
+            fi
         else
-            cmd+=("$DOCKER_SCRIPTS_DIRECTORY/$DOCKER_PREFIX.sh")
-            "${cmd[@]}" "${command[@]}" \
-                > >(write-all "$(output-log "$stage")") \
-                2> >(write-all "$(output-err "$stage")" >&2)
-        fi
-        rm-if-empty "$(output-log "$stage")"
-        rm-if-empty "$(output-err "$stage")"
-        find "$(output-directory "$stage")" -mindepth 1 -type d -empty -delete
-        if [[ $stage == "$TRANSIENT_STAGE" ]]; then
-            clean "$stage"
+            require-command gzip
+            local image_archive
+            image_archive="$EXPORT_DIRECTORY/$image.tar.gz"
+            mkdir -p "$(dirname "$image_archive")"
+            mkdir -p "$(output-directory "$stage")"
+            if [[ ! -f $image_archive ]]; then
+                log "" "$(echo-progress save)"
+                docker save "${DOCKER_PREFIX}_$image" | gzip > "$image_archive"
+            fi
         fi
         log "" "$(echo-done)"
     else
@@ -360,10 +377,12 @@ define-stage-helpers() {
             emse-2023/ganak,solver
             emse-2023/sharpSAT,solver
         )
-        solve --parser model-count --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-atli "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
+        solve --parser model-count --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
     }
 
     log-output-field(stage, field) {
-        log "$field: $(table-field "$(output-directory "$stage")/output.csv" "$field" | sort | uniq | tr '\n' ' ')"
+        if [[ -f $(output-csv "$stage") ]]; then
+            log "$field: $(table-field "$(output-csv "$stage")" "$field" | sort | uniq | tr '\n' ' ')"
+        fi
     }
 }

@@ -14,8 +14,6 @@ command-help() {
     echo "  run                              runs the experiment"
     echo "  clean                            removes all output files for the experiment"
     echo "  stop                             stops the experiment"
-    echo "  export [directory]               saves all experiment-related Docker images, input, and output into the given directory"
-    echo "  import [directory]               loads all Docker images from the given directory"
     echo "  reset                            removes all Docker containers and images"
     echo "  run-remote [host] [directory]    runs the experiment on a remote server"
     echo "  copy-remote [host] [directory]   downloads results from the remote server"
@@ -66,7 +64,9 @@ INPUT_DIRECTORY=input # path to system repositories
 OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
 SCRIPTS_DIRECTORY=$(dirname "$0") # scripts directory
 DOCKER_DIRECTORY=$SCRIPTS_DIRECTORY/../docker # path to docker files
-SKIP_DOCKER_BUILD= # y if building Docker images should be skipped, useful for loading imported images
+EXPORT_DIRECTORY=$SCRIPTS_DIRECTORY/../export # path for exporting experiments
+DOCKER_BUILD=y # y if building Docker images is enabled, otherwise loads image archives
+DOCKER_RUN=y # y if running Docker containers is enabled, otherwise saves image archives
 MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024)) # memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
 FORCE_RUN= # y if every stage should be forced to run regardless of whether is is already done
 VERBOSE= # y if console output should be verbose

@@ -18,21 +18,27 @@ dangling-images() {
     echo "${dangling_images[@]}"
 }
 
-# exports all experiment-related Docker images, input, and output
-command-export(directory=export) {
-    require-command gzip
-    mkdir -p "$directory"
-    for image in $(images); do
-        docker save "$image" | gzip > "export/$image.tar.gz"
-    done
-    cp -R ./*.sh "$SCRIPTS_DIRECTORY" "$(input-directory)" "$OUTPUT_DIRECTORY" export/
-}
-
-# imports all Docker images in the given directory
-command-import(directory=export) {
-    for image_file in "$directory"/*.tar.gz; do
-        docker load -i "$image_file"
-    done
+# exports an experiment file and optionally its Docker images and input
+command-export(file=experiment.tar.gz, include_images=, include_input=) {
+    require-command tar
+    rm-safe "$EXPORT_DIRECTORY" "$file"
+    mkdir -p "$EXPORT_DIRECTORY"
+    cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$EXPORT_DIRECTORY"
+    if [[ $include_images == y ]]; then
+        DOCKER_RUN=
+        command-clean
+        command-run
+        command-clean
+    fi
+    if [[ $include_input == y ]]; then
+        cp -R input "$EXPORT_DIRECTORY"
+    fi
+    file=$PWD/$file
+    push "$EXPORT_DIRECTORY"
+    # shellcheck disable=2035
+    tar czvf "$file" *
+    pop
+    rm-safe "$EXPORT_DIRECTORY"
 }
 
 # removes all Docker containers and images
