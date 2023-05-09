@@ -135,7 +135,7 @@ parse-arguments() {
 }
 
 # run only if this script was executed stand-alone
-if [[ -z $DOCKER_PREFIX ]]; then
+if [[ -z $TOOL ]]; then
     if [[ $# -eq 1 ]] && [[ -f $1 ]]; then
         # compile the given script
         compile-script "$1"

@@ -2,12 +2,12 @@
 
 # logs a new message
 new-log(arguments...) {
-    echo -e "[$DOCKER_PREFIX] \r\033[0K${arguments[*]}"
+    echo -e "[$TOOL] \r\033[0K${arguments[*]}"
 }
 
 # changes the current log message
 update-log(arguments...) {
-    echo -e "[$DOCKER_PREFIX] \r\033[1A\033[0K${arguments[*]}"
+    echo -e "[$TOOL] \r\033[1A\033[0K${arguments[*]}"
 }
 
 # logs a message that is always printed to the console output
@@ -24,7 +24,7 @@ log(subject=, state=) {
     else
         command=update-log
     fi
-    if is-host && ! tail -n1 "$(output-log "$DOCKER_PREFIX")" | grep -q "m$subject\^"; then
+    if is-host && ! tail -n1 "$(output-log "$TOOL")" | grep -q "m$subject\^"; then
         command=new-log
     fi
     if [[ -n $LOG_START ]] && { [[ $state == $(echo-fail) ]] || [[ $state == $(echo-done) ]]; }; then
@@ -69,7 +69,7 @@ write-log(file) {
     if [[ $VERBOSE == y ]]; then
         write-all "$file"
     else
-        write-all "$file" | grep -oP "\[$DOCKER_PREFIX\] \K.*"
+        write-all "$file" | grep -oP "\[$TOOL\] \K.*"
     fi
 }
 

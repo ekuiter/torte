@@ -51,7 +51,7 @@ API=(
 )
 
 # configuration options, can optionally be overridden in experiment files
-DOCKER_PREFIX=torte # prefix for naming Docker images and containers
+TOOL=torte # tool name, used as prefix for naming Docker images and containers
 DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
 DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
 DOCKER_SCRIPTS_DIRECTORY=/home/scripts # scripts directory inside Docker containers

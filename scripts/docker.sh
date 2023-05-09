@@ -2,19 +2,19 @@
 
 # returns all experiment-related Docker containers
 containers() {
-    readarray -t containers < <(docker ps -a | tail -n+2 | awk '$2 ~ /^'"$DOCKER_PREFIX"'_/ {print $1}')
+    readarray -t containers < <(docker ps -a | tail -n+2 | awk '$2 ~ /^'"$TOOL"'_/ {print $1}')
     echo "${containers[@]}"
 }
 
 # returns all experiment-related Docker images
 images() {
-    readarray -t images < <(docker images -a | tail -n+2 | awk '{if ($1 ~ "^'"$DOCKER_PREFIX"'") print $1":"$2}')
+    readarray -t images < <(docker images -a | tail -n+2 | awk '{if ($1 ~ "^'"$TOOL"'") print $1":"$2}')
     echo "${images[@]}"
 }
 
 # returns all dangling Docker images
 dangling-images() {
-    readarray -t dangling_images < <(docker images -a | tail -n+2 | awk '{if ($1 ~ "^'"$DOCKER_PREFIX"'") print $1":"$2}')
+    readarray -t dangling_images < <(docker images -a | tail -n+2 | awk '{if ($1 ~ "^'"$TOOL"'") print $1":"$2}')
     echo "${dangling_images[@]}"
 }
 
@@ -34,7 +34,7 @@ command-export(file=experiment.tar.gz, include_images=, include_input=, include_
         cp -R input "$EXPORT_DIRECTORY"
     fi
     if [[ $include_scripts == y ]]; then
-        git clone "$TOOL_DIRECTORY" "$EXPORT_DIRECTORY/$DOCKER_PREFIX"
+        git clone "$TOOL_DIRECTORY" "$EXPORT_DIRECTORY/$TOOL"
     fi
     file=$PWD/$file
     push "$EXPORT_DIRECTORY"
@@ -47,7 +47,7 @@ command-export(file=experiment.tar.gz, include_images=, include_input=, include_
 # removes all Docker containers and images
 command-reset() {
     stop-experiment
-    readarray -t containers < <(docker ps -a | tail -n+2 | awk '$2 ~ /^'"$DOCKER_PREFIX"'_/ {print $1}')
+    readarray -t containers < <(docker ps -a | tail -n+2 | awk '$2 ~ /^'"$TOOL"'_/ {print $1}')
     for container in $(containers); do
         docker rm -f "$container"
     done

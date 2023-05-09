@@ -23,18 +23,18 @@ command-clean() {
 command-run() {
     mkdir -p "$INPUT_DIRECTORY"
     mkdir -p "$OUTPUT_DIRECTORY"
-    clean "$DOCKER_PREFIX"
-    mkdir -p "$(output-directory "$DOCKER_PREFIX")"
-    cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$(output-directory "$DOCKER_PREFIX")/_experiment.sh"
+    clean "$TOOL"
+    mkdir -p "$(output-directory "$TOOL")"
+    cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$(output-directory "$TOOL")/_experiment.sh"
     define-stage-helpers
     experiment-stages \
-        > >(write-log "$(output-log "$DOCKER_PREFIX")") \
-        2> >(write-all "$(output-err "$DOCKER_PREFIX")" >&2)
+        > >(write-log "$(output-log "$TOOL")") \
+        2> >(write-all "$(output-err "$TOOL")" >&2)
 }
 
 # stops the experiment
 command-stop() {
-    readarray -t containers < <(docker ps | tail -n+2 | awk '$2 ~ /^'"$DOCKER_PREFIX"'_/ {print $1}')
+    readarray -t containers < <(docker ps | tail -n+2 | awk '$2 ~ /^'"$TOOL"'_/ {print $1}')
     if [[ ${#containers[@]} -gt 0 ]]; then
         docker kill "${containers[@]}"
     fi
@@ -49,18 +49,18 @@ command-run-remote(host, file=experiment.tar.gz, directory=.) {
     local cmd="(cd $directory;"
     cmd+="  tar xzvf $(basename "$file"); "
     cmd+="  rm $(basename "$file"); "
-    cmd+="  bash _experiment.sh rm-safe $DOCKER_PREFIX; "
-    #cmd+="  bash _experiment.sh rm-safe $OUTPUT_DIRECTORY $DOCKER_PREFIX; "
-    cmd+="  screen -dmSL $DOCKER_PREFIX bash _experiment.sh; "
+    cmd+="  bash _experiment.sh rm-safe $TOOL; "
+    #cmd+="  bash _experiment.sh rm-safe $OUTPUT_DIRECTORY $TOOL; "
+    cmd+="  screen -dmSL $TOOL bash _experiment.sh; "
     cmd+=");"
     ssh "$host" "$cmd"
-    echo "$DOCKER_PREFIX is now running on $host, opening an SSH session."
-    echo "To view its output, run $DOCKER_PREFIX (Ctrl+a d to detach)."
-    echo "To stop it, run $DOCKER_PREFIX-stop."
+    echo "$TOOL is now running on $host, opening an SSH session."
+    echo "To view its output, run $TOOL (Ctrl+a d to detach)."
+    echo "To stop it, run $TOOL-stop."
     cmd=""
-    cmd+="$DOCKER_PREFIX() { screen -x $DOCKER_PREFIX; };"
-    cmd+="$DOCKER_PREFIX-stop() { screen -X -S $DOCKER_PREFIX kill; bash $directory/_experiment.sh stop; };"
-    cmd+="export -f $DOCKER_PREFIX $DOCKER_PREFIX-stop;"
+    cmd+="$TOOL() { screen -x $TOOL; };"
+    cmd+="$TOOL-stop() { screen -X -S $TOOL kill; bash $directory/_experiment.sh stop; };"
+    cmd+="export -f $TOOL $TOOL-stop;"
     cmd+="/bin/bash"
     ssh -t "$host" "$cmd"
 }

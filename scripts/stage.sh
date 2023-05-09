@@ -39,7 +39,7 @@ run(stage=, image=util, input_directory=, command...) {
         fi
         clean "$stage"
         if [[ -f $image.tar.gz ]]; then
-            if ! docker image inspect "${DOCKER_PREFIX}_$image" > /dev/null 2>&1; then
+            if ! docker image inspect "${TOOL}_$image" > /dev/null 2>&1; then
                 log "" "$(echo-progress load)"
                 docker load -i "$image.tar.gz"
             fi
@@ -47,7 +47,7 @@ run(stage=, image=util, input_directory=, command...) {
             log "" "$(echo-progress build)"
             docker build $build_flags \
                 -f "$dockerfile" \
-                -t "${DOCKER_PREFIX}_$image" \
+                -t "${TOOL}_$image" \
                 --ulimit nofile=20000:20000 \
                 "$(dirname "$dockerfile")" >/dev/null
         fi
@@ -64,12 +64,12 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(-e IS_DOCKER_RUNNING=y)
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
-            cmd+=("${DOCKER_PREFIX}_$image")
+            cmd+=("${TOOL}_$image")
             if [[ ${command[*]} == /bin/bash ]]; then
                 cmd+=("${command[*]}")
                 log "${cmd[*]}"
             else
-                cmd+=("$DOCKER_SCRIPTS_DIRECTORY/$DOCKER_PREFIX.sh")
+                cmd+=("$DOCKER_SCRIPTS_DIRECTORY/$TOOL.sh")
                 "${cmd[@]}" "${command[@]}" \
                     > >(write-all "$(output-log "$stage")") \
                     2> >(write-all "$(output-err "$stage")" >&2)
@@ -88,7 +88,7 @@ run(stage=, image=util, input_directory=, command...) {
             mkdir -p "$(output-directory "$stage")"
             if [[ ! -f $image_archive ]]; then
                 log "" "$(echo-progress save)"
-                docker save "${DOCKER_PREFIX}_$image" | gzip > "$image_archive"
+                docker save "${TOOL}_$image" | gzip > "$image_archive"
             fi
         fi
         log "" "$(echo-done)"
@@ -156,7 +156,7 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, 
 # only run if the specified file does not exist yet
 run-transient-unless(file=, command...) {
     if [[ -z $file ]] || is-file-empty "$OUTPUT_DIRECTORY/$file"; then
-        run "" "" "$OUTPUT_DIRECTORY" bash -c "cd $DOCKER_SCRIPTS_DIRECTORY; source $DOCKER_PREFIX.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
+        run "" "" "$OUTPUT_DIRECTORY" bash -c "cd $DOCKER_SCRIPTS_DIRECTORY; source $TOOL.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
     fi
 }
 
