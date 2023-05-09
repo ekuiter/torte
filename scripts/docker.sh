@@ -19,8 +19,8 @@ dangling-images() {
 }
 
 # exports an experiment file and optionally its Docker images and input
-command-export(file=experiment.tar.gz, include_images=, include_input=) {
-    require-command tar
+command-export(file=experiment.tar.gz, include_images=, include_input=, include_scripts=) {
+    require-command tar git
     rm-safe "$EXPORT_DIRECTORY" "$file"
     mkdir -p "$EXPORT_DIRECTORY"
     cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$EXPORT_DIRECTORY"
@@ -32,6 +32,9 @@ command-export(file=experiment.tar.gz, include_images=, include_input=) {
     fi
     if [[ $include_input == y ]]; then
         cp -R input "$EXPORT_DIRECTORY"
+    fi
+    if [[ $include_scripts == y ]]; then
+        git clone "$TOOL_DIRECTORY" "$EXPORT_DIRECTORY/$DOCKER_PREFIX"
     fi
     file=$PWD/$file
     push "$EXPORT_DIRECTORY"
