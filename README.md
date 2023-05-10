@@ -8,14 +8,14 @@ Take your pick:
 - "**T**seitin **or** not **T**seitin?" **E**valuator
 - CNF **T**ransf**or**ma**t**ion Workb**e**nch
 - KConfig Extrac**tor** that **T**ackles **E**volution
-- **To**wards **R**eproducible Feature-Model **T**ransformations and **E**xtractions
+- **To**wards **R**eproducible Feature-Model **T**ransformation and **E**xtraction
 - **T**he **O**bviously **R**everse-Engineered **T**ool Nam**e**
 
 torte can currently be used to
 
 - **extract feature models** from KConfig-based configurable software systems (e.g., the [Linux kernel](https://github.com/torvalds/linux)),
 - **transform feature models** between various formats (e.g., [FeatureIDE](https://featureide.github.io), [UVL](https://github.com/Universal-Variability-Language), and [DIMACS](https://www.domagoj-babic.com/uploads/ResearchProjects/Spear/dimacs-cnf.pdf)), and
-- **analyze feature models** (e.g., with SAT and #SAT solvers) to evaluate the impact of such extractions and transformations,
+- **analyze feature models** with solvers to evaluate the extraction and transformation impact,
 
 all in a fully declarative and reproducible fashion backed by reusable Docker containers.
 This way, you can
