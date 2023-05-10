@@ -8,19 +8,20 @@ Take your pick:
 - "**T**seitin **or** not **T**seitin?" **E**valuator
 - CNF **T**ransf**or**ma**t**ion Workb**e**nch
 - KConfig Extrac**tor** that **T**ackles **E**volution
+- *To*ol for *R*eproducing Feature-Model *T*ransformations and *E*xtractions
 
 torte can currently be used to
 
-- extract feature models from KConfig-based configurable software systems (e.g., the [Linux kernel](https://github.com/torvalds/linux)),
-- transform feature models between various formats (e.g., [FeatureIDE](https://featureide.github.io), [UVL](https://github.com/Universal-Variability-Language), and [DIMACS](https://www.domagoj-babic.com/uploads/ResearchProjects/Spear/dimacs-cnf.pdf)), and
-- evaluate the impacts of such extractions and transformations on feature-model analyses,
+- **extract feature models** from KConfig-based configurable software systems (e.g., the [Linux kernel](https://github.com/torvalds/linux)),
+- **transform feature models** between various formats (e.g., [FeatureIDE](https://featureide.github.io), [UVL](https://github.com/Universal-Variability-Language), and [DIMACS](https://www.domagoj-babic.com/uploads/ResearchProjects/Spear/dimacs-cnf.pdf)), and
+- **analyze feature models** (e.g., with SAT and #SAT solvers) to evaluate the impact of such extractions and transformations,
 
 all in a fully declarative and reproducible fashion backed by reusable Docker containers.
 This way, you can
 
-- draft experiments for selected feature models first, then generalize them to a larger corpus later,
-- execute experiments on a remote machine without having to bother with technical setup, and
-- distribute fully-automated replication packages when an experiment is ready for publication.
+- **draft experiments** for selected feature models first, then generalize them to a larger corpus later,
+- **execute experiments** on a remote machine without having to bother with technical setup, and
+- **distribute fully-automated replication packages** when an experiment is ready for publication.
 
 ## Getting Started
 
