@@ -315,14 +315,15 @@ define-stage-helpers() {
     }
 
     # solve DIMACS files
-    solve(parser, input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=, solver_specs...) {
+    solve(kind, input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
-            local solver stage image
+            local solver stage image parser
             solver=$(echo "$solver_spec" | cut -d, -f1)
             stage=${solver//\//_}
             stage=solve_${stage,,}
             image=$(echo "$solver_spec" | cut -d, -f2)
+            parser=$(echo "$solver_spec" | cut -d, -f3)
             stages+=("$stage")
             run \
                 --stage "$stage" \
@@ -330,54 +331,55 @@ define-stage-helpers() {
                 --input-directory "$input_stage" \
                 --command solve \
                 --solver "$solver" \
+                --kind "$kind" \
                 --parser "$parser" \
                 --timeout "$timeout" \
                 --attempts "$attempts" \
                 --reset_timeouts_at "$reset_timeouts_at"
         done
-        aggregate --stage "solve_$parser" --stages "${stages[@]}"
+        aggregate --stage "solve_$kind" --stages "${stages[@]}"
     }
 
     # solve DIMACS files for satisfiability
-    solve-satisfiability(input_stage=dimacs, timeout=0, attempts=) {
+    solve-satisfiable(input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=) {
         local solver_specs=(
-            z3,z3
-            other/sat4j.sh,solver
-            sat-competition/02-zchaff,solver
-            sat-competition/03-Forklift,solver
-            sat-competition/04-zchaff,solver
-            sat-competition/05-SatELiteGTI.sh,solver
-            sat-competition/06-MiniSat,solver
-            sat-competition/07-RSat.sh,solver
-            sat-competition/09-precosat,solver
-            sat-competition/10-CryptoMiniSat,solver
-            sat-competition/11-glucose.sh,solver
-            sat-competition/11-SatELite,solver
-            sat-competition/12-glucose.sh,solver
-            sat-competition/12-SatELite,solver
-            sat-competition/13-lingeling-aqw,solver
-            sat-competition/14-lingeling-ayv,solver
-            sat-competition/16-MapleCOMSPS_DRUP,solver
-            sat-competition/17-Maple_LCM_Dist,solver
-            sat-competition/18-MapleLCMDistChronoBT,solver
-            sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver
-            sat-competition/20-Kissat-sc2020-sat,solver
-            sat-competition/21-Kissat_MAB,solver
+            z3,z3,satisfiable
+            other/sat4j.sh,solver,satisfiable
+            sat-competition/02-zchaff,solver,satisfiable
+            sat-competition/03-Forklift,solver,satisfiable
+            sat-competition/04-zchaff,solver,satisfiable
+            sat-competition/05-SatELiteGTI.sh,solver,satisfiable
+            sat-competition/06-MiniSat,solver,satisfiable
+            sat-competition/07-RSat.sh,solver,satisfiable
+            sat-competition/09-precosat,solver,satisfiable
+            sat-competition/10-CryptoMiniSat,solver,satisfiable
+            sat-competition/11-glucose.sh,solver,satisfiable
+            sat-competition/11-SatELite,solver,satisfiable
+            sat-competition/12-glucose.sh,solver,satisfiable
+            sat-competition/12-SatELite,solver,satisfiable
+            sat-competition/13-lingeling-aqw,solver,satisfiable
+            sat-competition/14-lingeling-ayv,solver,satisfiable
+            sat-competition/16-MapleCOMSPS_DRUP,solver,satisfiable
+            sat-competition/17-Maple_LCM_Dist,solver,satisfiable
+            sat-competition/18-MapleLCMDistChronoBT,solver,satisfiable
+            sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,satisfiable
+            sat-competition/20-Kissat-sc2020-sat,solver,satisfiable
+            sat-competition/21-Kissat_MAB,solver,satisfiable
         )
-        solve --parser satisfiable --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
+        solve --kind satisfiable --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
     }
 
     # solve DIMACS files for model count
-    solve-model-count(input_stage=dimacs, timeout=0, attempts=) {
+    solve-model-count(input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=) {
         local solver_specs=(
-            other/d4v2.sh,solver
-            emse-2023/countAntom,solver
-            emse-2023/d4,solver
-            emse-2023/dsharp,solver
-            emse-2023/ganak,solver
-            emse-2023/sharpSAT,solver
+            other/d4v2.sh,solver,model-count
+            emse-2023/countAntom,solver,model-count
+            emse-2023/d4,solver,model-count
+            emse-2023/dsharp,solver,model-count
+            emse-2023/ganak,solver,model-count
+            emse-2023/sharpSAT,solver,model-count
         )
-        solve --parser model-count --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
+        solve --kind model-count --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
     }
 
     log-output-field(stage, field) {

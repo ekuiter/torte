@@ -41,6 +41,7 @@ experiment-stages() {
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
 
-    solve --parser model-count --timeout "$TIMEOUT" --attempts "$ATTEMPTS" --reset-timeouts-at "$FROM" --solver_specs model-counting-competition-2022/d4.sh,solver # todo: second solver
-    join-into dimacs solve_other_d4.sh
+    solve --kind model-count --timeout "$TIMEOUT" --attempts "$ATTEMPTS" --reset-timeouts-at "$FROM" \
+        --solver_specs model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 # todo: second solver
+    join-into dimacs solve_model-count
 }

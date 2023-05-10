@@ -157,6 +157,7 @@ The #SAT solvers from the collection model-counting-competition-2022 should be p
 #### Collection: model-counting-competition-2022
 
 These #SAT solvers (available [here](https://cloudstore.zih.tu-dresden.de/index.php/s/pXFAfnJffKyNA77)) were used in the [model-counting competition 2022](https://mccompetition.org/past_iterations).
+Not all evaluated solvers are included here, as some solver binaries have not been disclosed.
 
 | Solver | Version | Date | Class |
 | - | - | - | - |
@@ -229,3 +230,10 @@ This project has evolved through several stages and intends to replace them all:
 If you are looking for a curated collection of feature models from various domains, have a look at our [feature-model-benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark).
 
 If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).
+
+## License
+
+The source code of this project is released under the [LGPL v3 license](LICENSE.txt).
+To ensure reproducibility, we also provide binaries (e.g., for solvers) in this repository.
+These binaries have been collected or compiled from public sources.
+Their usage is subject to each binaries' respective license - please contact me if you perceive any licensing issues.

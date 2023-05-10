@@ -65,13 +65,14 @@ analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, 
     done < <(table-field "$csv_file" "$input_extension-file" | grep -v ^NA$ | sort -V)
 }
 
-solve(solver, parser, input_extension=dimacs, timeout=0, attempts=, reset_timeouts_at=) {
+solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, attempts=, reset_timeouts_at=) {
+    parser=${parser:-$kind}
     analyze-files \
         "$(input-csv)" \
         "$input_extension" \
         "$solver" \
         "$(lambda input 'echo '"$solver"' "$input"')" \
-        "$parser" \
+        "$kind" \
         "$(lambda output_log 'parse-result-'"$parser"' "$output_log"')" \
         "$timeout" \
         y \
@@ -94,4 +95,11 @@ parse-result-model-count(output_log) {
     model_count=$(sed -z 's/\n# solutions \n/SHARPSAT/g' < "$output_log" \
         | grep -oP "((?<=Counting...)\d+(?= models)|(?<=  Counting... )\d+(?= models)|(?<=c model count\.{12}: )\d+|(?<=^s )\d+|(?<=^s mc )\d+|(?<=#SAT \(full\):   		)\d+|(?<=SHARPSAT)\d+|(?<=Number of solutions\t\t\t)[.e+\-\d]+)" || true)
     echo "${model_count:-NA}"
+}
+
+parse-result-model-counting-competition-2022(output_log) {
+    model_count_int=$(grep "c s exact .* int" < "$output_log" | cut -d' ' -f6)
+    model_count_double=$(grep "c s exact double prec-sci" < "$output_log" | cut -d' ' -f6)
+    model_count_log10=$(grep "c s log10-estimate" < "$output_log" | cut -d' ' -f4)
+    echo "${model_count_int:-NA}"
 }
