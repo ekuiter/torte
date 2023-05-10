@@ -15,6 +15,7 @@ command-help() {
     echo "  clean                            removes all output files for the experiment"
     echo "  stop                             stops the experiment"
     echo "  reset                            removes all Docker containers and images"
+    echo "  export [file]                    prepares a replication package"
     echo "  run-remote [host] [directory]    runs the experiment on a remote server"
     echo "  copy-remote [host] [directory]   downloads results from the remote server"
     echo "  browse                           start a web server for browsing output files"

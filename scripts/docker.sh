@@ -18,7 +18,8 @@ dangling-images() {
     echo "${dangling_images[@]}"
 }
 
-# exports an experiment file and optionally its Docker images and input
+# prepares a replication package
+# exporting all data makes the replication package bigger, but has no network dependencies
 command-export(file=experiment.tar.gz, include_images=, include_input=, include_scripts=) {
     require-command tar git
     rm-safe "$EXPORT_DIRECTORY" "$file"
