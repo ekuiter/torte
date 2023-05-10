@@ -8,7 +8,8 @@ Take your pick:
 - "**T**seitin **or** not **T**seitin?" **E**valuator
 - CNF **T**ransf**or**ma**t**ion Workb**e**nch
 - KConfig Extrac**tor** that **T**ackles **E**volution
-- *To*ol for *R*eproducing Feature-Model *T*ransformations and *E*xtractions
+- **To**ol for **R**eproducible Feature-Model **T**ransformations and **E**xtractions
+- **To**tally **R**everse-Engineered **T**ool Nam**e**
 
 torte can currently be used to
 
