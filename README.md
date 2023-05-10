@@ -21,8 +21,9 @@ all in a fully declarative and reproducible fashion backed by reusable Docker co
 This way, you can
 
 - **draft experiments** for selected feature models first, then generalize them to a larger corpus later,
-- **execute experiments** on a remote machine without having to bother with technical setup, and
-- **distribute fully-automated replication packages** when an experiment is ready for publication.
+- **execute experiments** on a remote machine without having to bother with technical setup,
+- **distribute fully-automated replication packages** when an experiment is ready for publication, and
+- **adapt and update existing experiments** without needing to resort to clone-and-own practices.
 
 ## Getting Started
 
