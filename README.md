@@ -1,4 +1,4 @@
-# torte 🍰
+# torte: feature-model experiments à la carte 🍰
 
 **torte is a declarative workbench for fully-automated, reproducible experiments in feature-model analysis research.**
 
