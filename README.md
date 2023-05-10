@@ -1,4 +1,4 @@
-# torte
+# torte 🍰
 
 **torte is a declarative experimentation workbench for fully automated and reproducible evaluations in feature-model analysis research.**
 
@@ -16,6 +16,11 @@ torte can currently be used to
 - evaluate the impacts of such extractions and transformations on feature-model analyses,
 
 all in a fully declarative and reproducible fashion backed by reusable Docker containers.
+This way, you can
+
+- draft experiments for selected feature models first, then generalize them to a larger corpus later,
+- execute experiments on a remote machine without having to bother with technical setup, and
+- distribute fully-automated replication packages when an experiment is ready for publication.
 
 ## Getting Started
 
@@ -25,7 +30,7 @@ To run torte, you need:
 - [curl](https://curl.se/), [Git](https://git-scm.com/), and [GNU Make](https://www.gnu.org/software/make/)
 - [Docker](https://docs.docker.com/get-docker/) ([rootless mode](https://docs.docker.com/engine/security/rootless/) recommended to avoid permission issues with created files)
 
-Experiment files in torte are self-executing - so, you can just download an experiment file (e.g., from the `experiments` directory) and run it.
+Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 
 The following should get you started on a fresh Ubuntu 22.04 installation:
 
