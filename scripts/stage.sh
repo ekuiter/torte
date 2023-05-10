@@ -352,9 +352,7 @@ define-stage-helpers() {
             sat-competition/09-precosat,solver,satisfiable
             sat-competition/10-CryptoMiniSat,solver,satisfiable
             sat-competition/11-glucose.sh,solver,satisfiable
-            sat-competition/11-SatELite,solver,satisfiable
             sat-competition/12-glucose.sh,solver,satisfiable
-            sat-competition/12-SatELite,solver,satisfiable
             sat-competition/13-lingeling-aqw,solver,satisfiable
             sat-competition/14-lingeling-ayv,solver,satisfiable
             sat-competition/16-MapleCOMSPS_DRUP,solver,satisfiable

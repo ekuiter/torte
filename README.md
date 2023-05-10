@@ -25,6 +25,12 @@ This way, you can
 - **distribute fully-automated replication packages** when an experiment is ready for publication, and
 - **adapt and update existing experiments** without needing to resort to clone-and-own practices.
 
+This one-liner will get you started (Docker required):
+```
+curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/main/experiments/default.sh -o experiment.sh && bash experiment.sh
+```
+Read on if you want to know more details.
+
 ## Getting Started
 
 To run torte, you need:
@@ -49,7 +55,10 @@ curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/main/experiments/defa
 
 By default, this will install torte into the `torte` directory; all experiment data will be stored in the directories `input` and `output` in your working directory.
 
-**Advanced Usage**
+The above command runs the default experiment, which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
+For other predefined experiments, see [here](#predefined-experiments); you can also write your own by adapting `experiment.sh`.
+
+**Further Tips**
 
 - As an alternative to the self-extracting installer shown above, you can clone this repository and run experiments with `./torte.sh <experiment-file>`.
 - A running experiment can be stopped with `Ctrl+C`.
@@ -57,6 +66,8 @@ By default, this will install torte into the `torte` directory; all experiment d
 - Run `./torte.sh help` to get further usage information (e.g., running an experiment over SSH and im-/export of Docker containers).
 - Developers are recommended to use [ShellCheck](https://www.shellcheck.net/) to improve code quality.
 - If you encounter the error message `cannot delete ...: Permission denied`, try to switch to Docker rootless mode.
+- The first execution of torte can take a while (~30 minutes), as several complex Docker containers need to be built.
+This can be avoided by loading a replication package that includes Docker images (built by `./torte.sh export`).
 
 ## Supported Subject Systems
 
@@ -66,20 +77,22 @@ Detailed system-specific information on potential threats to validity is availab
 
 | System | Revisions | Notes |
 | - | - | - |
-| [axtls](scripts/subjects/axtls.sh) | 1.0.0 - 2.0.0 |
-| [buildroot](scripts/subjects/buildroot.sh) | 2009.02 - 2022.05 |
-| [busybox](scripts/subjects/busybox.sh) | 1.3.0 - 1.36.0 |
-| [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 |
-| [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) |
-| [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) |
-| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.3 | [^21] |
-| [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | [^22] |
-| [uclibc-ng](scripts/subjects/uclibc-ng.sh) | 1.0.2 - 1.0.40 |
+| [axtls](scripts/subjects/axtls.sh) | 1.0.0 - 2.0.0 | |
+| [buildroot](scripts/subjects/buildroot.sh) | 2009.02 - 2022.05 | |
+| [busybox](scripts/subjects/busybox.sh) | 1.3.0 - 1.36.0 | |
+| [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
+| [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
+| [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
+| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.3 | [^21] | |
+| [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
+| [uclibc-ng](scripts/subjects/uclibc-ng.sh) | 1.0.2 - 1.0.40 | |
 
 [^21]: Most architectures of Linux can be extracted successfully.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
 
 [^22]: Feature models for this system are currently likely to be incomplete due to an inaccurate extraction.
+
+[^23]: This system does not regularly release tagged revisions, so only a single revision has been tested.
 
 ## Bundled Tools
 
@@ -221,7 +234,7 @@ We were unable to obtain binaries for the winning solvers in 2008 and 2015.
 [^17]: For TwG, two configurations were provided by the model-counting competition (`TwG1` and `TwG2`).
 As there was no indication as to which configuration was used in the competition, we arbitrarily chose `TwG1`.
 
-[^18]: This solver currently crashes for some or all inputs.
+[^18]: This solver currently crashes on some or all inputs.
 
 [^19]: For SharpSAT-td+Arjun, two configurations were provided by the model-counting competition (`conf1` and `conf2`).
 As only the second configuration actually runs SharpSAT-td, we chose `conf2`.
