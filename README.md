@@ -64,9 +64,14 @@ Detailed system-specific information on potential threats to validity is availab
 | [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 |
 | [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) |
 | [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) |
-| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.3 | only x86 architecture tested |
-| [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | should not be used |
+| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.3 | [^21] |
+| [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | [^22] |
 | [uclibc-ng](scripts/subjects/uclibc-ng.sh) | 1.0.2 - 1.0.40 |
+
+[^21]: Most architectures of Linux can be extracted successfully.
+The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
+
+[^22]: Feature models for this system are currently likely to be incomplete due to an inaccurate extraction.
 
 ## Bundled Tools
 
@@ -78,7 +83,7 @@ The bundled solvers are listed in a separate table [below](#solvers).
 
 For transparency, we document the changes we make to these tools and known limitations. There are also some general known limitations of torte [^1] [^2].
 
-| Tool | Version | Date | Changes and Limitations |
+| Tool | Version | Date | Notes |
 | - | - | - | - |
 | [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
@@ -135,7 +140,7 @@ The following solvers are bundled with torte and can be used in experiments for 
 The bundled solver binaries are available in the `docker/solver` directory.
 Solvers are grouped in collections to allow several versions of the same solver to be used.
 
-In addition to the listed solvers, `z3` (already listed above) can be used as a satisfiability and SMT solver.
+In addition to the solvers listed below, `z3` (already listed above) can be used as a satisfiability and SMT solver.
 
 #### Collection: emse-2023
 
@@ -146,31 +151,37 @@ These #SAT solvers (available [here](https://github.com/SoftVarE-Group/emse-eval
 
 The #SAT solvers from the collection model-counting-competition-2022 should be preferred for new evaluations.
 
-| Solver | Version | Date | Class |
+| Solver | Version | Date | Notes |
 | - | - | - | - |
-| countAntom | 1.0 | 2015-05-11 | #SAT Solver
-| d4 | ? | ? | #SAT Solver, d-DNNF compiler
-| dSharp | ? | ? | #SAT Solver, d-DNNF compiler
-| Ganak | ? | ? | #SAT Solver
-| sharpSAT | ? | ? | #SAT Solver
+| countAntom | 1.0 | 2015-05-11 | [^18] |
+| d4 | ? | ? | |
+| dSharp | ? | ? | |
+| Ganak | ? | ? | |
+| sharpSAT | ? | ? | |
 
 #### Collection: model-counting-competition-2022
 
 These #SAT solvers (available [here](https://cloudstore.zih.tu-dresden.de/index.php/s/pXFAfnJffKyNA77)) were used in the [model-counting competition 2022](https://mccompetition.org/past_iterations).
-Not all evaluated solvers are included here, as some solver binaries have not been disclosed.
+Not all evaluated solvers are included here, as some solver binaries (i.e., for MTMC and ExactMC) have not been disclosed.
 
-| Solver | Version | Date | Class |
+| Solver | Version | Date | Notes |
 | - | - | - | - |
-| d4 | ? | ? | #SAT Solver, d-DNNF compiler, PMC
+| c2d | ? | ? | |
+| d4 | ? | ? | |
+| DPMC | ? | ? | |
+| gpmc | ? | ? | |
+| TwG | ? | ? | [^17] |
+| SharpSAT-TD | ? | ? | [^18] |
+| SharpSAT-td+Arjun | ? | ? | [^18] [^19] |
 
 #### Collection: other
 
 These are miscellaneous solvers from various sources.
 
-| Solver | Version | Date | Class |
-| - | - | - | - |
-| [d4v2](https://github.com/SoftVarE-Group/d4v2) | c1f6842 | 2023-02-15 | #SAT Solver, d-DNNF compiler, PMC
-| SAT4J | 2.3.6 | 2020-12-14 | SAT Solver
+| Solver | Version | Date | Class | Notes |
+| - | - | - | - | - |
+| [d4v2](https://github.com/SoftVarE-Group/d4v2) | c1f6842 | 2023-02-15 | #SAT Solver, d-DNNF compiler, PMC |
+| SAT4J | 2.3.6 | 2020-12-14 | SAT Solver |
 
 #### Collection: sat-competition
 
@@ -178,26 +189,34 @@ These SAT solvers (binaries copied/compiled from [here](http://www.satcompetitio
 Each solver is the gold medal winner in the main track (SAT+UNSAT) of the SAT competition in the year encoded in its file name.
 We were unable to obtain binaries for the winning solvers in 2008 and 2015.
 
-| Year | Solver | Version | Date | Class |
+| Year | Solver | Version | Date | Notes |
 | - | - | - | - | - |
-| 2002 | zchaff | ? | ? | SAT Solver
-| 2003 | Forklift | ? | ? | SAT Solver
-| 2004 | zchaff | ? | ? | SAT Solver
-| 2005 | SatELiteGTI | ? | ? | SAT Solver
-| 2006 | MiniSat | ? | ? | SAT Solver
-| 2007 | RSat | ? | ? | SAT Solver
-| 2009 | precosat | ? | ? | SAT Solver
-| 2010 | CryptoMiniSat | ? | ? | SAT Solver
-| 2011 | glucose | ? | ? | SAT Solver
-| 2012 | glucose | ? | ? | SAT Solver
-| 2013 | lingeling-aqw | ? | ? | SAT Solver
-| 2014 | lingeling-ayv | ? | ? | SAT Solver
-| 2016 | MapleCOMSPS_DRUP | ? | ? | SAT Solver
-| 2017 | Maple_LCM_Dist | ? | ? | SAT Solver
-| 2018 | MapleLCMDistChronoBT | ? | ? | SAT Solver
-| 2019 | MapleLCMDiscChronoBT-DL-v3 | ? | ? | SAT Solver
-| 2020 | Kissat-sc2020-sat | ? | ? | SAT Solver
-| 2021 | Kissat_MAB | ? | ? | SAT Solver
+| 2002 | zchaff | ? | ? | |
+| 2003 | Forklift | ? | ? | |
+| 2004 | zchaff | ? | ? | |
+| 2005 | SatELiteGTI | ? | ? | |
+| 2006 | MiniSat | ? | ? | |
+| 2007 | RSat | ? | ? | |
+| 2009 | precosat | ? | ? | |
+| 2010 | CryptoMiniSat | ? | ? | |
+| 2011 | glucose | ? | ? | |
+| 2012 | glucose | ? | ? | |
+| 2013 | lingeling-aqw | ? | ? | |
+| 2014 | lingeling-ayv | ? | ? | |
+| 2016 | MapleCOMSPS_DRUP | ? | ? | |
+| 2017 | Maple_LCM_Dist | ? | ? | |
+| 2018 | MapleLCMDistChronoBT | ? | ? | |
+| 2019 | MapleLCMDiscChronoBT-DL-v3 | ? | ? | |
+| 2020 | Kissat-sc2020-sat | ? | ? | |
+| 2021 | Kissat_MAB | ? | ? | |
+
+[^17]: For TwG, two configurations were provided by the model-counting competition (`TwG1` and `TwG2`).
+As there was no indication as to which configuration was used in the competition, we arbitrarily chose `TwG1`.
+
+[^18]: This solver currently crashes for some or all inputs.
+
+[^19]: For SharpSAT-td+Arjun, two configurations were provided by the model-counting competition (`conf1` and `conf2`).
+As only the second configuration actually runs SharpSAT-td, we chose `conf2`.
 
 ## Predefined Experiments
 
@@ -230,6 +249,7 @@ This project has evolved through several stages and intends to replace them all:
 If you are looking for a curated collection of feature models from various domains, have a look at our [feature-model-benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark).
 
 If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).
+New issues, pull requests, or any other kinds of feedback are always welcome.
 
 ## License
 

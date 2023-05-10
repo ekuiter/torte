@@ -1,5 +1,0 @@
-#!/bin/sh
-
-mkdir -p tmp_dir
-
-./unweighted.sh $1 --tmpdir=tmp_dir --maxrss=8 --maxtmp=1 --timeout=1800 --task=wmc

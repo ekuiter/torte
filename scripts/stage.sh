@@ -343,8 +343,6 @@ define-stage-helpers() {
     # solve DIMACS files for satisfiability
     solve-satisfiable(input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=) {
         local solver_specs=(
-            z3,z3,satisfiable
-            other/sat4j.sh,solver,satisfiable
             sat-competition/02-zchaff,solver,satisfiable
             sat-competition/03-Forklift,solver,satisfiable
             sat-competition/04-zchaff,solver,satisfiable
@@ -365,6 +363,8 @@ define-stage-helpers() {
             sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,satisfiable
             sat-competition/20-Kissat-sc2020-sat,solver,satisfiable
             sat-competition/21-Kissat_MAB,solver,satisfiable
+            other/SAT4J.sh,solver,satisfiable
+            z3,z3,satisfiable
         )
         solve --kind satisfiable --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
     }
@@ -372,12 +372,19 @@ define-stage-helpers() {
     # solve DIMACS files for model count
     solve-model-count(input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=) {
         local solver_specs=(
-            other/d4v2.sh,solver,model-count
             emse-2023/countAntom,solver,model-count
             emse-2023/d4,solver,model-count
-            emse-2023/dsharp,solver,model-count
+            emse-2023/dSharp,solver,model-count
             emse-2023/ganak,solver,model-count
             emse-2023/sharpSAT,solver,model-count
+            model-counting-competition-2022/c2d.sh,solver,model-counting-competition-2022
+            model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022
+            model-counting-competition-2022/DPMC/DPMC.sh,solver,model-counting-competition-2022
+            model-counting-competition-2022/gpmc.sh,solver,model-counting-competition-2022
+            model-counting-competition-2022/TwG.sh,solver,model-counting-competition-2022
+            model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
+            model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022
+            other/d4v2.sh,solver,model-count
         )
         solve --kind model-count --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
     }
