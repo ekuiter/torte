@@ -1,6 +1,6 @@
 # torte 🍰
 
-**torte is a declarative experimentation workbench for fully automated and reproducible evaluations in feature-model analysis research.**
+**torte is a declarative workbench for fully-automated, reproducible experiments in feature-model analysis research.**
 
 Why **torte**?
 Take your pick:
@@ -154,7 +154,7 @@ These #SAT solvers (available [here](https://github.com/SoftVarE-Group/emse-eval
 * [Evaluating State-of-the-Art #SAT Solvers on Industrial Configuration Spaces](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2023/2023-EMSE-Sundermann.pdf) (EMSE 2023)
 * [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022)
 
-The #SAT solvers from the collection model-counting-competition-2022 should be preferred for new evaluations.
+The #SAT solvers from the collection `model-counting-competition-2022` should be preferred for new experiments.
 
 | Solver | Version | Date | Notes |
 | - | - | - | - |
