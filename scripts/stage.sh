@@ -370,7 +370,7 @@ define-stage-helpers() {
     # solve DIMACS files for model count
     solve-model-count(input_stage=dimacs, timeout=0, attempts=) {
         local solver_specs=(
-            other/d4.sh,solver
+            other/d4v2.sh,solver
             emse-2023/countAntom,solver
             emse-2023/d4,solver
             emse-2023/dsharp,solver

@@ -144,6 +144,8 @@ These #SAT solvers (available [here](https://github.com/SoftVarE-Group/emse-eval
 * [Evaluating State-of-the-Art #SAT Solvers on Industrial Configuration Spaces](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2023/2023-EMSE-Sundermann.pdf) (EMSE 2023)
 * [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022)
 
+The #SAT solvers from the collection model-counting-competition-2022 should be preferred for new evaluations.
+
 | Solver | Version | Date | Class |
 | - | - | - | - |
 | countAntom | 1.0 | 2015-05-11 | #SAT Solver
@@ -152,11 +154,21 @@ These #SAT solvers (available [here](https://github.com/SoftVarE-Group/emse-eval
 | Ganak | ? | ? | #SAT Solver
 | sharpSAT | ? | ? | #SAT Solver
 
-#### Collection: other
+#### Collection: model-counting-competition-2022
+
+These #SAT solvers (available [here](https://cloudstore.zih.tu-dresden.de/index.php/s/pXFAfnJffKyNA77)) were used in the [model-counting competition 2022](https://mccompetition.org/past_iterations).
 
 | Solver | Version | Date | Class |
 | - | - | - | - |
-| [d4](https://github.com/SoftVarE-Group/d4v2) | c1f6842 | 2023-02-15 | #SAT Solver, d-DNNF compiler, PMC
+| d4 | ? | ? | #SAT Solver, d-DNNF compiler, PMC
+
+#### Collection: other
+
+These are miscellaneous solvers from various sources.
+
+| Solver | Version | Date | Class |
+| - | - | - | - |
+| [d4v2](https://github.com/SoftVarE-Group/d4v2) | c1f6842 | 2023-02-15 | #SAT Solver, d-DNNF compiler, PMC
 | SAT4J | 2.3.6 | 2020-12-14 | SAT Solver
 
 #### Collection: sat-competition
