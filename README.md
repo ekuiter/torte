@@ -25,7 +25,7 @@ This way, you can
 - **distribute fully-automated replication packages** when an experiment is ready for publication, and
 - **adapt and update existing experiments** without needing to resort to clone-and-own practices.
 
-This one-liner will get you started (Docker required):
+This one-liner will get you started with the [default experiment](experiments/default.sh) (Docker required):
 ```
 curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/main/experiments/default.sh -o experiment.sh && bash experiment.sh
 ```
@@ -55,7 +55,7 @@ curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/main/experiments/defa
 
 By default, this will install torte into the `torte` directory; all experiment data will be stored in the directories `input` and `output` in your working directory.
 
-The above command runs the default experiment, which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
+The above command runs the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
 For other predefined experiments, see [here](#predefined-experiments); you can also write your own by adapting `experiment.sh`.
 
 **Further Tips**
