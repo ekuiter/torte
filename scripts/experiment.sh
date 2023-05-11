@@ -67,6 +67,6 @@ command-run-remote(host, file=experiment.tar.gz, directory=.) {
 
 # downloads results from the remote server
 command-copy-remote(host, directory=.) {
-    require-command scp
-    scp -r "$host:$directory/$OUTPUT_DIRECTORY" "$OUTPUT_DIRECTORY-$host-$(date "+%Y-%m-%d")"
+    require-command rsync
+    rsync -av "$host:$directory/$OUTPUT_DIRECTORY/" "$OUTPUT_DIRECTORY-$host-$(date "+%Y-%m-%d")"
 }
