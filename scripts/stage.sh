@@ -226,7 +226,7 @@ define-stage-helpers() {
     }
 
     # extracts kconfig models with the given extractor
-    extract-kconfig-models-with(extractor, output_stage=kconfig) {
+    extract-kconfig-models-with(extractor, output_stage=kconfig, timeout=0) {
         run \
             --stage "$output_stage" \
             --image "$extractor" \
@@ -234,7 +234,7 @@ define-stage-helpers() {
     }
 
     # extracts kconfig models with kconfigreader and kmax
-    extract-kconfig-models(output_stage=kconfig) {
+    extract-kconfig-models(output_stage=kconfig, timeout=0) {
         extract-kconfig-models-with --extractor kconfigreader --output-stage kconfigreader
         extract-kconfig-models-with --extractor kmax --output-stage kmax
         aggregate \

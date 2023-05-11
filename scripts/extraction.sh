@@ -159,10 +159,11 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
 
 # defines API functions for extracting kconfig models
 # sets the global EXTRACTOR and KCONFIG_BINDING variables
-register-kconfig-extractor(extractor, kconfig_binding) {
+register-kconfig-extractor(extractor, kconfig_binding, timeout=0) {
     EXTRACTOR=$extractor
     KCONFIG_BINDING=$kconfig_binding
-    require-value EXTRACTOR KCONFIG_BINDING
+    TIMEOUT=$timeout
+    require-value EXTRACTOR KCONFIG_BINDING TIMEOUT
 
     add-kconfig-binding(system, revision, kconfig_binding_files, environment=) {
         kconfig-checkout "$system" "$revision" "$kconfig_binding_files"
@@ -170,18 +171,18 @@ register-kconfig-extractor(extractor, kconfig_binding) {
         git-clean "$(input-directory)/$system"
     }
 
-    add-kconfig-model(system, revision, kconfig_file, kconfig_binding_file=, environment=, timeout=) {
+    add-kconfig-model(system, revision, kconfig_file, kconfig_binding_file=, environment=) {
         kconfig-checkout "$system" "$revision"
         extract-kconfig-model "$EXTRACTOR" "$KCONFIG_BINDING" \
-            "$system" "$revision" "$kconfig_file" "$kconfig_binding_file" "$environment" "$timeout"
+            "$system" "$revision" "$kconfig_file" "$kconfig_binding_file" "$environment" "$TIMEOUT"
         git-clean "$(input-directory)/$system"
     }
 
-    add-kconfig(system, revision, kconfig_file, kconfig_binding_files, environment=, timeout=) {
+    add-kconfig(system, revision, kconfig_file, kconfig_binding_files, environment=) {
         kconfig-checkout "$system" "$revision" "$kconfig_binding_files"
         compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
         extract-kconfig-model "$EXTRACTOR" "$KCONFIG_BINDING" \
-            "$system" "$revision" "$kconfig_file" "" "$environment" "$timeout"
+            "$system" "$revision" "$kconfig_file" "" "$environment" "$TIMEOUT"
         git-clean "$(input-directory)/$system"
     }
 
@@ -190,13 +191,13 @@ register-kconfig-extractor(extractor, kconfig_binding) {
 }
 
 # compiles kconfig bindings and extracts kconfig models using kmax
-extract-kconfig-models-with-kmax() {
-    register-kconfig-extractor kmax kextractor
+extract-kconfig-models-with-kmax(timeout=0) {
+    register-kconfig-extractor kmax kextractor "$timeout"
     experiment-subjects
 }
 
 # compiles kconfig bindings and extracts kconfig models using kconfigreader
-extract-kconfig-models-with-kconfigreader() {
-    register-kconfig-extractor kconfigreader dumpconf
+extract-kconfig-models-with-kconfigreader(timeout=0) {
+    register-kconfig-extractor kconfigreader dumpconf "$timeout"
     experiment-subjects
 }

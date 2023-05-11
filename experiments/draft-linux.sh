@@ -47,7 +47,7 @@ experiment-stages() {
         --solver_specs \
         model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022 \
         model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
-        #model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022 \
+        #model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022
         #model-counting-competition-2022/DPMC/DPMC.sh,solver,model-counting-competition-2022 \
         #model-counting-competition-2022/c2d.sh,solver,model-counting-competition-2022 \
         #model-counting-competition-2022/gpmc.sh,solver,model-counting-competition-2022 \
