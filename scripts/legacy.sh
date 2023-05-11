@@ -1,28 +1,5 @@
 #!/bin/bash
-set -e
-
-res=output/results_analyze.csv
-err=output/error_analyze.log
-
-run-solver() (
-    log=output/$dimacs,$solver,$analysis.log
-    echo "    Running solver $solver for analysis $analysis"
-    start=`date +%s.%N`
-    (timeout $TIMEOUT_ANALYZE ./run.sh $solver input.dimacs 2>$err > $log) || true
-    end=`date +%s.%N`
-    if grep -q ^mc_int=. $log || grep -q ^mc_double=. $log || grep -q ^mc_log10=. $log; then
-        mc_int=$(grep mc_int $log | cut -d= -f2)
-        mc_double=$(grep mc_double $log | cut -d= -f2)
-        mc_log10=$(grep mc_log10 $log | cut -d= -f2)
-        mc_int=${mc_int:-NA}
-        mc_double=${mc_double:-NA}
-        mc_log10=${mc_log10:-NA}
-        echo $dimacs,$solver,$analysis$suffix,$(echo "($end - $start) * 1000000000 / 1" | bc),$mc_int,$mc_double,$mc_log10 >> $res
-    else
-        echo "WARNING: No solver output for $dimacs with solver $solver and analysis $analysis" | tee -a $err
-        echo $dimacs,$solver,$analysis$suffix,NA,NA,NA,NA >> $res
-    fi
-)
+# this code remains to be properly integrated
 
 run-void-analysis() (
     cat $dimacs_path | grep -E "^[^c]" > input.dimacs
@@ -32,7 +9,7 @@ run-void-analysis() (
 )
 
 run-core-dead-analysis() (
-    features=$(cat $(echo $base | sed 's/kconfigreader/kclause/').features) # todo
+    features=$(cat $(echo $base | sed 's/kconfigreader/kclause/').features)
     i=1
     for f in $features; do
         fnum=$(cat $dimacs_path | grep " $f$" | cut -d' ' -f2 | head -n1)
@@ -56,10 +33,6 @@ run-core-analysis() (
     run-core-dead-analysis "Core feature" "-"
 )
 
-echo system,tag,iteration,source,transformation,solver,analysis,solve_time,mc_int,mc_double,mc_log10 >> $res
-touch $err
-
-rm -rf output/dimacs/*.features
 for dimacs_path in $(ls output/dimacs/*kclause*.dimacs | sort -V); do
     dimacs=$(basename $dimacs_path .dimacs)
     base_it=$(echo $dimacs_path | rev | cut -d, -f2- | rev)

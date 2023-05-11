@@ -20,22 +20,26 @@ dangling-images() {
 
 # prepares a replication package
 # exporting all data makes the replication package bigger, but has no network dependencies
-command-export(file=experiment.tar.gz, include_images=, include_input=, include_scripts=) {
+command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
     require-command tar git
     rm-safe "$EXPORT_DIRECTORY" "$file"
     mkdir -p "$EXPORT_DIRECTORY"
     cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$EXPORT_DIRECTORY"
-    if [[ $include_images == y ]]; then
+    # shellcheck disable=SC2128
+    if [[ $images == y ]]; then
         DOCKER_RUN=
         command-clean
         command-run
         command-clean
     fi
-    if [[ $include_input == y ]]; then
-        cp -R input "$EXPORT_DIRECTORY"
-    fi
-    if [[ $include_scripts == y ]]; then
+    if [[ $scripts == y ]]; then
         git clone "$TOOL_DIRECTORY" "$EXPORT_DIRECTORY/$TOOL"
+    fi
+    if [[ $input == y ]]; then
+        cp -R "$(input-directory)" "$EXPORT_DIRECTORY"
+    fi
+    if [[ $output == y ]]; then
+        cp -R "$OUTPUT_DIRECTORY" "$EXPORT_DIRECTORY"
     fi
     file=$PWD/$file
     push "$EXPORT_DIRECTORY"
