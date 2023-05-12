@@ -12,8 +12,8 @@ FROM=v2.6.10
 TO=v2.6.11
 
 experiment-subjects() {
-    #add-linux-kconfig-history --from "$FROM" --to "$TO" --architecture x86
-    add-busybox-kconfig-history --from "1_10_0" --to "1_11_0"
+    add-linux-kconfig-history --from "$FROM" --to "$TO" --architecture x86
+    #add-busybox-kconfig-history --from "1_10_0" --to "1_11_0"
 }
 
 experiment-stages() {
@@ -43,6 +43,7 @@ experiment-stages() {
     join-into kconfig dimacs
 
     force
+    debug
     solve --kind model-count --timeout "$TIMEOUT" --attempts "$ATTEMPTS" --reset-timeouts-at "$FROM" \
         --solver_specs \
         model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022 \

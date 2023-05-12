@@ -65,7 +65,7 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
             cmd+=("${TOOL}_$image")
-            if [[ ${command[*]} == /bin/bash ]]; then
+            if [[ $DEBUG == y ]] || [[ ${command[*]} == /bin/bash ]]; then
                 cmd+=("${command[*]}")
                 log "${cmd[*]}"
             else
@@ -175,6 +175,11 @@ force() {
 # do not force all subsequent stages to be run
 unforce() {
     FORCE_RUN=
+}
+
+# debugs the next stage interactively
+debug() {
+    DEBUG=y
 }
 
 # plots data on the command line
