@@ -43,7 +43,10 @@ experiment-stages() {
     join-into kconfig dimacs
 
     force
-    debug
+    #debug
+    compute-backbone --timeout "$TIMEOUT"
+    return
+    
     solve --kind model-count --timeout "$TIMEOUT" --attempts "$ATTEMPTS" --reset-timeouts-at "$FROM" \
         --solver_specs \
         model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022 \

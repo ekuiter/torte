@@ -319,6 +319,16 @@ define-stage-helpers() {
             --timeout "$timeout"
     }
 
+    # visualize community structure of DIMACS files as a JPEG file
+    compute-backbone(input_stage=dimacs, timeout=0) {
+        run \
+            --stage backbone \
+            --image solver \
+            --input-directory "$input_stage" \
+            --command transform-into-backbone-with-kissat \
+            --timeout "$timeout"
+    }
+
     # solve DIMACS files
     solve(kind, input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=, solver_specs...) {
         local stages=()
@@ -366,6 +376,7 @@ define-stage-helpers() {
             sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,satisfiable
             sat-competition/20-Kissat-sc2020-sat,solver,satisfiable
             sat-competition/21-Kissat_MAB,solver,satisfiable
+            other/kissat_MAB-HyWalk,solver,satisfiable
             other/SAT4J.sh,solver,satisfiable
             z3,z3,satisfiable
         )

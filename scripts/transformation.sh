@@ -134,3 +134,16 @@ transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0) 
         "$(lambda output,output_log 'grep -v ^evaluate_ < "$output_log"')" \
         "$timeout"
 }
+
+# computes backbone of a DIMACS file
+transform-into-backbone-with-kissat(input_extension=dimacs, output_extension=backbone, timeout=0) {
+    transform-files \
+        "$(input-csv)" \
+        "$input_extension" \
+        "$output_extension" \
+        dimacs_to_backbone_kissat \
+        "$(lambda input,output 'echo python3 other/backbone_kissat.py "$input" "$output"')" \
+        "" \
+        "" \
+        "$timeout"
+}

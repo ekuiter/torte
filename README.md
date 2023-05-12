@@ -202,6 +202,7 @@ These are miscellaneous solvers from various sources.
 | Solver | Version | Date | Class | Notes |
 | - | - | - | - | - |
 | [d4v2](https://github.com/SoftVarE-Group/d4v2) | c1f6842 | 2023-02-15 | #SAT Solver, d-DNNF compiler, PMC |
+| [kissat_MAB-HyWalk](https://satcompetition.github.io/2022/downloads/sequential-solvers.zip) | ? | ? | SAT Solver |
 | SAT4J | 2.3.6 | 2020-12-14 | SAT Solver |
 
 #### Collection: sat-competition
