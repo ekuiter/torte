@@ -55,6 +55,9 @@ run(stage=, image=util, input_directory=, command...) {
             mkdir -p "$(output-directory "$stage")"
             log "" "$(echo-progress run)"
             local cmd=(docker run)
+            if [[ $DEBUG == y ]]; then
+                command=(/bin/bash)
+            fi
             if [[ ${command[*]} == /bin/bash ]]; then
                 cmd+=(-it)
             fi
@@ -65,9 +68,8 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
             cmd+=("${TOOL}_$image")
-            if [[ $DEBUG == y ]] || [[ ${command[*]} == /bin/bash ]]; then
-                cmd+=("${command[*]}")
-                log "${cmd[*]}"
+            if [[ ${command[*]} == /bin/bash ]]; then
+                "${cmd[@]}"
             else
                 cmd+=("$DOCKER_SCRIPTS_DIRECTORY/$TOOL.sh")
                 "${cmd[@]}" "${command[@]}" \

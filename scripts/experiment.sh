@@ -27,9 +27,13 @@ command-run() {
     mkdir -p "$(output-directory "$TOOL")"
     cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$(output-directory "$TOOL")/_experiment.sh"
     define-stage-helpers
-    experiment-stages \
-        > >(write-log "$(output-log "$TOOL")") \
-        2> >(write-all "$(output-err "$TOOL")" >&2)
+    if grep -q '^\s*debug\s*$' "$SCRIPTS_DIRECTORY/_experiment.sh"; then
+        experiment-stages
+    else
+        experiment-stages \
+            > >(write-log "$(output-log "$TOOL")") \
+            2> >(write-all "$(output-err "$TOOL")" >&2)
+    fi
 }
 
 # stops the experiment

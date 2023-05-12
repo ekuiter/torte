@@ -43,7 +43,6 @@ experiment-stages() {
     join-into kconfig dimacs
 
     force
-    #debug
     compute-backbone --timeout "$TIMEOUT"
     return
     
