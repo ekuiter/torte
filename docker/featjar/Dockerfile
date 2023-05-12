@@ -3,7 +3,8 @@ FROM ubuntu:22.04
 WORKDIR /home
 RUN apt-get update && apt-get install -y \
     git \
-    openjdk-11-jdk
+    openjdk-11-jdk \
+    parallel
 RUN git clone https://github.com/FeatureIDE/FeatJAR.git
 WORKDIR /home/FeatJAR
 RUN git checkout e27aea72d97b590ff35006f75e43742cbef30886

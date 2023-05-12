@@ -9,9 +9,10 @@ import heapq
 import subprocess
 import shutil
 import os
+import tempfile
 from itertools import chain
 
-directory = '/'.join(sys.argv[0].split('/')[:-1])
+working_directory = '/'.join(sys.argv[0].split('/')[:-1])
 
 def flatten(iterable):
     iterator = iter(iterable)
@@ -71,55 +72,62 @@ def shell(command):
     return subprocess.run(command, capture_output=True, text=True).stdout.split('\n')
 
 def kissat(file):
-    model = list(flatten([list(map(int, s[2:].strip().split())) for s in shell([f'{directory}/kissat_MAB-HyWalk', file]) if s.startswith('v ')]))
+    model = list(flatten([list(map(int, s[2:].strip().split())) for s in shell([f'{working_directory}/kissat_MAB-HyWalk', file]) if s.startswith('v ')]))
     return len(model) > 0, model
 
 def delete(file):
     os.remove(file) if os.path.exists(file) else None
 
 def find_backbone(file):
-    formula = read_dimacs(file)
-    write_dimacs('formula.dimacs', formula)
-    sat, model = kissat('formula.dimacs')
-    if not sat:
-        return None
-
-    occurrences = {}
-    for clause in formula:
-        for literal in clause:
-            occurrences.setdefault(literal, 0)
-            occurrences[literal] += 1
-
-    def compare(self, a, b):
-        return a[0] < b[0]
-    heapq.cmp_lt=compare
-    candidates = []
-    for literal in model:
-        heapq.heappush(candidates, [-occurrences.get(literal, 0), literal])
-
-    backbone = []
-    while candidates:
-        _, literal = heapq.heappop(candidates)
-        if literal == 0:
-            continue
-        append_dimacs('formula.dimacs', 'assumed.dimacs', -literal)
-        sat, model = kissat('assumed.dimacs')
+    with tempfile.TemporaryDirectory() as temp_directory:
+        def temp_file(file):
+            return f'{temp_directory}/{file}.dimacs'
+        formula_file = temp_file('formula')
+        assumed_file = temp_file('assumed')
+        inferred_file = temp_file('inferred')
+        
+        formula = read_dimacs(file)
+        write_dimacs(formula_file, formula)
+        sat, model = kissat(formula_file)
         if not sat:
-            backbone.append(literal)
-            append_dimacs('formula.dimacs', 'inferred.dimacs', literal)
-            os.rename('inferred.dimacs', 'formula.dimacs')
-        else:
-            temp = set(model)
-            for c in candidates:
-                if c[1] not in temp:
-                    c[1] = 0
+            return None
 
-    delete('formula.dimacs')
-    delete('assumed.dimacs')
-    delete('inferred.dimacs')
-    variable_map = read_variable_map(sys.argv[1])
-    backbone = [('+' if l > 0 else '-') + (variable_map[abs(l)] if abs(l) in variable_map else str(abs(l))) for l in backbone]
-    return backbone
+        occurrences = {}
+        for clause in formula:
+            for literal in clause:
+                occurrences.setdefault(literal, 0)
+                occurrences[literal] += 1
+
+        def compare(self, a, b):
+            return a[0] < b[0]
+        heapq.cmp_lt=compare
+        candidates = []
+        for literal in model:
+            heapq.heappush(candidates, [-occurrences.get(literal, 0), literal])
+
+        backbone = []
+        while candidates:
+            _, literal = heapq.heappop(candidates)
+            if literal == 0:
+                continue
+            append_dimacs(formula_file, assumed_file, -literal)
+            sat, model = kissat(assumed_file)
+            if not sat:
+                backbone.append(literal)
+                append_dimacs(formula_file, inferred_file, literal)
+                os.rename(inferred_file, formula_file)
+            else:
+                temp = set(model)
+                for c in candidates:
+                    if c[1] not in temp:
+                        c[1] = 0
+
+        delete(formula_file)
+        delete(assumed_file)
+        delete(inferred_file)
+        variable_map = read_variable_map(sys.argv[1])
+        backbone = [('+' if l > 0 else '-') + (variable_map[abs(l)] if abs(l) in variable_map else str(abs(l))) for l in backbone]
+        return backbone
 
 if __name__ == "__main__":
     backbone = find_backbone(sys.argv[1])

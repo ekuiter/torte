@@ -145,8 +145,8 @@ tag-linux-revisions(tag_option=) {
             if ! git -C "$(input-directory)/linux" tag | grep -q "^v$revision$"; then
                 log "tag-revision: linux@$revision" "$(echo-progress add)"
                 local date
-                date=$(date -d "$(curl -s "$base_uri" | grep "linux-$revision.tar.gz" | \
-                    cut -d'>' -f3 | tr -s ' ' | cut -d' ' -f2- | rev | cut -d' ' -f2- | rev)" +%s)
+                date=$(date -d "$(curl -s "$base_uri" | grep "linux-$revision.tar.gz" \
+                    | cut -d'>' -f3 | tr -s ' ' | cut -d' ' -f2- | rev | cut -d' ' -f2- | rev)" +%s)
                 dirty=1
                 push "$(input-directory)"
                 rm-safe ./*.tar.gz*

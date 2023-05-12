@@ -9,11 +9,13 @@ ATTEMPTS=5
 # FROM=v2.5.45
 # TO=v6.4
 FROM=v2.6.10
-TO=v2.6.11
+TO=v2.6.14
+
+PARALLEL_JOBS=100
 
 experiment-subjects() {
     add-linux-kconfig-history --from "$FROM" --to "$TO" --architecture x86
-    #add-busybox-kconfig-history --from "1_10_0" --to "1_11_0"
+    #add-busybox-kconfig-history --from "1_10_0" --to "1_14_0"
 }
 
 experiment-stages() {
@@ -48,8 +50,8 @@ experiment-stages() {
     
     solve --kind model-count --timeout "$TIMEOUT" --attempts "$ATTEMPTS" --reset-timeouts-at "$FROM" \
         --solver_specs \
-        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022 \
-        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
+        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022
+        #model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022 \
         #model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022
         #model-counting-competition-2022/DPMC/DPMC.sh,solver,model-counting-competition-2022 \
         #model-counting-competition-2022/c2d.sh,solver,model-counting-competition-2022 \
