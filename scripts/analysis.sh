@@ -58,7 +58,7 @@ analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, 
     else
         echo >> "$(output-csv)"
     fi
-    table-field "$csv_file" "$input_extension-file" | grep -v ^NA$ | sort -V \
+    table-field "$csv_file" "$input_extension-file" | grep -v NA$ | sort -V \
         | parallel -q ${jobs:+"-j$jobs"} "$SCRIPTS_DIRECTORY/$TOOL.sh" \
         analyze-file "{}" "$analyzer_name" "$analyzer" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"
 }

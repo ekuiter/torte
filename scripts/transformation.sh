@@ -55,7 +55,7 @@ transform-files(csv_file, input_extension, output_extension, transformer_name, t
     else
         echo >> "$(output-csv)"
     fi
-    table-field "$csv_file" "$input_extension-file" | grep -v ^NA$ | sort -V \
+    table-field "$csv_file" "$input_extension-file" | grep -v NA$ | sort -V \
         | parallel -q ${jobs:+"-j$jobs"} "$SCRIPTS_DIRECTORY/$TOOL.sh" \
         transform-file "{}" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_fields" "$data_extractor" "$timeout"
 }

@@ -133,7 +133,8 @@ aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field
     aggregate-tables "$stage_field" "$source_transformer" "${csv_files[@]}" > "$(output-csv)"
     tmp=$(mktemp)
     mutate-table-field "$(output-csv)" "$file_fields" "$directory_field" "$(lambda value,context_value echo "\$context_value\$PATH_SEPARATOR\$value")" > "$tmp"
-    mv "$tmp" "$(output-csv)"
+    cp "$tmp" "$(output-csv)"
+    rm-safe "$tmp"
 }
 
 # merges the output files of two or more stages in a new stage
