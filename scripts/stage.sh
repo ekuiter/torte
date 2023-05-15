@@ -61,15 +61,26 @@ run(stage=, image=util, input_directory=, command...) {
             if [[ ${command[*]} == /bin/bash ]]; then
                 cmd+=(-it)
             fi
-            cmd+=(-v "$PWD/$input_directory:$DOCKER_INPUT_DIRECTORY")
-            cmd+=(-v "$PWD/$(output-directory "$stage"):$DOCKER_OUTPUT_DIRECTORY")
+            local input_volume=$input_directory
+            local output_volume
+            output_volume=$(output-directory "$stage")
+            if [[ $input_volume != /* ]]; then
+                input_volume=$PWD/$input_volume
+            fi
+            if [[ $output_volume != /* ]]; then
+                output_volume=$PWD/$output_volume
+            fi
+            cmd+=(-v "$input_volume:$DOCKER_INPUT_DIRECTORY")
+            cmd+=(-v "$output_volume:$DOCKER_OUTPUT_DIRECTORY")
             cmd+=(-v "$(realpath "$SCRIPTS_DIRECTORY"):$DOCKER_SCRIPTS_DIRECTORY")
             cmd+=(-e IS_DOCKER_RUNNING=y)
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
             cmd+=("${TOOL}_$image")
             if [[ ${command[*]} == /bin/bash ]]; then
+                log "" "${cmd[*]}"
                 "${cmd[@]}"
+                exit
             else
                 cmd+=("$DOCKER_SCRIPTS_DIRECTORY/$TOOL.sh")
                 "${cmd[@]}" "${command[@]}" \
