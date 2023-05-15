@@ -9,7 +9,7 @@ ATTEMPTS=5
 # FROM=v2.5.45
 # TO=v6.4
 FROM=v2.6.10
-TO=v2.6.14
+TO=v2.6.11
 
 PARALLEL_JOBS=100
 
@@ -19,6 +19,7 @@ experiment-subjects() {
 }
 
 experiment-stages() {
+    force
     clone-systems
     #tag-linux-revisions
     # read-linux-names
@@ -44,9 +45,8 @@ experiment-stages() {
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
 
-    force
     compute-backbone --timeout "$TIMEOUT"
-    return
+    #return
     
     solve --kind model-count --timeout "$TIMEOUT" --attempts "$ATTEMPTS" --reset-timeouts-at "$FROM" \
         --solver_specs \
