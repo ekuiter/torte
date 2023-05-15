@@ -2,7 +2,8 @@ FROM ubuntu:22.04
 
 RUN apt-get update && apt-get install -y \
     git \
-    openjdk-11-jdk
+    openjdk-11-jdk \
+    parallel
 WORKDIR /home
 RUN git clone https://github.com/ekuiter/SATGraf.git \
   && cd SATGraf \

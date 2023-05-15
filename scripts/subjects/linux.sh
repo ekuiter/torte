@@ -27,6 +27,11 @@ linux-architectures(revision) {
     git -C "$(input-directory)/linux" ls-tree -rd "$revision" --name-only | grep ^arch/ | cut -d/ -f2 | sort | uniq | grep -v '^um$'
 }
 
+linux-attempt-grouper(file) {
+    # shellcheck disable=SC2001
+    echo "$file" | sed 's#\(.*\)/linux/.*\[\(.*\)\]\.dimacs#\1.\2#'
+}
+
 add-linux-kconfig(revision, architecture=x86, kconfig_binding_file=) {
     if [[ $architecture == x86 ]] && linux-architectures "$revision" | grep -q '^i386$'; then
         architecture=i386 # in old revisions, x86 is called i386

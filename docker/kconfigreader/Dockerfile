@@ -4,7 +4,8 @@ FROM ubuntu:14.04
 RUN apt-get update && apt-get install -y --allow-unauthenticated \
   git \
   openjdk-7-jdk \
-  wget
+  wget \
+  parallel
 COPY sbt-0.13.6.deb .
 RUN dpkg -i sbt-0.13.6.deb
 

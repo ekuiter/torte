@@ -338,7 +338,7 @@ define-stage-helpers() {
     }
 
     # solve DIMACS files
-    solve(kind, input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=, solver_specs...) {
+    solve(kind, input_stage=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
@@ -357,14 +357,15 @@ define-stage-helpers() {
                 --kind "$kind" \
                 --parser "$parser" \
                 --timeout "$timeout" \
+                --jobs "$jobs" \
                 --attempts "$attempts" \
-                --reset_timeouts_at "$reset_timeouts_at"
+                --attempt-grouper "$attempt_grouper"
         done
         aggregate --stage "solve_$kind" --stages "${stages[@]}"
     }
 
     # solve DIMACS files for satisfiability
-    solve-satisfiable(input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=) {
+    solve-satisfiable(input_stage=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
         local solver_specs=(
             sat-competition/02-zchaff,solver,satisfiable
             sat-competition/03-Forklift,solver,satisfiable
@@ -388,11 +389,12 @@ define-stage-helpers() {
             other/SAT4J.sh,solver,satisfiable
             z3,z3,satisfiable
         )
-        solve --kind satisfiable --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
+        solve --kind satisfiable --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs" \
+            --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
     }
 
     # solve DIMACS files for model count
-    solve-model-count(input_stage=dimacs, timeout=0, attempts=, reset_timeouts_at=) {
+    solve-model-count(input_stage=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
         local solver_specs=(
             emse-2023/countAntom,solver,model-count
             emse-2023/d4,solver,model-count
@@ -408,7 +410,8 @@ define-stage-helpers() {
             model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022
             other/d4v2.sh,solver,model-count
         )
-        solve --kind model-count --input-stage "$input_stage" --timeout "$timeout" --attempts "$attempts" --reset-timeouts-at "$reset_timeouts_at" --solver_specs "${solver_specs[@]}"
+        solve --kind model-count --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs" \
+            --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
     }
 
     log-output-field(stage, field) {

@@ -2,14 +2,23 @@
 
 # analyzes a file
 # measures the analysis time
-TIMEOUT_OCCURRED=
-analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, fail_fast=) {
+analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=) {
+    attempt_grouper=${attempt_grouper:-$(lambda file echo default)}
     local input
     input="$(input-directory)/$file"
     compile-lambda analyzer "$analyzer"
+    compile-lambda attempt-grouper "$attempt_grouper"
     local output_log
     output_log=$(mktemp)
+    local timeout_file
+    timeout_file=$(output-file "$(attempt-grouper "$file").timeout" "$stage")
     log "$analyzer_name: $file" "$(echo-progress analyze)"
+    local timeouts
+    timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
+    local fail_fast=
+    if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
+        fail_fast=y
+    fi
     # shellcheck disable=SC2046
     if [[ -z $fail_fast ]]; then
         evaluate "$timeout" $(analyzer "$input") | tee "$output_log"
@@ -20,52 +29,41 @@ analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeo
         log "" "$(echo-fail)"
     fi
     if grep -q "^evaluate_timeout=y" < "$output_log"; then
-        TIMEOUT_OCCURRED=y
-    else
-        TIMEOUT_OCCURRED=
+        echo "$file" >> "$timeout_file"
     fi
-    echo -n "$file,$analyzer_name,$(grep -oP "^evaluate_time=\K.*" < "$output_log")" >> "$(output-csv)"
+    local csv_line=""
+    csv_line+="$file,$analyzer_name,$(grep -oP "^evaluate_time=\K.*" < "$output_log" || echo)"
     if [[ -n $data_extractor ]]; then
         if [[ -z $fail_fast ]] && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^evaluate_exit_code=\K.*" < "$output_log") -eq 0 ]]; }; then
             compile-lambda data-extractor "$data_extractor"
-            echo ",$(data-extractor "$output_log")" >> "$(output-csv)"
+            csv_line+=",$(data-extractor "$output_log")"
         else
             for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
-                echo -n ",NA" >> "$(output-csv)"
+                csv_line+=",NA"
             done
-            echo >> "$(output-csv)"
         fi
-    else
-        echo >> "$(output-csv)"
     fi
+    # technically, this write is unsafe when using parallel jobs.
+    # however, as long as the line is not too long, the write buffer saves us.
+    # see https://unix.stackexchange.com/q/42544/
+    echo "$csv_line" >> "$(output-csv)"
     rm-safe "$output_log"
 }
 
 # analyzes a list of files
-analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, reset_timeouts_at=) {
+analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=) {
     echo -n "$input_extension-file,$input_extension-analyzer,$input_extension-analyzer-time" > "$(output-csv)"
     if [[ -n $data_fields ]]; then
         echo ",$data_fields" >> "$(output-csv)"
     else
         echo >> "$(output-csv)"
     fi
-    local timeouts=0
-    while read -r file; do
-        local fail_fast=
-        if [[ -n $reset_timeouts_at ]] && { echo "$file" | grep -q "$reset_timeouts_at"; }; then
-            timeouts=0
-        fi
-        if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
-            fail_fast=y
-        fi
-        analyze-file "$file" "$analyzer_name" "$analyzer" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$fail_fast"
-        if [[ $TIMEOUT_OCCURRED == y ]]; then
-            ((timeouts+=1))
-        fi
-    done < <(table-field "$csv_file" "$input_extension-file" | grep -v ^NA$ | sort -V)
+    table-field "$csv_file" "$input_extension-file" | grep -v ^NA$ | sort -V \
+        | parallel -q ${jobs:+"-j$jobs"} "$SCRIPTS_DIRECTORY/$TOOL.sh" \
+        analyze-file "{}" "$analyzer_name" "$analyzer" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"
 }
 
-solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, attempts=, reset_timeouts_at=) {
+solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
     parser=${parser:-$kind}
     analyze-files \
         "$(input-csv)" \
@@ -75,9 +73,10 @@ solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, attempts=, rese
         "$kind" \
         "$(lambda output_log 'parse-result-'"$parser"' "$output_log"')" \
         "$timeout" \
+        "$jobs" \
         y \
         "$attempts" \
-        "$reset_timeouts_at"
+        "$attempt_grouper"
 }
 
 parse-result-satisfiable(output_log) {

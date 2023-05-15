@@ -9,13 +9,16 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
   bison \
   libssl-dev \
   libelf-dev \
-  wget
+  wget \
+  parallel
 
 # install (the tested version of) kmax
 WORKDIR /home
+# we fix z3 to an older version although we do not need it here, as 4.12.2.0 does not compile correctly
 RUN git clone https://github.com/paulgazz/kmax.git \
   && cd kmax \
   && git checkout 5a8780dd9bc17341dc8e16b53224d25607ae2e7b \
+  && sed -i 's/z3-solver/z3-solver==4.11.2/' setup.py \
   && python3 setup.py install
 
 # install dependencies of analyzed projects
