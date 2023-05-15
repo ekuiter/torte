@@ -51,10 +51,9 @@ command-run-remote(host, file=experiment.tar.gz, directory=.) {
     require-command ssh scp
     scp -r "$file" "$host:$directory"
     local cmd="(cd $directory;"
+    cmd+="  bash _experiment.sh rm-safe $TOOL $OUTPUT_DIRECTORY; "
     cmd+="  tar xzvf $(basename "$file"); "
     cmd+="  rm $(basename "$file"); "
-    cmd+="  bash _experiment.sh rm-safe $TOOL; "
-    #cmd+="  bash _experiment.sh rm-safe $OUTPUT_DIRECTORY $TOOL; "
     cmd+="  screen -dmSL $TOOL bash _experiment.sh; "
     cmd+=");"
     ssh "$host" "$cmd"
