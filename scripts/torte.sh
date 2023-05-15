@@ -73,7 +73,6 @@ MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024)) 
 FORCE_RUN= # y if every stage should be forced to run regardless of whether is is already done
 VERBOSE= # y if console output should be verbose
 DEBUG= # y for debugging stages interactively
-PARALLEL_JOBS=1 # how many jobs (i.e., transformations and analyses) should be run in parallel
 
 source "$SCRIPTS_DIRECTORY/bootstrap.sh" # modifies Bash to allow for succinct function definitions
 for script in "${SCRIPTS[@]}"; do

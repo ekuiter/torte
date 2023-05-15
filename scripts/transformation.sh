@@ -22,20 +22,22 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
         log "" "$(echo-fail)"
         new_file=NA
     fi
-    echo -n "$file,${new_file#./},$transformer_name,$(grep -oP "^evaluate_time=\K.*" < "$output_log")" >> "$(output-csv)"
+    local csv_line=""
+    csv_line+="$file,${new_file#./},$transformer_name,$(grep -oP "^evaluate_time=\K.*" < "$output_log")"
     if [[ -n $data_extractor ]]; then
         if ! is-file-empty "$output"; then
             compile-lambda data-extractor "$data_extractor"
-            echo ",$(data-extractor "$output" "$output_log")" >> "$(output-csv)"
+            csv_line+=",$(data-extractor "$output" "$output_log")"
         else
             for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
-                echo -n ",NA" >> "$(output-csv)"
+                csv_line+=",NA"
             done
-            echo >> "$(output-csv)"
         fi
-    else
-        echo >> "$(output-csv)"
     fi
+    # technically, this write is unsafe when using parallel jobs.
+    # however, as long as the line is not too long, the write buffer saves us.
+    # see https://unix.stackexchange.com/q/42544/
+    echo "$csv_line" >> "$(output-csv)"
     rm-safe "$output_log"
 }
 
@@ -45,7 +47,7 @@ nums(arguments...) {
 }
 
 # transforms a list of files from one file format into another
-transform-files(csv_file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0) {
+transform-files(csv_file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0, jobs=1) {
     require-command parallel
     echo -n "$input_extension-file,$output_extension-file,$output_extension-transformer,$output_extension-time" > "$(output-csv)"
     if [[ -n $data_fields ]]; then
@@ -53,12 +55,8 @@ transform-files(csv_file, input_extension, output_extension, transformer_name, t
     else
         echo >> "$(output-csv)"
     fi
-    local jobs=
-    if [[ -n $PARALLEL_JOBS ]]; then
-        jobs="-j$PARALLEL_JOBS"
-    fi
     table-field "$csv_file" "$input_extension-file" | grep -v ^NA$ | sort -V \
-        | parallel -q "$jobs" "$SCRIPTS_DIRECTORY/$TOOL.sh" \
+        | parallel -q ${jobs:+"-j$jobs"} "$SCRIPTS_DIRECTORY/$TOOL.sh" \
         transform-file "{}" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_fields" "$data_extractor" "$timeout"
 }
 
@@ -73,7 +71,7 @@ dimacs-data-extractor() {
 }
 
 # transforms files into various formats using FeatJAR
-transform-with-featjar(input_extension, output_extension, transformer, timeout=0, data_fields=, data_extractor=) {
+transform-with-featjar(input_extension, output_extension, transformer, timeout=0, data_fields=, data_extractor=, jobs=1) {
     local jar=/home/FeatJAR/transform/build/libs/transform-0.1.0-SNAPSHOT-all.jar
     transform-files \
         "$(input-csv)" \
@@ -91,11 +89,12 @@ transform-with-featjar(input_extension, output_extension, transformer, timeout=0
             --transformation "${transformer//_/}")" \
         "$data_fields" \
         "$data_extractor" \
-        "$timeout"
+        "$timeout" \
+        "$jobs"
 }
 
 # transforms files into DIMACS using FeatJAR
-transform-into-dimacs-with-featjar(input_extension, output_extension, transformer, timeout=0) {
+transform-into-dimacs-with-featjar(input_extension, output_extension, transformer, timeout=0, jobs=1) {
     transform-with-featjar \
         --data-fields "$(dimacs-data-fields)" \
         --data-extractor "$(dimacs-data-extractor)" \
@@ -103,11 +102,12 @@ transform-into-dimacs-with-featjar(input_extension, output_extension, transforme
         --input-extension "$input_extension" \
         --output-extension "$output_extension" \
         --transformer "$transformer" \
-        --timeout "$timeout"
+        --timeout "$timeout" \
+        "$jobs"
 }
 
 # transforms kconfigreader model files into DIMACS using kconfigreader
-transform-into-dimacs-with-kconfigreader(input_extension=model, output_extension=dimacs, timeout=0) {
+transform-into-dimacs-with-kconfigreader(input_extension=model, output_extension=dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -116,11 +116,12 @@ transform-into-dimacs-with-kconfigreader(input_extension=model, output_extension
         "$(lambda input,output 'echo /home/kconfigreader/run.sh de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
-        "$timeout"
+        "$timeout" \
+        "$jobs"
 }
 
 # transforms SMT files into DIMACS using Z3
-transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, timeout=0) {
+transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -129,11 +130,12 @@ transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, time
         "$(lambda input,output 'echo python3 smt2dimacs.py "$input" "$output"')" \
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
-        "$timeout"
+        "$timeout" \
+        "$jobs"
 }
 
 # displays community structure of a DIMACS file with SATGraf
-transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0) {
+transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -142,11 +144,12 @@ transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0) 
         "$(lambda input,output 'echo ./satgraf.sh "$input" "$output"')" \
         satgraf-modularity \
         "$(lambda output,output_log 'grep -v ^evaluate_ < "$output_log"')" \
-        "$timeout"
+        "$timeout" \
+        "$jobs"
 }
 
 # computes backbone of a DIMACS file
-transform-into-backbone-with-kissat(input_extension=dimacs, output_extension=backbone, timeout=0) {
+transform-into-backbone-with-kissat(input_extension=dimacs, output_extension=backbone, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -155,5 +158,6 @@ transform-into-backbone-with-kissat(input_extension=dimacs, output_extension=bac
         "$(lambda input,output 'echo python3 other/backbone_kissat.py "$input" "$output"')" \
         "" \
         "" \
-        "$timeout"
+        "$timeout" \
+        "$jobs"
 }

@@ -9,17 +9,14 @@ ATTEMPTS=5
 # FROM=v2.5.45
 # TO=v6.4
 FROM=v2.6.10
-TO=v2.6.11
-
-PARALLEL_JOBS=100
+TO=v2.6.14
 
 experiment-subjects() {
-    add-linux-kconfig-history --from "$FROM" --to "$TO" --architecture x86
-    #add-busybox-kconfig-history --from "1_10_0" --to "1_14_0"
+    #add-linux-kconfig-history --from "$FROM" --to "$TO" --architecture x86
+    add-busybox-kconfig-history --from "1_10_0" --to "1_14_0"
 }
 
 experiment-stages() {
-    force
     clone-systems
     #tag-linux-revisions
     # read-linux-names
@@ -32,21 +29,23 @@ experiment-stages() {
     extract-kconfig-models-with kmax
     #join-into read-statistics kconfig
 
+    force
     #transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
     #transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
-    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --timeout "$TIMEOUT"
+    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --timeout "$TIMEOUT" --jobs 0
 
     run \
         --stage dimacs \
         --image z3 \
         --input-directory model_to_smt_z3 \
         --command transform-into-dimacs-with-z3 \
-        --timeout "$TIMEOUT"
+        --timeout "$TIMEOUT" \
+        --jobs 0
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
 
-    compute-backbone --timeout "$TIMEOUT"
-    #return
+    compute-backbone --timeout "$TIMEOUT"  --jobs 0
+    return
     
     solve --kind model-count --timeout "$TIMEOUT" --attempts "$ATTEMPTS" --reset-timeouts-at "$FROM" \
         --solver_specs \

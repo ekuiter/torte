@@ -252,7 +252,7 @@ define-stage-helpers() {
     }
 
     # transforms model files with FeatJAR
-    transform-models-with-featjar(transformer, output_extension, input_stage=kconfig, command=transform-with-featjar, timeout=0) {
+    transform-models-with-featjar(transformer, output_extension, input_stage=kconfig, command=transform-with-featjar, timeout=0, jobs=1) {
         # shellcheck disable=SC2128
         run \
             --stage "$transformer" \
@@ -262,28 +262,30 @@ define-stage-helpers() {
             --input-extension model \
             --output-extension "$output_extension" \
             --transformer "$transformer" \
-            --timeout "$timeout"
+            --timeout "$timeout" \
+            --jobs "$jobs"
     }
 
     # transforms model files into DIMACS with FeatJAR
-    transform-models-into-dimacs-with-featjar(transformer, input_stage=kconfig, timeout=0) {
+    transform-models-into-dimacs-with-featjar(transformer, input_stage=kconfig, timeout=0, jobs=1) {
         transform-models-with-featjar \
             --command transform-into-dimacs-with-featjar \
             --output-extension dimacs \
             --input-stage "$input_stage" \
             --transformer "$transformer" \
-            --timeout "$timeout"
+            --timeout "$timeout" \
+            --jobs "$jobs"
     }
 
     # transforms model files into DIMACS
-    transform-models-into-dimacs(input_stage=kconfig, output_stage=dimacs, timeout=0) {
+    transform-models-into-dimacs(input_stage=kconfig, output_stage=dimacs, timeout=0, jobs=1) {
         # distributive tranformation
-        transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featureide --input-stage "$input_stage" --timeout "$timeout"
-        transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featjar --input-stage "$input_stage" --timeout "$timeout"
+        transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featureide --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs"
+        transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featjar --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs"
         
         # intermediate formats for CNF transformation
-        transform-models-with-featjar --transformer model_to_model_featureide --output-extension featureide.model --input-stage "$input_stage" --timeout "$timeout"
-        transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --input-stage "$input_stage" --timeout "$timeout"
+        transform-models-with-featjar --transformer model_to_model_featureide --output-extension featureide.model --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs"
+        transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs"
 
         # Plaisted-Greenbaum CNF tranformation
         run \
@@ -292,7 +294,8 @@ define-stage-helpers() {
             --input-directory model_to_model_featureide \
             --command transform-into-dimacs-with-kconfigreader \
             --input-extension featureide.model \
-            --timeout "$timeout"
+            --timeout "$timeout" \
+            --jobs "$jobs"
         join-into model_to_model_featureide model_to_dimacs_kconfigreader
 
         # Tseitin CNF tranformation
@@ -301,7 +304,8 @@ define-stage-helpers() {
             --image z3 \
             --input-directory model_to_smt_z3 \
             --command transform-into-dimacs-with-z3 \
-            --timeout "$timeout"
+            --timeout "$timeout" \
+            --jobs "$jobs"
         join-into model_to_smt_z3 smt_to_dimacs_z3
 
         aggregate \
@@ -312,23 +316,25 @@ define-stage-helpers() {
     }
 
     # visualize community structure of DIMACS files as a JPEG file
-    draw-community-structure(input_stage=dimacs, timeout=0) {
+    draw-community-structure(input_stage=dimacs, timeout=0, jobs=1) {
         run \
             --stage community-structure \
             --image satgraf \
             --input-directory "$input_stage" \
             --command transform-with-satgraf \
-            --timeout "$timeout"
+            --timeout "$timeout" \
+            --jobs "$jobs"
     }
 
     # visualize community structure of DIMACS files as a JPEG file
-    compute-backbone(input_stage=dimacs, timeout=0) {
+    compute-backbone(input_stage=dimacs, timeout=0, jobs=1) {
         run \
             --stage backbone \
             --image solver \
             --input-directory "$input_stage" \
             --command transform-into-backbone-with-kissat \
-            --timeout "$timeout"
+            --timeout "$timeout" \
+            --jobs "$jobs"
     }
 
     # solve DIMACS files
