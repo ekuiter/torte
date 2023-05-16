@@ -40,7 +40,6 @@ experiment-stages() {
 
     # transform
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl "${PARAMS[@]}"
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml "${PARAMS[@]}"
     transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt "${PARAMS[@]}"
     run \
         --stage dimacs \
