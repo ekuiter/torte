@@ -338,19 +338,19 @@ define-stage-helpers() {
             --jobs "$jobs"
     }
 
-    # visualize community structure of DIMACS files as a JPEG file
-    compute-backbone(input_stage=dimacs, timeout=0, jobs=1) {
+    # compute DIMACS with explicit backbone
+    compute-backbone-dimacs(input_stage=dimacs, timeout=0, jobs=1) {
         run \
-            --stage backbone \
+            --stage backbone-dimacs \
             --image solver \
             --input-directory "$input_stage" \
-            --command transform-into-backbone-with-kissat \
+            --command transform-into-backbone-dimacs-with-kissat \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # solve DIMACS files
-    solve(kind, input_stage=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, solver_specs...) {
+    solve(kind, input_stage=dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
@@ -368,6 +368,7 @@ define-stage-helpers() {
                 --solver "$solver" \
                 --kind "$kind" \
                 --parser "$parser" \
+                --input-extension "$input_extension" \
                 --timeout "$timeout" \
                 --jobs "$jobs" \
                 --attempts "$attempts" \

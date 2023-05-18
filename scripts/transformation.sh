@@ -149,13 +149,13 @@ transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0, 
 }
 
 # computes backbone of a DIMACS file
-transform-into-backbone-with-kissat(input_extension=dimacs, output_extension=backbone, timeout=0, jobs=1) {
+transform-into-backbone-dimacs-with-kissat(input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
-        dimacs_to_backbone_kissat \
-        "$(lambda input,output 'echo python3 other/backbone_kissat.py "$input" "$output"')" \
+        dimacs_to_backbone_dimacs_kissat \
+        "$(lambda input,output 'echo python3 other/backbone_kissat.py --input "$input" --backbone "$(basename "$output" .dimacs).backbone" --output "$output"')" \
         "" \
         "" \
         "$timeout" \

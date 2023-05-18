@@ -3,6 +3,7 @@
 # (C) 2023 Elias Kuiter
 # adapted to rely on the performant SAT solver kissat_MAB-HyWalk (winner of the SAT Competition 2022)
 # added several performance optimizations for analyzing large formulas
+# also added functionality to remove backbone from DIMACS
 
 import sys
 import heapq
@@ -10,7 +11,8 @@ import subprocess
 import shutil
 import os
 import tempfile
-from itertools import chain
+import argparse
+import itertools
 
 working_directory = '/'.join(sys.argv[0].split('/')[:-1])
 
@@ -20,13 +22,13 @@ def flatten(iterable):
         while 1:
             item = next(iterator)
             if not hasattr(item,'__trunc__'):
-                iterator = chain(iter(item), iterator)
+                iterator = itertools.chain(iter(item), iterator)
             else:
                 yield item
     except StopIteration:
         pass
 
-def read_variable_map(file):
+def read_variable_map(file, by_name=False):
     f = open(file, mode="r")
     dimacs_formula = f.read()
     dimacs_formula = dimacs_formula.splitlines()
@@ -34,7 +36,10 @@ def read_variable_map(file):
     for s in dimacs_formula:
         if s.startswith('c '):
             parts = s[2:].strip().split()
-            variable_map[int(parts[0])] = parts[1]
+            if by_name:
+                variable_map[parts[1]] = int(parts[0])
+            else:
+                variable_map[int(parts[0])] = parts[1]
     f.close()
     return variable_map
 
@@ -49,9 +54,12 @@ def read_dimacs(file):
     f.close()
     return formula
 
-def write_dimacs(file, formula):
+def write_dimacs(file, formula, variable_map=None):
     global variables
     f = open(file, "w+")
+    if variable_map:
+        for index, variable in variable_map.items():
+            f.write(f'c {index} {variable}\n')
     f.write(f'p cnf {variables} {len(formula)}\n')
     for c in formula:
         f.write(' '.join(map(str, c)) + ' 0\n')
@@ -125,13 +133,49 @@ def find_backbone(file):
         delete(formula_file)
         delete(assumed_file)
         delete(inferred_file)
-        variable_map = read_variable_map(sys.argv[1])
-        backbone = [('+' if l > 0 else '-') + (variable_map[abs(l)] if abs(l) in variable_map else str(abs(l))) for l in backbone]
-        return backbone
+        return backbone, formula
+
+def clean_backbone(backbone, formula):
+    backbone = set(backbone)
+    new_formula = []
+    
+    for literal in backbone:
+        new_formula.append([literal])
+
+    for clause in formula:
+        done = False
+        for literal in backbone:
+            if literal in clause:
+                done = True
+                break
+        if done:
+            continue
+        new_clause = []
+        for literal in clause:
+            if -literal in backbone:
+                continue
+            new_clause.append(literal)
+        new_formula.append(new_clause)
+
+    return new_formula
 
 if __name__ == "__main__":
-    backbone = find_backbone(sys.argv[1])
-    f = open(sys.argv[2], mode="w+")
-    for literal in backbone:
-        f.write(literal + '\n')
-    f.close()
+    parser = argparse.ArgumentParser(description='Computes and removes backbones.')
+    parser.add_argument('--input', help='DIMACS input file', required=True)
+    parser.add_argument('--backbone', help='backbone output file')
+    parser.add_argument('--output', help='DIMACS output file')
+    args = parser.parse_args()
+
+    backbone, formula = find_backbone(args.input)
+    variable_map = read_variable_map(args.input)
+
+    if args.backbone:
+        readable_backbone = [('+' if l > 0 else '-') + (variable_map[abs(l)] if abs(l) in variable_map else str(abs(l))) for l in backbone]
+        f = open(args.backbone, mode="w+")
+        for literal in readable_backbone:
+            f.write(literal + '\n')
+        f.close()
+
+    if args.output:
+        new_formula = clean_backbone(backbone, formula)
+        write_dimacs(args.output, new_formula, variable_map)
