@@ -238,7 +238,7 @@ As there was no indication as to which configuration was used in the competition
 [^18]: This solver currently crashes on some or all inputs.
 
 [^19]: For SharpSAT-td+Arjun, two configurations were provided by the model-counting competition (`conf1` and `conf2`).
-As only the second configuration actually runs SharpSAT-td, we chose `conf2`.
+As only the second configuration actually runs SharpSAT-td, we chose `conf2` (`conf1` probably implements the approximate counter `SharpSAT-td-Arjun+ApproxMC`).
 
 ## Predefined Experiments
 

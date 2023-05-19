@@ -98,7 +98,7 @@ def find_backbone(file):
         write_dimacs(formula_file, formula)
         sat, model = kissat(formula_file)
         if not sat:
-            return None
+            return None, None
 
         occurrences = {}
         for clause in formula:
@@ -169,13 +169,17 @@ if __name__ == "__main__":
     backbone, formula = find_backbone(args.input)
     variable_map = read_variable_map(args.input)
 
-    if args.backbone:
-        readable_backbone = [('+' if l > 0 else '-') + (variable_map[abs(l)] if abs(l) in variable_map else str(abs(l))) for l in backbone]
-        f = open(args.backbone, mode="w+")
-        for literal in readable_backbone:
-            f.write(literal + '\n')
-        f.close()
+    if backbone:
+        if args.backbone:
+            readable_backbone = [('+' if l > 0 else '-') + (variable_map[abs(l)] if abs(l) in variable_map else str(abs(l))) for l in backbone]
+            f = open(args.backbone, mode="w+")
+            for literal in readable_backbone:
+                f.write(literal + '\n')
+            f.close()
 
-    if args.output:
-        new_formula = clean_backbone(backbone, formula)
-        write_dimacs(args.output, new_formula, variable_map)
+        if args.output:
+            new_formula = clean_backbone(backbone, formula)
+            write_dimacs(args.output, new_formula, variable_map)
+    
+    else:
+        print('formula unsatisfiable')

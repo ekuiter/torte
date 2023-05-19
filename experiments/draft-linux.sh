@@ -65,12 +65,9 @@ experiment-stages() {
         "${PARAMS[@]}" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
         --solver_specs model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022
-        #model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022 \
-        #model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022
-        #model-counting-competition-2022/DPMC/DPMC.sh,solver,model-counting-competition-2022 \
-        #model-counting-competition-2022/c2d.sh,solver,model-counting-competition-2022 \
-        #model-counting-competition-2022/gpmc.sh,solver,model-counting-competition-2022 \
-        #model-counting-competition-2022/TwG.sh,solver,model-counting-competition-2022 \
-        #model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 # todo: second solver
+        # todo: this one is also quite fast
+        #model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
     join-into backbone-dimacs solve_model-count
 }
+
+# todo: collect models as linux-(version)-(arch).(extractor).(extension) with model, uvl, xml, backbinedimacs
