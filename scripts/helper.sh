@@ -79,7 +79,15 @@ format-time(nanoseconds=, prefix=, suffix=) {
         return
     fi
     local milliseconds="${nanoseconds%??????}"
-    echo "$prefix${milliseconds}ms$suffix"
+    if [[ $milliseconds -lt 1000 ]]; then
+        echo "$prefix${milliseconds}ms$suffix"
+    elif [[ $milliseconds -lt 60000 ]]; then
+        local seconds="${nanoseconds%?????????}"
+        echo "$prefix${seconds}s$suffix"
+    else
+        local minutes="$((${nanoseconds%?????????}/60))"
+        echo "$prefix${minutes}m$suffix"
+    fi
 }
 
 # requires that the given commands are available
