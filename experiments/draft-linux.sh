@@ -22,38 +22,35 @@ ATTEMPTS=4 # how many successive timeouts are allowed before giving up and movin
 JOBS=4 # number of parallel jobs to run for transformation and analysis tasks, should not exceed number of attempts
 PARAMS=(--timeout "$TIMEOUT" --jobs "$JOBS") # shorthand for typical parameters
 
-# temporary setting to run on external hard drive
-# OUTPUT_DIRECTORY=/run/media/ek/ITI-DBSE-Kuiter/torte/current
-
 experiment-subjects() {
     # analyze all revisions and architectures of the Linux kernel
-    add-linux-kconfig-history --from v2.5.45 --to v2.5.46 --architecture i386
+    add-linux-kconfig-history --from v2.5.45 --to v6.4 --architecture all
 }
 
 experiment-stages() {
     # extract
-    # clone-systems
-    # tag-linux-revisions
-    # read-linux-names
-    # read-linux-architectures
-    # read-statistics
-    # join-into read-statistics read-linux-names
-    # join-into read-statistics read-linux-architectures
-    # extract-kconfig-models
-    # join-into read-statistics kconfig
+    clone-systems
+    tag-linux-revisions
+    read-linux-names
+    read-linux-architectures
+    read-statistics
+    join-into read-statistics read-linux-names
+    join-into read-statistics read-linux-architectures
+    extract-kconfig-models
+    join-into read-statistics kconfig
 
     # # transform
-    # transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl "${PARAMS[@]}"
-    # transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml "${PARAMS[@]}"
-    # transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt "${PARAMS[@]}"
-    # run \
-    #     --stage dimacs \
-    #     --image z3 \
-    #     --input-directory model_to_smt_z3 \
-    #     --command transform-into-dimacs-with-z3 \
-    #     "${PARAMS[@]}"
-    # join-into model_to_smt_z3 dimacs
-    # join-into kconfig dimacs
+    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl "${PARAMS[@]}"
+    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml "${PARAMS[@]}"
+    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt "${PARAMS[@]}"
+    run \
+        --stage dimacs \
+        --image z3 \
+        --input-directory model_to_smt_z3 \
+        --command transform-into-dimacs-with-z3 \
+        "${PARAMS[@]}"
+    join-into model_to_smt_z3 dimacs
+    join-into kconfig dimacs
 
     # analyze
     compute-backbone-dimacs "${PARAMS[@]}"
@@ -64,10 +61,25 @@ experiment-stages() {
         --kind model-count \
         "${PARAMS[@]}" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
-        --solver_specs model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022
-        # todo: this one is also quite fast
-        #model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
+        --solver_specs \
+        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
+        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
     join-into backbone-dimacs solve_model-count
 }
 
+# 
+git-statistics() {
+    git -C input/linux checkout master
+    echo -n "Number of all commits: "
+    git -C input/linux rev-list HEAD --count
+    echo -n "Number of tagged revisions: "
+    git -C input/linux tag | start-at-revision v2.6.12 | wc -l
+    echo -n "Number of releases: "
+    linux-tag-revisions | start-at-revision v2.6.12 | wc -l
+    echo -n "Number of all commits that touch Kconfig files: "
+    git -C input/linux log --pretty=oneline --diff-filter=AMD --branches --tags -- **/*Kconfig* | wc -l
+}
+
 # todo: collect models as linux-(version)-(arch).(extractor).(extension) with model, uvl, xml, backbinedimacs
+# evaluate missing kcr backbones, then evaluate model counts for kcr
+# why are some models not satisfiable? extraction error or bug in kernel/
