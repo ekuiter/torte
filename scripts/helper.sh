@@ -299,7 +299,7 @@ join-two-tables(first_file, second_file) {
     rm-safe "$first_file_tmp" "$second_file_tmp"
 }
 
-# joins any number of CSV files on t least one common fields
+# joins any number of CSV files on at least one common field
 join-tables(files...) {
     require-array files
     if [[ ${#files[@]} -eq 1 ]]; then
