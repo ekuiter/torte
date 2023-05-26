@@ -14,13 +14,14 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https:/
 # it is probably not needed, depending on your use case (e.g., only analyzing the latest revision).
 # For an unattended run of the full evaluation, we recommend to use a machine with 1TiB of RAM and
 # a 500GiB tmpfs ramdisk (it also works on consumer laptops, but takes ages without parallel jobs).
-# Parallelization (i.e., JOBS > 1) speeds up the process, but as parallel jobs can allocate less
-# memory, failures will occur more often. As a compromise, we set JOBS to a small value > 1.
+# Parallelization (i.e., JOBS > 1) massively speeds up the process, but as jobs can steal each other's
+# memory, failures will occur more often. This does not affect most tasks, so we only reduce
+# parallelization for model counting, which takes a lot of RAM.
 
-TIMEOUT=3600 # timeout in seconds for all transformation and analysis tasks (only exceeded when computing backbone and model count)
-ATTEMPTS=4 # how many successive timeouts are allowed before giving up and moving on to the next extractor or architecture
-JOBS=4 # number of parallel jobs to run for transformation and analysis tasks, should not exceed number of attempts
-PARAMS=(--timeout "$TIMEOUT" --jobs "$JOBS") # shorthand for typical parameters
+# parameters for computing model count
+SOLVE_TIMEOUT=3600 # timeout in seconds
+SOLVE_JOBS=4 # number of parallel jobs to run, should not exceed number of attempts
+SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and moving on
 
 experiment-subjects() {
     # analyze all revisions and architectures of the Linux kernel
@@ -40,26 +41,28 @@ experiment-stages() {
     join-into read-statistics kconfig
 
     # # transform
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl "${PARAMS[@]}"
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml "${PARAMS[@]}"
-    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt "${PARAMS[@]}"
+    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
+    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
+    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
     run \
         --stage dimacs \
         --image z3 \
         --input-directory model_to_smt_z3 \
         --command transform-into-dimacs-with-z3 \
-        "${PARAMS[@]}"
+        --jobs 16
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
 
     # analyze
-    compute-backbone-dimacs "${PARAMS[@]}"
+    compute-backbone-dimacs --jobs 16
     join-into dimacs backbone-dimacs
     solve \
         --input-stage backbone-dimacs \
         --input-extension backbone.dimacs \
         --kind model-count \
-        "${PARAMS[@]}" \
+        --timeout "$SOLVE_TIMEOUT" \
+        --jobs "$SOLVE_JOBS" \
+        --attempts "$SOLVE_ATTEMPTS" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
         --solver_specs \
         model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
@@ -67,7 +70,7 @@ experiment-stages() {
     join-into backbone-dimacs solve_model-count
 }
 
-# 
+# additional useful statistics on the mainline kernel
 git-statistics() {
     git -C input/linux checkout master
     echo -n "Number of all commits: "
