@@ -9,7 +9,7 @@ Take your pick:
 - CNF **T**ransf**or**ma**t**ion Workb**e**nch
 - KConfig Extrac**tor** that **T**ackles **E**volution
 - **To**wards **R**eproducible Feature-Model **T**ransformation and **E**xtraction
-- **T**he **O**bviously **R**everse-Engineered **T**ool Nam**e**
+- **T**hat's an **O**bviously **R**everse-Engineered **T**ool Nam**e**
 
 torte can currently be used to
 
