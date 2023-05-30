@@ -29,7 +29,7 @@ linux-architectures(revision) {
 
 linux-attempt-grouper(file) {
     # shellcheck disable=SC2001
-    echo "$file" | sed 's#\(.*\)/linux/.*\[\(.*\)\]\.dimacs#\1.\2#'
+    echo "$file" | sed 's#\(.*\)/linux/.*\[\(.*\)\]\..*#\1.\2#'
 }
 
 add-linux-kconfig(revision, architecture=x86, kconfig_binding_file=) {
