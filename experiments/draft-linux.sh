@@ -40,7 +40,7 @@ experiment-stages() {
     extract-kconfig-models
     join-into read-statistics kconfig
 
-    # # transform
+    # transform
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
     transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
     transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16

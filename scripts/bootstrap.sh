@@ -11,7 +11,7 @@ compile-script() {
     sed -E "s#$regex#echo '\1() {' \$(/bin/bash $(dirname "$0")/bootstrap.sh \"\1\" \2) '\3'#e" < "$script" # compiled version
 }
 
-# improves Bash's sourcing mechanism so scripts are compiles before inclusion
+# improves Bash's sourcing mechanism so scripts are compiled before inclusion
 source-script() {
     local script
     script=$1
