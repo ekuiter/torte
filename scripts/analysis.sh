@@ -97,8 +97,8 @@ parse-result-model-count(output_log) {
 }
 
 parse-result-model-counting-competition-2022(output_log) {
-    model_count_int=$(grep "c s exact .* int" < "$output_log" | cut -d' ' -f6)
-    model_count_double=$(grep "c s exact double prec-sci" < "$output_log" | cut -d' ' -f6)
-    model_count_log10=$(grep "c s log10-estimate" < "$output_log" | cut -d' ' -f4)
+    model_count_int=$(grep "^c s exact .* int" < "$output_log" | cut -d' ' -f6)
+    model_count_double=$(grep "^c s exact double prec-sci" < "$output_log" | cut -d' ' -f6)
+    model_count_log10=$(grep "^c s log10-estimate" < "$output_log" | cut -d' ' -f4)
     echo "${model_count_int:-NA}"
 }
