@@ -67,6 +67,8 @@ experiment-stages() {
     #     --solver_specs \
     #     model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
     #     model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
+    
+    #aggregate --stage "solve_model-count" --stages solve_model-counting-competition-2022_d4.sh solve_model-counting-competition-2022_sharpsat-td+arjun_sharpsat-td+arjun.sh
     join-into backbone-dimacs solve_model-count
 }
 
