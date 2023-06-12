@@ -103,7 +103,7 @@ transform-into-dimacs-with-featjar(input_extension, output_extension, transforme
         --output-extension "$output_extension" \
         --transformer "$transformer" \
         --timeout "$timeout" \
-        "$jobs"
+        --jobs "$jobs"
 }
 
 # transforms kconfigreader model files into DIMACS using kconfigreader
