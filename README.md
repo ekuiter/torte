@@ -176,7 +176,7 @@ The #SAT solvers from the collection `model-counting-competition-2022` should be
 | - | - | - | - |
 | countAntom | 1.0 | 2015-05-11 | [^18] |
 | d4 | ? | ? | |
-| dSharp | ? | ? | |
+| dSharp | ? | ? | [^20] |
 | Ganak | ? | ? | |
 | sharpSAT | ? | ? | |
 
@@ -239,6 +239,8 @@ As there was no indication as to which configuration was used in the competition
 
 [^19]: For SharpSAT-td+Arjun, two configurations were provided by the model-counting competition (`conf1` and `conf2`).
 As only the second configuration actually runs SharpSAT-td, we chose `conf2` (`conf1` probably implements the approximate counter `SharpSAT-td-Arjun+ApproxMC`).
+
+[^20]: This version of dSharp is [known](https://doi.org/10.4230/LIPIcs.SAT.2022.30) to produce inaccurate results for some inputs, so use it with caution.
 
 ## Predefined Experiments
 
