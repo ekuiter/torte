@@ -30,49 +30,47 @@ experiment-subjects() {
 
 experiment-stages() {
     # extract
-    # clone-systems
-    # tag-linux-revisions
-    # read-linux-names
-    # read-linux-architectures
-    # read-statistics
-    # join-into read-statistics read-linux-names
-    # join-into read-statistics read-linux-architectures
-    # extract-kconfig-models
-    # join-into read-statistics kconfig
+    clone-systems
+    tag-linux-revisions
+    read-linux-names
+    read-linux-architectures
+    read-statistics
+    join-into read-statistics read-linux-names
+    join-into read-statistics read-linux-architectures
+    extract-kconfig-models
+    join-into read-statistics kconfig
 
-    # # transform
-    # transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
-    # transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
-    # transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
-    # run \
-    #     --stage dimacs \
-    #     --image z3 \
-    #     --input-directory model_to_smt_z3 \
-    #     --command transform-into-dimacs-with-z3 \
-    #     --jobs 16
-    # join-into model_to_smt_z3 dimacs
-    # join-into kconfig dimacs
+    # transform
+    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
+    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
+    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
+    run \
+        --stage dimacs \
+        --image z3 \
+        --input-directory model_to_smt_z3 \
+        --command transform-into-dimacs-with-z3 \
+        --jobs 16
+    join-into model_to_smt_z3 dimacs
+    join-into kconfig dimacs
 
-    # # analyze
-    # compute-backbone-dimacs --jobs 16
-    # join-into dimacs backbone-dimacs
-    # solve \
-    #     --input-stage backbone-dimacs \
-    #     --input-extension backbone.dimacs \
-    #     --kind model-count \
-    #     --timeout "$SOLVE_TIMEOUT" \
-    #     --jobs "$SOLVE_JOBS" \
-    #     --attempts "$SOLVE_ATTEMPTS" \
-    #     --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
-    #     --solver_specs \
-    #     model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
-    #     model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
-    
-    #aggregate --stage "solve_model-count" --stages solve_model-counting-competition-2022_d4.sh solve_model-counting-competition-2022_sharpsat-td+arjun_sharpsat-td+arjun.sh
+    # analyze
+    compute-backbone-dimacs --jobs 16
+    join-into dimacs backbone-dimacs
+    solve \
+        --input-stage backbone-dimacs \
+        --input-extension backbone.dimacs \
+        --kind model-count \
+        --timeout "$SOLVE_TIMEOUT" \
+        --jobs "$SOLVE_JOBS" \
+        --attempts "$SOLVE_ATTEMPTS" \
+        --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
+        --solver_specs \
+        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
+        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
     join-into backbone-dimacs solve_model-count
 }
 
-# additional useful statistics on the mainline kernel
+# additional useful statistics on the mainline kernel, takes a while to run
 git-statistics() {
     git -C input/linux checkout master
     echo -n "Number of all commits: "
@@ -85,6 +83,4 @@ git-statistics() {
     git -C input/linux log --pretty=oneline --diff-filter=AMD --branches --tags -- **/*Kconfig* | wc -l
 }
 
-# todo: collect models as linux-(version)-(arch).(extractor).(extension) with model, uvl, xml, backbinedimacs
-# evaluate missing kcr backbones, then evaluate model counts for kcr
-# why are some models not satisfiable? extraction error or bug in kernel/
+# todo: collect models as linux-(version)-(arch).(extractor).(extension) with model, uvl, xml, backbonedimacs
