@@ -82,5 +82,3 @@ git-statistics() {
     echo -n "Number of all commits that touch Kconfig files: "
     git -C input/linux log --pretty=oneline --diff-filter=AMD --branches --tags -- **/*Kconfig* | wc -l
 }
-
-# todo: collect models as linux-(version)-(arch).(extractor).(extension) with model, uvl, xml, backbonedimacs
