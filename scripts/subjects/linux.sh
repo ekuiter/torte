@@ -24,11 +24,13 @@ linux-tag-revisions() {
 }
 
 linux-architectures(revision) {
-    git -C "$(input-directory)/linux" ls-tree -rd "$revision" --name-only | grep ^arch/ | cut -d/ -f2 | sort | uniq | grep -v '^um$'
+    git -C "$(input-directory)/linux" ls-tree -rd "$revision" --name-only \
+        | grep ^arch/ | cut -d/ -f2 | sort | uniq | grep -v '^um$'
 }
 
 linux-configs(revision) {
-    git -C "$(input-directory)/linux" grep -E '^config +\w+' "$revision" -- '**/*Kconfig*' | awk -F: '{OFS=","; gsub("config ", "", $3); print "linux", $1, $2, $3}'
+    git -C "$(input-directory)/linux" grep -E '^ *config +\w+' "$revision" -- '**/*Kconfig*' \
+        | awk -F: '{OFS=","; gsub(" *config ", "", $3); print "linux", $1, $2, $3}'
 }
 
 linux-attempt-grouper(file) {
