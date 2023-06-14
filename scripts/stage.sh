@@ -230,13 +230,18 @@ define-stage-helpers() {
     }
 
     # extracts code names of linux revisions
-    read-linux-names(option=) {
+    read-linux-names() {
         run --stage read-linux-names
     }
 
     # extracts architectures of linux revisions
-    read-linux-architectures(option=) {
+    read-linux-architectures() {
         run --stage read-linux-architectures
+    }
+
+    # extracts configuration options of linux revisions
+    read-linux-configs() {
+        run --stage read-linux-configs
     }
 
     # read basic statistics for each system

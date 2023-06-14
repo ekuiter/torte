@@ -34,6 +34,7 @@ experiment-stages() {
     tag-linux-revisions
     read-linux-names
     read-linux-architectures
+    read-linux-configs
     read-statistics
     join-into read-statistics read-linux-names
     join-into read-statistics read-linux-architectures

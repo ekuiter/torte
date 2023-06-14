@@ -27,6 +27,10 @@ linux-architectures(revision) {
     git -C "$(input-directory)/linux" ls-tree -rd "$revision" --name-only | grep ^arch/ | cut -d/ -f2 | sort | uniq | grep -v '^um$'
 }
 
+linux-configs(revision) {
+    git -C "$(input-directory)/linux" grep -E '^config +\w+' "$revision" -- '**/*Kconfig*' | awk -F: '{OFS=","; gsub("config ", "", $3); print "linux", $1, $2, $3}'
+}
+
 linux-attempt-grouper(file) {
     # shellcheck disable=SC2001
     echo "$file" | sed 's#\(.*\)/linux/.*\[\(.*\)\]\..*#\1.\2#'
@@ -226,5 +230,27 @@ read-linux-architectures() {
     }
 
     echo system,revision,architecture > "$(output-csv)"
+    experiment-subjects
+}
+
+# extracts configuration options of linux revisions
+read-linux-configs() {
+    add-revision(system, revision) {
+        if [[ $system == linux ]]; then
+            log "read-linux-configs: $system@$revision" "$(echo-progress read)"
+            if grep -q "^$system,$revision," "$(output-csv)"; then
+                log "" "$(echo-skip)"
+                return
+            fi
+            if [[ ! -d $(input-directory)/linux ]]; then
+                error "Linux has not been cloned yet. Please prepend a stage that clones Linux."
+            fi
+            local configs
+            linux-configs "$revision" >> "$(output-csv)"
+            log "" "$(echo-done)"
+        fi
+    }
+
+    echo system,revision,kconfig-file,config > "$(output-csv)"
     experiment-subjects
 }
