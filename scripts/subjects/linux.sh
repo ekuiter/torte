@@ -29,10 +29,16 @@ linux-architectures(revision) {
 }
 
 linux-configs(revision) {
-    # note that the prompt column is only approximated by looking for a quotation mark in the line following the configuration option
-    git -C "$(input-directory)/linux" grep -E -A1 $'^[ \t]*config +\w+' "$revision" -- '**/*Kconfig*' \
-        | grep -v '^--$' | paste -d: - - \
-        | awk -F: '{OFS=","; gsub(" *config ", "", $3); gsub(".*\".*", "", $5); gsub(".+", "false", $5); gsub("^$", "true", $5); print "linux", $1, $2, $3, $5}' 
+    # match lines in all Kconfig files of the given revision that:
+    # - start with 'config' or 'menuconfig' (possibly with leading whitespace)
+    # - after which follows an alphanumeric configuration option name
+    # then format the result by removing 'config' or 'menuconfig', possible comments, and trimming any whitespace
+    # finally, ignore all lines which contain illegal characters (e.g., whitespace)
+    git -C "$(input-directory)/linux" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+\w+' "$revision" -- '**/*Kconfig*' \
+        | grep -v '^--$' \
+        | paste -d: - - \
+        | awk -F: $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print "linux", $1, $2, $3}' \
+        | grep -E ',.*,.*,\w+$'
 }
 
 linux-attempt-grouper(file) {
