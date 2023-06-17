@@ -29,8 +29,10 @@ linux-architectures(revision) {
 }
 
 linux-configs(revision) {
-    git -C "$(input-directory)/linux" grep -E '^ *config +\w+' "$revision" -- '**/*Kconfig*' \
-        | awk -F: '{OFS=","; gsub(" *config ", "", $3); print "linux", $1, $2, $3}'
+    # note that the prompt column is only approximated by looking for a quotation mark in the line following the configuration option
+    git -C "$(input-directory)/linux" grep -E -A1 $'^[ \t]*config +\w+' "$revision" -- '**/*Kconfig*' \
+        | grep -v '^--$' | paste -d: - - \
+        | awk -F: '{OFS=","; gsub(" *config ", "", $3); gsub(".*\".*", "", $5); gsub(".+", "false", $5); gsub("^$", "true", $5); print "linux", $1, $2, $3, $5}' 
 }
 
 linux-attempt-grouper(file) {
@@ -253,6 +255,6 @@ read-linux-configs() {
         fi
     }
 
-    echo system,revision,kconfig-file,config > "$(output-csv)"
+    echo system,revision,kconfig-file,config,prompt > "$(output-csv)"
     experiment-subjects
 }
