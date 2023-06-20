@@ -34,11 +34,27 @@ linux-configs(revision) {
     # - after which follows an alphanumeric configuration option name
     # then format the result by removing 'config' or 'menuconfig', possible comments, and trimming any whitespace
     # finally, ignore all lines which contain illegal characters (e.g., whitespace)
-    git -C "$(input-directory)/linux" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+\w+' "$revision" -- '**/*Kconfig*' \
-        | grep -v '^--$' \
-        | paste -d: - - \
+    # note that this does not exclude the architecture um as done in other functions
+    git -C "$(input-directory)/linux" grep -E $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Kconfig*' \
         | awk -F: $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print "linux", $1, $2, $3}' \
-        | grep -E ',.*,.*,\w+$'
+        | grep -E ',.*,.*,[0-9a-zA-Z_]+$' \
+        | sort | uniq
+}
+
+linux-config-types(revision) {
+    # similar to linux-configs, reads all configuration options, but also tries to read their types from the succeeding line
+    # note that this is less accurate than linux-configs due to the complexity of the regular expressions
+    # also, this does not exclude the architecture um as done in other functions
+    git -C "$(input-directory)/linux" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Kconfig*' \
+        | perl -pe 's/[ \t]*(menu)?config[ \t]+([0-9a-zA-Z_]+).*/$2/' \
+        | perl -pe 's/\n/&&&/g' \
+        | perl -pe 's/&&&--&&&/\n/g' \
+        | perl -pe 's/&&&[^:&]*?:[^:&]*?Kconfig[^:&]*?-/&&&/g' \
+        | perl -pe 's/&&&([^:&]*?:[^:&]*?Kconfig[^:&]*?:)/&&&\n$1/g' \
+        | perl -pe 's/&&&/:/g' \
+        | awk -F: $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print "linux", $1, $2, $3, $4}' \
+        | grep -E ',(bool|tristate|string|int|hex)$' \
+        | sort | uniq
 }
 
 linux-attempt-grouper(file) {
@@ -255,12 +271,23 @@ read-linux-configs() {
             if [[ ! -d $(input-directory)/linux ]]; then
                 error "Linux has not been cloned yet. Please prepend a stage that clones Linux."
             fi
-            local configs
-            linux-configs "$revision" >> "$(output-csv)"
+            local configs config_types
+            configs=$(mktemp)
+            config_types=$(mktemp)
+            echo system,revision,kconfig-file,config >> "$configs"
+            echo system,revision,kconfig-file,config,type >> "$config_types"
+            linux-configs "$revision" >> "$configs"
+            tail -n+2 < "$configs" >> "$(output-csv)"
+            linux-config-types "$revision" >> "$config_types"
+            if [[ ! -f $(output-file types.csv) ]]; then
+                join-tables "$configs" "$config_types" | head -n1 > "$(output-file types.csv)"
+            fi
+            join-tables "$configs" "$config_types" | tail -n+2 >> "$(output-file types.csv)"
             log "" "$(echo-done)"
+            rm-safe "$configs" "$config_types"
         fi
     }
 
-    echo system,revision,kconfig-file,config,prompt > "$(output-csv)"
+    echo system,revision,kconfig-file,config > "$(output-csv)"
     experiment-subjects
 }
