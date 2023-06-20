@@ -106,15 +106,15 @@ For transparency, we document the changes we make to these tools and known limit
 
 | Tool | Version | Date | Notes |
 | - | - | - | - |
-| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] |
+| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] [^24] |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | e27aea7 | 2023-04-11 | [^12] [^15] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
-| [paulgazz/kmax](https://github.com/paulgazz/kmax) | 5a8780d | 2023-03-19 | [^4] [^5] [^7] [^8] |
+| [paulgazz/kmax](https://github.com/paulgazz/kmax) | 5a8780d | 2023-03-19 | [^4] [^5] [^7] [^8] [^24] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 
 [^1]: Currently, non-Boolean variability (e.g., constraints on numerical features) is only partially supported (e.g., encoded naively into Boolean constraints).
-It is recommended to check manually whether non-Boolean variability is correctly represented in generated files.
+It is recommended to check manually whether non-Boolean variability is represented as desired in generated files.
 
 [^2]: Support for different Linux architectures is currently limited to a single Linux architecture (given in the `ARCH` environment variable) in a given experiment.
 
@@ -154,6 +154,8 @@ Currently, this behavior is not configurable.
 
 [^16]: Feature models and formulas produced by kconfigreader have nondeterministic clause order.
 This does not impact semantics, but it possibly influences the efficiency of solvers.
+
+[^24]: The formulas produced by kconfigreader and kmax do not explicitly mention unconstrained features (i.e., features that do not occur in any constraints). However, for many analyses that depend on knowing the entire feature set (e.g., simply listing all configurable features or calculating model counts), this is a threat to validity. We do not modify the extracted formulas, to preserve the original output of kconfigreader and kmax. To address this threat, we instead offer the transformation stage `transform-into-unconstrained-features`, which explicitly computes these features.
 
 ### Solvers
 
