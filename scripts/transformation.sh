@@ -161,3 +161,34 @@ transform-into-backbone-dimacs-with-kissat(input_extension=dimacs, output_extens
         "$timeout" \
         "$jobs"
 }
+
+# for model files, computes all features that are unconstrained and not mentioned in the formula
+compute-unconstrained-features(input, output) {
+    if [[ -f "$input" ]]; then
+        local tmp
+        tmp=$(mktemp)
+        sed "s/)/)\n/g" < "$input" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq > "$tmp"
+        local kextractor_file
+        kextractor_file="$(dirname "$input")/$(basename "$input" .model).kextractor"
+        if [[ -f $kextractor_file ]]; then
+             diff "$tmp" <(grep -E "^config " "$kextractor_file" | cut -d' ' -f2 | sed 's/^CONFIG_//' | sort | uniq) | grep '>' | cut -d' ' -f2 > "$output"
+        else
+             diff "$tmp" <(grep -E "^#item " "$input" | cut -d' ' -f2 | sort | uniq) | grep '>' | cut -d' ' -f2 > "$output"
+        fi
+        rm-safe "$tmp"
+    fi
+}
+
+# transforms models into their unconstrained features
+transform-into-unconstrained-features(input_extension=model, output_extension=unconstrained.features, timeout=0, jobs=1) {
+    transform-files \
+        "$(input-csv)" \
+        "$input_extension" \
+        "$output_extension" \
+        model_to_unconstrained_features \
+        "$(lambda input,output 'echo '"$SCRIPTS_DIRECTORY/$TOOL.sh"' compute-unconstrained-features "$input" "$output"')" \
+        "$(dimacs-data-fields)" \
+        "$(dimacs-data-extractor)" \
+        "$timeout" \
+        "$jobs"
+}

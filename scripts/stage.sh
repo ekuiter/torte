@@ -354,6 +354,16 @@ define-stage-helpers() {
             --jobs "$jobs"
     }
 
+    # compute DIMACS with explicit backbone
+    compute-unconstrained-features(input_stage=kconfig, timeout=0, jobs=1) {
+        run \
+            --stage unconstrained-features \
+            --input-directory "$input_stage" \
+            --command transform-into-unconstrained-features \
+            --timeout "$timeout" \
+            --jobs "$jobs"
+    }
+
     # solve DIMACS files
     solve(kind, input_stage=dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, solver_specs...) {
         local stages=()

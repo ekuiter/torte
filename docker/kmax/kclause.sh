@@ -4,6 +4,7 @@ kclause_file=$2
 kconfig_model=$3
 
 # extract model as pickled file
+# note that this drops unconstrained features
 kclause < "$kextractor_file" > "$kclause_file"
 
 # transform model into kconfigreader format
