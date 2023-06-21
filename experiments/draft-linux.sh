@@ -40,6 +40,7 @@ experiment-stages() {
     join-into read-statistics read-linux-architectures
     extract-kconfig-models
     join-into read-statistics kconfig
+    compute-unconstrained-features
 
     # transform
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
