@@ -102,7 +102,7 @@ The following tools are bundled with torte and can be used in experiments for ex
 Most tools are not included in this repository, but cloned and built with tool-specific Docker files in the `docker` directory.
 The bundled solvers are listed in a separate table [below](#solvers).
 
-For transparency, we document the changes we make to these tools and known limitations. There are also some general known limitations of torte [^1] [^2].
+For transparency, we document the changes we make to these tools and known limitations. There are also some general known limitations of torte [^1].
 
 | Tool | Version | Date | Notes |
 | - | - | - | - |
@@ -115,8 +115,6 @@ For transparency, we document the changes we make to these tools and known limit
 
 [^1]: Currently, non-Boolean variability (e.g., constraints on numerical features) is only partially supported (e.g., encoded naively into Boolean constraints).
 It is recommended to check manually whether non-Boolean variability is represented as desired in generated files.
-
-[^2]: Support for different Linux architectures is currently limited to a single Linux architecture (given in the `ARCH` environment variable) in a given experiment.
 
 [^3]: We added the class `TransformIntoDIMACS.scala` to kconfigreader to decouple the extraction and transformation of feature models, so kconfigreader can also transform feature models extracted with other tools (e.g., kmax).
 
