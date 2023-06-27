@@ -83,12 +83,15 @@ Detailed system-specific information on potential threats to validity is availab
 | [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
 | [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
 | [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
-| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.3 | [^21] | |
+| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.3 | [^21] [^25] | |
 | [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
 | [uclibc-ng](scripts/subjects/uclibc-ng.sh) | 1.0.2 - 1.0.40 | |
 
-[^21]: Most architectures of Linux can be extracted successfully.
+[^21]: Most revisions and architectures of Linux (since the introduction of KConfig) can be extracted successfully.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
+
+[^25]: Currently, we do not consider the more recently introduced Kconfig constructs defined in Linux' `scripts/Kconfig.include`.
+This affects the extraction of less than 100 features in the kernel's history up to `v6.3`.
 
 [^22]: Feature models for this system are currently likely to be incomplete due to an inaccurate extraction.
 
