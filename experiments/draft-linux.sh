@@ -58,6 +58,8 @@ experiment-stages() {
     # analyze
     compute-backbone-dimacs --jobs 16
     join-into dimacs backbone-dimacs
+    compute-backbone-features
+
     solve \
         --input-stage backbone-dimacs \
         --input-extension backbone.dimacs \
