@@ -40,7 +40,7 @@ experiment-stages() {
     join-into read-statistics read-linux-architectures
     extract-kconfig-models
     join-into read-statistics kconfig
-    compute-unconstrained-features
+    compute-unconstrained-features --jobs 16
 
     # transform
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
@@ -58,7 +58,7 @@ experiment-stages() {
     # analyze
     compute-backbone-dimacs --jobs 16
     join-into dimacs backbone-dimacs
-    compute-backbone-features
+    compute-backbone-features --jobs 16
 
     solve \
         --input-stage backbone-dimacs \

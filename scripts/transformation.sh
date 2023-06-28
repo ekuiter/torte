@@ -206,14 +206,13 @@ compute-core-or-dead-features(input, output, prefix=) {
         | grep -E -f - <(grep c "$input" | grep -v k!) \
         | cut -d ' ' -f3 \
         | sort | uniq
-
-    # binary search based sgrep implementation, less efficient than the above (extracts all backbone variables)
+    # binary-search based sgrep implementation, unfortunately this is less efficient than the above
     # local tmp
     # tmp=$(mktemp)
     # echo > "$tmp"
     # grep -E '^c' "$input" | grep -v k! | cut -d' ' -f2- | sort -f >> "$tmp"
     # echo >> "$tmp"
-    # grep -E '^([^ ]+) 0$' "$input" \
+    # grep -E '^'"$prefix"'([^- ]+) 0$' "$input" \
     #     | cut -d' ' -f1 \
     #     | sed 's/-//' \
     #     | while read -r index; do
