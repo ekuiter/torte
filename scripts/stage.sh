@@ -343,7 +343,7 @@ define-stage-helpers() {
             --jobs "$jobs"
     }
 
-    # compute DIMACS with explicit backbone
+    # compute DIMACS files with explicit backbone
     compute-backbone-dimacs(input_stage=dimacs, timeout=0, jobs=1) {
         run \
             --stage backbone-dimacs \
@@ -354,12 +354,22 @@ define-stage-helpers() {
             --jobs "$jobs"
     }
 
-    # compute DIMACS with explicit backbone
+    # compute unconstrained features that are not mentioned in a DIMACS file
     compute-unconstrained-features(input_stage=kconfig, timeout=0, jobs=1) {
         run \
             --stage unconstrained-features \
             --input-directory "$input_stage" \
             --command transform-into-unconstrained-features \
+            --timeout "$timeout" \
+            --jobs "$jobs"
+    }
+
+    # compute features in the backbone of DIMACS files
+    compute-backbone-features(input_stage=backbone-dimacs, timeout=0, jobs=1) {
+        run \
+            --stage backbone-features \
+            --input-directory "$input_stage" \
+            --command transform-into-backbone-features \
             --timeout "$timeout" \
             --jobs "$jobs"
     }

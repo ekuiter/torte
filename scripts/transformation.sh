@@ -187,8 +187,61 @@ transform-into-unconstrained-features(input_extension=model, output_extension=un
         "$output_extension" \
         model_to_unconstrained_features \
         "$(lambda input,output 'echo '"$SCRIPTS_DIRECTORY/$TOOL.sh"' compute-unconstrained-features "$input" "$output"')" \
-        "$(dimacs-data-fields)" \
-        "$(dimacs-data-extractor)" \
+        "" \
+        "" \
+        "$timeout" \
+        "$jobs"
+}
+
+# extracts core or dead features from a backbone dimacs file (excludes Tseitin variables for efficiency)
+# prefix= extracts core features, prefix=- extracts dead features
+compute-core-or-dead-features(input, output, prefix=) {
+    grep -E '^'"$prefix"'([^- ]+) 0$' "$input" \
+        | cut -d' ' -f1 \
+        | sed 's/-//' \
+        | sort | uniq \
+        | tr '\n' '|' \
+        | sed 's/|$//' \
+        | awk '{print "^c (" $0 ") ([^ ]+)$"}' \
+        | grep -E -f - <(grep c "$input" | grep -v k!) \
+        | cut -d ' ' -f3 \
+        | sort | uniq
+
+    # binary search based sgrep implementation, less efficient than the above (extracts all backbone variables)
+    # local tmp
+    # tmp=$(mktemp)
+    # echo > "$tmp"
+    # grep -E '^c' "$input" | grep -v k! | cut -d' ' -f2- | sort -f >> "$tmp"
+    # echo >> "$tmp"
+    # grep -E '^([^ ]+) 0$' "$input" \
+    #     | cut -d' ' -f1 \
+    #     | sed 's/-//' \
+    #     | while read -r index; do
+    #     local variable
+    #     variable="$(sgrep '"\n'"$index"' ".."\n"' "$tmp" | grep -vE '^$' | cut -d' ' -f2)"
+    #     if [[ -n $variable ]]; then
+    #         echo "$variable"
+    #     fi
+    # done
+    # rm-safe "$tmp"
+}
+
+# extracts all backbone features from a backbone dimacs file
+compute-backbone-features(input, output, prefix=) {
+    compute-core-or-dead-features "$input" "$output" '' | awk '{print "+" $0}' > "$output"
+    compute-core-or-dead-features "$input" "$output" '-' | awk '{print "-" $0}' >> "$output"
+}
+
+# transforms models into their unconstrained features
+transform-into-backbone-features(input_extension=backbone.dimacs, output_extension=backbone.features, timeout=0, jobs=1) {
+    transform-files \
+        "$(input-csv)" \
+        "$input_extension" \
+        "$output_extension" \
+        dimacs_to_backbone_features \
+        "$(lambda input,output 'echo '"$SCRIPTS_DIRECTORY/$TOOL.sh"' compute-backbone-features "$input" "$output"')" \
+        "" \
+        "" \
         "$timeout" \
         "$jobs"
 }

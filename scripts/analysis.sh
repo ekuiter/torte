@@ -63,6 +63,7 @@ analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, 
         analyze-file "{}" "$analyzer_name" "$analyzer" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"
 }
 
+# runs a solver on a file
 solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
     parser=${parser:-$kind}
     analyze-files \
@@ -79,6 +80,7 @@ solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempt
         "$attempt_grouper"
 }
 
+# parses results of typical satisfiability solvers
 parse-result-satisfiable(output_log) {
     if grep -q "^s SATISFIABLE\|^SATISFIABLE" "$output_log"; then
         echo true
@@ -89,6 +91,7 @@ parse-result-satisfiable(output_log) {
     fi
 }
 
+# parses results of various model counters
 parse-result-model-count(output_log) {
     local model_count
     model_count=$(sed -z 's/\n# solutions \n/SHARPSAT/g' < "$output_log" \
@@ -96,6 +99,7 @@ parse-result-model-count(output_log) {
     echo "${model_count:-NA}"
 }
 
+# parses results of model counters that use the format of the model-counting competition 2022
 parse-result-model-counting-competition-2022(output_log) {
     model_count_int=$(grep "^c s exact .* int" < "$output_log" | cut -d' ' -f6)
     model_count_double=$(grep "^c s exact double prec-sci" < "$output_log" | cut -d' ' -f6)
