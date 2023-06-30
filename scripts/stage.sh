@@ -53,6 +53,7 @@ run(stage=, image=util, input_directory=, command...) {
         fi
         if [[ $DOCKER_RUN == y ]]; then
             mkdir -p "$(output-directory "$stage")"
+            chmod 0777 "$(output-directory "$stage")"
             log "" "$(echo-progress run)"
             local cmd=(docker run)
             if [[ $DEBUG == y ]]; then
@@ -452,9 +453,21 @@ define-stage-helpers() {
             --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
     }
 
+    # logs a specific field of a given stage's output file
     log-output-field(stage, field) {
         if [[ -f $(output-csv "$stage") ]]; then
             log "$field: $(table-field "$(output-csv "$stage")" "$field" | sort | uniq | tr '\n' ' ')"
         fi
+    }
+
+    # runs a Jupyter notebook
+    # assumes that the notebook reads only data from the tool directory
+    run-notebook(stage=notebook, file) {
+        run \
+            --stage "$stage" \
+            --image jupyter \
+            --input-directory "$TOOL_DIRECTORY" \
+            --command run-notebook \
+            --file "$file"
     }
 }

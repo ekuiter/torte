@@ -59,7 +59,6 @@ experiment-stages() {
     compute-backbone-dimacs --jobs 16
     join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
-
     solve \
         --input-stage backbone-dimacs \
         --input-extension backbone.dimacs \
@@ -72,6 +71,9 @@ experiment-stages() {
         model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
         model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
     join-into backbone-dimacs solve_model-count
+
+    # evaluate
+    run-notebook --file experiments/draft-linux.ipynb
 }
 
 # additional useful statistics on the mainline kernel, takes a while to run

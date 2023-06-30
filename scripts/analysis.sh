@@ -106,3 +106,10 @@ parse-result-model-counting-competition-2022(output_log) {
     model_count_log10=$(grep "^c s log10-estimate" < "$output_log" | cut -d' ' -f4)
     echo "${model_count_int:-NA}"
 }
+
+# runs a Jupyter notebook and stores its converts its results into an HTML file
+run-notebook(file) {
+    export PYDEVD_DISABLE_FILE_VALIDATION=1
+    # currently, this creates the HTML file with another user's ID
+    jupyter nbconvert --to html --no-input --execute --output-dir "$(output-directory)" "$(input-directory)/$file"
+}
