@@ -448,6 +448,7 @@ define-stage-helpers() {
             model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
             model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022
             other/d4v2.sh,solver,model-count
+            other/ApproxMC,solver,model-count
         )
         solve --kind model-count --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs" \
             --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
