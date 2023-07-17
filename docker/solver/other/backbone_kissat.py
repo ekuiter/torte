@@ -1,9 +1,10 @@
 # computes the backbone of a DIMACS file (+ and - mark core and dead variables, respectively)
-# (C) 2020  Jaroslav Šafář
+# (C) 2020  Jaroslav Šafář (https://github.com/jaras209/SAT_solver/blob/master/backbones.py)
 # (C) 2023 Elias Kuiter
 # adapted to rely on the performant SAT solver kissat_MAB-HyWalk (winner of the SAT Competition 2022)
 # added several performance optimizations for analyzing large formulas
 # also added functionality to remove backbone from DIMACS
+# could be replaced with https://github.com/arminbiere/cadiback, which is more efficient
 
 import sys
 import heapq
