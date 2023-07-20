@@ -94,7 +94,7 @@ The user-mode architecture `um` is currently not supported, as it requires setti
 This affects the extraction of less than 100 features in the kernel's history up to `v6.3`.
 
 [^26]: Currently, we use the KConfig parser of Linux 2.6.9 for all revisions of Linux up to Linux 2.6.9, as older versions of the parser cannot be compiled.
-We suspect that this does not substantially affects the extracted formula.
+We suspect that this does not substantially affect the extracted formula.
 
 [^22]: Feature models for this system are currently likely to be incomplete due to an inaccurate extraction.
 
