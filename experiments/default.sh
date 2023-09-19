@@ -2,12 +2,10 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
-
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
-# this experiment extracts, transforms, and analyzes a single feature model
-# it serves as a demo and integration test for torte
-# it also returns some common statistics of the model
+# This experiment extracts, transforms, and analyzes a single feature model.
+# It serves as a demo and integration test for torte and also returns some common statistics of the model.
 
 TIMEOUT=3
 

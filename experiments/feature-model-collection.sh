@@ -1,4 +1,9 @@
 #!/bin/bash
+# The following line uses curl to reproducibly install and run the specified revision of torte.
+# Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
+# In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
+TORTE_REVISION=7b74ee2; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+
 # The point of this experiment file is to extract feature models for a large and representative selection of Kconfig-based configurable systems and their revisions.
 # More information on some of the systems below can be found in Berger et al.'s "Variability Modeling in the Systems Software Domain" (DOI: 10.1109/TSE.2013.34).
 # Our general strategy is to read feature models for all tagged Git revisions (provided that tags give a meaningful history).
@@ -13,11 +18,6 @@
 # https://github.com/zephyrproject-rtos/zephyr also uses Kconfig, but a modified dialect based on Kconfiglib, which is not compatible with kconfigreader
 # https://github.com/solettaproject/soletta not yet included, many models available at https://github.com/TUBS-ISF/soletta-case-study
 # https://github.com/openwrt/openwrt not yet included
-
-# The following line uses curl to reproducibly install and run the specified revision of torte.
-# Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
-# In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
-TORTE_REVISION=7b74ee2; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 PATH_SEPARATOR=_ # create no nested directories
 TIMEOUT=300 # timeout for extraction and transformation in seconds

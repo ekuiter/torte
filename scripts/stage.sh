@@ -154,17 +154,21 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, 
     if [[ $iterations -lt 1 ]]; then
         error "At least one iteration is required for stage $stage."
     fi
-    local stages=()
-    local i
-    for i in $(seq "$iterations"); do
-        local current_stage="${stage}_$i"
-        stages+=("$current_stage")
-        run "$current_stage" "$image" "$input_directory" "${command[@]}"
-    done
-    if [[ ! -f "$(output-csv "${stage}_1")" ]]; then
-        error "Required output CSV for stage ${stage}_1 is missing, please re-run stage ${stage}_1."
+    if [[ $iterations -eq 1 ]]; then
+        run "$stage" "$image" "$input_directory" "${command[@]}"
+    else
+        local stages=()
+        local i
+        for i in $(seq "$iterations"); do
+            local current_stage="${stage}_$i"
+            stages+=("$current_stage")
+            run "$current_stage" "$image" "$input_directory" "${command[@]}"
+        done
+        if [[ ! -f "$(output-csv "${stage}_1")" ]]; then
+            error "Required output CSV for stage ${stage}_1 is missing, please re-run stage ${stage}_1."
+        fi
+        aggregate "$stage" "$file_fields" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "" "${stages[@]}"
     fi
-    aggregate "$stage" "$file_fields" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "" "${stages[@]}"
 }
 
 # runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
@@ -251,17 +255,30 @@ define-stage-helpers() {
     }
 
     # extracts kconfig models with the given extractor
-    extract-kconfig-models-with(extractor, output_stage=kconfig, timeout=0) {
-        run \
+    extract-kconfig-models-with(extractor, output_stage=kconfig, iterations=1, iteration_field=iteration, file_fields=) {
+        iterate \
             --stage "$output_stage" \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field" \
+            --file-fields "$file_fields" \
             --image "$extractor" \
             --command "extract-kconfig-models-with-$extractor"
     }
 
     # extracts kconfig models with kconfigreader and kmax
-    extract-kconfig-models(output_stage=kconfig, timeout=0) {
-        extract-kconfig-models-with --extractor kconfigreader --output-stage kconfigreader
-        extract-kconfig-models-with --extractor kmax --output-stage kmax
+    extract-kconfig-models(output_stage=kconfig, iterations=1, iteration_field=iteration, file_fields=) {
+        extract-kconfig-models-with \
+            --extractor kconfigreader \
+            --output-stage kconfigreader \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field" \
+            --file-fields "$file_fields"
+        extract-kconfig-models-with \
+            --extractor kmax \
+            --output-stage kmax \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field" \
+            --file-fields "$file_fields"
         aggregate \
             --stage "$output_stage" \
             --stage-field extractor \
@@ -270,10 +287,13 @@ define-stage-helpers() {
     }
 
     # transforms model files with FeatJAR
-    transform-models-with-featjar(transformer, output_extension, input_stage=kconfig, command=transform-with-featjar, timeout=0, jobs=1) {
+    transform-models-with-featjar(transformer, output_extension, input_stage=kconfig, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
         # shellcheck disable=SC2128
-        run \
+        iterate \
             --stage "$transformer" \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field" \
+            --file-fields "$file_fields" \
             --image featjar \
             --input-directory "$input_stage" \
             --command "$command" \
@@ -285,25 +305,46 @@ define-stage-helpers() {
     }
 
     # transforms model files into DIMACS with FeatJAR
-    transform-models-into-dimacs-with-featjar(transformer, input_stage=kconfig, timeout=0, jobs=1) {
+    transform-models-into-dimacs-with-featjar(transformer, input_stage=kconfig, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
         transform-models-with-featjar \
             --command transform-into-dimacs-with-featjar \
             --output-extension dimacs \
             --input-stage "$input_stage" \
             --transformer "$transformer" \
             --timeout "$timeout" \
-            --jobs "$jobs"
+            --jobs "$jobs" \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field" \
+            --file-fields "$file_fields"
     }
 
     # transforms model files into DIMACS
     transform-models-into-dimacs(input_stage=kconfig, output_stage=dimacs, timeout=0, jobs=1) {
         # distributive tranformation
-        transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featureide --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs"
-        transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featjar --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs"
+        transform-models-into-dimacs-with-featjar \
+            --transformer model_to_dimacs_featureide \
+            --input-stage "$input_stage" \
+            --timeout "$timeout" \
+            --jobs "$jobs"
+        transform-models-into-dimacs-with-featjar \
+            --transformer model_to_dimacs_featjar \
+            --input-stage "$input_stage" \
+            --timeout "$timeout" \
+            --jobs "$jobs"
         
         # intermediate formats for CNF transformation
-        transform-models-with-featjar --transformer model_to_model_featureide --output-extension featureide.model --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs"
-        transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs"
+        transform-models-with-featjar \
+            --transformer model_to_model_featureide \
+            --output-extension featureide.model \
+            --input-stage "$input_stage" \
+            --timeout "$timeout" \
+            --jobs "$jobs"
+        transform-models-with-featjar \
+            --transformer model_to_smt_z3 \
+            --output-extension smt \
+            --input-stage "$input_stage" \
+            --timeout "$timeout" \
+            --jobs "$jobs"
 
         # Plaisted-Greenbaum CNF tranformation
         run \
