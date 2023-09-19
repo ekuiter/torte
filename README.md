@@ -11,7 +11,7 @@ Take your pick:
 - **To**wards **R**eproducible Feature-Model **T**ransformation and **E**xtraction
 - **T**hat's an **O**bviously **R**everse-Engineered **T**ool Nam**e**
 
-torte can currently be used to
+torte can be used to
 
 - **extract feature models** from KConfig-based configurable software systems (e.g., the [Linux kernel](https://github.com/torvalds/linux)),
 - **transform feature models** between various formats (e.g., [FeatureIDE](https://featureide.github.io), [UVL](https://github.com/Universal-Variability-Language), and [DIMACS](https://www.domagoj-babic.com/uploads/ResearchProjects/Spear/dimacs-cnf.pdf)), and
@@ -259,9 +259,10 @@ Experiments starting with `draft-` are experimental.
 | Experiment | Purpose |
 | - | - |
 | `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
-| `draft-ase-2022-tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
-| `draft-linux.sh` | Extraction, transformation, and analysis of Linux feature models |
-| `feature-model-collection.sh` | Extracts and transforms a collection of feature models |
+| `feature-model-collection.sh` | Extraction, transformation, and analysis of several feature-model histories |
+| `linux-full.sh` | Extraction, transformation, and analysis of a history of Linux feature models |
+| `linux-single.sh` | Extraction, transformation, and analysis of a single Linux feature model |
+| `tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 
 ## Project History
 
