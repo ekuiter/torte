@@ -37,7 +37,6 @@ experiment-subjects() {
 experiment-stages() {
     # clone Linux, add old Linux revisions, and read committer dates
     clone-systems
-    tag-linux-revisions
     read-statistics
     
     # extract feature models
