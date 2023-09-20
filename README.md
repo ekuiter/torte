@@ -50,17 +50,17 @@ sudo apt-get install -y curl git make uidmap dbus-user-session
 curl -fsSL https://get.docker.com | sh
 dockerd-rootless-setuptool.sh install
 
-# run the default experiment
+# download and run the default experiment ...
 curl -s https://ekuiter.github.io/torte/ | sh
 
-# run a specific experiment
+# ... or a specific experiment
 curl -s https://ekuiter.github.io/torte/ | sh -s - linux-single
 ```
 
 By default, this will install torte into the `torte` directory; all experiment data will be stored in the directories `input` and `output` in your working directory.
 
-The above command runs the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
-For other predefined experiments, see [here](#predefined-experiments); you can also write your own by adapting `experiment.sh`.
+The first command above runs the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
+For other predefined experiments (e.g., `linux-single`), see [here](#predefined-experiments); you can also write your own by adapting an experiment file.
 
 **Further Tips**
 
