@@ -1,0 +1,7 @@
+/.vscode
+/input*
+/output*
+/export*
+_*.sh
+*.gen.sh
+/*.tar.gz
