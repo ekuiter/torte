@@ -5,12 +5,17 @@ set -e
 TORTE_REPOSITORY=${TORTE_REPOSITORY:-https://github.com/ekuiter/torte.git}
 TORTE_REVISION=${TORTE_REVISION:-main}
 
-if (return 0 2>/dev/null); then
-    # if this script is sourced from an experiment file, install into the working directory
-    if ! command -v git > /dev/null; then
-        echo "Required command git is missing, please install manually."
+require() {
+     if ! command -v "$1" > /dev/null; then
+        echo "Required command $1 is missing, please install manually."
         exit 1
     fi
+}
+
+if (return 0 2>/dev/null); then
+    # if this script is sourced from an experiment file, install into the working directory
+    require git
+    require make
     if [[ ! -d torte ]]; then
         echo "NOTE: torte is not installed yet."
         echo "torte (revision $TORTE_REVISION) will now be installed into the directory '$PWD/torte'."
