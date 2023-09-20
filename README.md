@@ -54,13 +54,13 @@ dockerd-rootless-setuptool.sh install
 curl -s https://ekuiter.github.io/torte/ | sh
 
 # ... or a specific experiment
-curl -s https://ekuiter.github.io/torte/ | sh -s - linux-single
+curl -s https://ekuiter.github.io/torte/ | sh -s - linux-recent
 ```
 
 By default, this will install torte into the `torte` directory; all experiment data will be stored in the directories `input` and `output` in your working directory.
 
 The first command above runs the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
-For other predefined experiments (e.g., `linux-single`), see [here](#predefined-experiments); you can also write your own by adapting an experiment file.
+For other predefined experiments (e.g., `linux-recent`), see [here](#predefined-experiments); you can also write your own by adapting an experiment file.
 
 **Further Tips**
 
@@ -264,8 +264,8 @@ Experiments starting with `draft-` are experimental.
 | - | - |
 | `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
 | `feature-model-collection.sh` | Extraction, transformation, and analysis of several feature-model histories |
-| `linux-full.sh` | Extraction, transformation, and analysis of a history of Linux feature models |
-| `linux-single.sh` | Extraction and transformation of a single Linux feature model |
+| `linux-history.sh` | Extraction, transformation, and analysis of a history of Linux feature models |
+| `linux-recent.sh` | Extraction and transformation of a recent Linux feature model |
 | `tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 
 ## Project History
