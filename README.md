@@ -53,7 +53,7 @@ dockerd-rootless-setuptool.sh install
 # run the default experiment
 curl -s https://ekuiter.github.io/torte/ | sh
 
-# run a specified experiment
+# run a specific experiment
 curl -s https://ekuiter.github.io/torte/ | sh -s - linux-single
 ```
 
