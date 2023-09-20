@@ -2,7 +2,7 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
-TORTE_REVISION=f97046f; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=fcc73a5; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 # This experiment analyzes the feature model of the Linux kernel across a timespan of > 20 years
 # and across all its supported processor architectures. For each revision and architecture, a

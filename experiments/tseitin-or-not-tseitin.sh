@@ -2,7 +2,7 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
-TORTE_REVISION=f97046f; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=fcc73a5; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 # This file reproduces the evaluation for the ASE'22 paper "Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses".
 # The original evaluation script is available at https://github.com/ekuiter/tseitin-or-not-tseitin/blob/main/input/extract_ase22.sh.
