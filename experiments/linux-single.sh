@@ -4,10 +4,10 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=fcc73a5; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
-# This experiment extracts, transforms, and analyzes a single feature model from a recent revision of the Linux kernel.
+# This experiment extracts and transforms a single feature model from a recent revision of the Linux kernel.
 
 experiment-subjects() {
-    add-linux-kconfig-history --from v6.4 --to v6.5 --architecture x86
+    add-linux-kconfig-history --from v6.5 --to v6.6 --architecture x86
 }
 
 experiment-stages() {
@@ -28,8 +28,4 @@ experiment-stages() {
         --jobs 2
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
-
-    # analyze
-    compute-backbone-dimacs --jobs 2
-    join-into dimacs backbone-dimacs
 }

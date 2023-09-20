@@ -27,7 +27,7 @@ This way, you can
 
 This one-liner will get you started with the [default experiment](experiments/default.sh) (Docker required):
 ```
-curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/main/experiments/default.sh -o experiment.sh && bash experiment.sh
+curl -s https://ekuiter.github.io/torte/ | sh
 ```
 Read on if you want to know more details.
 
@@ -45,12 +45,17 @@ The following should get you started on a fresh Ubuntu 22.04 installation:
 
 ```
 # install and set up dependencies
+sudo apt-get update
 sudo apt-get install -y curl git make uidmap dbus-user-session
 curl -fsSL https://get.docker.com | sh
 dockerd-rootless-setuptool.sh install
 
-# run the default experiment with torte
-curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/main/experiments/default.sh -o experiment.sh && bash experiment.sh
+# run the default experiment
+curl -s https://ekuiter.github.io/torte/ | sh
+
+# run a specified experiment
+curl -s https://ekuiter.github.io/torte/ | sh -s - linux-single
+
 ```
 
 By default, this will install torte into the `torte` directory; all experiment data will be stored in the directories `input` and `output` in your working directory.
@@ -261,7 +266,7 @@ Experiments starting with `draft-` are experimental.
 | `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
 | `feature-model-collection.sh` | Extraction, transformation, and analysis of several feature-model histories |
 | `linux-full.sh` | Extraction, transformation, and analysis of a history of Linux feature models |
-| `linux-single.sh` | Extraction, transformation, and analysis of a single Linux feature model |
+| `linux-single.sh` | Extraction and transformation of a single Linux feature model |
 | `tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 
 ## Project History
