@@ -31,26 +31,22 @@ experiment-stages() {
     # extract
     clone-systems
     read-statistics
-    extract-kconfig-models
+    extract-kconfig-models \
+        --iterations "$N" \
+        --file-fields model-file
     join-into read-statistics kconfig
 
     # transform
     transform-models-into-dimacs-with-featjar \
-        --transformer model_to_dimacs_featureide \
-        --iterations "$N" \
-        --file_fields dimacs-file
+        --transformer model_to_dimacs_featureide
     transform-models-with-featjar \
         --transformer model_to_smt_z3 \
         --output-extension smt \
-        --jobs 16 \
-        --iterations "$N" \
-        --file_fields smt-file
+        --jobs 16
     transform-models-with-featjar \
         --transformer model_to_model_featureide \
         --output-extension featureide.model \
-        --jobs 16 \
-        --iterations "$N" \
-        --file_fields featureide.model-file
+        --jobs 16
     run \
         --stage model_to_dimacs_kconfigreader \
         --image kconfigreader \

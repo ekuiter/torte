@@ -2,7 +2,7 @@
 
 # checks out a subject and prepares it for further processing
 kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
-    local revision_clean
+    local revision_clean err
     revision_clean=$(clean-revision "$revision")
     push "$(input-directory)/$system"
     git-checkout "$revision_clean"
@@ -15,12 +15,22 @@ kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
         local kconfig_binding_directory
         kconfig_binding_directory=$(kconfig-binding-directory "$kconfig_binding_files_spec")
         # make sure all dependencies for the kconfig binding are compiled
-        # make config sometimes asks for integers (not easily simulated with "yes"), which is why we add a timeout
-        make "$kconfig_binding_files" >/dev/null 2>&1 \
-            || (yes | make allyesconfig >/dev/null 2>&1) \
+        if make "$kconfig_binding_files" >/dev/null 2>&1; then
+            # some systems are weird and actually compile a *.o file, this is not what we want
+            if [[ -f "$kconfig_binding_directory/"'*.o' ]]; then
+                rm-safe "$kconfig_binding_directory/"'*.o'
+                err=y
+            fi
+        else
+            err=y
+        fi
+        if [[ -n $err ]]; then
+            # make config sometimes asks for integers (not easily simulated with "yes"), which is why we add a timeout
+            (yes | make allyesconfig >/dev/null 2>&1) \
             || (yes | make xconfig >/dev/null 2>&1) \
             || (yes "" | timeout 20s make config >/dev/null 2>&1) \
             || true
+        fi
         if ls "$kconfig_binding_directory"/*.o > /dev/null 2>&1; then
             strip -N main "$kconfig_binding_directory"/*.o || true
         fi
