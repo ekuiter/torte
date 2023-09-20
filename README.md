@@ -55,7 +55,6 @@ curl -s https://ekuiter.github.io/torte/ | sh
 
 # run a specified experiment
 curl -s https://ekuiter.github.io/torte/ | sh -s - linux-single
-
 ```
 
 By default, this will install torte into the `torte` directory; all experiment data will be stored in the directories `input` and `output` in your working directory.
