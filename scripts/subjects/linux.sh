@@ -116,7 +116,7 @@ linux-kconfig-binding-file(revision) {
     output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$revision"
 }
 
-add-linux-kconfig-revisions(revisions, architecture=x86) {
+add-linux-kconfig-revisions(revisions=, architecture=x86) {
     add-linux-system
     # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction, as previous versions cannot be compiled
     local first_binding_revision=v2.6.9
