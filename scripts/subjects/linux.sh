@@ -116,25 +116,36 @@ linux-kconfig-binding-file(revision) {
     output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$revision"
 }
 
-add-linux-kconfig-history(from, to, architecture=x86) {
+add-linux-kconfig-revisions(revisions, architecture=x86) {
     add-linux-system
     # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction, as previous versions cannot be compiled
     local first_binding_revision=v2.6.9
-    for revision in $(linux-tag-revisions \
-        | start-at-revision "$(min-revision "$first_binding_revision" "$from")" \
-        | stop-at-revision "$(min-revision "$first_binding_revision" "$to")"); do
-        add-linux-kconfig-binding --revision "$first_binding_revision"
-        add-linux-kconfig \
-            --revision "$revision" \
-            --architecture "$architecture" \
-            --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$first_binding_revision")"
-    done
-    # after linux 2.6.9, use the kconfig parser of the respective revision
-    for revision in $(linux-tag-revisions \
-        | start-at-revision "$(max-revision "$first_binding_revision" "$from")" \
-        | stop-at-revision "$(max-revision "$first_binding_revision" "$to")"); do
-        add-linux-kconfig --revision "$revision" --architecture "$architecture"
-    done
+    local first_binding_timestamp current_timestamp
+    first_binding_timestamp=$(git-timestamp linux "$first_binding_revision")
+    while read -r revision; do
+        current_timestamp=$(git-timestamp linux "$revision")
+        if [[ $current_timestamp -lt $first_binding_timestamp ]]; then
+            add-linux-kconfig-binding --revision "$first_binding_revision"
+            add-linux-kconfig \
+                --revision "$revision" \
+                --architecture "$architecture" \
+                --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$first_binding_revision")"
+        else
+            add-linux-kconfig --revision "$revision" --architecture "$architecture"
+        fi
+    done < <(printf '%s\n' "$revisions")
+}
+
+add-linux-kconfig-history(from, to, architecture=x86) {
+    add-linux-kconfig-revisions "$(linux-tag-revisions \
+        | start-at-revision "$from" \
+        | stop-at-revision "$to")" \
+        "$architecture"
+}
+
+
+add-linux-kconfig-sample(interval, architecture=x86) {
+    add-linux-kconfig-revisions "$(memoize git-sample-revisions linux "$interval" master)" "$architecture"
 }
 
 # adds Linux revisions to the Linux Git repository

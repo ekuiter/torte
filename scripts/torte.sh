@@ -67,6 +67,7 @@ SCRIPTS_DIRECTORY=$(dirname "$0") # scripts directory
 TOOL_DIRECTORY=$SCRIPTS_DIRECTORY/.. # tool directory
 DOCKER_DIRECTORY=$TOOL_DIRECTORY/docker # path to docker files
 EXPORT_DIRECTORY=$TOOL_DIRECTORY/export # path for exporting experiments
+CACHE_DIRECTORY=.cache # path for cached data in output directory
 DOCKER_BUILD=y # y if building Docker images is enabled, otherwise loads image archives
 DOCKER_RUN=y # y if running Docker containers is enabled, otherwise saves image archives
 MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024)) # memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB

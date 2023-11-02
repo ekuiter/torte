@@ -228,6 +228,19 @@ define-stub(function) {
     eval "! has-function $function && $function() { :; } || true"
 }
 
+# memoizes a command by storing its output in the cache
+memoize(command...) {
+    local hash file
+    hash=$(md5sum <<<"${command[*]}" | awk NF=1)
+    file=$(output-directory)/$CACHE_DIRECTORY/$hash
+    mkdir -p "$(output-directory)/$CACHE_DIRECTORY"
+    if [[ ! -f $file ]]; then
+        "${command[@]}" | tee "$file"
+    else
+        cat "$file"
+    fi
+}
+
 # replaces a given search string for a given number of times per line, operates on standard input
 replace-times(n, search, replace) {
     if [[ $n -eq 0 ]]; then
@@ -449,6 +462,42 @@ git-checkout(revision, directory=.) {
 # list all tag revisions in version order
 git-tag-revisions(system) {
     git -C "$(input-directory)/$system" tag | sort -V
+}
+
+# returns committer date of given revision as Unix timestamp
+git-timestamp(system, revision) {
+    git -C "$(input-directory)/$system" --no-pager show -s --pretty=%ct "$revision" | tail -n1
+}
+
+# sample revisions in a given interval
+git-sample-revisions(system, interval, branch=main) {
+    local last_timestamp current_timestamp now_timestamp
+    git-checkout "$branch" "$(input-directory)/$system" > /dev/null
+    timestamp=$(git-timestamp "$system" "$(git -C "$(input-directory)/$system" log --format="%h" | tail -1)")
+    last_timestamp=$timestamp
+    now_timestamp=$(date +%s)
+    local N=20
+    while [[ $timestamp -lt $now_timestamp ]]; do
+        git -C "$(input-directory)/$system" --no-pager log -1 --format="%h" --since "$last_timestamp" --until "$timestamp" &
+        last_timestamp=$timestamp
+        ((timestamp+="$interval"))
+        if [[ $(jobs -r -p | wc -l) -ge $N ]]; then wait -n; fi
+    done
+}
+
+# returns intervals in seconds
+interval(name) {
+    if [[ "$name" == hourly ]]; then
+        echo $((60*60))
+    elif [[ "$name" == daily ]]; then
+        echo $(($(interval hourly)*24))
+    elif [[ "$name" == weekly ]]; then
+        echo $(($(interval daily)*7))
+    elif [[ "$name" == monthly ]]; then
+        echo $(($(interval yearly)/12))
+    elif [[ "$name" == yearly ]]; then
+        echo $(($(interval daily)*365+$(interval daily)/4))
+    fi
 }
 
 # exclude revisions matching a term

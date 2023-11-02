@@ -55,6 +55,8 @@ run(stage=, image=util, input_directory=, command...) {
             mkdir -p "$(output-directory "$stage")"
             chmod 0777 "$(output-directory "$stage")"
             log "" "$(echo-progress run)"
+            mkdir -p "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY"
+            mv "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY" "$(output-directory "$stage")/$CACHE_DIRECTORY"
             local cmd=(docker run)
             if [[ $DEBUG == y ]]; then
                 command=(/bin/bash)
@@ -88,6 +90,7 @@ run(stage=, image=util, input_directory=, command...) {
                     > >(write-all "$(output-log "$stage")") \
                     2> >(write-all "$(output-err "$stage")" >&2)
             fi
+            mv "$(output-directory "$stage")/$CACHE_DIRECTORY" "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY"
             rm-if-empty "$(output-log "$stage")"
             rm-if-empty "$(output-err "$stage")"
             find "$(output-directory "$stage")" -mindepth 1 -type d -empty -delete
