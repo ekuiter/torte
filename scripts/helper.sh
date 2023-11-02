@@ -471,6 +471,9 @@ git-timestamp(system, revision) {
 
 # sample revisions in a given interval
 git-sample-revisions(system, interval, branch=main) {
+    if [[ ! -d $(input-directory)/$system ]]; then
+        return
+    fi
     local last_timestamp current_timestamp now_timestamp
     git-checkout "$branch" "$(input-directory)/$system" > /dev/null
     timestamp=$(git-timestamp "$system" "$(git -C "$(input-directory)/$system" log --format="%h" | tail -1)")
