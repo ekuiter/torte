@@ -461,6 +461,9 @@ git-checkout(revision, directory=.) {
 
 # list all tag revisions in version order
 git-tag-revisions(system) {
+    if [[ ! -d $(input-directory)/$system ]]; then
+        return
+    fi
     git -C "$(input-directory)/$system" tag | sort -V
 }
 
