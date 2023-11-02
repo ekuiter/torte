@@ -116,8 +116,7 @@ linux-kconfig-binding-file(revision) {
     output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$revision"
 }
 
-add-linux-kconfig-revisions(revisions=, architecture=x86) {
-    add-linux-system
+add-linux-kconfig-revisions(revisions, architecture=x86) {
     # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction, as previous versions cannot be compiled
     local first_binding_revision=v2.6.9
     local first_binding_timestamp current_timestamp
@@ -137,6 +136,7 @@ add-linux-kconfig-revisions(revisions=, architecture=x86) {
 }
 
 add-linux-kconfig-history(from, to, architecture=x86) {
+    add-linux-system
     add-linux-kconfig-revisions "$(linux-tag-revisions \
         | start-at-revision "$from" \
         | stop-at-revision "$to")" \
@@ -145,6 +145,7 @@ add-linux-kconfig-history(from, to, architecture=x86) {
 
 
 add-linux-kconfig-sample(interval, architecture=x86) {
+    add-linux-system
     add-linux-kconfig-revisions "$(memoize git-sample-revisions linux "$interval" master)" "$architecture"
 }
 
