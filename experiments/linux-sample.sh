@@ -14,3 +14,13 @@ experiment-stages() {
     extract-kconfig-models-with --extractor kmax
     join-into read-statistics kconfig
 }
+
+# can be executed from output directory to copy and rename model files
+copy-models() {
+    mkdir -p models
+    for f in kconfig/linux/*.model; do
+        local revision
+        revision=$(echo "$f" | cut -d/ -f3 | cut -d'[' -f1)
+        cp "$f" "models/$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f 3).model"
+    done
+}
