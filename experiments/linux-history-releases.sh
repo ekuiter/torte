@@ -73,7 +73,7 @@ experiment-stages() {
     join-into backbone-dimacs solve_model-count
 
     # evaluate
-    run-notebook --file experiments/linux-history.ipynb
+    run-notebook --file experiments/linux-history-releases.ipynb
 }
 
 # additional useful statistics on the mainline kernel, takes a while to run

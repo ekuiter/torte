@@ -21,6 +21,7 @@ read-statistics(statistics_option=) {
     STATISTICS_OPTION=$statistics_option
 
     add-revision(system, revision) {
+        revision=$(clean-revision "$revision")
         log "read-statistics: $system@$revision" "$(echo-progress read)"
         if grep -q "^$system,$revision," "$(output-path date.csv)"; then
             log "" "$(echo-skip)"

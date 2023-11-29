@@ -264,9 +264,9 @@ Experiments starting with `draft-` are experimental.
 | - | - |
 | `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
 | `feature-model-collection.sh` | Extraction, transformation, and analysis of several feature-model histories |
-| `linux-history.sh` | Extraction, transformation, and analysis of a history of Linux feature models |
-| `linux-recent.sh` | Extraction and transformation of a recent Linux feature model |
-| `linux-sample.sh` | Extraction of a weekly history of Linux feature models |
+| `linux-history-releases.sh` | Extraction, transformation, and analysis of a history of Linux feature models |
+| `linux-history-weekly.sh` | Extraction of a weekly history of Linux feature models |
+| `linux-recent-release.sh` | Extraction and transformation of a recent Linux feature model |
 | `tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 
 ## Project History

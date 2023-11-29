@@ -4,6 +4,8 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=38c329c; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
+# This experiment extracts a weekly history of feature models from the Linux kernel (x86).
+
 experiment-subjects() {
     add-linux-kconfig-sample --interval "$(interval weekly)"
 }
@@ -21,6 +23,6 @@ copy-models() {
     for f in kconfig/linux/*.model; do
         local revision
         revision=$(echo "$f" | cut -d/ -f3 | cut -d'[' -f1)
-        cp "$f" "models/$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f 3).model"
+        cp "$f" "models/$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f3).model"
     done
 }

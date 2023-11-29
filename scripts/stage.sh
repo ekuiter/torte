@@ -257,6 +257,14 @@ define-stage-helpers() {
         run --stage read-statistics --command read-statistics "$option"
     }
 
+    # generate repository with full history of BusyBox
+    generate-busybox-models() {
+        if [[ ! -d "$(input-directory)/busybox-models" ]]; then
+            run --stage busybox-models --command generate-busybox-models
+            mv "$(output-directory busybox-models)" "$(input-directory)/busybox-models"
+        fi
+    }
+
     # extracts kconfig models with the given extractor
     extract-kconfig-models-with(extractor, output_stage=kconfig, iterations=1, iteration_field=iteration, file_fields=) {
         iterate \

@@ -11,3 +11,48 @@ add-busybox-kconfig-history(from=, to=) {
             --kconfig-binding-files scripts/kconfig/*.o
     done
 }
+
+add-busybox-kconfig-history-full() {
+    add-system --system busybox --url https://github.com/mirror/busybox
+    for revision in $(git -C "$(input-directory)/busybox-models" log --format="%h" | tac); do
+        local original_revision
+        original_revision=$(git -C "$(input-directory)/busybox-models" rev-list --max-count=1 --format=%B "$revision" | sed '/^commit [0-9a-f]\{40\}$/d')
+        add-revision --system busybox-models --revision "${revision}[$original_revision]"
+        add-kconfig \
+            --system busybox-models \
+            --revision "${revision}[$original_revision]" \
+            --kconfig-file Config.in \
+            --kconfig-binding-files scripts/kconfig/*.o
+    done
+}
+
+generate-busybox-models() {
+    git-checkout master "$(input-directory)/busybox" > /dev/null
+    git -C "$(output-directory)" init -q
+    echo "*.log" >> "$(output-directory)/.gitignore"
+    echo "*.err" >> "$(output-directory)/.gitignore"
+    local i n
+    i=0
+    n=$(git -C "$(input-directory)/busybox" log --format="%h" | wc -l)
+    git -C "$(input-directory)/busybox" log --format="%h" | tac | while read -r revision; do
+        ((i+=1))
+        echo "[$i/$n]" "$revision"
+        local timestamp
+        timestamp=$(git-timestamp busybox "$revision")
+        local dir
+        dir=$(output-directory)
+        rm -rf "${dir:?}/*"
+        git-checkout "$revision" "$(input-directory)/busybox" > /dev/null
+        if [[ -f "$(input-directory)/busybox/scripts/gen_build_files.sh" ]]; then
+            make -C "$(input-directory)/busybox" gen_build_files >/dev/null 2>&1 || true
+        fi
+        (cd "$(input-directory)/busybox" || exit; find . -type f -name "*Config.in" -exec cp --parents {} "$(output-directory)" \;)
+        mkdir -p "$(output-directory)/scripts/"
+        cp -R "$(input-directory)/busybox/scripts/"* "$(output-directory)/scripts/" 2>>/dev/null || true
+        cp "$(input-directory)/busybox/Makefile" "$(output-directory)" 2>>/dev/null || true
+        if [[ $i -eq 1 ]] || ! git -C "$(output-directory)" diff --exit-code '*Config.in' 2>>/dev/null; then
+            git -C "$(output-directory)" add -A
+            GIT_COMMITTER_DATE=$timestamp git -C "$(output-directory)" commit -q -m "$revision" --date "$timestamp" >/dev/null 2>&1 || true
+        fi
+    done
+}
