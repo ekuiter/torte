@@ -34,7 +34,7 @@ generate-busybox-models() {
     local i n
     i=0
     n=$(git -C "$(input-directory)/busybox" log --format="%h" | wc -l)
-    git -C "$(input-directory)/busybox" log --format="%h" | tac | tail -n+10000 | head -n100 | while read -r revision; do
+    git -C "$(input-directory)/busybox" log --format="%h" | tac | while read -r revision; do
         ((i+=1))
         echo "[$i/$n]" "$revision"
         local timestamp
@@ -48,11 +48,10 @@ generate-busybox-models() {
         fi
         (cd "$(input-directory)/busybox" || exit; find . -type f -name "*Config.in" -exec cp --parents {} "$(output-directory)" \;)
         mkdir -p "$(output-directory)/scripts/"
-        cp -R "$(input-directory)/busybox/scripts/"* "$(output-directory)/scripts/" 2>>/dev/null || true
-        cp "$(input-directory)/busybox/Makefile" "$(output-directory)" 2>>/dev/null || true
+        cp -R "$(input-directory)/busybox/scripts/"* "$(output-directory)/scripts/" 2>/dev/null || true
+        cp "$(input-directory)/busybox/Makefile" "$(output-directory)" 2>/dev/null || true
         if [[ $i -eq 1 ]] || ! git -C "$(output-directory)" diff --exit-code '*Config.in' 2>/dev/null; then
             git -C "$(output-directory)" add -A
-            echo git -C "$(output-directory)" commit -q -m "$revision" --date "$timestamp" >/dev/null >&2
             GIT_COMMITTER_DATE=$timestamp git -C "$(output-directory)" commit -q -m "$revision" --date "$timestamp" >/dev/null 2>&1 || true
         fi
     done
