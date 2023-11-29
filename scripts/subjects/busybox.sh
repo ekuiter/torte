@@ -48,11 +48,11 @@ generate-busybox-models() {
         fi
         (cd "$(input-directory)/busybox" || exit; find . -type f -name "*Config.in" -exec cp --parents {} "$(output-directory)" \;)
         mkdir -p "$(output-directory)/scripts/"
-        cp -R "$(input-directory)/busybox/scripts/"* "$(output-directory)/scripts/" 2>/dev/null || true
-        cp "$(input-directory)/busybox/Makefile" "$(output-directory)" 2>/dev/null || true
-        if [[ $i -eq 1 ]] || ! git -C "$(output-directory)" diff --exit-code '*Config.in' 2>/dev/null; then
+        cp -R "$(input-directory)/busybox/scripts/"* "$(output-directory)/scripts/" || true
+        cp "$(input-directory)/busybox/Makefile" "$(output-directory)" || true
+        if [[ $i -eq 1 ]] || ! git -C "$(output-directory)" diff --exit-code '*Config.in'; then
             git -C "$(output-directory)" add -A
-            GIT_COMMITTER_DATE=$timestamp git -C "$(output-directory)" commit -q -m "$revision" --date "$timestamp" >/dev/null 2>&1 || true
+            GIT_COMMITTER_DATE=$timestamp git -C "$(output-directory)" commit -q -m "$revision" --date "$timestamp" >/dev/null || true
         fi
     done
 }
