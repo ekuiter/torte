@@ -16,3 +16,5 @@ experiment-stages() {
     extract-kconfig-models
     join-into read-statistics kconfig
 }
+
+# todo: rename and add timestamps in file name; remove obvious duplicate models that do not differ
