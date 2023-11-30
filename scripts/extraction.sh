@@ -15,7 +15,7 @@ kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
         local kconfig_binding_directory
         kconfig_binding_directory=$(kconfig-binding-directory "$kconfig_binding_files_spec")
         # make sure all dependencies for the kconfig binding are compiled
-        if make "$kconfig_binding_files"; then
+        if make "$kconfig_binding_files" >/dev/null 2>&1; then
             # some systems are weird and actually compile a *.o file, this is not what we want
             if [[ -f "$kconfig_binding_directory/"'*.o' ]]; then
                 rm-safe "$kconfig_binding_directory/"'*.o'
@@ -23,13 +23,12 @@ kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
             fi
         else
             err=y
-            echo err!
         fi
         if [[ -n $err ]]; then
             # make config sometimes asks for integers (not easily simulated with "yes"), which is why we add a timeout
-            (yes | make allyesconfig) \
-            || (yes | make xconfig) \
-            || (yes "" | timeout 20s make config) \
+            (yes | make allyesconfig >/dev/null 2>&1) \
+            || (yes | make xconfig >/dev/null 2>&1) \
+            || (yes "" | timeout 20s make config >/dev/null 2>&1) \
             || true
         fi
         if ls "$kconfig_binding_directory"/*.o > /dev/null 2>&1; then
