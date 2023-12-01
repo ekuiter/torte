@@ -52,7 +52,7 @@ generate-busybox-models() {
         cp "$(input-directory)/busybox/Makefile" "$(output-directory)" 2>/dev/null || true
         cp "$(input-directory)/busybox/Rules.mak" "$(output-directory)" 2>/dev/null || true
         git -C "$(output-directory)" add -A
-        if [[ $i -eq 1 ]] || ! git -C "$(output-directory)" diff --staged --exit-code '*Config.in'; then
+        if [[ $i -eq 1 ]] || ! git -C "$(output-directory)" diff --staged --exit-code '*Config.in' >/dev/null 2>&1; then
             log "[$i/$n] $revision"
             log "" "$(echo-progress gen)"
             GIT_COMMITTER_DATE=$timestamp git -C "$(output-directory)" commit -q -m "$revision" --date "$timestamp" >/dev/null || true
