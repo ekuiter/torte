@@ -9,7 +9,6 @@ experiment-subjects() {
 }
 
 experiment-stages() {
-    #debug
     clone-systems
     generate-busybox-models
     read-statistics
