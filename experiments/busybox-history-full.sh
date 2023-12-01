@@ -16,4 +16,4 @@ experiment-stages() {
     join-into read-statistics kconfig
 }
 
-# todo: rename and add timestamps in file name; remove obvious duplicate models that do not differ
+# todo: rename and add timestamps in file name; remove obvious duplicate models that do not differ; install and run clausy in helper function
