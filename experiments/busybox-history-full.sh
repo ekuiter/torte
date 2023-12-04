@@ -16,4 +16,27 @@ experiment-stages() {
     join-into read-statistics kconfig
 }
 
-# todo: rename and add timestamps in file name; remove obvious duplicate models that do not differ; install and run clausy in helper function
+# can be executed from output directory to copy and rename model files
+copy-models() {
+    mkdir -p models/kconfigreader models/kmax
+    for f in kconfig/*/busybox-models/*.model; do
+        local extractor
+        local revision
+        local original_revision
+        extractor=$(echo "$f" | cut -d/ -f2)
+        revision=$(basename "$f" .model | cut -d'[' -f1)
+        original_revision=$(basename "$f" .model | cut -d'[' -f2 | cut -d']' -f1)
+        cp "$f" "models/$extractor/$(date -d "@$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$original_revision.model"
+    done
+    for extractor in kconfigreader kmax; do
+        # shellcheck disable=SC2207,SC2012
+        f=($(ls models/$extractor/*.model | sort -V | tr '\n' ' '))
+        for ((i = 0; i < ${#f[@]}-1; i++)); do
+            if diff -q "${f[i]}" "${f[i+1]}" >/dev/null; then
+                # todo: remove duplicates if necessary
+                echo "${f[i]}" and "${f[i+1]}" are duplicate >&2
+            fi
+        done
+    done
+    # todo: install and run clausy in helper function
+}

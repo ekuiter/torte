@@ -35,7 +35,6 @@ generate-busybox-models() {
     i=0
     n=$(git -C "$(input-directory)/busybox" log --format="%h" | wc -l)
     git -C "$(input-directory)/busybox" log --format="%h" | tac | while read -r revision; do
-        
         ((i+=1))
         local timestamp
         timestamp=$(git-timestamp busybox "$revision")
@@ -49,7 +48,7 @@ generate-busybox-models() {
         (cd "$(input-directory)/busybox" || exit; find . -type f -name "*Config.in" -exec cp --parents {} "$(output-directory)" \;)
         mkdir -p "$(output-directory)/scripts/"
         cp -R "$(input-directory)/busybox/scripts/"* "$(output-directory)/scripts/" 2>/dev/null || true
-        cp "$(input-directory)/busybox/Makefile" "$(output-directory)" 2>/dev/null || true
+        cp "$(input-directory)/busybox/Makefile"* "$(output-directory)" 2>/dev/null || true
         cp "$(input-directory)/busybox/Rules.mak" "$(output-directory)" 2>/dev/null || true
         git -C "$(output-directory)" add -A
         if [[ $i -eq 1 ]] || ! git -C "$(output-directory)" diff --staged --exit-code '*Config.in' >/dev/null 2>&1; then
