@@ -34,7 +34,7 @@ generate-busybox-models() {
     local i n
     i=0
     n=$(git -C "$(input-directory)/busybox" log --format="%h" | wc -l)
-    git -C "$(input-directory)/busybox" log --format="%h" | tac | tail -n10 | while read -r revision; do
+    git -C "$(input-directory)/busybox" log --format="%h" | tac | while read -r revision; do
         ((i+=1))
         local timestamp
         timestamp=$(git-timestamp busybox "$revision")
