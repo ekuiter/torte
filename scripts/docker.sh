@@ -18,8 +18,8 @@ dangling-images() {
     echo "${dangling_images[@]}"
 }
 
-# prepares a replication package
-# exporting all data makes the replication package bigger, but has no network dependencies
+# prepares a reproduction package
+# exporting all data makes the reproduction package bigger, but has no network dependencies
 command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
     require-command tar git
     rm-safe "$EXPORT_DIRECTORY" "$file"

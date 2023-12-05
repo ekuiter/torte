@@ -22,7 +22,7 @@ This way, you can
 
 - **draft experiments** for selected feature models first, then generalize them to a larger corpus later,
 - **execute experiments** on a remote machine without having to bother with technical setup,
-- **distribute fully-automated replication packages** when an experiment is ready for publication, and
+- **distribute fully-automated reproduction packages** when an experiment is ready for publication, and
 - **adapt and update existing experiments** without needing to resort to clone-and-own practices.
 
 This one-liner will get you started with the [default experiment](experiments/default.sh) (Docker required):
@@ -71,7 +71,7 @@ For other predefined experiments (e.g., `linux-recent`), see [here](#predefined-
 - Developers are recommended to use [ShellCheck](https://www.shellcheck.net/) to improve code quality.
 - If you encounter the error message `cannot delete ...: Permission denied`, try to switch to Docker rootless mode.
 - The first execution of torte can take a while (~30 minutes), as several complex Docker containers need to be built.
-This can be avoided by loading a replication package that includes Docker images (built by `./torte.sh export`).
+This can be avoided by loading a reproduction package that includes Docker images (built by `./torte.sh export`).
 
 ## Supported Subject Systems
 
@@ -284,8 +284,8 @@ This project has evolved through several stages and intends to replace them all:
   The results were stored in the [feature-model-repository](https://github.com/ekuiter/feature-model-repository).
   Its functionality is completely subsumed by torte and more efficient and reliable due to our Docker integration.
 - [tseitin-or-not-tseitin](https://github.com/ekuiter/tseitin-or-not-tseitin) extended the [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) to allow for transformation and analysis of feature models.
-  It was mostly intended as a replication package for a single academic paper.
-  Its functionality is almost completely subsumed by torte, which can be used to create replication packages for many different experiments.
+  It was mostly intended as a reproduction package for a single academic paper.
+  Its functionality is almost completely subsumed by torte, which can be used to create reproduction packages for many different experiments.
 
 If you are looking for a curated collection of feature models from various domains, have a look at our [feature-model-benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark).
 
