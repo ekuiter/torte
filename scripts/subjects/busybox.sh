@@ -46,7 +46,8 @@ generate-busybox-models() {
             make -C "$(input-directory)/busybox" gen_build_files >/dev/null 2>&1 || true
         fi
         (cd "$(input-directory)/busybox" || exit; find . -type f -name "*Config.in" -exec cp --parents {} "$(output-directory)" \;)
-        cp -R "$(input-directory)/busybox/scripts/" "$(output-directory)/scripts/" 2>/dev/null || true
+        mkdir -p "$(output-directory)/scripts/"
+        cp -R "$(input-directory)/busybox/scripts/"* "$(output-directory)/scripts/" 2>/dev/null || true
         cp "$(input-directory)/busybox/Makefile"* "$(output-directory)" 2>/dev/null || true
         cp "$(input-directory)/busybox/Rules.mak" "$(output-directory)" 2>/dev/null || true
         git -C "$(output-directory)" add -A
