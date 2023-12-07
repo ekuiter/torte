@@ -14,7 +14,9 @@ add-busybox-kconfig-history(from=, to=) {
 
 add-busybox-kconfig-history-full() {
     add-system --system busybox --url https://github.com/mirror/busybox
-    for revision in $(git -C "$(input-directory)/busybox-models" log --format="%h" | tac); do
+    #for revision in $(git -C "$(input-directory)/busybox-models" log master --format="%h" | tac | head -n350 | tail -n10); do
+    #for revision in $(git -C "$(input-directory)/busybox-models" log master --format="%h" | tac | head -n800 | tail -n15); do
+    for revision in $(git -C "$(input-directory)/busybox-models" log master --format="%h" | tac); do
         local original_revision
         original_revision=$(git -C "$(input-directory)/busybox-models" rev-list --max-count=1 --format=%B "$revision" | sed '/^commit [0-9a-f]\{40\}$/d')
         add-revision --system busybox-models --revision "${revision}[$original_revision]"
@@ -43,6 +45,7 @@ generate-busybox-models() {
         rm -rf "${dir:?}/*"
         git-checkout "$revision" "$(input-directory)/busybox" > /dev/null
         if [[ -f "$(input-directory)/busybox/scripts/gen_build_files.sh" ]]; then
+            chmod +x "$(input-directory)/busybox/scripts/gen_build_files.sh"
             make -C "$(input-directory)/busybox" gen_build_files >/dev/null 2>&1 || true
         fi
         (cd "$(input-directory)/busybox" || exit; find . -type f -name "*Config.in" -exec cp --parents {} "$(output-directory)" \;)
