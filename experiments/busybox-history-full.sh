@@ -38,5 +38,14 @@ copy-models() {
             fi
         done
     done
-    # todo: install and run clausy in helper function
+}
+
+# can be executed from output directory to analyze differences between model files (see GitHub link for installation requirements)
+batch-diff() {
+    if [[ ! -d clausy ]]; then
+        git clone https://github.com/ekuiter/clausy.git
+        make -C clausy
+    fi
+    clausy/scripts/batch_diff.sh models/kconfigreader > diff-kconfigreader.csv
+    clausy/scripts/batch_diff.sh models/kmax > diff-kmax.csv
 }
