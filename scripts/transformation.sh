@@ -56,7 +56,7 @@ transform-files(csv_file, input_extension, output_extension, transformer_name, t
         echo >> "$(output-csv)"
     fi
     table-field "$csv_file" "$input_extension-file" | grep -v NA$ | sort -V \
-        | parallel -q ${jobs:+"-j$jobs"} "$SCRIPTS_DIRECTORY/$TOOL.sh" \
+        | parallel -q ${jobs:+"-j$jobs"} "$TOOL_SCRIPT" \
         transform-file "{}" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_fields" "$data_extractor" "$timeout"
 }
 
@@ -186,7 +186,7 @@ transform-into-unconstrained-features(input_extension=model, output_extension=un
         "$input_extension" \
         "$output_extension" \
         model_to_unconstrained_features \
-        "$(lambda input,output 'echo '"$SCRIPTS_DIRECTORY/$TOOL.sh"' compute-unconstrained-features "$input" "$output"')" \
+        "$(lambda input,output 'echo '"$TOOL_SCRIPT"' compute-unconstrained-features "$input" "$output"')" \
         "" \
         "" \
         "$timeout" \
@@ -238,7 +238,7 @@ transform-into-backbone-features(input_extension=backbone.dimacs, output_extensi
         "$input_extension" \
         "$output_extension" \
         dimacs_to_backbone_features \
-        "$(lambda input,output 'echo '"$SCRIPTS_DIRECTORY/$TOOL.sh"' compute-backbone-features "$input" "$output"')" \
+        "$(lambda input,output 'echo '"$TOOL_SCRIPT"' compute-backbone-features "$input" "$output"')" \
         "" \
         "" \
         "$timeout" \

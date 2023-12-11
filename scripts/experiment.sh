@@ -8,7 +8,9 @@ load-experiment(experiment_file=experiments/default.sh) {
         if [[ ! -f $experiment_file ]]; then
             error-help "Please provide an experiment in $experiment_file."
         fi
-        cp "$experiment_file" "$SCRIPTS_DIRECTORY/_experiment.sh"
+        if [[ ! $experiment_file -ef $SCRIPTS_DIRECTORY/_experiment.sh ]]; then
+            cp "$experiment_file" "$SCRIPTS_DIRECTORY/_experiment.sh"
+        fi
     fi
     source-script "$SCRIPTS_DIRECTORY/_experiment.sh"
 }

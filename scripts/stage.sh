@@ -77,6 +77,7 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(-v "$output_volume:$DOCKER_OUTPUT_DIRECTORY")
             cmd+=(-v "$(realpath "$SCRIPTS_DIRECTORY"):$DOCKER_SCRIPTS_DIRECTORY")
             cmd+=(-e IS_DOCKER_RUNNING=y)
+            cmd+=(-e PASS)
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
             cmd+=("${TOOL}_$image")
