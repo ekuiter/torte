@@ -65,6 +65,8 @@ batch-diff() {
     if [[ ! -d clausy ]]; then
         git clone https://github.com/ekuiter/clausy.git
         curl https://sh.rustup.rs -sSf | sh -s -- -y
+        # shellcheck disable=SC1091
+        source "$HOME/.cargo/env"
         make -C clausy
     fi
     clausy/scripts/batch_diff.sh models > diff.csv
