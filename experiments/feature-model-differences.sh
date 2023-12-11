@@ -7,7 +7,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https:/
 experiment-subjects() {
     #todo: update versions
     if [[ $PASS -eq 1 ]]; then
-        add-busybox-kconfig-history --from 1_35_0 --to 1_37_0
+        add-busybox-kconfig-history --from 1_3_0 --to 1_37_0
     elif [[ $PASS -eq 2 ]]; then
         add-busybox-kconfig-history-full
     elif [[ $PASS -eq 3 ]]; then
