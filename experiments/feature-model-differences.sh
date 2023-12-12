@@ -5,7 +5,6 @@
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 experiment-subjects() {
-    #todo: update versions
     if [[ $PASS -eq 1 ]]; then
         add-busybox-kconfig-history --from 1_3_0 --to 1_37_0
     elif [[ $PASS -eq 2 ]]; then
@@ -60,7 +59,7 @@ copy-models() {
     done
 }
 
-# can be executed from output directory to analyze differences between model files (see GitHub link for installation requirements)
+# can be executed from output directory to analyze differences between model files (see GitHub link for installation requirements, this automatically installs Rust)
 batch-diff() {
     if [[ ! -d clausy ]]; then
         git clone https://github.com/ekuiter/clausy.git
