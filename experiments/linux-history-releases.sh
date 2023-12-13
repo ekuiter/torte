@@ -2,7 +2,7 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
-TORTE_REVISION=44c7f0f; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=eaff729; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 # This experiment analyzes the feature model of the Linux kernel across a timespan of > 20 years
 # and across all its supported processor architectures. For each revision and architecture, a
@@ -25,7 +25,8 @@ SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and
 
 experiment-subjects() {
     # analyze all revisions and architectures of the Linux kernel
-    add-linux-kconfig-history --from v2.5.45 --to v6.4 --architecture all
+    #add-linux-kconfig-history --from v2.5.45 --to v6.4 --architecture all
+    add-linux-kconfig-history --from v6.3 --to v6.7 --architecture all
 }
 
 experiment-stages() {
@@ -59,18 +60,18 @@ experiment-stages() {
     compute-backbone-dimacs --jobs 16
     join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
-    solve \
-        --input-stage backbone-dimacs \
-        --input-extension backbone.dimacs \
-        --kind model-count \
-        --timeout "$SOLVE_TIMEOUT" \
-        --jobs "$SOLVE_JOBS" \
-        --attempts "$SOLVE_ATTEMPTS" \
-        --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
-        --solver_specs \
-        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
-        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
-    join-into backbone-dimacs solve_model-count
+    # solve \
+    #     --input-stage backbone-dimacs \
+    #     --input-extension backbone.dimacs \
+    #     --kind model-count \
+    #     --timeout "$SOLVE_TIMEOUT" \
+    #     --jobs "$SOLVE_JOBS" \
+    #     --attempts "$SOLVE_ATTEMPTS" \
+    #     --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
+    #     --solver_specs \
+    #     model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
+    #     model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
+    # join-into backbone-dimacs solve_model-count
 
     # evaluate
     run-notebook --file experiments/linux-history-releases.ipynb
