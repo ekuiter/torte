@@ -263,9 +263,10 @@ Experiments starting with `draft-` are experimental.
 
 | Experiment | Purpose |
 | - | - |
+| `busybox-history-full.sh` | Extraction of all feature models of BusyBox (for every commit that touches the feature model) [^27] |
 | `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
 | `feature-model-collection.sh` | Extraction, transformation, and analysis of several feature-model histories |
-| `feature-model-differences.sh` | Extraction of all feature models of BusyBox (for every commit that touches the feature model) [^27] |
+| `feature-model-differences.sh` | Extraction and comparison of all feature models of several feature-model histories |
 | `linux-history-releases.sh` | Extraction, transformation, and analysis of a history of Linux feature models |
 | `linux-history-weekly.sh` | Extraction of a weekly history of Linux feature models |
 | `linux-recent-release.sh` | Extraction and transformation of a recent Linux feature model |
