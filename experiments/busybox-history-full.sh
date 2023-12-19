@@ -5,23 +5,18 @@
 TORTE_REVISION=eb91ce7; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 experiment-subjects() {
-    if [[ $PASS -eq 1 ]]; then
-        add-busybox-kconfig-history --from 1_3_0 --to 1_37_0
-    elif [[ $PASS -eq 2 ]]; then
-        add-busybox-kconfig-history-full
-    fi
+    add-busybox-kconfig-history --from 1_3_0 --to 1_37_0
+    add-busybox-kconfig-history-full
 }
 
 experiment-stages() {
     clone-systems
-    if [[ $PASS -eq 2 ]]; then
-        generate-busybox-models
-    fi
+    generate-busybox-models
     read-statistics
     extract-kconfig-models-with --extractor kmax
     join-into read-statistics kconfig
-    transform-models-with-featjar --input-stage model --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
-    transform-models-into-dimacs --input-stage model --timeout "$TIMEOUT"
+    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-models-into-dimacs --timeout "$TIMEOUT"
 }
 
 # can be executed from output directory to copy and rename model files
@@ -44,16 +39,3 @@ copy-models() {
         fi
     done
 }
-
-# runs all passes automatically and collects results
-if [[ -z $PASS ]]; then
-    command-run() {
-        for i in $(seq 2); do
-            export PASS=$i
-            command-clean
-            rm-safe "${OUTPUT_DIRECTORY}_$PASS"
-            "$TOOL_SCRIPT" "$SCRIPTS_DIRECTORY/_experiment.sh"
-            mv "$OUTPUT_DIRECTORY" "${OUTPUT_DIRECTORY}_$PASS"
-        done
-    }
-fi

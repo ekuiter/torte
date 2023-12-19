@@ -14,8 +14,6 @@ add-busybox-kconfig-history(from=, to=) {
 
 add-busybox-kconfig-history-full() {
     add-system --system busybox --url https://github.com/mirror/busybox
-    #for revision in $(git -C "$(input-directory)/busybox-models" log master --format="%h" | tac | head -n350 | tail -n10); do
-    #for revision in $(git -C "$(input-directory)/busybox-models" log master --format="%h" | tac | head -n800 | tail -n15); do
     for revision in $(git -C "$(input-directory)/busybox-models" log master --format="%h" | tac); do
         local original_revision
         original_revision=$(git -C "$(input-directory)/busybox-models" rev-list --max-count=1 --format=%B "$revision" | sed '/^commit [0-9a-f]\{40\}$/d')
