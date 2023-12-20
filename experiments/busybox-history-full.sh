@@ -22,20 +22,19 @@ experiment-stages() {
 # can be executed from output directory to copy and rename model files
 copy-models() {
     shopt -s globstar
-    mkdir -p models
-    for f in kconfig/**/*.model; do
+    mkdir -p dimacs_clean/releases dimacs_clean/commits
+    for f in model_to_dimacs_featureide/busybox/*.dimacs; do
         local revision
         local original_revision
-        revision=$(basename "$f" .model | cut -d'[' -f1)
-        original_revision=$(basename "$f" .model | cut -d'[' -f2 | cut -d']' -f1)
-        cp "$f" "models/$(date -d "@$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$original_revision.model"
+        revision=$(basename "$f" .dimacs)
+        cp "$f" "dimacs_clean/releases/$(date -d "@$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$revision.dimacs"
+    done
+    for f in model_to_dimacs_featureide/busybox-models/*.dimacs; do
+        local revision
+        local original_revision
+        revision=$(basename "$f" .dimacs | cut -d'[' -f1)
+        original_revision=$(basename "$f" .dimacs | cut -d'[' -f2 | cut -d']' -f1)
+        cp "$f" "dimacs_clean/commits/$(date -d "@$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$original_revision.dimacs"
     done
     shopt -u globstar
-    # shellcheck disable=SC2207,SC2012
-    f=($(ls models/*.model | sort -V | tr '\n' ' '))
-    for ((i = 0; i < ${#f[@]}-1; i++)); do
-        if diff -q "${f[i]}" "${f[i+1]}" >/dev/null; then
-            echo "${f[i]}" and "${f[i+1]}" are duplicate >&2
-        fi
-    done
 }
