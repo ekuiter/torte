@@ -64,7 +64,7 @@ batch-diff() {
     if [[ -z "$(docker images -q clausy 2> /dev/null)" ]]; then
         docker build -t clausy clausy
     fi
-    clausy/scripts/batch_diff.sh models 300 y > diff.csv
+    clausy/scripts/batch_diff.sh models 1800 y > diff.csv
 }
 
 # runs all passes automatically and collects results
