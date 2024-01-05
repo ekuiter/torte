@@ -17,7 +17,7 @@ WORKDIR /home
 # we fix z3 to an older version although we do not need it here, as 4.12.2.0 does not compile correctly
 RUN git clone https://github.com/paulgazz/kmax.git \
   && cd kmax \
-  && git checkout 5a8780dd9bc17341dc8e16b53224d25607ae2e7b \
+  && git checkout d0fe92db13ca97140385cd39977d937d1ee92d4c \
   && sed -i 's/z3-solver/z3-solver==4.11.2/' setup.py \
   && python3 setup.py install
 
