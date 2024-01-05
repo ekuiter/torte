@@ -515,12 +515,11 @@ define-stage-helpers() {
     }
 
     # runs a Jupyter notebook
-    # assumes that the notebook reads only data from the tool directory
-    run-notebook(stage=notebook, file) {
+    run-notebook(input_stage=$PWD, output_stage=notebook, file) {
         run \
-            --stage "$stage" \
+            --stage "$output_stage" \
             --image jupyter \
-            --input-directory "$TOOL_DIRECTORY" \
+            --input-directory "$input_stage" \
             --command run-notebook \
             --file "$file"
     }
