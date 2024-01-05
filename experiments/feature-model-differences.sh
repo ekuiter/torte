@@ -56,16 +56,13 @@ copy-models() {
     done
 }
 
-# can be executed from output directory to analyze differences between model files (see GitHub link for installation requirements, this automatically installs Rust)
+# can be executed from output directory to analyze differences between model files
 batch-diff() {
-    if [[ ! -d clausy ]]; then
+    if [[ -z "$(docker images -q clausy 2> /dev/null)" ]]; then
         git clone https://github.com/ekuiter/clausy.git
-        curl https://sh.rustup.rs -sSf | sh -s -- -y
-        # shellcheck disable=SC1091
-        source "$HOME/.cargo/env"
-        make -C clausy
+        docker build -t clausy clausy
     fi
-    clausy/scripts/batch_diff.sh models > diff.csv
+    clausy/scripts/batch_diff.sh models 300 y > diff.csv
 }
 
 # runs all passes automatically and collects results
