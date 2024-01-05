@@ -51,7 +51,7 @@ command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
 
 # removes all Docker containers and images
 command-reset() {
-    stop-experiment
+    command-stop
     readarray -t containers < <(docker ps -a | tail -n+2 | awk '$2 ~ /^'"$TOOL"'_/ {print $1}')
     for container in $(containers); do
         docker rm -f "$container"

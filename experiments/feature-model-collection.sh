@@ -2,7 +2,7 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
-TORTE_REVISION=44c7f0f; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 # The point of this experiment file is to extract feature models for a large and representative selection of Kconfig-based configurable systems and their revisions.
 # More information on some of the systems below can be found in Berger et al.'s "Variability Modeling in the Systems Software Domain" (DOI: 10.1109/TSE.2013.34).

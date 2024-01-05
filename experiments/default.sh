@@ -2,7 +2,7 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
-TORTE_REVISION=44c7f0f; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 # This experiment extracts, transforms, and analyzes a single feature model.
 # It serves as a demo and integration test for torte and also returns some common statistics of the model.
@@ -23,6 +23,9 @@ experiment-stages() {
     transform-models-into-dimacs --timeout "$TIMEOUT"
     
     draw-community-structure --timeout "$TIMEOUT"
+    compute-backbone-dimacs --timeout "$TIMEOUT"
+    compute-unconstrained-features --timeout "$TIMEOUT"
+    compute-backbone-features --timeout "$TIMEOUT"
     solve-satisfiable --timeout "$TIMEOUT"
     solve-model-count --timeout "$TIMEOUT"
 
@@ -36,4 +39,5 @@ experiment-stages() {
     log-output-field dimacs dimacs-variables
     log-output-field solve_satisfiable satisfiable
     log-output-field solve_model-count model-count
+    run-notebook --file experiments/default.ipynb
 }

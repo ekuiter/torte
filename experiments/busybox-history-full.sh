@@ -2,10 +2,10 @@
 # The following line uses curl to reproducibly install and run the specified revision of torte.
 # Alternatively, torte can be installed manually (see https://github.com/ekuiter/torte).
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
-TORTE_REVISION=cf04358; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
+TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 experiment-subjects() {
-    add-busybox-kconfig-history --from 1_3_0 --to 1_37_0
+    add-busybox-kconfig-history --from 1_3_0 --to 1_36_1
     add-busybox-kconfig-history-full
 }
 
