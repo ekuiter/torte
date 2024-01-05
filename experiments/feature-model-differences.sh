@@ -58,8 +58,10 @@ copy-models() {
 
 # can be executed from output directory to analyze differences between model files
 batch-diff() {
-    if [[ -z "$(docker images -q clausy 2> /dev/null)" ]]; then
+    if [[ ! -d clausy ]]; then
         git clone https://github.com/ekuiter/clausy.git
+    fi
+    if [[ -z "$(docker images -q clausy 2> /dev/null)" ]]; then
         docker build -t clausy clausy
     fi
     clausy/scripts/batch_diff.sh models 300 y > diff.csv
