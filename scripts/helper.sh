@@ -115,14 +115,29 @@ is-host() {
     [[ -z $IS_DOCKER_RUNNING ]]
 }
 
+# returns whether Docker is runningr
+is-docker-running() {
+    docker info >/dev/null 2>&1
+}
+
+# returns whether we are in rootless mode
+is-docker-rootless() {
+    docker info -f "{{println .SecurityOptions}}" | grep -q rootless
+}
+
 # requires that we are not in a Docker container
 require-host() {
     if ! is-host; then
         error "Cannot be run inside a Docker container."
     fi
     require-command docker make
-    if  docker info -f "{{println .SecurityOptions}}" | grep -q rootless; then
-        error "Docker is not running in rootless mode, which is required to avoid permission issues on created files (see https://docs.docker.com/engine/security/rootless/)."
+    if ! is-docker-running; then
+        error "Docker is not running. If rootless mode is enabled, do not run $TOOL as root (e.g., drop 'sudo')."
+    fi
+    if [[ $(whoami) == root ]] && is-docker-rootless; then
+        error "Docker is running in rootless mode (see https://docs.docker.com/engine/security/rootless/). Please do not run $TOOL as root (e.g., drop 'sudo')."
+    elif [[ $(whoami) != root ]] && ! is-docker-rootless; then
+        error "Docker is not running in rootless mode (see https://docs.docker.com/engine/security/rootless/). Please run $TOOL as root (e.g., use 'sudo')."
     fi
 }
 
