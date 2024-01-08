@@ -121,6 +121,9 @@ require-host() {
         error "Cannot be run inside a Docker container."
     fi
     require-command docker make
+    if  docker info -f "{{println .SecurityOptions}}" | grep -q rootless; then
+        error "Docker is not running in rootless mode, which is required to avoid permission issues on created files (see https://docs.docker.com/engine/security/rootless/)."
+    fi
 }
 
 # returns whether a function is defined, useful for providing fallback implementations
