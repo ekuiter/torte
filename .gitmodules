@@ -1,0 +1,3 @@
+[submodule "docker/clausy"]
+	path = docker/clausy
+	url = https://github.com/ekuiter/clausy.git

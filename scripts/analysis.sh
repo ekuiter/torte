@@ -113,3 +113,11 @@ run-notebook(file) {
     # currently, this creates the HTML file with another user's ID
     jupyter nbconvert --to html --no-input --execute --output-dir "$(output-directory)" "$(input-directory)/$file"
 }
+
+# computes differences for model files with clausy
+run-clausy-batch-diff(input_directory=, timeout=0) {
+    if [[ -z $input_directory ]]; then
+        input_directory=$(input-directory)
+    fi
+    scripts/batch_diff.sh "$input_directory" "$timeout" > "$(output-csv)"
+}

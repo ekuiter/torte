@@ -33,7 +33,7 @@ command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
         command-clean
     fi
     if [[ $scripts == y ]]; then
-        git clone "$TOOL_DIRECTORY" "$EXPORT_DIRECTORY/$TOOL"
+        git clone --recursive "$TOOL_DIRECTORY" "$EXPORT_DIRECTORY/$TOOL"
     fi
     if [[ $input == y ]]; then
         cp -R "$(input-directory)" "$EXPORT_DIRECTORY"

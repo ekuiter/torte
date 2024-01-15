@@ -80,6 +80,7 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(-e PASS)
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
+            cmd+=(--entrypoint /bin/bash)
             cmd+=("${TOOL}_$image")
             if [[ ${command[*]} == /bin/bash ]]; then
                 log "" "${cmd[*]}"
@@ -522,5 +523,11 @@ define-stage-helpers() {
             --input-directory "$input_stage" \
             --command run-notebook \
             --file "$file"
+    }
+
+    # build10 the given image, if necessary
+    build-image(image) {
+        # shellcheck disable=SC2128
+        run --stage "" --image "$image" --command echo
     }
 }

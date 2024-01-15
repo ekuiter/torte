@@ -19,9 +19,6 @@ experiment-subjects() {
         add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0
     elif [[ $PASS -eq 7 ]]; then
         add-buildroot-kconfig-history --from 2009.05 --to 2022.05
-        #add-fiasco-kconfig 5eed420385a9fc0055b06f063b4c981a68a35b51
-        #add-freetz-ng-kconfig d57a38e12ec6347ecdd4240fa541b722937fa72f
-        #add-linux-kconfig-history --from v6.0 --to v6.1
     fi
 }
 
@@ -33,6 +30,7 @@ experiment-stages() {
     read-statistics
     extract-kconfig-models-with --extractor kmax
     join-into read-statistics kconfig
+    build-image clausy
 }
 
 # can be executed from output directory to copy and rename model files
@@ -56,15 +54,14 @@ copy-models() {
     done
 }
 
-# can be executed from output directory to analyze differences between model files
+# analyzes differences between model files
 batch-diff() {
-    if [[ ! -d clausy ]]; then
-        git clone https://github.com/ekuiter/clausy.git
-    fi
-    if [[ -z "$(docker images -q clausy 2> /dev/null)" ]]; then
-        docker build -t clausy clausy
-    fi
-    clausy/scripts/batch_diff.sh models 1800 y > diff.csv
+    run \
+        --stage diff \
+        --image clausy \
+        --input-directory output/models \
+        --command run-clausy-batch-diff \
+        --timeout 1800
 }
 
 # runs all passes automatically and collects results
@@ -79,9 +76,9 @@ if [[ -z $PASS ]]; then
             "$TOOL_SCRIPT" "$SCRIPTS_DIRECTORY/_experiment.sh"
             push "$OUTPUT_DIRECTORY"
             copy-models
-            batch-diff
-            cp diff.csv "../output_all/diff_$PASS.csv"
             pop
+            batch-diff
+            cp "$(output-csv diff)" "../output_all/diff_$PASS.csv"
             mv "$OUTPUT_DIRECTORY" "${OUTPUT_DIRECTORY}_$PASS"
         done
     }

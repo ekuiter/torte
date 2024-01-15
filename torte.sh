@@ -21,9 +21,9 @@ if (return 0 2>/dev/null); then
         echo "torte (revision $TORTE_REVISION) will now be installed into the directory '$PWD/torte'."
         echo "By default, all experiment data will be stored in the directories '$PWD/input' and '$PWD/output'."
         echo
-        git clone -q "$TORTE_REPOSITORY"
+        git clone --recursive -q "$TORTE_REPOSITORY"
     fi
-    git -C torte checkout -q "$TORTE_REVISION"
+    git -C torte checkout --recurse-submodules -q "$TORTE_REVISION"
     torte/torte.sh "$0" "$@" # run main entry point for the given experiment file
     exit 0 # exit the experiment file's parent shell
 else
