@@ -25,12 +25,12 @@ This way, you can
 - **distribute fully-automated reproduction packages** when an experiment is ready for publication, and
 - **adapt and update existing experiments** without needing to resort to clone-and-own practices.
 
-These one-liners will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required in default and [rootless mode](https://docs.docker.com/engine/security/rootless/), respectively).
+These one-liners will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required).
 ```
-curl -s https://ekuiter.github.io/torte/ | sudo sh
+curl -s https://ekuiter.github.io/torte/ | sudo sh # rootless mode
 ```
 ```
-curl -s https://ekuiter.github.io/torte/ | sh
+curl -s https://ekuiter.github.io/torte/ | sh # rootless mode
 ```
 Read on if you want to know more details.
 
