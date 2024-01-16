@@ -27,7 +27,7 @@ command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
     cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$EXPORT_DIRECTORY"
     # shellcheck disable=SC2128
     if [[ $images == y ]]; then
-        DOCKER_RUN=
+        export DOCKER_RUN=n
         command-clean
         command-run
         command-clean

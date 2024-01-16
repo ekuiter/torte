@@ -49,13 +49,16 @@ command-stop() {
 # runs the experiment on a remote server
 # removes previous experiment results and reinstalls evaluation scripts
 # shellcheck disable=SC2029
-command-run-remote(host, file=experiment.tar.gz, directory=.) {
+command-run-remote(host, file=experiment.tar.gz, directory=., sudo=) {
     require-command ssh scp
+    if [[ $sudo == y ]]; then
+        sudo=sudo
+    fi
     scp -r "$file" "$host:$directory"
     local cmd="(cd $directory;"
     cmd+="  tar xzvf $(basename "$file"); "
     cmd+="  rm $(basename "$file"); "
-    cmd+="  screen -dmSL $TOOL bash _experiment.sh; "
+    cmd+="  screen -dmSL $TOOL $sudo bash _experiment.sh; "
     cmd+=");"
     ssh "$host" "$cmd"
     echo "$TOOL is now running on $host, opening an SSH session."

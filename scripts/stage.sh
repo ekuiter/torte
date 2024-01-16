@@ -179,7 +179,7 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, 
 # runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
 # only run if the specified file does not exist yet
 run-transient-unless(file=, command...) {
-    if [[ -z $file ]] || is-file-empty "$OUTPUT_DIRECTORY/$file"; then
+    if ([[ -z $file ]] || is-file-empty "$OUTPUT_DIRECTORY/$file") && [[ $DOCKER_RUN == y ]]; then
         run "" "" "$OUTPUT_DIRECTORY" bash -c "cd $DOCKER_SCRIPTS_DIRECTORY; source $TOOL.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
     fi
 }
