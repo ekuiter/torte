@@ -27,7 +27,7 @@ This way, you can
 
 These one-liners will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required).
 ```
-curl -s https://ekuiter.github.io/torte/ | sudo sh # rootless mode
+curl -s https://ekuiter.github.io/torte/ | sudo sh # default mode
 ```
 ```
 curl -s https://ekuiter.github.io/torte/ | sh # rootless mode
