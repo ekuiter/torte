@@ -68,16 +68,19 @@ batch-diff() {
 if [[ -z $PASS ]]; then
     command-run() {
         rm-safe output_all
-        mkdir -p output_all
         for i in $(seq 7); do
             export PASS=$i
             command-clean
             rm-safe "${OUTPUT_DIRECTORY}_$PASS"
             "$TOOL_SCRIPT" "$SCRIPTS_DIRECTORY/_experiment.sh"
+            if [[ $DOCKER_RUN != y ]]; then
+                return
+            fi
             push "$OUTPUT_DIRECTORY"
             copy-models
             pop
             batch-diff
+            mkdir -p output_all
             cp "$(output-csv diff)" "../output_all/diff_$PASS.csv"
             mv "$OUTPUT_DIRECTORY" "${OUTPUT_DIRECTORY}_$PASS"
         done
