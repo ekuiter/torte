@@ -6,11 +6,11 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https:/
 
 experiment-subjects() {
     if [[ $PASS -eq 1 ]]; then
-        add-busybox-kconfig-history --from 1_35_0 --to 1_36_1
+        add-busybox-kconfig-history --from 1_3_0 --to 1_36_1
     elif [[ $PASS -eq 2 ]]; then
-        add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
-    elif [[ $PASS -eq 3 ]]; then
         add-busybox-kconfig-history-full
+    elif [[ $PASS -eq 3 ]]; then
+        add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
     elif [[ $PASS -eq 4 ]]; then
         add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40
     elif [[ $PASS -eq 5 ]]; then
@@ -24,7 +24,7 @@ experiment-subjects() {
 
 experiment-stages() {
     clone-systems
-    if [[ $PASS -eq 3 ]]; then
+    if [[ $PASS -eq 2 ]]; then
         generate-busybox-models
     fi
     read-statistics
@@ -68,19 +68,16 @@ batch-diff() {
 if [[ -z $PASS ]]; then
     command-run() {
         rm-safe output_all
+        mkdir -p output_all
         for i in $(seq 7); do
             export PASS=$i
             command-clean
             rm-safe "${OUTPUT_DIRECTORY}_$PASS"
             "$TOOL_SCRIPT" "$SCRIPTS_DIRECTORY/_experiment.sh"
-            if [[ $DOCKER_RUN != y ]]; then
-                return
-            fi
             push "$OUTPUT_DIRECTORY"
             copy-models
             pop
             batch-diff
-            mkdir -p output_all
             cp "$(output-csv diff)" "../output_all/diff_$PASS.csv"
             mv "$OUTPUT_DIRECTORY" "${OUTPUT_DIRECTORY}_$PASS"
         done

@@ -25,7 +25,7 @@ This way, you can
 - **distribute fully-automated reproduction packages** when an experiment is ready for publication, and
 - **adapt and update existing experiments** without needing to resort to clone-and-own practices.
 
-These one-liners will get you started with the [default experiment](experiments/default.sh) (Docker required):
+This one-liner will get you started with the [default experiment](experiments/default.sh) (Docker required):
 ```
 curl -s https://ekuiter.github.io/torte/ | sudo sh # default mode
 curl -s https://ekuiter.github.io/torte/ | sh # rootless mode
