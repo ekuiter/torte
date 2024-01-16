@@ -23,7 +23,7 @@ if (return 0 2>/dev/null); then
         echo
         git clone --recursive -q "$TORTE_REPOSITORY" 1>/dev/null
     fi
-    git -C torte checkout --recurse-submodules -q "$TORTE_REVISION"
+    git -C torte checkout --recurse-submodules -q "$TORTE_REVISION" 1>/dev/null
     torte/torte.sh "$0" "$@" # run main entry point for the given experiment file
     exit 0 # exit the experiment file's parent shell
 else
