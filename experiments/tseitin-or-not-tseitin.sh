@@ -68,7 +68,7 @@ experiment-stages() {
     join-into kconfig dimacs
 
     # analyze
-    compute-backbone-dimacs
+    compute-backbone-dimacs-with-cadiback
     join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
 

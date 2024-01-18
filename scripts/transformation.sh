@@ -148,14 +148,28 @@ transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0, 
         "$jobs"
 }
 
-# computes backbone of a DIMACS file
+# computes backbone of a DIMACS file using kissat
 transform-into-backbone-dimacs-with-kissat(input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
         dimacs_to_backbone_dimacs_kissat \
-        "$(lambda input,output 'echo python3 other/backbone_kissat.py --input "$input" --backbone "$(basename "$output" .dimacs).backbone" --output "$output"')" \
+        "$(lambda input,output 'echo python3 other/backbone_kissat.py --input "$input" --backbone "$(dirname "$output")/$(basename "$output" .dimacs).backbone" --output "$output"')" \
+        "" \
+        "" \
+        "$timeout" \
+        "$jobs"
+}
+
+# computes backbone of a DIMACS file using cadiback
+transform-into-backbone-dimacs-with-cadiback(input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
+    transform-files \
+        "$(input-csv)" \
+        "$input_extension" \
+        "$output_extension" \
+        dimacs_to_backbone_dimacs_cadiback \
+        "$(lambda input,output 'echo python3 backbone_cadiback.py --input "$input" --backbone "$(dirname "$output")/$(basename "$output" .dimacs).backbone" --output "$output"')" \
         "" \
         "" \
         "$timeout" \

@@ -23,7 +23,7 @@ experiment-stages() {
     transform-models-into-dimacs --timeout "$TIMEOUT"
     
     draw-community-structure --timeout "$TIMEOUT"
-    compute-backbone-dimacs --timeout "$TIMEOUT"
+    compute-backbone-dimacs-with-cadiback --timeout "$TIMEOUT"
     compute-unconstrained-features --timeout "$TIMEOUT"
     compute-backbone-features --timeout "$TIMEOUT"
     solve-satisfiable --timeout "$TIMEOUT"

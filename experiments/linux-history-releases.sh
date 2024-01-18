@@ -25,7 +25,7 @@ SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and
 
 experiment-subjects() {
     # analyze all revisions and architectures of the Linux kernel
-    add-linux-kconfig-history --from v2.5.45 --to v6.7 --architecture all
+    add-linux-kconfig-history --from v2.5.45 --to v6.8 --architecture all
 }
 
 experiment-stages() {
@@ -56,7 +56,7 @@ experiment-stages() {
     join-into kconfig dimacs
 
     # analyze
-    compute-backbone-dimacs --jobs 16
+    compute-backbone-dimacs-with-cadiback --jobs 16
     join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
     solve \

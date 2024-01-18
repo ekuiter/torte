@@ -388,9 +388,9 @@ define-stage-helpers() {
     }
 
     # visualize community structure of DIMACS files as a JPEG file
-    draw-community-structure(input_stage=dimacs, timeout=0, jobs=1) {
+    draw-community-structure(input_stage=dimacs, output_stage=community-structure, timeout=0, jobs=1) {
         run \
-            --stage community-structure \
+            --stage "$output_stage" \
             --image satgraf \
             --input-directory "$input_stage" \
             --command transform-with-satgraf \
@@ -398,10 +398,10 @@ define-stage-helpers() {
             --jobs "$jobs"
     }
 
-    # compute DIMACS files with explicit backbone
-    compute-backbone-dimacs(input_stage=dimacs, timeout=0, jobs=1) {
+    # compute DIMACS files with explicit backbone using kissat
+    compute-backbone-dimacs-with-kissat(input_stage=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
         run \
-            --stage backbone-dimacs \
+            --stage "$output_stage" \
             --image solver \
             --input-directory "$input_stage" \
             --command transform-into-backbone-dimacs-with-kissat \
@@ -409,10 +409,21 @@ define-stage-helpers() {
             --jobs "$jobs"
     }
 
-    # compute unconstrained features that are not mentioned in a DIMACS file
-    compute-unconstrained-features(input_stage=kconfig, timeout=0, jobs=1) {
+    # compute DIMACS files with explicit backbone using cadiback
+    compute-backbone-dimacs-with-cadiback(input_stage=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
         run \
-            --stage unconstrained-features \
+            --stage "$output_stage" \
+            --image cadiback \
+            --input-directory "$input_stage" \
+            --command transform-into-backbone-dimacs-with-cadiback \
+            --timeout "$timeout" \
+            --jobs "$jobs"
+    }
+
+    # compute unconstrained features that are not mentioned in a DIMACS file
+    compute-unconstrained-features(input_stage=kconfig, output_stage=unconstrained-features, timeout=0, jobs=1) {
+        run \
+            --stage "$output_stage" \
             --input-directory "$input_stage" \
             --command transform-into-unconstrained-features \
             --timeout "$timeout" \
@@ -420,9 +431,9 @@ define-stage-helpers() {
     }
 
     # compute features in the backbone of DIMACS files
-    compute-backbone-features(input_stage=backbone-dimacs, timeout=0, jobs=1) {
+    compute-backbone-features(input_stage=backbone-dimacs, output_stage=backbone-features, timeout=0, jobs=1) {
         run \
-            --stage backbone-features \
+            --stage "$output_stage" \
             --input-directory "$input_stage" \
             --command transform-into-backbone-features \
             --timeout "$timeout" \
