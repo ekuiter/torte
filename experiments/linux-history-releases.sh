@@ -25,13 +25,13 @@ SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and
 
 experiment-subjects() {
     # analyze all revisions and architectures of the Linux kernel
-    add-linux-kconfig-history --from v6.7 --to v6.8 --architecture all
+    add-linux-kconfig-history --from v2.5.45 --to v6.7 --architecture all
 }
 
 experiment-stages() {
     # extract
     clone-systems
-    #tag-linux-revisions
+    tag-linux-revisions
     read-linux-names
     read-linux-architectures
     read-linux-configs
@@ -59,21 +59,21 @@ experiment-stages() {
     compute-backbone-dimacs --jobs 16
     join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
-    # solve \
-    #     --input-stage backbone-dimacs \
-    #     --input-extension backbone.dimacs \
-    #     --kind model-count \
-    #     --timeout "$SOLVE_TIMEOUT" \
-    #     --jobs "$SOLVE_JOBS" \
-    #     --attempts "$SOLVE_ATTEMPTS" \
-    #     --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
-    #     --solver_specs \
-    #     model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
-    #     model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
-    # join-into backbone-dimacs solve_model-count
+    solve \
+        --input-stage backbone-dimacs \
+        --input-extension backbone.dimacs \
+        --kind model-count \
+        --timeout "$SOLVE_TIMEOUT" \
+        --jobs "$SOLVE_JOBS" \
+        --attempts "$SOLVE_ATTEMPTS" \
+        --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
+        --solver_specs \
+        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
+        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
+    join-into backbone-dimacs solve_model-count
 
     # evaluate
-    #run-notebook --file experiments/linux-history-releases.ipynb
+    run-notebook --file experiments/linux-history-releases.ipynb
 }
 
 # additional useful statistics on the mainline kernel, takes a while to run

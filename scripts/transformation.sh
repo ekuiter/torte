@@ -193,7 +193,7 @@ transform-into-unconstrained-features(input_extension=model, output_extension=un
         "$jobs"
 }
 
-# extracts core or dead features from a backbone dimacs file (excludes Z3's Tseitin variables for efficiency)
+# extracts core or dead features from a backbone dimacs file (excludes Tseitin variables for efficiency)
 # prefix= extracts core features, prefix=- extracts dead features
 compute-core-or-dead-features(input, output, prefix=) {
     grep -E '^'"$prefix"'([^- ]+) 0$' "$input" \
