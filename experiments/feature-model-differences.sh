@@ -17,8 +17,6 @@ experiment-subjects() {
         add-toybox-kconfig-history --from 0.4.5 --to 0.8.9
     elif [[ $PASS -eq 6 ]]; then
         add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0
-    elif [[ $PASS -eq 7 ]]; then
-        add-buildroot-kconfig-history --from 2009.05 --to 2022.05
     fi
 }
 
@@ -68,7 +66,7 @@ batch-diff() {
 if [[ -z $PASS ]]; then
     command-run() {
         rm-safe output_all
-        for i in $(seq 7); do
+        for i in $(seq 6); do
             export PASS=$i
             command-clean
             rm-safe "${OUTPUT_DIRECTORY}_$PASS"
