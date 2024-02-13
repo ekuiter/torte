@@ -10,7 +10,7 @@ Take your pick:
 - KConfig Extrac**tor** that **T**ackles **E**volution
 - **To**wards **R**eproducible Feature-Model **T**ransformation and **E**xtraction
 - **T**hat's an **O**bviously **R**everse-Engineered **T**ool Nam**e**
-- KConfig = 🍰config ∧ 🍰 = torte. `\qed`
+- KConfig = 🍰 config ∧ 🍰 = torte ∎
 
 torte can be used to
 
