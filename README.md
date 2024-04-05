@@ -91,7 +91,7 @@ Detailed system-specific information on potential threats to validity is availab
 | [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
 | [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
 | [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
-| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.3 | [^21] [^25] [^26] | |
+| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.7 | [^21] [^25] [^26] | |
 | [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
 | [uclibc-ng](scripts/subjects/uclibc-ng.sh) | 1.0.2 - 1.0.40 | |
 
