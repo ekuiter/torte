@@ -441,7 +441,7 @@ define-stage-helpers() {
     }
 
     # solve DIMACS files
-    solve(kind, input_stage=dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, solver_specs...) {
+    solve(kind, input_stage=dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
@@ -451,8 +451,11 @@ define-stage-helpers() {
             image=$(echo "$solver_spec" | cut -d, -f2)
             parser=$(echo "$solver_spec" | cut -d, -f3)
             stages+=("$stage")
-            run \
+            iterate \
                 --stage "$stage" \
+                --iterations "$iterations" \
+                --iteration-field "$iteration_field" \
+                --file-fields "$file_fields" \
                 --image "$image" \
                 --input-directory "$input_stage" \
                 --command solve \
@@ -469,7 +472,7 @@ define-stage-helpers() {
     }
 
     # solve DIMACS files for satisfiability
-    solve-satisfiable(input_stage=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
+    solve-satisfiable(input_stage=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
             sat-competition/02-zchaff,solver,satisfiable
             sat-competition/03-Forklift,solver,satisfiable
@@ -494,7 +497,9 @@ define-stage-helpers() {
             z3,z3,satisfiable
         )
         solve --kind satisfiable --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs" \
-            --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
+            --attempts "$attempts" --attempt-grouper "$attempt_grouper" \
+            --iterations "$iterations" --iteration_field "$iteration_field" --file_fields "$file_fields" \
+            --solver_specs "${solver_specs[@]}"
     }
 
     # solve DIMACS files for model count
