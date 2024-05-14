@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
   libssl-dev \
   libelf-dev \
   wget \
-  parallel
+  parallel \
+  cmake \
+  build-essential
 
 # install (the tested version of) kmax
 WORKDIR /home
