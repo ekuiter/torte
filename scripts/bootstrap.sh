@@ -3,6 +3,22 @@
 # e.g., fn(a, b, c=3) { echo $a $b $c; } works as intuitively expected
 # depends on some helpers defined in helper.sh
 
+# requires that the given command is available
+require() {
+     if ! command -v "$1" > /dev/null; then
+        echo "Required command $1 is missing, please install manually." 1>&2
+        exit 1
+    fi
+}
+
+# requires the GNU version of sed
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed() {
+        require gsed
+        gsed "$@"
+    }
+fi
+
 # compiles the given script
 compile-script() {
     local script=$1

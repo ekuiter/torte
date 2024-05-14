@@ -7,7 +7,7 @@ TORTE_REVISION=${TORTE_REVISION:-main}
 
 require() {
      if ! command -v "$1" > /dev/null; then
-        echo "Required command $1 is missing, please install manually."
+        echo "Required command $1 is missing, please install manually." 1>&2
         exit 1
     fi
 }

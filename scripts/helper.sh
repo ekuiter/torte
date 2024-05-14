@@ -73,6 +73,29 @@ write-log(file) {
     fi
 }
 
+# returns whether the operating system is macOS
+is-mac() {
+    [[ "$OSTYPE" == "darwin"* ]]
+}
+
+# use gsed and ggrep on macOS
+if is-mac; then
+    sed(args...) {
+        require gsed
+        gsed "${args[@]}"
+    }
+
+    grep(args...) {
+        require ggrep
+        ggrep "${args[@]}"
+    }
+
+    date(args...) {
+        require gdate
+        gdate "${args[@]}"
+    }
+fi
+
 # formats a time in nanoseconds in a human-readable way
 format-time(nanoseconds=, prefix=, suffix=) {
     if [[ -z $nanoseconds ]]; then
@@ -133,6 +156,9 @@ require-host() {
     require-command docker make
     if ! is-docker-running; then
         error "Docker is not running. Depending on whether rootless mode is enabled, run $TOOL as a normal user or root (e.g., drop or add 'sudo')."
+    fi
+    if is-mac; then
+        return
     fi
     if [[ $(whoami) == root ]] && is-docker-rootless; then
         error "Docker is running in rootless mode (see https://docs.docker.com/engine/security/rootless/). Please do not run $TOOL as root (e.g., drop 'sudo')."

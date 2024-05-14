@@ -39,9 +39,9 @@ Read on if you want to know more details.
 
 To run torte, you need:
 
-- a Linux system or Windows with [WSL](https://learn.microsoft.com/windows/wsl/install) (macOS is currently not supported)
+- Linux, macOS, or Windows ([WSL](https://learn.microsoft.com/windows/wsl/install))
 - [curl](https://curl.se/), [Git](https://git-scm.com/), and [GNU Make](https://www.gnu.org/software/make/)
-- [Docker](https://docs.docker.com/get-docker/) ([rootless mode](https://docs.docker.com/engine/security/rootless/) recommended)
+- [Docker](https://docs.docker.com/get-docker/) ([rootless mode](https://docs.docker.com/engine/security/rootless/) recommended on Linux)
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 

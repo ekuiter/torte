@@ -70,10 +70,16 @@ EXPORT_DIRECTORY=$TOOL_DIRECTORY/export # path for exporting experiments
 CACHE_DIRECTORY=.cache # path for cached data in output directory
 TOOL_SCRIPT=$TOOL_DIRECTORY/$TOOL.sh # tool script
 DOCKER_RUN=${DOCKER_RUN:-y} # y if running Docker containers is enabled, otherwise saves image archives
-MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024)) # memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
 FORCE_RUN= # y if every stage should be forced to run regardless of whether is is already done
 VERBOSE= # y if console output should be verbose
 DEBUG= # y for debugging stages interactively
+
+# memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    MEMORY_LIMIT=$(($(memory_pressure | head -n1 | cut -d' ' -f4)/1024/1024/1024))
+else
+    MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024))
+fi
 
 source "$SCRIPTS_DIRECTORY/bootstrap.sh" # modifies Bash to allow for succinct function definitions
 for script in "${SCRIPTS[@]}"; do
