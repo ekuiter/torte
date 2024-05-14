@@ -16,7 +16,6 @@ experiment-subjects() {
 experiment-stages() {
     clone-systems
     read-statistics
-    debug
     extract-kconfig-models
     
     transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
