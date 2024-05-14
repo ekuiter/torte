@@ -3,18 +3,14 @@
 # e.g., fn(a, b, c=3) { echo $a $b $c; } works as intuitively expected
 # depends on some helpers defined in helper.sh
 
-# requires that the given command is available
-require() {
-     if ! command -v "$1" > /dev/null; then
-        echo "Required command $1 is missing, please install manually." 1>&2
-        exit 1
-    fi
-}
-
 # requires the GNU version of sed
 if [[ "$OSTYPE" == "darwin"* ]]; then
     sed() {
-        require gsed
+        if ! command -v gsed > /dev/null; then
+            echo "Required command gsed is missing, please install manually." 1>&2
+            find "$(dirname "$0")" -name '*.gen.sh' -delete 1>&2
+            exit 1
+        fi
         gsed "$@"
     }
 fi

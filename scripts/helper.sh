@@ -81,17 +81,17 @@ is-mac() {
 # use gsed and ggrep on macOS
 if is-mac; then
     sed(args...) {
-        require gsed
+        require-command gsed
         gsed "${args[@]}"
     }
 
     grep(args...) {
-        require ggrep
+        require-command ggrep
         ggrep "${args[@]}"
     }
 
     date(args...) {
-        require gdate
+        require-command gdate
         gdate "${args[@]}"
     }
 fi

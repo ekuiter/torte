@@ -26,6 +26,8 @@ This way, you can
 - **distribute fully-automated reproduction packages** when an experiment is ready for publication, and
 - **adapt and update existing experiments** without needing to resort to clone-and-own practices.
 
+## Getting Started: The Quick Way
+
 These one-liners will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required).
 ```
 curl -s https://ekuiter.github.io/torte/ | sudo sh # default mode
@@ -35,17 +37,21 @@ curl -s https://ekuiter.github.io/torte/ | sh # rootless mode
 ```
 Read on if you want to know more details.
 
-## Getting Started
+## Getting Started: In Detail
 
 To run torte, you need:
 
 - Linux, macOS, or Windows ([WSL](https://learn.microsoft.com/windows/wsl/install))
-- [curl](https://curl.se/), [Git](https://git-scm.com/), and [GNU Make](https://www.gnu.org/software/make/)
+- [Git](https://git-scm.com/), [curl](https://curl.se/), [GNU Make](https://www.gnu.org/software/make/), [GNU Grep](https://www.gnu.org/software/grep/), [GNU sed](https://www.gnu.org/software/sed/), [GNU Coreutils](https://www.gnu.org/software/coreutils/)
 - [Docker](https://docs.docker.com/get-docker/) ([rootless mode](https://docs.docker.com/engine/security/rootless/) recommended on Linux)
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 
-The following should get you started on a fresh Ubuntu 22.04 installation:
+The following instructions should get you started on a fresh system.
+By default, each of these instruction sets will install torte into the `torte` directory.
+All experiment data will then be stored in the directories `input` and `output` in your working directory.
+
+### Ubuntu 22.04
 
 ```
 # install and set up dependencies
@@ -61,9 +67,21 @@ curl -s https://ekuiter.github.io/torte/ | sh
 curl -s https://ekuiter.github.io/torte/ | sh -s - linux-recent
 ```
 
-By default, this will install torte into the `torte` directory; all experiment data will be stored in the directories `input` and `output` in your working directory.
+### macOS 14
 
-The first command above runs the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install coreutils gnu-sed grep
+curl -o Docker.dmg https://desktop.docker.com/mac/main/arm64/149282/Docker.dmg
+sudo hdiutil attach Docker.dmg
+sudo /Volumes/Docker/Docker.app/Contents/MacOS/install
+sudo hdiutil detach /Volumes/Docker
+open /Applications/Docker.app
+
+...
+```
+
+Above, we run the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
 For other predefined experiments (e.g., `linux-recent`), see [here](#predefined-experiments); you can also write your own by adapting an experiment file.
 
 **Further Tips**
