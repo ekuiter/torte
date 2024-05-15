@@ -28,12 +28,9 @@ This way, you can
 
 ## Getting Started: The Quick Way
 
-These one-liners will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required).
+This one-liner will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required).
 ```
-curl -s https://ekuiter.github.io/torte/ | sudo sh # default mode
-```
-```
-curl -s https://ekuiter.github.io/torte/ | sh # rootless mode
+curl -s https://ekuiter.github.io/torte/ | sh
 ```
 Read on if you want to know more details.
 
@@ -70,6 +67,7 @@ curl -s https://ekuiter.github.io/torte/ | sh -s - linux-recent
 ### macOS 14
 
 ```
+# install and set up dependencies
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew install coreutils gnu-sed grep
 curl -o Docker.dmg https://desktop.docker.com/mac/main/arm64/149282/Docker.dmg
@@ -78,7 +76,11 @@ sudo /Volumes/Docker/Docker.app/Contents/MacOS/install
 sudo hdiutil detach /Volumes/Docker
 open /Applications/Docker.app
 
-...
+# download and run the default experiment ...
+curl -s https://ekuiter.github.io/torte/ | sh
+
+# ... or a specific experiment
+curl -s https://ekuiter.github.io/torte/ | sh -s - linux-recent
 ```
 
 Above, we run the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
