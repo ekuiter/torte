@@ -68,6 +68,8 @@ curl -s https://ekuiter.github.io/torte/ | sh
 ```
 # install and set up dependencies
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+(echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv)"') >> $HOME/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv)"
 brew install coreutils gnu-sed grep
 
 # install Docker (see https://docs.docker.com/desktop/install/mac-install/)
