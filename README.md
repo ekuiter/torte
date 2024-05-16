@@ -43,7 +43,7 @@ To run torte, you need:
 - [Docker](https://docs.docker.com/get-docker/) (preferably in [rootless mode](https://docs.docker.com/engine/security/rootless/) on Linux)
 
 [^28]: Most features also work on other architectures (e.g., `arm64` on Apple Silicon systems).
-However, experiments involving FeatJAR and JavaSMT/Z3 are currently not supported.
+However, experiments that involve FeatJAR's JavaSMT/Z3 bindings are currently not supported.
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 
