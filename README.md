@@ -77,7 +77,12 @@ curl -o Docker.dmg https://desktop.docker.com/mac/main/arm64/149282/Docker.dmg
 sudo hdiutil attach Docker.dmg
 sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
 sudo hdiutil detach /Volumes/Docker
-open /Applications/Docker.app
+rm Docker.dmg
+sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
+sudo /Applications/Docker.app/Contents/MacOS/Docker \
+      --unattended \
+      --install-privileged-components
+open -a /Applications/Docker.app
 
 # download and run the default experiment
 curl -s https://ekuiter.github.io/torte/ | sh
