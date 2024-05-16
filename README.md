@@ -55,7 +55,7 @@ All experiment data will then be stored in the directories `input` and `output` 
 sudo apt-get update
 sudo apt-get install -y curl git make uidmap dbus-user-session
 
-# install docker (see https://docs.docker.com/desktop/install/linux-install/)
+# install Docker (see https://docs.docker.com/desktop/install/linux-install/)
 curl -fsSL https://get.docker.com | sh
 dockerd-rootless-setuptool.sh install
 
@@ -73,7 +73,7 @@ curl -s https://ekuiter.github.io/torte/ | sh -s - linux-recent
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew install coreutils gnu-sed grep
 
-# install docker (see https://docs.docker.com/desktop/install/mac-install/)
+# install Docker (see https://docs.docker.com/desktop/install/mac-install/)
 curl -o Docker.dmg https://desktop.docker.com/mac/main/arm64/149282/Docker.dmg
 sudo hdiutil attach Docker.dmg
 sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
