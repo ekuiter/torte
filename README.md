@@ -38,13 +38,13 @@ Read on if you want to know more details.
 
 To run torte, you need:
 
-- Linux, macOS, or Windows ([WSL](https://learn.microsoft.com/windows/wsl/install))
-- [Git](https://git-scm.com/), [curl](https://curl.se/), [GNU Make](https://www.gnu.org/software/make/), [GNU Grep](https://www.gnu.org/software/grep/), [GNU sed](https://www.gnu.org/software/sed/), [GNU Coreutils](https://www.gnu.org/software/coreutils/)
-- [Docker](https://docs.docker.com/get-docker/) ([rootless mode](https://docs.docker.com/engine/security/rootless/) recommended on Linux)
+- Linux, macOS, or Windows with [WSL](https://learn.microsoft.com/windows/wsl/install)
+- [Git](https://git-scm.com/), [curl](https://curl.se/), GNU tools ([coreutils](https://www.gnu.org/software/coreutils/), [make](https://www.gnu.org/software/make/), [grep](https://www.gnu.org/software/grep/), and [sed](https://www.gnu.org/software/sed/))
+- [Docker](https://docs.docker.com/get-docker/) (preferably in [rootless mode](https://docs.docker.com/engine/security/rootless/) on Linux)
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 
-The following instructions should get you started on a fresh system.
+The following instructions will get you started on a fresh system.
 By default, each of these instruction sets will install torte into the `torte` directory.
 All experiment data will then be stored in the directories `input` and `output` in your working directory.
 
@@ -54,6 +54,8 @@ All experiment data will then be stored in the directories `input` and `output` 
 # install and set up dependencies
 sudo apt-get update
 sudo apt-get install -y curl git make uidmap dbus-user-session
+
+# install docker (see https://docs.docker.com/desktop/install/linux-install/)
 curl -fsSL https://get.docker.com | sh
 dockerd-rootless-setuptool.sh install
 
@@ -70,9 +72,11 @@ curl -s https://ekuiter.github.io/torte/ | sh -s - linux-recent
 # install and set up dependencies
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew install coreutils gnu-sed grep
+
+# install docker (see https://docs.docker.com/desktop/install/mac-install/)
 curl -o Docker.dmg https://desktop.docker.com/mac/main/arm64/149282/Docker.dmg
 sudo hdiutil attach Docker.dmg
-sudo /Volumes/Docker/Docker.app/Contents/MacOS/install
+sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
 sudo hdiutil detach /Volumes/Docker
 open /Applications/Docker.app
 
