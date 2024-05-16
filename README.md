@@ -78,11 +78,19 @@ sudo hdiutil attach Docker.dmg
 sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
 sudo hdiutil detach /Volumes/Docker
 rm Docker.dmg
-sudo xattr -r -d com.apple.quarantine /Applications/Docker.app
-sudo /Applications/Docker.app/Contents/MacOS/Docker \
-      --unattended \
-      --install-privileged-components
-open -a /Applications/Docker.app
+open /Applications/Docker.app
+
+# download and run the default experiment
+curl -s https://ekuiter.github.io/torte/ | sh
+```
+
+### Windows 11
+
+```
+# install Docker (see https://docs.docker.com/desktop/install/windows-install/)
+Invoke-WebRequest https://desktop.docker.com/win/main/amd64/149282/Docker%20Desktop%20Installer.exe -OutFile .
+Start-Process 'Docker Desktop Installer.exe' -Wait -ArgumentList 'install', '--accept-license'
+
 
 # download and run the default experiment
 curl -s https://ekuiter.github.io/torte/ | sh
