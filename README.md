@@ -38,7 +38,7 @@ Read on if you want to know more details.
 
 To run torte, you need:
 
-- an `x86_64`[^28] system with Linux, macOS, or Windows with [WSL](https://learn.microsoft.com/windows/wsl/install)
+- an `x86_64` system [^28] with Linux, macOS, or Windows with [WSL](https://learn.microsoft.com/windows/wsl/install)
 - [Git](https://git-scm.com/), [curl](https://curl.se/), GNU tools ([coreutils](https://www.gnu.org/software/coreutils/), [make](https://www.gnu.org/software/make/), [grep](https://www.gnu.org/software/grep/), and [sed](https://www.gnu.org/software/sed/))
 - [Docker](https://docs.docker.com/get-docker/) (preferably in [rootless mode](https://docs.docker.com/engine/security/rootless/) on Linux)
 
@@ -161,7 +161,7 @@ The following tools are bundled with torte and can be used in experiments for ex
 Most tools are not included in this repository, but cloned and built with tool-specific Docker files in the `docker` directory.
 The bundled solvers are listed in a separate table [below](#solvers).
 
-For transparency, we document the changes we make to these tools and known limitations. There are also some general known limitations of torte.[^1]
+For transparency, we document the changes we make to these tools and known limitations. There are also some general known limitations of torte. [^1]
 
 | Tool | Version | Date | Notes |
 | - | - | - | - |
