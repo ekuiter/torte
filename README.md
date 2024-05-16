@@ -59,11 +59,8 @@ sudo apt-get install -y curl git make uidmap dbus-user-session
 curl -fsSL https://get.docker.com | sh
 dockerd-rootless-setuptool.sh install
 
-# download and run the default experiment ...
+# download and run the default experiment
 curl -s https://ekuiter.github.io/torte/ | sh
-
-# ... or a specific experiment
-curl -s https://ekuiter.github.io/torte/ | sh -s - linux-recent
 ```
 
 ### macOS 14
@@ -80,15 +77,13 @@ sudo /Volumes/Docker/Docker.app/Contents/MacOS/install --accept-license
 sudo hdiutil detach /Volumes/Docker
 open /Applications/Docker.app
 
-# download and run the default experiment ...
+# download and run the default experiment
 curl -s https://ekuiter.github.io/torte/ | sh
-
-# ... or a specific experiment
-curl -s https://ekuiter.github.io/torte/ | sh -s - linux-recent
 ```
 
 Above, we run the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
-For other predefined experiments (e.g., `linux-recent`), see [here](#predefined-experiments); you can also write your own by adapting an experiment file.
+To execute another experiment, run `curl -s https://ekuiter.github.io/torte/ | sh -s - <experiment>` (a list of predefined experiments is available [here](#predefined-experiments)).
+You can also write your own experiments by adapting an existing experiment file.
 
 **Further Tips**
 
@@ -292,14 +287,14 @@ Experiments starting with `draft-` are experimental.
 
 | Experiment | Purpose |
 | - | - |
-| `busybox-history-full.sh` | Extraction of all feature models of BusyBox (for every commit that touches the feature model) [^27] |
-| `default.sh` | "Hello-world" experiment that extracts and transforms a single feature model |
-| `feature-model-collection.sh` | Extraction, transformation, and analysis of several feature-model histories |
-| `feature-model-differences.sh` | Extraction and comparison of all feature models of several feature-model histories |
-| `linux-history-releases.sh` | Extraction, transformation, and analysis of a history of Linux feature models |
-| `linux-history-weekly.sh` | Extraction of a weekly history of Linux feature models |
-| `linux-recent-release.sh` | Extraction and transformation of a recent Linux feature model |
-| `tseitin-or-not-tseitin.sh` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
+| `busybox-history-full` | Extraction of all feature models of BusyBox (for every commit that touches the feature model) [^27] |
+| `default` | "Hello-world" experiment that extracts and transforms a single feature model |
+| `feature-model-collection` | Extraction, transformation, and analysis of several feature-model histories |
+| `feature-model-differences` | Extraction and comparison of all feature models of several feature-model histories |
+| `linux-history-releases` | Extraction, transformation, and analysis of a history of Linux feature models |
+| `linux-history-weekly` | Extraction of a weekly history of Linux feature models |
+| `linux-recent-release` | Extraction and transformation of a recent Linux feature model |
+| `tseitin-or-not-tseitin` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 
 [^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract. We solve this problem by iterating over all commits to generate all feature models, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model.
 
