@@ -87,10 +87,18 @@ curl -s https://ekuiter.github.io/torte/ | sh
 ### Windows 11
 
 ```
+# install WSL (see https://learn.microsoft.com/windows/wsl/install)
+powershell
+wsl --install
+
 # install Docker (see https://docs.docker.com/desktop/install/windows-install/)
 Invoke-WebRequest https://desktop.docker.com/win/main/amd64/149282/Docker%20Desktop%20Installer.exe -OutFile Docker.exe
 Start-Process Docker.exe -Wait -ArgumentList 'install', '--accept-license'
 
+# install and set up dependencies
+wsl
+sudo apt-get update
+sudo apt-get install -y curl git make
 
 # download and run the default experiment
 curl -s https://ekuiter.github.io/torte/ | sh
