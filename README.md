@@ -42,8 +42,8 @@ To run torte, you need:
 - [Git](https://git-scm.com/), [curl](https://curl.se/), GNU tools ([coreutils](https://www.gnu.org/software/coreutils/), [make](https://www.gnu.org/software/make/), [grep](https://www.gnu.org/software/grep/), and [sed](https://www.gnu.org/software/sed/))
 - [Docker](https://docs.docker.com/get-docker/) (preferably in [rootless mode](https://docs.docker.com/engine/security/rootless/) on Linux)
 
-[^28]: Most features also work on other architectures (e.g., `arm64` on Apple Silicon systems).
-However, experiments that involve FeatJAR's JavaSMT/Z3 bindings are currently not supported.
+[^28]: Support for other processor architectures (e.g., ARM devices or Apple Silicon Macs) is limited, as all precompiled binaries (e.g., JavaSMT, Z3, and all solvers) target the `x86_64` architecture.
+As a workaround, you can SSH into a `x86_64` machine or emulate one with [QEMU](https://www.qemu.org/).
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 
