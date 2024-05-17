@@ -44,6 +44,7 @@ To run torte, you need:
 
 [^28]: On `arm64` systems (e.g., Windows tablets and Apple Silicon Macs), torte builds cross-platform Docker images to ensure that precompiled binaries (e.g., JavaSMT, Z3, and all solvers) function correctly.
 This may negatively impact performance on some systems (e.g., ARM-based Windows tablets), although recent Macs should not be affected due to [Rosetta](https://en.wikipedia.org/wiki/Rosetta_(software)).
+Executing torte from within a virtual machine has only been confirmed to work with Linux guest systems on `x86_64` host systems.
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 
@@ -97,8 +98,9 @@ wsl --install
 # install Docker (see https://docs.docker.com/desktop/install/windows-install/)
 Invoke-WebRequest https://desktop.docker.com/win/main/amd64/149282/Docker%20Desktop%20Installer.exe -OutFile Docker.exe
 Start-Process Docker.exe -Wait -ArgumentList 'install', '--accept-license'
+Remove-Item Docker.exe
 
-# install and set up dependencies
+# restart your computer, start Docker, then install and set up dependencies
 wsl
 sudo apt-get update
 sudo apt-get install -y curl git make
