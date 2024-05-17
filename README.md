@@ -294,6 +294,8 @@ We were unable to obtain binaries for the winning solvers in 2008 and 2015.
 | 2019 | MapleLCMDiscChronoBT-DL-v3 | ? | ? | |
 | 2020 | Kissat-sc2020-sat | ? | ? | |
 | 2021 | Kissat_MAB | ? | ? | |
+| 2022 | Kissat_MAB-HyWalk | ? | ? | |
+| 2023 | sbva_cadical | ? | ? | |
 
 [^17]: For TwG, two configurations were provided by the model-counting competition (`TwG1` and `TwG2`).
 As there was no indication as to which configuration was used in the competition, we arbitrarily chose `TwG1`.

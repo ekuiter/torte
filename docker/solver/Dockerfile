@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     lib32z1 \
     parallel \
     bc \
+    python3 \
     # ugly hack required for sharpsat-td
     && ln -s /usr/lib/x86_64-linux-gnu/libmpfr.so.6 /usr/lib/x86_64-linux-gnu/libmpfr.so.4
 WORKDIR /home

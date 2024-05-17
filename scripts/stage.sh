@@ -492,7 +492,8 @@ define-stage-helpers() {
             sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,satisfiable
             sat-competition/20-Kissat-sc2020-sat,solver,satisfiable
             sat-competition/21-Kissat_MAB,solver,satisfiable
-            other/kissat_MAB-HyWalk,solver,satisfiable
+            sat-competition/22-kissat_MAB-HyWalk,solver,satisfiable
+            sat-competition/23-sbva_cadical.sh,solver,satisfiable
             other/SAT4J.sh,solver,satisfiable
             z3,z3,satisfiable
         )
