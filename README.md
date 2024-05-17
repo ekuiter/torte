@@ -43,7 +43,7 @@ To run torte, you need:
 - [Docker](https://docs.docker.com/get-docker/) (preferably in [rootless mode](https://docs.docker.com/engine/security/rootless/) on Linux)
 
 [^28]: Support for other processor architectures (e.g., ARM devices or Apple Silicon Macs) is limited, as all precompiled binaries (e.g., JavaSMT, Z3, and all solvers) target the `x86_64` architecture.
-As a workaround, you can SSH into a `x86_64` machine or emulate one with [QEMU](https://www.qemu.org/).
+As a workaround, you can SSH into a `x86_64` machine or emulate one with [QEMU](https://www.qemu.org/) or [UTM](https://mac.getutm.app/).
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 
