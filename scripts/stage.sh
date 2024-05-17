@@ -49,7 +49,7 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(-f "$dockerfile")
             cmd+=(-t "${TOOL}_$image")
             cmd+=(--ulimit nofile=20000:20000)
-            if [[ $(uname -m) == arm64 ]]; then
+            if is-arm; then
                 cmd+=(--platform linux/amd64)
             fi
             cmd+=("$(dirname "$dockerfile")")
@@ -84,7 +84,7 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(-e PASS)
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
-            if [[ $(uname -m) == arm64 ]]; then
+            if is-arm; then
                 cmd+=(--platform linux/amd64)
             fi
             cmd+=(--entrypoint /bin/bash)

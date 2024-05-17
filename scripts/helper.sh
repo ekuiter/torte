@@ -73,6 +73,11 @@ write-log(file) {
     fi
 }
 
+# returns whether the processor architecture is ARM
+is-arm() {
+    [[ $(uname -m) == arm64 ]] || [[ $(uname -m) == aarch64 ]]
+}
+
 # returns whether the operating system is macOS
 is-macos() {
     [[ "$OSTYPE" == "darwin"* ]]
