@@ -90,6 +90,11 @@ if is-macos; then
         ggrep "${args[@]}"
     }
 
+    cut(args...) {
+        require-command gcut
+        gcut "${args[@]}"
+    }
+
     date(args...) {
         require-command gdate
         gdate "${args[@]}"
@@ -401,7 +406,7 @@ aggregate-tables(source_field=, source_transformer=, files...) {
                 if [[ "$common_field" != "${common_fields[0]}" ]]; then
                     echo -n ,
                 fi
-                echo -n "$(echo "$line" | cut -d, -f "$(table-field-index "$file" "$common_field")")"
+                echo -n "$(echo "$line" | cut -d, -f"$(table-field-index "$file" "$common_field")")"
             done
             if [[ -n "$source_field" ]]; then
                 echo -n ,
@@ -427,11 +432,11 @@ mutate-table-field(file, mutated_fields=, context_field=, field_transformer=) {
         local current_field
         for current_field in "${fields[@]}"; do
             local value
-            value=$(echo "$line" | cut -d, -f "$(table-field-index "$file" "$current_field")")
+            value=$(echo "$line" | cut -d, -f"$(table-field-index "$file" "$current_field")")
             if array-contains "$current_field" "${mutated_fields[@]}"; then
                 local context_value=""
                 if [[ -n $context_field ]]; then
-                    context_value=$(echo "$line" | cut -d, -f "$(table-field-index "$file" "$context_field")")
+                    context_value=$(echo "$line" | cut -d, -f"$(table-field-index "$file" "$context_field")")
                 fi
                 new_line+="$(field-transformer "$value" "$context_value"),"
             else
@@ -445,7 +450,7 @@ mutate-table-field(file, mutated_fields=, context_field=, field_transformer=) {
 # gets the index of a named field in a CSV file
 table-field-index(file, field) {
     local idx
-    idx=$(sed 's/,/\n/g;q' < "$file" | nl | grep "\s$field$" | cut -f1 | xargs)
+    idx=$(awk -v col="$field" 'BEGIN {FS=","} NR==1 {for (i=1; i<=NF; i++) if ($i == col) print i; exit}' "$file")
     if [[ -z $idx ]]; then
         error "Table field $field does not exist in file $file."
     fi
@@ -461,7 +466,7 @@ table-field(file, field, include_header=) {
     fi
     local idx
     idx=$(table-field-index "$file" "$field")
-    cut -d, -f "$(table-field-index "$file" "$field")" < "$file" | tail -n+$start_at_line
+    cut -d, -f"$(table-field-index "$file" "$field")" < "$file" | tail -n+$start_at_line
 }
 
 # select field from CSV file where a (primary) key equals a value

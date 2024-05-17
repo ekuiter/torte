@@ -44,7 +44,6 @@ To run torte, you need:
 
 [^28]: On `arm64` systems (e.g., Windows tablets and Apple Silicon Macs), torte builds cross-platform Docker images to ensure that precompiled binaries (e.g., JavaSMT, Z3, and all solvers) function correctly.
 This may negatively impact performance on some systems (e.g., ARM-based Windows tablets), although recent Macs should not be affected due to [Rosetta](https://en.wikipedia.org/wiki/Rosetta_(software)).
-As a workaround, you can SSH into a `x86_64` machine or emulate one with [QEMU](https://www.qemu.org/) or [UTM](https://mac.getutm.app/).
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 
@@ -70,7 +69,7 @@ curl -s https://ekuiter.github.io/torte/ | sh
 ### macOS 14
 
 ```
-# install and set up dependencies
+# install and set up dependencies (this will replace macOS' built-in bash with a newer version)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv)"') >> $HOME/.zprofile
 eval "$(/opt/homebrew/bin/brew shellenv)"
