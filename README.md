@@ -38,11 +38,12 @@ Read on if you want to know more details.
 
 To run torte, you need:
 
-- an `x86_64` system [^28] with Linux, macOS, or Windows with [WSL](https://learn.microsoft.com/windows/wsl/install)
-- [Git](https://git-scm.com/), [curl](https://curl.se/), GNU tools ([coreutils](https://www.gnu.org/software/coreutils/), [make](https://www.gnu.org/software/make/), [grep](https://www.gnu.org/software/grep/), and [sed](https://www.gnu.org/software/sed/))
+- an `x86_64` or `arm64` system [^28] with Linux, macOS, or Windows with [WSL](https://learn.microsoft.com/windows/wsl/install)
+- [Git](https://git-scm.com/), [curl](https://curl.se/), GNU tools ([bash](https://www.gnu.org/software/bash/), [coreutils](https://www.gnu.org/software/coreutils/), [make](https://www.gnu.org/software/make/), [grep](https://www.gnu.org/software/grep/), and [sed](https://www.gnu.org/software/sed/))
 - [Docker](https://docs.docker.com/get-docker/) (preferably in [rootless mode](https://docs.docker.com/engine/security/rootless/) on Linux)
 
-[^28]: Support for other processor architectures (e.g., ARM devices or Apple Silicon Macs) is limited, as all precompiled binaries (e.g., JavaSMT, Z3, and all solvers) target the `x86_64` architecture.
+[^28]: On `arm64` systems (e.g., Windows tablets and Apple Silicon Macs), torte builds cross-platform Docker images to ensure that precompiled binaries (e.g., JavaSMT, Z3, and all solvers) function correctly.
+This may negatively impact performance on some systems (e.g., ARM-based Windows tablets), although recent Macs should not be affected due to [Rosetta](https://en.wikipedia.org/wiki/Rosetta_(software)).
 As a workaround, you can SSH into a `x86_64` machine or emulate one with [QEMU](https://www.qemu.org/) or [UTM](https://mac.getutm.app/).
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
@@ -73,7 +74,7 @@ curl -s https://ekuiter.github.io/torte/ | sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv)"') >> $HOME/.zprofile
 eval "$(/opt/homebrew/bin/brew shellenv)"
-brew install coreutils gnu-sed grep
+brew install bash coreutils gnu-sed grep
 
 # install Docker (see https://docs.docker.com/desktop/install/mac-install/)
 curl -o Docker.dmg https://desktop.docker.com/mac/main/arm64/149282/Docker.dmg

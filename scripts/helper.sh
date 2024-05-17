@@ -74,12 +74,12 @@ write-log(file) {
 }
 
 # returns whether the operating system is macOS
-is-mac() {
+is-macos() {
     [[ "$OSTYPE" == "darwin"* ]]
 }
 
 # use gsed and ggrep on macOS
-if is-mac; then
+if is-macos; then
     sed(args...) {
         require-command gsed
         gsed "${args[@]}"
@@ -157,7 +157,7 @@ require-host() {
     if ! is-docker-running; then
         error "Docker is not running. Depending on whether rootless mode is enabled, run $TOOL as a normal user or root (e.g., drop or add 'sudo')."
     fi
-    if is-mac; then
+    if is-macos; then
         return
     fi
     if [[ $(whoami) == root ]] && is-docker-rootless; then

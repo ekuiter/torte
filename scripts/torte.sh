@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # main entry point, runs whatever command it is passed
 # behaves differently if run inside Docker
+# we need /usr/bin/env so the correct bash version is used on macOS
 
 set -e # exit on error
 

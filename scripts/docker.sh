@@ -49,7 +49,7 @@ command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
     rm-safe "$EXPORT_DIRECTORY"
 }
 
-# removes all Docker containers and images
+# removes all Docker containers and images, possibly run an additional "docker system prune" afterwards
 command-reset() {
     command-stop
     readarray -t containers < <(docker ps -a | tail -n+2 | awk '$2 ~ /^'"$TOOL"'_/ {print $1}')

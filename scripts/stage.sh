@@ -34,9 +34,6 @@ run(stage=, image=util, input_directory=, command...) {
         if is-array-empty command; then
             command=("$stage")
         fi
-        if [[ ! $VERBOSE == y ]]; then
-            build_flags=-q
-        fi
         clean "$stage"
         if [[ -f $image.tar.gz ]]; then
             if ! docker image inspect "${TOOL}_$image" > /dev/null 2>&1; then
@@ -45,11 +42,18 @@ run(stage=, image=util, input_directory=, command...) {
             fi
         else
             log "" "$(echo-progress build)"
-            docker build $build_flags \
-                -f "$dockerfile" \
-                -t "${TOOL}_$image" \
-                --ulimit nofile=20000:20000 \
-                "$(dirname "$dockerfile")" >/dev/null
+            local cmd=(docker build)
+            if [[ ! $VERBOSE == y ]]; then
+                cmd+=(-q)
+            fi
+            cmd+=(-f "$dockerfile")
+            cmd+=(-t "${TOOL}_$image")
+            cmd+=(--ulimit nofile=20000:20000)
+            if [[ $(uname -m) == arm64 ]]; then
+                cmd+=(--platform linux/amd64)
+            fi
+            cmd+=("$(dirname "$dockerfile")")
+            "${cmd[@]}" >/dev/null
         fi
         if [[ $DOCKER_RUN == y ]]; then
             mkdir -p "$(output-directory "$stage")"
@@ -80,6 +84,9 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(-e PASS)
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
+            if [[ $(uname -m) == arm64 ]]; then
+                cmd+=(--platform linux/amd64)
+            fi
             cmd+=(--entrypoint /bin/bash)
             cmd+=("${TOOL}_$image")
             if [[ ${command[*]} == /bin/bash ]]; then

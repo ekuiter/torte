@@ -33,6 +33,7 @@ experiment-stages() {
 
 # can be executed from output directory to copy and rename model files
 copy-models() {
+    shopt -s globstar
     mkdir -p models
     for f in kconfig/**/*.model; do
         local revision
@@ -48,6 +49,7 @@ copy-models() {
             echo "${f[i]}" and "${f[i+1]}" are duplicate >&2
         fi
     done
+    shopt -u globstar
 }
 
 # analyzes differences between model files
