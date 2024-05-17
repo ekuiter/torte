@@ -270,7 +270,7 @@ These are miscellaneous solvers from various sources.
 
 #### Collection: sat-competition
 
-These SAT solvers (binaries copied/compiled from [here](http://www.satcompetition.org/)) were used in the evaluation of the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022).
+A subset of these SAT solvers (binaries copied/compiled from [here](http://www.satcompetition.org/)) were used in the evaluation of the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022).
 Each solver is the gold medal winner in the main track (SAT+UNSAT) of the SAT competition in the year encoded in its file name.
 We were unable to obtain binaries for the winning solvers in 2008 and 2015.
 

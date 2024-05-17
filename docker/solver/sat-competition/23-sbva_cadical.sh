@@ -1,12 +1,12 @@
 #!/bin/bash
 
-SBVA=./23-bva
-SOLVER=./23-cadical
+SBVA="$(dirname "$0")"/23-bva
+SOLVER="$(dirname "$0")"/23-cadical
 
 OUTER_TIMEOUT=400
 INNER_TIMEOUT=200
 
-python3 23-wrapper.py \
+python3 "$(dirname "$0")"/23-wrapper.py \
     --input $1 \
     --output "$(mktemp)" \
     --bva $SBVA \
