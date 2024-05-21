@@ -14,30 +14,31 @@ experiment-subjects() {
 }
 
 experiment-stages() {
+    VERBOSE=y
     clone-systems
-    read-statistics
-    extract-kconfig-models
+    # read-statistics
+    extract-kconfig-models-with --extractor kconfigreader
     
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
-    transform-models-into-dimacs --timeout "$TIMEOUT"
+    # transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
+    # transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    # transform-models-into-dimacs --timeout "$TIMEOUT"
     
-    draw-community-structure --timeout "$TIMEOUT"
-    compute-backbone-dimacs-with-cadiback --timeout "$TIMEOUT"
-    compute-unconstrained-features --timeout "$TIMEOUT"
-    compute-backbone-features --timeout "$TIMEOUT"
-    solve-satisfiable --timeout "$TIMEOUT"
-    solve-model-count --timeout "$TIMEOUT"
+    # draw-community-structure --timeout "$TIMEOUT"
+    # compute-backbone-dimacs-with-cadiback --timeout "$TIMEOUT"
+    # compute-unconstrained-features --timeout "$TIMEOUT"
+    # compute-backbone-features --timeout "$TIMEOUT"
+    # solve-satisfiable --timeout "$TIMEOUT"
+    # solve-model-count --timeout "$TIMEOUT"
 
-    join-into kconfig dimacs
-    join-into dimacs community-structure
-    join-into dimacs solve_satisfiable
-    join-into dimacs solve_model-count
+    # join-into kconfig dimacs
+    # join-into dimacs community-structure
+    # join-into dimacs solve_satisfiable
+    # join-into dimacs solve_model-count
 
-    log-output-field read-statistics source_lines_of_code
-    log-output-field kconfig model-features
-    log-output-field dimacs dimacs-variables
-    log-output-field solve_satisfiable satisfiable
-    log-output-field solve_model-count model-count
-    run-notebook --file experiments/default.ipynb
+    # log-output-field read-statistics source_lines_of_code
+    # log-output-field kconfig model-features
+    # log-output-field dimacs dimacs-variables
+    # log-output-field solve_satisfiable satisfiable
+    # log-output-field solve_model-count model-count
+    # run-notebook --file experiments/default.ipynb
 }
