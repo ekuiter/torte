@@ -248,15 +248,15 @@ The #SAT solvers from the collection `model-counting-competition-2022` should be
 These #SAT solvers (available [here](https://cloudstore.zih.tu-dresden.de/index.php/s/pXFAfnJffKyNA77)) were used in the [model-counting competition 2022](https://mccompetition.org/past_iterations).
 Not all evaluated solvers are included here, as some solver binaries (i.e., for MTMC and ExactMC) have not been disclosed.
 
-| Solver | Version | Date | Notes |
-| - | - | - | - |
-| c2d | ? | ? | |
-| d4 | ? | ? | |
-| DPMC | ? | ? | |
-| gpmc | ? | ? | |
-| TwG | ? | ? | [^17] |
-| SharpSAT-TD | ? | ? | [^18] |
-| SharpSAT-td+Arjun | ? | ? | [^18] [^19] |
+| Solver | Notes |
+| - | - |
+| c2d | |
+| d4 | |
+| DPMC | |
+| gpmc | |
+| TwG | [^17] |
+| SharpSAT-TD | [^18] |
+| SharpSAT-td+Arjun | [^18] [^19] |
 
 #### Collection: other
 
@@ -272,34 +272,34 @@ These are miscellaneous solvers from various sources.
 
 #### Collection: sat-competition
 
-A subset of these SAT solvers were used in the evaluation of the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022).
+A subset of these SAT solvers was used in the evaluation of the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022).
 Each solver is the gold medal winner in the main track (SAT+UNSAT) of the SAT competition in the year encoded in its file name.
-We obtained these binaries from the [SAT competition](http://www.satcompetition.org/), [SAT heritage](https://github.com/sat-heritage/docker-images), and [SAT museum](https://cca.informatik.uni-freiburg.de/satmuseum/) initiatives.
+These binaries were obtained from the [SAT competition](http://www.satcompetition.org/), [SAT heritage](https://github.com/sat-heritage/docker-images), and [SAT museum](https://cca.informatik.uni-freiburg.de/satmuseum/) initiatives.
 
-| Year | Solver | Version | Date | Notes |
-| - | - | - | - | - |
-| 2002 | zchaff | ? | ? | |
-| 2003 | Forklift | ? | ? | |
-| 2004 | zchaff | ? | ? | |
-| 2005 | SatELiteGTI | ? | ? | |
-| 2006 | MiniSat | ? | ? | |
-| 2007 | RSat | ? | ? | |
-| 2008 | MiniSat | ? | ? | |
-| 2009 | precosat | ? | ? | |
-| 2010 | CryptoMiniSat | ? | ? | |
-| 2011 | glucose | ? | ? | |
-| 2012 | glucose | ? | ? | |
-| 2013 | lingeling-aqw | ? | ? | |
-| 2014 | lingeling-ayv | ? | ? | |
-| 2015 | abcdSAT | ? | ? | |
-| 2016 | MapleCOMSPS_DRUP | ? | ? | |
-| 2017 | Maple_LCM_Dist | ? | ? | |
-| 2018 | MapleLCMDistChronoBT | ? | ? | |
-| 2019 | MapleLCMDiscChronoBT-DL-v3 | ? | ? | |
-| 2020 | Kissat-sc2020-sat | ? | ? | |
-| 2021 | Kissat_MAB | ? | ? | |
-| 2022 | Kissat_MAB-HyWalk | ? | ? | |
-| 2023 | sbva_cadical | ? | ? | |
+| Year | Solver |
+| - | - |
+| 2002 | zchaff |
+| 2003 | Forklift |
+| 2004 | zchaff |
+| 2005 | SatELiteGTI |
+| 2006 | MiniSat |
+| 2007 | RSat |
+| 2008 | MiniSat |
+| 2009 | precosat |
+| 2010 | CryptoMiniSat |
+| 2011 | glucose |
+| 2012 | glucose |
+| 2013 | lingeling-aqw |
+| 2014 | lingeling-ayv |
+| 2015 | abcdSAT |
+| 2016 | MapleCOMSPS_DRUP |
+| 2017 | Maple_LCM_Dist |
+| 2018 | MapleLCMDistChronoBT |
+| 2019 | MapleLCMDiscChronoBT-DL-v3 |
+| 2020 | Kissat-sc2020-sat |
+| 2021 | Kissat_MAB |
+| 2022 | Kissat_MAB-HyWalk |
+| 2023 | sbva_cadical |
 
 [^17]: For TwG, two configurations were provided by the model-counting competition (`TwG1` and `TwG2`).
 As there was no indication as to which configuration was used in the competition, we arbitrarily chose `TwG1`.
