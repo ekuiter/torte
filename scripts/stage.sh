@@ -487,12 +487,14 @@ define-stage-helpers() {
             sat-competition/05-SatELiteGTI.sh,solver,satisfiable
             sat-competition/06-MiniSat,solver,satisfiable
             sat-competition/07-RSat.sh,solver,satisfiable
+            sat-competition/08-MiniSat,solver,satisfiable \
             sat-competition/09-precosat,solver,satisfiable
             sat-competition/10-CryptoMiniSat,solver,satisfiable
             sat-competition/11-glucose.sh,solver,satisfiable
             sat-competition/12-glucose.sh,solver,satisfiable
             sat-competition/13-lingeling-aqw,solver,satisfiable
             sat-competition/14-lingeling-ayv,solver,satisfiable
+            sat-competition/15-abcdSAT,solver,satisfiable \
             sat-competition/16-MapleCOMSPS_DRUP,solver,satisfiable
             sat-competition/17-Maple_LCM_Dist,solver,satisfiable
             sat-competition/18-MapleLCMDistChronoBT,solver,satisfiable

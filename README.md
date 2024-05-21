@@ -272,9 +272,9 @@ These are miscellaneous solvers from various sources.
 
 #### Collection: sat-competition
 
-A subset of these SAT solvers (binaries copied/compiled from [here](http://www.satcompetition.org/)) were used in the evaluation of the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022).
+A subset of these SAT solvers were used in the evaluation of the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022).
 Each solver is the gold medal winner in the main track (SAT+UNSAT) of the SAT competition in the year encoded in its file name.
-We were unable to obtain binaries for the winning solvers in 2008 and 2015.
+We obtained these binaries from the [SAT competition](http://www.satcompetition.org/), [SAT heritage](https://github.com/sat-heritage/docker-images), and [SAT museum](https://cca.informatik.uni-freiburg.de/satmuseum/) initiatives.
 
 | Year | Solver | Version | Date | Notes |
 | - | - | - | - | - |
@@ -284,12 +284,14 @@ We were unable to obtain binaries for the winning solvers in 2008 and 2015.
 | 2005 | SatELiteGTI | ? | ? | |
 | 2006 | MiniSat | ? | ? | |
 | 2007 | RSat | ? | ? | |
+| 2008 | MiniSat | ? | ? | |
 | 2009 | precosat | ? | ? | |
 | 2010 | CryptoMiniSat | ? | ? | |
 | 2011 | glucose | ? | ? | |
 | 2012 | glucose | ? | ? | |
 | 2013 | lingeling-aqw | ? | ? | |
 | 2014 | lingeling-ayv | ? | ? | |
+| 2015 | abcdSAT | ? | ? | |
 | 2016 | MapleCOMSPS_DRUP | ? | ? | |
 | 2017 | Maple_LCM_Dist | ? | ? | |
 | 2018 | MapleLCMDistChronoBT | ? | ? | |
