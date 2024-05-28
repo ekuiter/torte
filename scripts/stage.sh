@@ -34,6 +34,10 @@ run(stage=, image=util, input_directory=, command...) {
         if is-array-empty command; then
             command=("$stage")
         fi
+        local platform
+        if grep -q platform-override= "$dockerfile"; then
+            platform=$(grep platform-override= "$dockerfile" | cut -d= -f2)
+        fi
         clean "$stage"
         if [[ -f $image.tar.gz ]]; then
             if ! docker image inspect "${TOOL}_$image" > /dev/null 2>&1; then
@@ -49,8 +53,8 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(-f "$dockerfile")
             cmd+=(-t "${TOOL}_$image")
             cmd+=(--ulimit nofile=20000:20000)
-            if is-arm; then
-                cmd+=(--platform linux/amd64)
+            if [[ -n $platform ]]; then
+                cmd+=(--platform "$platform")
             fi
             cmd+=("$(dirname "$dockerfile")")
             "${cmd[@]}" >/dev/null
@@ -84,8 +88,8 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(-e PASS)
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
-            if is-arm; then
-                cmd+=(--platform linux/amd64)
+            if [[ -n $platform ]]; then
+                cmd+=(--platform "$platform")
             fi
             cmd+=(--entrypoint /bin/bash)
             cmd+=("${TOOL}_$image")

@@ -1,3 +1,4 @@
+# platform-override=linux/amd64
 FROM ubuntu:22.04
 
 WORKDIR /home

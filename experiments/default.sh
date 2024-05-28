@@ -7,7 +7,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # This experiment extracts, transforms, and analyzes a single feature model.
 # It serves as a demo and integration test for torte and also returns some common statistics of the model.
 
-TIMEOUT=3
+TIMEOUT=10
 
 experiment-subjects() {
     add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
