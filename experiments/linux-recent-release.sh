@@ -7,7 +7,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # This experiment extracts and transforms a single feature model from a recent revision of the Linux kernel.
 
 experiment-subjects() {
-    add-linux-kconfig-history --from v6.5 --to v6.6 --architecture x86
+    add-linux-kconfig-history --from v6.7 --to v6.8 --architecture x86
 }
 
 experiment-stages() {
@@ -28,4 +28,9 @@ experiment-stages() {
         --jobs 2
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
+
+    # analyze
+    compute-backbone-dimacs-with-cadiback --jobs 16
+    join-into dimacs backbone-dimacs
+    compute-backbone-features --jobs 16
 }
