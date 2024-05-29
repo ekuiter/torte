@@ -10,6 +10,7 @@ SYSTEMS=(
     busybox
     embtoolkit
     fiasco
+    file
     freetz-ng
     linux
     toybox

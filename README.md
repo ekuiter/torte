@@ -44,7 +44,7 @@ To run torte, you need:
 
 [^28]: On `arm64` systems (e.g., Windows tablets and Apple Silicon Macs), torte cross-compiles some Docker images to ensure that precompiled binaries (e.g., JavaSMT, Z3, and all solvers) function correctly.
 This may negatively impact performance on some systems (e.g., ARM-based Windows tablets), although recent Macs should not be affected due to [Rosetta](https://en.wikipedia.org/wiki/Rosetta_(software)).
-(If you encounter errors like [this one](https://github.com/docker/for-mac/issues/7006), try to disable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in the Docker settings.)
+(If you encounter errors like [this one](https://github.com/docker/for-mac/issues/7006), try to disable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in the Docker settings. This setting can be re-enabled after the Docker images have been built.)
 Executing torte from within a virtual machine has only been confirmed to work with Linux guest systems on `x86_64` host systems.
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.

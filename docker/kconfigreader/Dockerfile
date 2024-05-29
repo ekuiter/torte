@@ -49,4 +49,7 @@ RUN wget --no-check-certificate https://ftp.fau.de/gnu/binutils/binutils-2.35.ta
 COPY TransformIntoDIMACS.scala kconfigreader/src/main/scala/
 RUN cd kconfigreader && sbt mkrun
 COPY dumpconf.c ./
-RUN git config --global --add safe.directory '*'
+RUN git config --global --add safe.directory '*' \
+    && git config --global user.email "anon@example.com" \
+    && git config --global user.name "anon" \
+    && git config --global init.defaultBranch mean

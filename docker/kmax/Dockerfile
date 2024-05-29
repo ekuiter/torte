@@ -31,5 +31,8 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 # - kextractor (which is compiled against the projects' Kconfig implementations)
 # - IO scripts
 COPY *.sh *.py kextractor.c ./
-RUN git config --global --add safe.directory '*'
+RUN git config --global --add safe.directory '*' \
+    && git config --global user.email "anon@example.com" \
+    && git config --global user.name "anon" \
+    && git config --global init.defaultBranch mean
 RUN chmod +x *.sh

@@ -217,6 +217,12 @@ debug() {
     DEBUG=y
 }
 
+# increases verbosity
+debug() {
+    VERBOSE=y
+    set -x
+}
+
 # plots data on the command line
 plot-helper(file, type, fields, arguments...) {
     to-array fields
