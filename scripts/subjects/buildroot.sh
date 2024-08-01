@@ -5,7 +5,7 @@ add-buildroot-kconfig-history(from=, to=) {
     export BUILD_DIR=buildroot
     export BASE_DIR=buildroot
     add-system --system buildroot --url https://github.com/buildroot/buildroot
-    add-linux-kconfig-binding --revision v4.17
+    add-linux-kconfig-binding --revision v6.7
     add-hook-step kconfig-post-checkout-hook buildroot "$(to-lambda kconfig-post-checkout-hook-buildroot)"
     for revision in $(git-tag-revisions buildroot | exclude-revision rc _ 'settings-.*' '\..*\.' | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system buildroot --revision "$revision"
@@ -13,7 +13,7 @@ add-buildroot-kconfig-history(from=, to=) {
             --system buildroot \
             --revision "$revision" \
             --kconfig-file Config.in \
-            --kconfig-binding-file "$(linux-kconfig-binding-file v4.17)"
+            --kconfig-binding-file "$(linux-kconfig-binding-file v6.7)"
     done
 }
 
