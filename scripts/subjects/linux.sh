@@ -1,8 +1,26 @@
 #!/bin/bash
 
 add-linux-system() {
-    add-system --system linux --url https://github.com/torvalds/linux
+    if [[ $LINUX_CLONE_MODE == filter ]]; then
+        add-hook-step post-clone-hook linux "$(to-lambda post-clone-hook-linux)"
+    fi
     add-hook-step kconfig-post-checkout-hook linux "$(to-lambda kconfig-post-checkout-hook-linux)"
+    if [[ $LINUX_CLONE_MODE == fork ]]; then
+        local url=https://github.com/ekuiter/linux
+    elif [[ $LINUX_CLONE_MODE == original ]] || [[ $LINUX_CLONE_MODE == filter ]]; then
+        local url=https://github.com/torvalds/linux
+    else
+        error "Unknown Linux clone mode: $LINUX_CLONE_MODE"
+    fi
+    add-system --system linux --url "$url"
+}
+
+post-clone-hook-linux(system, revision) {
+    if [[ $system == linux ]]; then
+        # we need to purge a few files from the git history, which cannot be checked out on case-insensitive file systems. this changes all commit hashes.
+        # if you need the original commit hashes, please use LINUX_CLONE_MODE=original
+        git -C "$(input-directory)/linux" filter-repo --force --invert-paths --path include/uapi/linux/netfilter/xt_CONNMARK.h --path include/uapi/linux/netfilter/xt_connmark.h --path include/uapi/linux/netfilter/xt_DSCP.h --path include/uapi/linux/netfilter/xt_dscp.h --path include/uapi/linux/netfilter/xt_MARK.h --path include/uapi/linux/netfilter/xt_mark.h --path include/uapi/linux/netfilter/xt_RATEEST.h --path include/uapi/linux/netfilter/xt_rateest.h --path include/uapi/linux/netfilter/xt_TCPMSS.h --path include/uapi/linux/netfilter/xt_tcpmss.h --path include/uapi/linux/netfilter_ipv4/ipt_ECN.h --path include/uapi/linux/netfilter_ipv4/ipt_ecn.h --path include/uapi/linux/netfilter_ipv4/ipt_TTL.h --path include/uapi/linux/netfilter_ipv4/ipt_ttl.h --path include/uapi/linux/netfilter_ipv6/ip6t_HL.h --path include/uapi/linux/netfilter_ipv6/ip6t_hl.h --path net/netfilter/xt_DSCP.c --path net/netfilter/xt_dscp.c --path net/netfilter/xt_HL.c --path net/netfilter/xt_hl.c --path net/netfilter/xt_RATEEST.c --path net/netfilter/xt_rateest.c --path net/netfilter/xt_TCPMSS.c --path net/netfilter/xt_tcpmss.c --path tools/memory-model/litmus-tests/Z6.0+pooncelock+poonceLock+pombonce.litmus --path tools/memory-model/litmus-tests/Z6.0+pooncelock+pooncelock+pombonce.litmus
+    fi
 }
 
 kconfig-post-checkout-hook-linux(system, revision) {

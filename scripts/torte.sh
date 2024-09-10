@@ -74,6 +74,7 @@ DOCKER_RUN=${DOCKER_RUN:-y} # y if running Docker containers is enabled, otherwi
 FORCE_RUN= # y if every stage should be forced to run regardless of whether is is already done
 VERBOSE= # y if console output should be verbose
 DEBUG= # y for debugging stages interactively
+LINUX_CLONE_MODE=fork # clone mode for Linux repository, can be either fork, original, or filter
 
 # memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
 if [[ "$OSTYPE" == "darwin"* ]]; then

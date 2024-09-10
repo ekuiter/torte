@@ -139,7 +139,7 @@ Detailed system-specific information on potential threats to validity is availab
 | [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
 | [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
 | [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
-| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.7 | [^21] [^25] [^26] | |
+| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.7 | [^21] [^25] [^26] [^29] | |
 | [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
 | [uclibc-ng](scripts/subjects/uclibc-ng.sh) | 1.0.2 - 1.0.47 | |
 
@@ -151,6 +151,10 @@ This affects the extraction of less than 100 features in the kernel's history up
 
 [^26]: Currently, we use the KConfig parser of Linux 2.6.9 for all revisions of Linux up to Linux 2.6.9, as older versions of the parser cannot be compiled.
 We suspect that this does not substantially affect the extracted formula.
+
+[^29]: For Linux, specifying arbitrary commit hashes is not enabled by default, because we must perform a complete Git history rewrite (resetting the commit hashes in the process) in order to ensure that checking out the repository also succeeds cross-platform on case-insensitive file systems (e.g., APFS).
+To specify arbitrary and up-to-date commit hashes, use `LINUX_CLONE_MODE=original|filter` (see `scripts/subject/linux.sh#post-clone-hook-linux`: `original` only works on case-sensitive file systems, while `filter` is cross-platform, but takes several hours to run).
+This does not affect typical use cases that involve tag and branch identifiers.
 
 [^22]: Feature models for this system are currently likely to be incomplete due to an inaccurate extraction.
 
@@ -323,10 +327,12 @@ Experiments starting with `draft-` are experimental.
 | `busybox-history-full` | Extraction of all feature models of BusyBox (for every commit that touches the feature model) [^27] |
 | `default` | "Hello-world" experiment that extracts and transforms a single feature model |
 | `feature-model-collection` | Extraction, transformation, and analysis of several feature-model histories |
+| `feature-model-collection-learning` | Learning from feature-model histories |
 | `feature-model-differences` | Extraction and comparison of all feature models of several feature-model histories |
 | `linux-history-releases` | Extraction, transformation, and analysis of a history of Linux feature models |
 | `linux-history-weekly` | Extraction of a weekly history of Linux feature models |
 | `linux-recent-release` | Extraction and transformation of a recent Linux feature model |
+| `prepare-linux-fork` | Clones and rewrites the Linux Git repository to avoid issues with case-insensitive file systems |
 | `tseitin-or-not-tseitin` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 
 [^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract. We solve this problem by iterating over all commits to generate all feature models, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model.

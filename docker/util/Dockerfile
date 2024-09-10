@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y \
     wget \
     ruby-dev \
     build-essential \
-    parallel
+    parallel \
+    git-filter-repo
 RUN gem install youplot
 
 WORKDIR /home

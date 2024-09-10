@@ -7,6 +7,8 @@ clone-systems() {
         if [[ ! -d "$(input-directory)/$system" ]]; then
             log "" "$(echo-progress clone)"
             git clone "$url" "$(input-directory)/$system"
+            compile-hook post-clone-hook
+            post-clone-hook "$system" "$url"
             log "" "$(echo-done)"
         else
             log "" "$(echo-skip)"
