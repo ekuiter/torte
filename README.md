@@ -46,6 +46,8 @@ To run torte, you need:
 This may negatively impact performance on some systems (e.g., ARM-based Windows tablets), although recent Macs should not be affected due to [Rosetta](https://en.wikipedia.org/wiki/Rosetta_(software)).
 (If you encounter errors like [this one](https://github.com/docker/for-mac/issues/7006), try to disable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in the Docker settings. This setting can be re-enabled after the Docker images have been built.)
 Executing torte from within a virtual machine has only been confirmed to work with Linux guest systems on `x86_64` host systems.
+Despite our efforts, some functionality involving precompiled binaries is still known to cause problems on `arm64` systems.
+If such functionality is required, the easiest solution is to switch to an `x86_64` system (e.g., with SSH).
 
 Experiment files in torte are self-executing - so, you can just create or download an experiment file (e.g., from the `experiments` directory) and run it.
 
