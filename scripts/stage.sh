@@ -218,7 +218,7 @@ debug() {
 }
 
 # increases verbosity
-debug() {
+verbose() {
     VERBOSE=y
     set -x
 }
