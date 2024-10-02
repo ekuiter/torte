@@ -3,6 +3,8 @@ import de.ovgu.featureide.fm.core.editing.NodeCreator;
 import de.ovgu.featureide.fm.core.io.AFeatureModelFormat;
 import de.ovgu.featureide.fm.core.io.ProblemList;
 import org.prop4j.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
  * However, that format does not read non-Boolean constraints correctly and writes only CNFs.
  */
 public class KConfigReaderFormat extends AFeatureModelFormat {
+	private static Pattern equivalencePattern = Pattern.compile("def\\(([^()]*?)==CONFIG_(.*?)\\)");
+
 	private static class KConfigNodeReader extends NodeReader {
 		KConfigNodeReader() {
 			try {
@@ -49,7 +53,10 @@ public class KConfigReaderFormat extends AFeatureModelFormat {
 	}
 
 	private static String fixNonBooleanConstraints(String l) {
+		Matcher matcher = equivalencePattern.matcher(l);
+		l = matcher.replaceAll(matchResult -> String.format("(%s<eq>%s)", matchResult.group(1), matchResult.group(2)));
 		return l.replace("=", "_")
+				.replace("<eq>", "==")
 				.replace(":", "_")
 				.replace(".", "_")
 				.replace(",", "_")
