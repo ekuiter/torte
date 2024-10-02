@@ -148,8 +148,9 @@ Detailed system-specific information on potential threats to validity is availab
 [^21]: Most revisions and architectures of Linux (since the introduction of KConfig) can be extracted successfully.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
 
-[^25]: Currently, we do not consider the more recently introduced Kconfig constructs defined in Linux' `scripts/Kconfig.include`.
-This affects the extraction of less than 100 features in the kernel's history up to `v6.3`.
+[^25]: Due to extractor limitations, we ignore the more recently introduced KConfig constructs defined in Linux' `scripts/Kconfig.include`.
+Most of these only add machine specific-default values or dependencies (affecting about 100 features in the kernel's history up to `v6.3`).
+However, these constructs do not affect our feature-model extraction, as we want to ignore machine-dependent restrictions.
 
 [^26]: Currently, we use the KConfig parser of Linux 2.6.9 for all revisions of Linux up to Linux 2.6.9, as older versions of the parser cannot be compiled.
 We suspect that this does not substantially affect the extracted formula.

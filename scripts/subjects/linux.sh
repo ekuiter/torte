@@ -25,13 +25,13 @@ post-clone-hook-linux(system, revision) {
 
 kconfig-post-checkout-hook-linux(system, revision) {
     if [[ $system == linux ]]; then
-        replace-linux(regex) { find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex//g" {} \;; }
+        replace-linux(regex, replacement=) { find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex/$replacement/g" {} \;; }
         # ignore all constraints that use the newer $(success,...) syntax
-        replace-linux "\s*default \$(.*"
-        replace-linux "\s*depends on \$(.*"
-        replace-linux "\s*def_bool \$(.*"
-        # ugly hack for linux 6.0
-        replace-linux "\s*def_bool ((.*"
+        replace-linux "\s*default \$(.*" # default values are not translated into the formula anyway, so we can ignore them
+        replace-linux "\s*depends on \$(.*" # for simplicity, we ignore machine-dependent dependencies, which describe inter-machine variability
+        replace-linux "def_bool \$(.*" 'bool "machine-dependent feature"' # as above, ignore default value and translate as normal Boolean feature
+        # ugly hack for linux 6.0 due to multiline def_bool (https://github.com/torvalds/linux/blob/v6.0/arch/x86/Kconfig#L1834)
+        replace-linux "def_bool ((.*" 'bool "machine-dependent feature"'
         replace-linux "\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*"
         replace-linux "\s*\$(as-instr,endbr64).*"
     fi
