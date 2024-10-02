@@ -21,12 +21,15 @@ WORKDIR /home/FeatJAR/gradle/wrapper
 RUN wget https://services.gradle.org/distributions/gradle-8.0.2-bin.zip \
     && sed -i 's/distributionUrl=.*/distributionUrl=gradle-8.0.2-bin.zip/' gradle-wrapper.properties
 WORKDIR /home/FeatJAR
-RUN PROXY=$(echo "$http_proxy" | sed 's#:/##g' | sed 's#/##g' | sed 's#[^0-9.:]##g') \
+RUN mkdir -p $HOME/.gradle \
+    && PROXY=$(echo "$http_proxy" | sed 's#:/##g' | sed 's#/##g' | sed 's#[^0-9.:]##g') \
     && HOST=$(echo "$PROXY" | cut -d: -f1) \
     && PORT=$(echo "$PROXY" | cut -d: -f2) \
-    && mkdir -p $HOME/.gradle \
     && echo systemProp.http.proxyHost=$HOST >> $HOME/.gradle/gradle.properties \
     && echo systemProp.http.proxyPort=$PORT >> $HOME/.gradle/gradle.properties \
+    && PROXY=$(echo "$https_proxy" | sed 's#:/##g' | sed 's#/##g' | sed 's#[^0-9.:]##g') \
+    && HOST=$(echo "$PROXY" | cut -d: -f1) \
+    && PORT=$(echo "$PROXY" | cut -d: -f2) \
     && echo systemProp.https.proxyHost=$HOST >> $HOME/.gradle/gradle.properties \
     && echo systemProp.https.proxyPort=$PORT >> $HOME/.gradle/gradle.properties \
     && ./gradlew assemble
