@@ -8,9 +8,10 @@ WORKDIR /home
 RUN git clone https://github.com/ekuiter/SATGraf.git \
   && cd SATGraf \
   && git checkout 267701548107dbc086638b5db83092b92e2c8db0
+COPY *.sh ./
+RUN chmod +x *.sh \
+  && ./gradle_proxy.sh
 WORKDIR /home/SATGraf
 RUN chmod +x ./gradlew
 RUN ./gradlew shadowJar
 WORKDIR /home
-COPY *.sh ./
-RUN chmod +x *.sh

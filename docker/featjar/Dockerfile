@@ -17,22 +17,15 @@ RUN scripts/clone.bat \
     && git -C formula checkout 471854b5c28303c7636fe8104dc87259b09506be \
     && git -C formula-analysis-javasmt checkout 33cd6c96a49e3dfd82a95801b39cbca46e665b04 \
     && git -C gradle-plugins checkout 4a3bb36564e44ae3253774075ad23cbb2d87a52f
+WORKDIR /home
+COPY *.sh ./
+RUN chmod +x *.sh \
+    && ./gradle_proxy.sh
 WORKDIR /home/FeatJAR/gradle/wrapper
 RUN wget https://services.gradle.org/distributions/gradle-8.0.2-bin.zip \
     && sed -i 's/distributionUrl=.*/distributionUrl=gradle-8.0.2-bin.zip/' gradle-wrapper.properties
 WORKDIR /home/FeatJAR
-RUN mkdir -p $HOME/.gradle \
-    && PROXY=$(echo "$http_proxy" | sed 's#:/##g' | sed 's#/##g' | sed 's#[^0-9.:]##g') \
-    && HOST=$(echo "$PROXY" | cut -d: -f1) \
-    && PORT=$(echo "$PROXY" | cut -d: -f2) \
-    && echo systemProp.http.proxyHost=$HOST >> $HOME/.gradle/gradle.properties \
-    && echo systemProp.http.proxyPort=$PORT >> $HOME/.gradle/gradle.properties \
-    && PROXY=$(echo "$https_proxy" | sed 's#:/##g' | sed 's#/##g' | sed 's#[^0-9.:]##g') \
-    && HOST=$(echo "$PROXY" | cut -d: -f1) \
-    && PORT=$(echo "$PROXY" | cut -d: -f2) \
-    && echo systemProp.https.proxyHost=$HOST >> $HOME/.gradle/gradle.properties \
-    && echo systemProp.https.proxyPort=$PORT >> $HOME/.gradle/gradle.properties \
-    && ./gradlew assemble
+RUN ./gradlew assemble
 COPY transform transform
 RUN ./gradlew assemble
 WORKDIR /home
