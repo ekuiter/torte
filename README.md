@@ -153,7 +153,7 @@ Most of these only add machine specific-default values or dependencies (affectin
 However, these constructs do not affect our feature-model extraction, as we want to ignore machine-dependent restrictions.
 
 [^26]: Currently, we use the KConfig parser of Linux 2.6.9 for all revisions of Linux up to Linux 2.6.9, as older versions of the parser cannot be compiled.
-We suspect that this does not substantially affect the extracted formula.
+However, our experiments showed that the chosen parser version typically does not seem to affect the extracted formula, should it succeed in extracting a formula.
 
 [^29]: For Linux, specifying arbitrary commit hashes is not enabled by default, because we must perform a complete Git history rewrite (resetting the commit hashes in the process) in order to ensure that checking out the repository also succeeds cross-platform on case-insensitive file systems (e.g., APFS).
 To specify arbitrary and up-to-date commit hashes, use `LINUX_CLONE_MODE=original|filter` (see `scripts/subject/linux.sh#post-clone-hook-linux`: `original` only works on case-sensitive file systems, while `filter` is cross-platform, but takes several hours to run).
