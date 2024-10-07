@@ -79,6 +79,10 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
         fi
     done
 
+    # run system-specific code for influencing the binding compilation
+    compile-hook kconfig-pre-binding-hook
+    gcc_arguments="$gcc_arguments $(kconfig-pre-binding-hook "$system" "$revision" "$kconfig_binding_directory")"
+
     # shellcheck disable=SC2086
     if ls $kconfig_binding_files > /dev/null 2>&1; then
         local cmd="gcc ../../$kconfig_binding_name.c $kconfig_binding_files -I $kconfig_binding_directory -w -Werror=switch$gcc_arguments -o $kconfig_binding_output_file"

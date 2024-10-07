@@ -1,6 +1,6 @@
 /*
  * Kmax
- * Copyright (C) 2012-2015 Paul Gazzillo, 2021 Elias Kuiter
+ * Copyright (C) 2012-2015 Paul Gazzillo, revised 2021-2024 Elias Kuiter
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,36 @@
 
 #define LKC_DIRECT_LINK
 #include "lkc.h"
+
+// for_all_symbols was moved to internal.h in Linux 6.9:
+// https://elixir.bootlin.com/linux/v6.9/C/ident/for_all_symbols
+// https://github.com/torvalds/linux/commit/91b69454f93d1c905f3a56bb39856db9a220c791
+#ifdef for_all_symbols
+#define _for_all_symbols(sym) for_all_symbols(i, sym)
+#else
+#include "internal.h"
+#define _for_all_symbols(sym) for_all_symbols(sym)
+#endif
+
+// sym_is_optional was removed in Linux 6.10:
+// https://elixir.bootlin.com/linux/v6.9/C/ident/sym_is_optional
+// https://github.com/torvalds/linux/commit/6a1215888e23aa9fbc514086402f04708c84f454
+#ifndef SYM_IS_OPTIONAL
+static inline bool sym_is_optional(struct symbol *sym)
+{
+	return false; // optional choices no longer exist since Linux 6.10
+}
+#endif
+
+// sym_get_choice_prop was removed in Linux 6.11:
+// https://elixir.bootlin.com/linux/v6.10/C/ident/sym_get_choice_prop
+// https://github.com/torvalds/linux/commit/ca4c74ba306e28cebf53908e69b773dcbb700cbc
+#ifndef SYM_GET_CHOICE_PROP
+struct property *sym_get_choice_prop(struct symbol *sym)
+{
+	return NULL;
+}
+#endif
 
 #define fopen(name, mode) ({                    \
       if (verbose)                              \
@@ -126,7 +156,7 @@ static int _expr_compare_type(enum expr_type t1, enum expr_type t2)
 		if (t2 == E_LIST)
 			return 1;
 #endif
-#ifdef ENUM_E_LIST
+#ifdef ENUM_E_LIST // removed in Linux 6.11 (https://github.com/torvalds/linux/commit/7c9bb07a6e9439fb7bdeee15eb188fe127a0d0e0)
 	case E_LIST:
 		if (t2 == 0)
 			return 1;
@@ -506,7 +536,7 @@ void everyno(void)
 
 bool is_symbol(struct symbol *sym)
 {
-#ifdef ENUM_P_SYMBOL
+#ifdef ENUM_P_SYMBOL // removed in Linux 6.11 (https://github.com/torvalds/linux/commit/96490176f1e11947be2bdd2700075275e2c27310)
   struct property *st;
   for_all_properties(sym, st, P_SYMBOL)
     return true;
@@ -694,7 +724,7 @@ int main(int argc, char **argv)
 
   switch (action) {
   case A_DEFAULTS:
-    for_all_symbols(i, sym) {
+  _for_all_symbols(sym) {
       static bool def;
 
       if (!sym->name || strlen(sym->name) == 0)
@@ -706,7 +736,7 @@ int main(int argc, char **argv)
     }
     break;
   case A_CONFIGS:
-    for_all_symbols(i, sym) {
+    _for_all_symbols(sym) {
       if (!sym->name || strlen(sym->name) == 0)
         continue;
 
@@ -714,7 +744,7 @@ int main(int argc, char **argv)
     }
     break;
   case A_KCONFIGS:
-    for_all_symbols(i, sym) {
+    _for_all_symbols(sym) {
       if (!sym->name || strlen(sym->name) == 0)
         continue;
 
@@ -726,7 +756,7 @@ int main(int argc, char **argv)
     print_menusyms(rootmenu.list);
     break;
   case A_EXTRACT:
-    for_all_symbols(i, sym) {
+    _for_all_symbols(sym) {
       if (!sym->name || strlen(sym->name) == 0)
         continue;
 
@@ -855,7 +885,7 @@ int main(int argc, char **argv)
     }
 
     // print all dependent config vars
-    for_all_symbols(i, sym) {
+    _for_all_symbols(sym) {
       if (sym_is_choice(sym)) {
         struct property *prop;
         struct symbol *def_sym;

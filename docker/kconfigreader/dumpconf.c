@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Christian Kaestner, Elias Kuiter
+ * Copyright (C) 2014 Christian Kaestner, revised 2021-2024 Elias Kuiter
  * Inspired by prior version by Reinhart Tartler
  * Released under the terms of the GNU GPL v2.0.
  * This updated implementation is necessary to account for newer Kconfig constructs.

@@ -5,6 +5,7 @@ add-linux-system() {
         add-hook-step post-clone-hook linux "$(to-lambda post-clone-hook-linux)"
     fi
     add-hook-step kconfig-post-checkout-hook linux "$(to-lambda kconfig-post-checkout-hook-linux)"
+    add-hook-step kconfig-pre-binding-hook linux "$(to-lambda kconfig-pre-binding-hook-linux)"
     if [[ $LINUX_CLONE_MODE == fork ]]; then
         local url=https://github.com/ekuiter/linux
     elif [[ $LINUX_CLONE_MODE == original ]] || [[ $LINUX_CLONE_MODE == filter ]]; then
@@ -34,6 +35,21 @@ kconfig-post-checkout-hook-linux(system, revision) {
         replace-linux "def_bool ((.*" 'bool "machine-dependent feature"'
         replace-linux "\s*(CC_IS_CLANG && CLANG_VERSION >= 140000).*"
         replace-linux "\s*\$(as-instr,endbr64).*"
+    fi
+}
+
+kconfig-pre-binding-hook-linux(system, revision, kconfig_binding_directory=) {
+    if [[ $system == linux ]]; then
+        # sym_is_optional was removed in Linux 6.10
+        if grep -qrnw "$kconfig_binding_directory" -e sym_is_optional 2>/dev/null; then
+            echo -n '-DSYM_IS_OPTIONAL'
+        fi
+        # sym_get_choice_prop was removed in Linux 6.11
+        if grep -qrnw "$kconfig_binding_directory" -e sym_get_choice_prop 2>/dev/null; then
+            echo -n ' -DSYM_GET_CHOICE_PROP'
+        fi
+        # in Linux 6.11, some helpers have been moved (https://github.com/torvalds/linux/commit/fbaf242c956aff6a07d9e97eaa3a0a48d947de33)
+        echo -n ' -Iscripts/include'
     fi
 }
 
