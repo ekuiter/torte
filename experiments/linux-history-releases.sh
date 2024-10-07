@@ -18,7 +18,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # memory, failures will occur more often. This does not affect most tasks, so we only reduce
 # parallelization for model counting, which takes a lot of RAM.
 # With at least 1TiB RAM, it is also possible to use a temporary file system for input and output:
-# for d in input output; do echo mkdir -p $d; echo sudo mount -t tmpfs none $d; done
+# for d in input output; do mkdir -p $d; sudo mount -t tmpfs none $d; done
 
 # parameters for computing model count
 SOLVE_TIMEOUT=3600 # timeout in seconds
