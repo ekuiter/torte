@@ -18,6 +18,12 @@
 #define LKC_DIRECT_LINK
 #include "lkc.h"
 
+// relevant macros were moved to internal.h in Linux 6.9:
+// https://github.com/torvalds/linux/commit/91b69454f93d1c905f3a56bb39856db9a220c791
+#ifndef for_all_symbols
+#include "internal.h"
+#endif
+
 char* getSymType(enum symbol_type t) {
 	switch (t) {
 #ifdef ENUM_S_UNKNOWN
@@ -254,6 +260,7 @@ void dumpprop(FILE *out, struct property *prop) {
 
 void dumpsymbol(FILE *out, struct symbol *sym) {
 	struct property *prop;
+	struct property *symbol_prop = NULL;
 	//while (sym) {
 		fprintf(out, "<symbol type=\"%s\" flags=\"%d\" id=\"%d\">\n", getSymType(sym->type), sym->flags, sym);
 
@@ -261,8 +268,42 @@ void dumpsymbol(FILE *out, struct symbol *sym) {
        		fprintf(out, "<name>%s</name>\n", sym->name);
 
        	for (prop = sym->prop; prop; prop = prop->next) {
+#ifdef ENUM_P_SYMBOL
+			if (prop->type == P_SYMBOL)
+				symbol_prop = prop;
+#endif
        		dumpprop(out, prop);
        	}
+
+// sym_get_choice_prop was removed in Linux 6.11:
+// https://elixir.bootlin.com/linux/v6.10/C/ident/sym_get_choice_prop
+// https://github.com/torvalds/linux/commit/ca4c74ba306e28cebf53908e69b773dcbb700cbc
+#ifndef SYM_GET_CHOICE_PROP
+		if (sym_is_choice(sym)) {
+			struct menu *choice;
+			struct symbol *def_sym;
+			choice = list_first_entry(&sym->menus, struct menu, link);
+			fprintf(out, "<property type=\"choice\">");
+			fprintf(out, "<expr>");
+			int i = 0;
+			list_for_each_entry(def_sym, &choice->choice_members, choice_link) {
+				if (i > 0)
+					fprintf(out, " ^ ");
+				fprintf(out, "(");
+				dumpsymref(out, def_sym);
+				i++;
+			}
+			for (; i > 0; i--)
+				fprintf(out, ")");
+			fprintf(out, "</expr>");
+			if (symbol_prop && symbol_prop->visible.expr) {
+				fprintf(out, "<visible><expr>");
+				dumpexpr(out, symbol_prop->visible.expr);
+				fprintf(out, "</expr></visible>");
+			}
+			fprintf(out, "</property>\n");
+		}
+#endif
 
 		fprintf(out, "</symbol>\n");
 		//sym = sym->next;

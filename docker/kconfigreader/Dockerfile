@@ -14,6 +14,9 @@ WORKDIR /home
 RUN git clone https://github.com/ckaestne/kconfigreader.git \
   && cd kconfigreader \
   && git checkout 913bf3178af5a8ac8bedc5e8733561ed38280cf9 \
+  # the SYMBOL_CHOICE flag was removed in Linux 6.11 (https://github.com/torvalds/linux/commit/1da251c60def5df1475ed5e8670d7ba2b6a33983)
+  && sed -i 's/val isChoice.*$/val isChoice = hasFlag(symbol, SYMBOL_CHOICE) || itemName.isEmpty/' src/main/scala/XMLDumpReader.scala \
+  && sed -i 's/assert(isChoice.*$//' src/main/scala/XMLDumpReader.scala \
   && sbt mkrun
 
 # install dependencies of analyzed projects
