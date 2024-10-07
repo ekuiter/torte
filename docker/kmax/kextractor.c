@@ -58,11 +58,14 @@ static inline bool sym_is_optional(struct symbol *sym)
 // sym_get_choice_prop was removed in Linux 6.11:
 // https://elixir.bootlin.com/linux/v6.10/C/ident/sym_get_choice_prop
 // https://github.com/torvalds/linux/commit/ca4c74ba306e28cebf53908e69b773dcbb700cbc
-#ifndef SYM_GET_CHOICE_PROP
-struct property *sym_get_choice_prop(struct symbol *sym)
-{
-	return NULL;
-}
+#ifdef SYM_GET_CHOICE_PROP
+#define choice_type property
+#define choice_function(sym) sym_get_choice_prop(sym)
+#define choice_loop for (e = (choice->expr); e && (def_sym = e->right.sym); e = e->left.expr)
+#else
+#define choice_type menu
+#define choice_function(sym) list_first_entry(&sym->menus, struct menu, link)
+#define choice_loop list_for_each_entry(def_sym, &choice->choice_members, choice_link)
 #endif
 
 #define fopen(name, mode) ({                    \
@@ -888,10 +891,11 @@ int main(int argc, char **argv)
     _for_all_symbols(sym) {
       if (sym_is_choice(sym)) {
         struct property *prop;
+        struct choice_type *choice;
         struct symbol *def_sym;
         struct expr *e;
 
-        prop = sym_get_choice_prop(sym);
+        choice = choice_function(sym);
 	
 	// print choice type, depending on config type and optional statement
 	switch(sym->type) {
@@ -905,8 +909,8 @@ int main(int argc, char **argv)
             fprintf(stderr, "fatal: choice type can only be bool or tristate, otherwise is impossible due to the parser.\n");
             exit(1);
         }
-
-        for (e = (prop->expr); e && (def_sym = e->right.sym); e = e->left.expr) {
+        
+        choice_loop {
           fprintf(output_fp, " %s%s", config_prefix, def_sym->name);  // any dependencies should be handled below with 'dep'
         }
         fprintf(output_fp, "|(");
