@@ -523,7 +523,7 @@ git-tag-revisions(system) {
 
 # returns committer date of given revision as Unix timestamp
 git-timestamp(system, revision) {
-    git -C "$(input-directory)/$system" --no-pager show -s --pretty=%ct "$revision" 2>/dev/null | tail -n1
+    git -C "$(input-directory)/$system" log -1 --pretty=%ct "$revision"
 }
 
 # sample revisions in a given interval
