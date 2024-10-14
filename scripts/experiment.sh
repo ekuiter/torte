@@ -77,3 +77,11 @@ command-copy-remote(host, directory=.) {
     require-command rsync
     rsync -av "$host:$directory/$OUTPUT_DIRECTORY/" "$OUTPUT_DIRECTORY-$host-$(date "+%Y-%m-%d")"
 }
+
+# installs a Docker image on a remote server
+# shellcheck disable=SC2029
+command-install-remote(host, image, directory=.) {
+    ssh "$host" docker image rm "${TOOL}_$image" 2>/dev/null || true
+    docker save "${TOOL}_$image" | gzip -c | ssh "$host" "cat > $directory/$image.tar.gz"
+    ssh "$host" docker load -i "$directory/$image.tar.gz"
+}
