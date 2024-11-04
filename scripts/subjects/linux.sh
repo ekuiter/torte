@@ -40,9 +40,10 @@ kconfig-post-checkout-hook-linux(system, revision) {
 
 kconfig-pre-binding-hook-linux(system, revision, kconfig_binding_directory=) {
     if [[ $system == linux ]]; then
+        echo -n '-DSYSTEM_IS_LINUX'
         # sym_is_optional was removed in Linux 6.10
         if grep -qrnw "$kconfig_binding_directory" -e sym_is_optional 2>/dev/null; then
-            echo -n '-DSYM_IS_OPTIONAL'
+            echo -n ' -DSYM_IS_OPTIONAL'
         fi
         # sym_get_choice_prop was removed in Linux 6.11
         if grep -qrnw "$kconfig_binding_directory" -e sym_get_choice_prop 2>/dev/null; then

@@ -278,7 +278,7 @@ void dumpsymbol(FILE *out, struct symbol *sym) {
 // sym_get_choice_prop was removed in Linux 6.11:
 // https://elixir.bootlin.com/linux/v6.10/C/ident/sym_get_choice_prop
 // https://github.com/torvalds/linux/commit/ca4c74ba306e28cebf53908e69b773dcbb700cbc
-#ifndef SYM_GET_CHOICE_PROP
+#if defined(SYSTEM_IS_LINUX) && !defined(SYM_GET_CHOICE_PROP)
 		if (sym_is_choice(sym)) {
 			struct menu *choice;
 			struct symbol *def_sym;

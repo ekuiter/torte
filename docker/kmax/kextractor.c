@@ -48,7 +48,7 @@
 // sym_is_optional was removed in Linux 6.10:
 // https://elixir.bootlin.com/linux/v6.9/C/ident/sym_is_optional
 // https://github.com/torvalds/linux/commit/6a1215888e23aa9fbc514086402f04708c84f454
-#ifndef SYM_IS_OPTIONAL
+#if defined(SYSTEM_IS_LINUX) && !defined(SYM_IS_OPTIONAL)
 static inline bool sym_is_optional(struct symbol *sym)
 {
 	return false; // optional choices no longer exist since Linux 6.10
@@ -58,7 +58,7 @@ static inline bool sym_is_optional(struct symbol *sym)
 // sym_get_choice_prop was removed in Linux 6.11:
 // https://elixir.bootlin.com/linux/v6.10/C/ident/sym_get_choice_prop
 // https://github.com/torvalds/linux/commit/ca4c74ba306e28cebf53908e69b773dcbb700cbc
-#ifdef SYM_GET_CHOICE_PROP
+#if !defined(SYSTEM_IS_LINUX) || defined(SYM_GET_CHOICE_PROP)
 #define choice_type property
 #define choice_function(sym) sym_get_choice_prop(sym)
 #define choice_loop for (e = (choice->expr); e && (def_sym = e->right.sym); e = e->left.expr)
