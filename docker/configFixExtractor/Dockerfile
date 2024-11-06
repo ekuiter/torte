@@ -1,49 +1,48 @@
-
-# Use Ubuntu as the base image
+# Base image
 FROM ubuntu:20.04
 
-# Prevent interactive prompts during package installation
+# Set environment variable to disable interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    git \
+# Install dependencies for kernel build and Configfix
+RUN apt-get update && \
+    apt-get install -y \
     pkg-config \
     g++ \
     qtbase5-dev \
     wget \
-    make \
-    curl \
-    libncurses5-dev \
+    build-essential \
+    libncurses-dev \
     libssl-dev \
+    libelf-dev \
     bc \
-    && apt-get clean
+    git \
+    flex \
+    bison
 
-# Set the working directory
-WORKDIR /home
-
-# Alternative to git clone: Download the repository as a tar.gz file and extract it
+# Clone the Configfix repository and checkout the desired version
 RUN wget -O linux.tar.gz https://github.com/delta-one/linux/archive/refs/heads/copy_patch_v6.10.tar.gz && \
     tar -xzf linux.tar.gz && \
     mv linux-copy_patch_v6.10 linux && \
     rm linux.tar.gz
 
+# Download and extract the kernel source code (v6.10)
+RUN wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.10.tar.xz -P /home/linux && \
+    tar -xvf /home/linux/linux-6.10.tar.xz -C /home/linux
 
-# Copy the Configfix files into the kernel directory
-COPY ./copyfiles.sh /home/linux/
-RUN cd /home/linux && \
-    ./copyfiles.sh /home/linux-6.10
+# Copy Configfix files (including copy_files.sh) into the kernel directory
+COPY ./copy_files.sh /home/linux/linux-6.10/
 
-# Create default kernel configuration
-RUN cd /home/linux-6.10 && \
-    make defconfig
+# Make the script executable and run it
+RUN chmod +x /home/linux/linux-6.10/copy_files.sh && \
+    /home/linux/linux-6.10/copy_files.sh /home/linux/linux-6.10
 
-# Run xconfig (optional, if a GUI is available or needed)
-# RUN cd /home/linux-6.10 && \
-#     make xconfig
+# Create the default kernel configuration
+RUN cd /home/linux/linux-6.10 && make defconfig
 
-# Export constraints to DIMACS format by running make cfoutconfig
-RUN cd /home/linux-6.10 && \
-    make cfoutconfig
+# Run the configuration interface
+#RUN cd /home/linux/linux-6.10 && make cfoutconfig
 
+# Optional: expose an entrypoint to allow further configuration or building
+ENTRYPOINT ["/bin/bash"]
 
