@@ -30,12 +30,10 @@ RUN wget -O linux.tar.gz https://github.com/delta-one/linux/archive/refs/heads/c
 RUN wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.10.tar.xz -P /home/linux && \
     tar -xvf /home/linux/linux-6.10.tar.xz -C /home/linux
 
-# Copy Configfix files (including copy_files.sh) into the kernel directory
-COPY ./copy_files.sh /home/linux/linux-6.10/
+
 
 # Make the script executable and run it
-RUN chmod +x /home/linux/linux-6.10/copy_files.sh && \
-    /home/linux/linux-6.10/copy_files.sh /home/linux/linux-6.10
+RUN  cp -r /linux/scripts/kconfig /home/linux/linux-6.10/scripts
 
 # Create the default kernel configuration
 RUN cd /home/linux/linux-6.10 && make defconfig
