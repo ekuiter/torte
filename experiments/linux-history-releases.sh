@@ -25,7 +25,7 @@ SOLVE_TIMEOUT=3600 # timeout in seconds
 SOLVE_JOBS=4 # number of parallel jobs to run, should not exceed number of attempts
 SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and moving on
 
-# LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
+LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
 
 experiment-subjects() {
     # analyze all revisions and architectures of the Linux kernel
@@ -48,7 +48,6 @@ experiment-stages() {
 
     # transform
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
     transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
     run \
         --stage dimacs \
@@ -90,5 +89,5 @@ git-statistics() {
     echo -n "Number of releases: "
     linux-tag-revisions | start-at-revision v2.6.12 | wc -l
     echo -n "Number of all commits that touch Kconfig files: "
-    git -C input/linux log --pretty=oneline --diff-filter=AMD --branches --tags -- **/*Kconfig* | wc -l
+    git -C input/linux log --pretty=oneline --diff-filter=AMD --branches --tags -- '**/*Kconfig*' | wc -l
 }
