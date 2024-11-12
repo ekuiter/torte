@@ -144,6 +144,13 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
                     "$kconfig_model" \
                     | tee "$output_log"
                 time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
+           elif [[ $extractor == configFixExtractor ]]; then
+		# Command to execute the configFixExtractor ToDo
+		evaluate "$timeout" /home/configFixExtractor/run.sh cfoutconfig \
+		    "$kconfig_binding_file" "$kconfig_file" \
+		    "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.configfix")" \
+		    | tee "$output_log"
+		time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
             fi
             unset-environment "$environment"
         else
@@ -213,5 +220,11 @@ extract-kconfig-models-with-kmax(timeout=0) {
 # compiles kconfig bindings and extracts kconfig models using kconfigreader
 extract-kconfig-models-with-kconfigreader(timeout=0) {
     register-kconfig-extractor kconfigreader dumpconf "$timeout"
+    experiment-subjects
+}
+
+# Extracts kconfig models using configFixExtractor
+extract-kconfig-models-with-configFixExtractor(timeout=0) {
+    register-kconfig-extractor configFixExtractor configfix "$timeout"
     experiment-subjects
 }
