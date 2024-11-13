@@ -144,20 +144,21 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
                     "$kconfig_model" \
                     | tee "$output_log"
                 time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
-	elif [[ $extractor == configfixextractor ]]; then
-	    # Command to execute the configFixExtractor without run.sh
-	    echo "Running cfoutconfig..."
-	    
-	    # Setze den Pfad zum Kernel-Quellverzeichnis
-	    cd /home/linux/linux-6.10
-	    
-	    # Führe den make cfoutconfig Befehl aus und speichere die Ausgabe
-	    make cfoutconfig "$kconfig_binding_file" "$kconfig_file" \
-		"$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.configfix")" \
-		| tee "$output_log"
-	    
-	    # Extrahiere die Zeit aus dem Log
-	    time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
+            
+	 elif [[ $extractor == configfixextractor ]]; then
+	    if [[ ! -d /home/linux/$system/scripts ]]; then
+		echo "Erstelle das Verzeichnis /home/linux/$system/scripts"
+		mkdir -p /home/linux/$system/scripts  
+	    fi
+"
+	    cp -r /linux/scripts/kconfig /home/linux/$system/scripts
+
+	    make -C /home/linux/$system/scripts kconfig
+
+	    make -C /home/linux/$system cfoutconfig
+
+	    kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system@$revision.model")
+
 	fi
             unset-environment "$environment"
         else
@@ -230,31 +231,7 @@ extract-kconfig-models-with-kconfigreader(timeout=0) {
     experiment-subjects
 }
 
-extract-kconfig-models-with-configfixextractor() { 
-    local timeout=0  # Set default timeout
-
-    # Argumentverarbeitung
-    if [[ ! $1 == "--"* ]]; then 
-        timeout=${1:-$timeout}
-        if [[ $# -gt 1 ]]; then
-            error "Function extract-kconfig-models-with-configFixExtractor expects 1 argument, but got $# arguments."
-        fi
-    else
-        while [[ $# -gt 0 ]]; do
-            local argument=${1/--/}
-            argument=${argument//-/_}
-            if false; then :;  # Falls es weitere Optionen gibt, könnte man sie hier hinzufügen.
-            elif [[ "timeout" == "$argument" ]]; then
-                shift
-                timeout=${1:-$timeout}
-                shift
-            else
-                error "Function extract-kconfig-models-with-configFixExtractor got parameter $argument, which was not expected."
-            fi
-        done
-    fi
-
-    # Aufruf der Extraktor-Funktion mit dem angegebenen Timeout-Wert
-    register-kconfig-extractor configFixExtractor configfix "$timeout"
+extract-kconfig-models-with-configfixextractor(timeout=0) { 
+    register-kconfig-extractor configfixextractor "$timeout"
     experiment-subjects
 }
