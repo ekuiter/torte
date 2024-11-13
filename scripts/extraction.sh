@@ -144,14 +144,21 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
                     "$kconfig_model" \
                     | tee "$output_log"
                 time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
-           elif [[ $extractor == configfixextractor ]]; then
-		# Command to execute the configFixExtractor ToDo
-		evaluate "$timeout" /home/configFixExtractor/run.sh cfoutconfig \
-		    "$kconfig_binding_file" "$kconfig_file" \
-		    "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.configfix")" \
-		    | tee "$output_log"
-		time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
-            fi
+	elif [[ $extractor == configfixextractor ]]; then
+	    # Command to execute the configFixExtractor without run.sh
+	    echo "Running cfoutconfig..."
+	    
+	    # Setze den Pfad zum Kernel-Quellverzeichnis
+	    cd /home/linux/linux-6.10
+	    
+	    # Führe den make cfoutconfig Befehl aus und speichere die Ausgabe
+	    make cfoutconfig "$kconfig_binding_file" "$kconfig_file" \
+		"$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.configfix")" \
+		| tee "$output_log"
+	    
+	    # Extrahiere die Zeit aus dem Log
+	    time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
+	fi
             unset-environment "$environment"
         else
             echo "kconfig binding file $kconfig_binding_file does not exist"
