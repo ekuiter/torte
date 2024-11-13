@@ -311,8 +311,8 @@ define-stage-helpers() {
             --file-fields "$file_fields"
             
         extract-kconfig-models-with \
-	    --extractor configFixExtractor \
-	    --output-stage configFixExtractor \
+	    --extractor configfixextractor \
+	    --output-stage configfixextractor \
 	    --iterations "$iterations" \
 	    --iteration-field "$iteration_field" \
 	    --file-fields "$file_fields"
