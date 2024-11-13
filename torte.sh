@@ -2,8 +2,8 @@
 # installs and runs torte
 
 set -e
-TORTE_REPOSITORY=${TORTE_REPOSITORY:-https://github.com/ekuiter/torte.git}
-TORTE_REVISION=${TORTE_REVISION:-main}
+TORTE_REPOSITORY=${TORTE_REPOSITORY:-https://github.com/rami-alfish/torte.git}
+TORTE_REVISION=${TORTE_REVISION:-configfix-extractor-integration}
 
 require() {
      if ! command -v "$1" > /dev/null; then
