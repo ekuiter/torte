@@ -144,22 +144,56 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
                     "$kconfig_model" \
                     | tee "$output_log"
                 time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
-            
-	 elif [[ $extractor == configfixextractor ]]; then
-	    if [[ ! -d /home/linux/$system/scripts ]]; then
-		echo "Erstelle das Verzeichnis /home/linux/$system/scripts"
-		mkdir -p /home/linux/$system/scripts  
-	    fi
-"
-	    cp -r /linux/scripts/kconfig /home/linux/$system/scripts
+	    elif [[ $extractor == configfixextractor ]]; then
+		    echo "Running manual Kconfig extraction"
 
-	    make -C /home/linux/$system/scripts kconfig
+		
+		    if [[ ! -d /home/linux/linux-6.10 ]]; then
+			echo "Das Verzeichnis /home/linux/linux-6.10 existiert nicht. Bitte sicherstellen, dass das Verzeichnis korrekt ist."
+			exit 1
+		    fi
 
-	    make -C /home/linux/$system cfoutconfig
 
-	    kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system@$revision.model")
+		    echo "Wechsle ins Verzeichnis /home/linux/linux-6.10"
+		    pushd /home/linux/linux-6.10
 
-	fi
+		    # Schritt 1: Makefile für scripts/kconfig/cfoutconfig
+		    echo "Führe 'make scripts/kconfig/cfoutconfig' aus"
+		    make scripts/kconfig/cfoutconfig
+		    if [[ $? -ne 0 ]]; then
+			echo "Fehler: 'make scripts/kconfig/cfoutconfig' ist fehlgeschlagen"
+			popd
+			exit 1
+		    fi
+
+		    # Schritt 2: make cfoutconfig mit dem Kconfig-File
+		    echo "Führe 'make cfoutconfig Kconfig=kconfig_file' aus"
+		    make cfoutconfig Kconfig=kconfig_file
+		    if [[ $? -ne 0 ]]; then
+			echo "Fehler: 'make cfoutconfig Kconfig=Kconfig' ist fehlgeschlagen"
+			popd
+			exit 1
+		    fi
+
+		    # Schritt 3: make mit spezifischem Makefile und Kconfig-File
+		    echo "Führe 'make -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=kconfig_file' aus"
+		    make -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=kconfig_file
+		    if [[ $? -ne 0 ]]; then
+			echo "Fehler: 'make -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=Kconfig' ist fehlgeschlagen"
+			popd
+			exit 1
+		    fi
+
+		    # Ergebnisse loggen
+		    popd
+		    kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model")
+		    echo "Kconfig-Modell wurde unter $kconfig_model generiert"
+
+		    # Zeitmessung der Extraktion
+		    time=$(date +%s)
+		    echo "Extraktion abgeschlossen in $time Sekunden"
+		fi
+
             unset-environment "$environment"
         else
             echo "kconfig binding file $kconfig_binding_file does not exist"
@@ -231,7 +265,16 @@ extract-kconfig-models-with-kconfigreader(timeout=0) {
     experiment-subjects
 }
 
-extract-kconfig-models-with-configfixextractor(timeout=0) { 
-    register-kconfig-extractor configfixextractor "$timeout"
+extract-kconfig-models-with-configfixextractor(timeout=0) {
+    register-kconfig-extractor configfixextractor  cfoutconfig "$timeout"
     experiment-subjects
 }
+
+
+
+
+
+
+
+
+
