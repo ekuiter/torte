@@ -157,7 +157,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
 		    echo "Wechsle ins Verzeichnis /home/linux/linux-6.10"
 		    pushd /home/linux/linux-6.10
 
-		    # Schritt 1: Makefile für scripts/kconfig/cfoutconfig
+
 		    echo "Führe 'make scripts/kconfig/cfoutconfig' aus"
 		    make scripts/kconfig/cfoutconfig
 		    if [[ $? -ne 0 ]]; then
@@ -166,7 +166,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
 			exit 1
 		    fi
 
-		    # Schritt 2: make cfoutconfig mit dem Kconfig-File
+
 		    echo "Führe 'make cfoutconfig Kconfig=kconfig_file' aus"
 		    make cfoutconfig Kconfig=kconfig_file
 		    if [[ $? -ne 0 ]]; then
@@ -175,7 +175,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
 			exit 1
 		    fi
 
-		    # Schritt 3: make mit spezifischem Makefile und Kconfig-File
+
 		    echo "Führe 'make -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=kconfig_file' aus"
 		    make -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=kconfig_file
 		    if [[ $? -ne 0 ]]; then
@@ -184,12 +184,12 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
 			exit 1
 		    fi
 
-		    # Ergebnisse loggen
+
 		    popd
 		    kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model")
 		    echo "Kconfig-Modell wurde unter $kconfig_model generiert"
 
-		    # Zeitmessung der Extraktion
+
 		    time=$(date +%s)
 		    echo "Extraktion abgeschlossen in $time Sekunden"
 		fi
