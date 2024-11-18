@@ -101,30 +101,42 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
-extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file, kconfig_binding_file=, environment=, timeout=0) {
+extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_file, kconfig_binding_file=, environment=, timeout=0) {
     local revision_clean
     revision_clean=$(clean-revision "$revision")
     local architecture
     architecture=$(get-architecture "$revision")
-    kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision_clean")}
-    kconfig_binding_file+=.$kconfig_binding
+    
+    # Wenn kconfig_binding leer ist, setze kconfig_binding_file auf null
+    if [[ -z "$kconfig_binding" ]]; then
+        kconfig_binding_file=""
+    else
+        kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision_clean")}
+        kconfig_binding_file+=.$kconfig_binding
+    fi
+
     log "$extractor: $system@$revision"
+    
     if [[ -f $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model") ]]; then
         log "" "$(echo-skip)"
         return
     fi
+    
     log "" "$(echo-progress extract)"
     trap 'ec=$?; (( ec != 0 )) && rm-safe '"$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")"'*' EXIT
     push "$(input-directory)/$system"
+    
     local kconfig_model
     kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model")
     local features_file
     features_file=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.features")
     local output_log
     output_log=$(mktemp)
+
     if [[ -f $kconfig_file ]]; then
-        if [[ -f $kconfig_binding_file ]]; then
+        if [[ -z "$kconfig_binding_file" || -f $kconfig_binding_file ]]; then
             set-environment "$environment"
+            
             if [[ $extractor == kconfigreader ]]; then
                 evaluate "$timeout" /home/kconfigreader/run.sh de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf "$kconfig_binding_file" "$kconfig_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")" | tee "$output_log"
                 local time
@@ -144,56 +156,34 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
                     "$kconfig_model" \
                     | tee "$output_log"
                 time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
-	    elif [[ $extractor == configfixextractor ]]; then
-		    echo "Running manual Kconfig extraction"
 
-		
-		    if [[ ! -d /home/linux/linux-6.10 ]]; then
-			echo "Das Verzeichnis /home/linux/linux-6.10 existiert nicht. Bitte sicherstellen, dass das Verzeichnis korrekt ist."
-			exit 1
-		    fi
+	elif [[ $extractor == configfixextractor ]]; then
 
+	    if [[ ! -f "$kconfig_file" ]]; then
+		echo ""
+		exit 1
+	    fi
 
-		    echo "Wechsle ins Verzeichnis /home/linux/linux-6.10"
-		    pushd /home/linux/linux-6.10
+	    linux_dir="/home/linux/linux-6.10"
+	    output_dir="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.configfix")"
 
+	    (cd "$linux_dir" && make scripts/kconfig/cfoutconfig) 
+	    kconfig_file=$(realpath "$kconfig_file")
 
-		    echo "Führe 'make scripts/kconfig/cfoutconfig' aus"
-		    make scripts/kconfig/cfoutconfig
-		    if [[ $? -ne 0 ]]; then
-			echo "Fehler: 'make scripts/kconfig/cfoutconfig' ist fehlgeschlagen"
-			popd
-			exit 1
-		    fi
+	    mkdir -p "$output_dir"
 
 
-		    echo "Führe 'make cfoutconfig Kconfig=kconfig_file' aus"
-		    make cfoutconfig Kconfig=kconfig_file
-		    if [[ $? -ne 0 ]]; then
-			echo "Fehler: 'make cfoutconfig Kconfig=Kconfig' ist fehlgeschlagen"
-			popd
-			exit 1
-		    fi
+	    (cd "$linux_dir" && make -k -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=$kconfig_file)
 
 
-		    echo "Führe 'make -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=kconfig_file' aus"
-		    make -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=kconfig_file
-		    if [[ $? -ne 0 ]]; then
-			echo "Fehler: 'make -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=Kconfig' ist fehlgeschlagen"
-			popd
-			exit 1
-		    fi
-
-
-		    popd
-		    kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model")
-		    echo "Kconfig-Modell wurde unter $kconfig_model generiert"
-
-
-		    time=$(date +%s)
-		    echo "Extraktion abgeschlossen in $time Sekunden"
-		fi
-
+	    if [[ -f "$linux_dir/scripts/kconfig/cfout_constraints.txt" && -f "$linux_dir/scripts/kconfig/cfout_constraints.dimacs" ]]; then
+		cp "$linux_dir/scripts/kconfig/cfout_constraints.txt" "$output_dir/constraints.txt"
+		cp "$linux_dir/scripts/kconfig/cfout_constraints.dimacs" "$output_dir/constraints.dimacs"
+	    else
+		echo ""
+		exit 1
+	    fi
+	fi
             unset-environment "$environment"
         else
             echo "kconfig binding file $kconfig_binding_file does not exist"
@@ -204,6 +194,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
     pop
     trap - EXIT
     kconfig_binding_file=${kconfig_binding_file#"$(output-directory)/"}
+    
     if is-file-empty "$kconfig_model"; then
         log "" "$(echo-fail)"
         kconfig_model=NA
@@ -217,20 +208,34 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
         literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
+
     echo "$system,$revision_clean,$architecture,$kconfig_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
 }
 
+
+
 # defines API functions for extracting kconfig models
 # sets the global EXTRACTOR and KCONFIG_BINDING variables
-register-kconfig-extractor(extractor, kconfig_binding, timeout=0) {
+register-kconfig-extractor(extractor, kconfig_binding="", timeout=0) {
     EXTRACTOR=$extractor
-    KCONFIG_BINDING=$kconfig_binding
+    KCONFIG_BINDING=$kconfig_binding  
     TIMEOUT=$timeout
-    require-value EXTRACTOR KCONFIG_BINDING TIMEOUT
+
+
+    require-value EXTRACTOR TIMEOUT
+
+
+    if [ -z "$KCONFIG_BINDING" ]; then
+        echo "No KCONFIG_BINDING provided, running without KCONFIG_BINDING."
+    else
+        echo "Using KCONFIG_BINDING: $KCONFIG_BINDING"
+    fi
 
     add-kconfig-binding(system, revision, kconfig_binding_files, environment=) {
         kconfig-checkout "$system" "$revision" "$kconfig_binding_files"
-        compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
+        if [ -n "$KCONFIG_BINDING" ]; then
+            compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
+        fi
         git-clean "$(input-directory)/$system"
     }
 
@@ -243,7 +248,10 @@ register-kconfig-extractor(extractor, kconfig_binding, timeout=0) {
 
     add-kconfig(system, revision, kconfig_file, kconfig_binding_files, environment=) {
         kconfig-checkout "$system" "$revision" "$kconfig_binding_files"
-        compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
+
+        if [ -n "$KCONFIG_BINDING" ]; then
+            compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
+        fi
         extract-kconfig-model "$EXTRACTOR" "$KCONFIG_BINDING" \
             "$system" "$revision" "$kconfig_file" "" "$environment" "$TIMEOUT"
         git-clean "$(input-directory)/$system"
@@ -266,15 +274,6 @@ extract-kconfig-models-with-kconfigreader(timeout=0) {
 }
 
 extract-kconfig-models-with-configfixextractor(timeout=0) {
-    register-kconfig-extractor configfixextractor  cfoutconfig "$timeout"
+    register-kconfig-extractor configfixextractor "" "$timeout"
     experiment-subjects
 }
-
-
-
-
-
-
-
-
-

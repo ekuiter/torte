@@ -10,7 +10,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 TIMEOUT=10
 
 experiment-subjects() {
-    add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
+    add-linux-kconfig-history --from v2.5.45 --to v6.12 --architecture all
 }
 
 experiment-stages() {
