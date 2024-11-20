@@ -160,30 +160,48 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 	elif [[ $extractor == configfixextractor ]]; then
 
 	    if [[ ! -f "$kconfig_file" ]]; then
-		echo ""
 		exit 1
 	    fi
 
-	    linux_dir="/home/linux/linux-6.10"
-	    output_dir="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.configfix")"
-
-	    (cd "$linux_dir" && make scripts/kconfig/cfoutconfig) 
+	    linux_source="/home/linux/linux-6.10"
+	    result_directory="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.configfix")"
 	    kconfig_file=$(realpath "$kconfig_file")
+            sed -i 's|^source |#source |' /home/input/busybox/Config.in
 
-	    mkdir -p "$output_dir"
+	    # Remove non-printable characters
+            #sed -i 's|source \(.*\)\.in|source "/home/input/\1.src"|' "$kconfig_file"
+            #sed -i '/^source /!s|PATTERN|REPLACEMENT|' "$kconfig_file"
+
+	    
 
 
-	    (cd "$linux_dir" && make -k -f /home/linux/linux-6.10/Makefile cfoutconfig Kconfig=$kconfig_file)
 
+	    # Build the required tool
+	    (cd "$linux_source" && make scripts/kconfig/cfoutconfig)
 
-	    if [[ -f "$linux_dir/scripts/kconfig/cfout_constraints.txt" && -f "$linux_dir/scripts/kconfig/cfout_constraints.dimacs" ]]; then
-		cp "$linux_dir/scripts/kconfig/cfout_constraints.txt" "$output_dir/constraints.txt"
-		cp "$linux_dir/scripts/kconfig/cfout_constraints.dimacs" "$output_dir/constraints.dimacs"
+	    # Ensure the Kconfig file path is absolute
+	    #kconfig_file=$(realpath "$kconfig_file")
+
+	    # Create result directory if it doesn't exist
+	    mkdir -p "$result_directory"
+
+	    # Run the make target with the specified Kconfig file
+	    (cd "$linux_source" && make -k -f /home/linux/linux-6.10/Makefile V=1 cfoutconfig Kconfig=$kconfig_file)
+
+	    if [[ $? -ne 0 ]]; then
+		exit 1
+	    fi
+
+	    # Check if output files exist and copy them to the result directory
+	    if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.dimacs" ]]; then
+		cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$result_directory/constraints.txt"
+		cp "$linux_source/scripts/kconfig/cfout_constraints.dimacs" "$result_directory/constraints.dimacs"
 	    else
-		echo ""
 		exit 1
 	    fi
 	fi
+
+
             unset-environment "$environment"
         else
             echo "kconfig binding file $kconfig_binding_file does not exist"
