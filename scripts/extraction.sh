@@ -107,7 +107,7 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
     local architecture
     architecture=$(get-architecture "$revision")
     
-    # Wenn kconfig_binding leer ist, setze kconfig_binding_file auf null
+    
     if [[ -z "$kconfig_binding" ]]; then
         kconfig_binding_file=""
     else
@@ -116,6 +116,11 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
     fi
 
     log "$extractor: $system@$revision"
+    
+    local file_extension="model"
+    if [[ $extractor == configfixextractor ]]; then
+        file_extension="cfmodel"
+    fi
     
     if [[ -f $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model") ]]; then
         log "" "$(echo-skip)"
@@ -127,7 +132,7 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
     push "$(input-directory)/$system"
     
     local kconfig_model
-    kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model")
+    kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision"."$file_extension")
     local features_file
     features_file=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.features")
     local output_log
@@ -164,38 +169,41 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 	    fi
 
 	    linux_source="/home/linux/linux-6.10"
-	    result_directory="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.configfix")"
+	    #result_directory_model="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.ConfigFixmodel")"
+	    #result_directory_txt="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.txt")"
+	    #result_directory_dimacs="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.dimacs")"
 	    kconfig_file=$(realpath "$kconfig_file")
-            sed -i 's|^source |#source |' /home/input/busybox/Config.in
+	    
+	   
+	    temp_file=$(mktemp)
+	    while IFS= read -r line; do
+		if [[ $line =~ ^source[[:space:]]+[^\"].*[^\"].* ]]; then
+		    line=$(echo "$line" | sed -E 's|^source[[:space:]]+(.+)$|source "\1"|')
+		fi
+		echo "$line" >> "$temp_file"
+	    done < "$kconfig_file"
 
-	    # Remove non-printable characters
-            #sed -i 's|source \(.*\)\.in|source "/home/input/\1.src"|' "$kconfig_file"
-            #sed -i '/^source /!s|PATTERN|REPLACEMENT|' "$kconfig_file"
+	   
+	    mv "$temp_file" "$kconfig_file"
 
+
+	    (cd "$linux_source" && make scripts/kconfig/cfoutconfig)
 	    
 
+	    #mkdir -p "$result_directory"
 
-
-	    # Build the required tool
-	    (cd "$linux_source" && make scripts/kconfig/cfoutconfig)
-
-	    # Ensure the Kconfig file path is absolute
-	    #kconfig_file=$(realpath "$kconfig_file")
-
-	    # Create result directory if it doesn't exist
-	    mkdir -p "$result_directory"
-
-	    # Run the make target with the specified Kconfig file
 	    (cd "$linux_source" && make -k -f /home/linux/linux-6.10/Makefile V=1 cfoutconfig Kconfig=$kconfig_file)
+	    
 
 	    if [[ $? -ne 0 ]]; then
 		exit 1
 	    fi
 
-	    # Check if output files exist and copy them to the result directory
+
 	    if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.dimacs" ]]; then
-		cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$result_directory/constraints.txt"
-		cp "$linux_source/scripts/kconfig/cfout_constraints.dimacs" "$result_directory/constraints.dimacs"
+		cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
+		#cp "$linux_source/scripts/kconfig/cfout_constraints.dimacs" "$result_directory_dimacs"
+		
 	    else
 		exit 1
 	    fi
@@ -218,12 +226,20 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
         kconfig_model=NA
     else
         log "" "$(echo-done)"
-        local features
-        features=$(wc -l < "$features_file")
-        local variables
-        variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
-        local literals
-        literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
+        if [[ $extractor != "configfixextractor" ]]; then
+		local features
+		features=$(wc -l < "$features_file")
+		local variables
+		variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
+		local literals
+		literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
+        
+        else
+		local features=NA
+		local variables=NA
+		local literals=NA
+        fi
+
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
 

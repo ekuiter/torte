@@ -20,13 +20,16 @@ public interface ITransformation extends IExtension {
                 .orElseThrow(p -> new RuntimeException("failed to load feature model at " + inputPath));
     }
 
-    static IFeatureModel loadModelFileWithFeatureIDE(Path inputPath) {
-        LibraryManager.registerLibrary(FMCoreLibrary.getInstance());
-        FMFormatManager.getInstance().addExtension(new KConfigReaderFormat());
+	static IFeatureModel loadModelFileWithFeatureIDE(Path inputPath) {
+	    LibraryManager.registerLibrary(FMCoreLibrary.getInstance());
+	    FMFormatManager.getInstance().addExtension(new KConfigReaderFormat());
+	    FMFormatManager.getInstance().addExtension(new ConFigFixFormat());
 
-        final IFeatureModel featureModel = FeatureModelManager.load(inputPath);
-        if (featureModel == null)
-            throw new RuntimeException("failed to load feature model at " + inputPath);
-        return featureModel;
-    }
+	    final IFeatureModel featureModel = FeatureModelManager.load(inputPath);
+	    if (featureModel == null) {
+		throw new RuntimeException("Failed to load feature model at " + inputPath);
+	    }
+	    return featureModel;
+	}
+
 }
