@@ -338,7 +338,7 @@ Experiments starting with `draft-` are experimental.
 | `prepare-linux-fork` | Clones and rewrites the Linux Git repository to avoid issues with case-insensitive file systems |
 | `tseitin-or-not-tseitin` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
 
-[^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract. We solve this problem by iterating over all commits to generate all feature models, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model.
+[^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we need to detect changes in any KConfig files to identify relevant commits). We solve this problem by iterating over all commits to generate all feature models, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model.
 
 ## Project History
 
