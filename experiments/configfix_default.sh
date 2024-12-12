@@ -11,10 +11,10 @@ TIMEOUT=10
 
 experiment-subjects() {
     #Problem mit source (Frage?)
-    add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
+    #add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
     
     # x86  arm64 ,openrisc and arc linux done
-    #add-linux-kconfig-history --from v6.7 --to v6.8 --architecture arc
+    add-linux-kconfig-history --from v6.7 --to v6.8 
     
     #Nicht für alle Architekturen
     #add-linux-kconfig-history --from v2.5.45 --to v2.5.46 --architecture all 
@@ -23,7 +23,6 @@ experiment-subjects() {
 
 experiment-stages() {
     clone-systems
-    generate-busybox-models
     read-statistics
     extract-kconfig-models-with --extractor configfixextractor
 }

@@ -14,8 +14,9 @@ import java.util.stream.Collectors;
 
 
 public class ConFigFixFormat extends AFeatureModelFormat {
-	private static Pattern equivalencePattern = Pattern.compile("definedEx\\(([^()]*?)==Choice_(.*?)\\)");
 
+	private static Pattern equivalencePattern = Pattern.compile("definedEx\\((Choice_[\\w\\d_]+)\\)");
+	
 	private static class KConfigNodeReader extends NodeReader {
 		KConfigNodeReader() {
 			try {
@@ -49,19 +50,21 @@ public class ConFigFixFormat extends AFeatureModelFormat {
 	}
 
 	private static String fixNonBooleanConstraints(String l) {
-		Matcher matcher = equivalencePattern.matcher(l);
-		l = matcher.replaceAll(matchResult -> String.format("(%s<eq>%s)", matchResult.group(1), matchResult.group(2)));
-		return l.replace("=", "_")
-				.replace("<eq>", "==")
-				.replace(":", "_")
-				.replace(".", "_")
-				.replace(",", "_")
-				.replace("/", "_")
-				.replace("\\", "_")
-				.replace(" ", "_")
-				.replace("-", "_");
+	    Matcher matcher = equivalencePattern.matcher(l);
+	    l = matcher.replaceAll(matchResult -> String.format(
+		"definedEx(%s)", 
+		matchResult.group(1).trim() 
+	    ));
+	    return l.replace("=", "_")
+		    .replace("<eq>", "==")
+		    .replace(":", "_")
+		    .replace(".", "_")
+		    .replace(",", "_")
+		    .replace("/", "_")
+		    .replace("\\", "_")
+		    //.replace(" ", "_")
+		    .replace("-", "_");
 	}
-
 	@Override
 	public ProblemList read(IFeatureModel featureModel, CharSequence source) {
 		setFactory(featureModel);
@@ -138,7 +141,7 @@ public class ConFigFixFormat extends AFeatureModelFormat {
 
 	@Override
 	public String getSuffix() {
-		return "cfmodel";
+		return "model";
 	}
 
 	@Override
@@ -163,7 +166,7 @@ public class ConFigFixFormat extends AFeatureModelFormat {
 
 	@Override
 	public String getName() {
-		return "ConfigFix .cfmodel";
+		return "ConfigFix .model";
 	}
 
 }

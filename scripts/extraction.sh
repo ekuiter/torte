@@ -119,7 +119,7 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
     
     local file_extension="model"
     if [[ $extractor == configfixextractor ]]; then
-        file_extension="cfmodel"
+        file_extension="model"
     fi
     
     if [[ -f $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model") ]]; then
@@ -162,53 +162,113 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
                     | tee "$output_log"
                 time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
 
-	elif [[ $extractor == configfixextractor ]]; then
+	   elif [[ $extractor == configfixextractor ]]; then
 
-	    if [[ ! -f "$kconfig_file" ]]; then
-		exit 1
-	    fi
+		    linux_source="/home/linux/linux-6.10"
+		    
+		    export KBUILD_KCONFIG=$(realpath "$kconfig_file")
+		    export srctree="/home/input/$system"
 
-	    linux_source="/home/linux/linux-6.10"
-	    #result_directory_model="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.ConfigFixmodel")"
-	    #result_directory_txt="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.txt")"
-	    #result_directory_dimacs="$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.dimacs")"
-	    kconfig_file=$(realpath "$kconfig_file")
-	    
-	   
-	    temp_file=$(mktemp)
-	    while IFS= read -r line; do
-		if [[ $line =~ ^source[[:space:]]+[^\"].*[^\"].* ]]; then
-		    line=$(echo "$line" | sed -E 's|^source[[:space:]]+(.+)$|source "\1"|')
+
+		    #preprocessing for Subject busybox
+		    if [[ "$system" == "busybox" ]]; then
+		    
+		    	find $srctree -name "$kconfig_file" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
+
+		    fi
+		    
+		    #preprocessing for Subject axtls
+		    if [[ "$system" == "axtls" ]]; then
+		    
+		    	find "$srctree" -type f -name "Config.in" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
+		    fi
+		    
+		    
+		    #preprocessing for Subject uclibc-ng
+		    if [[ "$system" == "uclibc-ng" ]]; then
+			find "$srctree" -type f -exec sed -i -r "s|^source\\s+\"(.*)\"|source \"$(realpath "$srctree")/\\1\"|" {} \;
+			# to ask 
+			find "$srctree" -type f -exec sed -i '/option env/d' {} \;	
+		    fi
+		    
+		    #preprocessing for Subject embtoolkit
+		    if [[ "$system" == "embtoolkit" ]]; then
+		    
+		    
+			    find "$srctree" -type f -exec sed -i '/option env/d' {} \;
+			    
+			 	config_files=$(find "$srctree" -type f -name "Kconfig") 
+
+					for file in $config_files; do
+
+					    sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
+						       -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
+					    
+					done	
+				config_files=$(find "$srctree" -type f -name "*.kconfig") 
+
+					for file in $config_files; do
+					    
+					    sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
+						       -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
+					    
+					done
+
+		    fi
+		    
+                    #preprocessing for Subject freetz-ng
+		    if [[ "$system" == "freetz-ng" ]]; then
+
+			config_files=$(find "$srctree" -type f -name "*.in") 
+
+			for file in $config_files; do
+			    sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
+			   
+			    sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
+				       -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
+
+			done
+			config_files=$(find "$srctree" -type f -name "Config.in.busybox") 
+
+			for file in $config_files; do
+
+			    sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
+			    
+			    sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
+				       -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
+
+			done
+
+
+			fi
+		    
+		    #ToDo
+
+			if [[ "$system" == "buildroot" ]]; then
+
+			    config_files=$(find "$srctree" -type f -name "Config.in*") 
+
+			    for file in $config_files; do
+
+				sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/buildroot/\1"|' \
+					   -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/buildroot/\1"|' "$file"
+
+			    done
+
+			    make 2>&1 | grep -vE "(warning:|syntax error|invalid statement|ignoring unsupported character)"
+
+			fi
+
+		    make -f "$linux_source/Makefile" mrproper
+		    make -C "$linux_source" scripts/kconfig/cfoutconfig
+
+		    evaluate "$timeout"  make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
+
+		   
+		    if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.dimacs" ]]; then
+			cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
+		    fi
 		fi
-		echo "$line" >> "$temp_file"
-	    done < "$kconfig_file"
-
-	   
-	    mv "$temp_file" "$kconfig_file"
-
-
-	    (cd "$linux_source" && make scripts/kconfig/cfoutconfig)
-	    
-
-	    #mkdir -p "$result_directory"
-
-	    (cd "$linux_source" && make -k -f /home/linux/linux-6.10/Makefile V=1 cfoutconfig Kconfig=$kconfig_file)
-	    
-
-	    if [[ $? -ne 0 ]]; then
-		exit 1
-	    fi
-
-
-	    if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.dimacs" ]]; then
-		cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
-		#cp "$linux_source/scripts/kconfig/cfout_constraints.dimacs" "$result_directory_dimacs"
-		
-	    else
-		exit 1
-	    fi
-	fi
-
 
             unset-environment "$environment"
         else
@@ -245,6 +305,8 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 
     echo "$system,$revision_clean,$architecture,$kconfig_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
 }
+
+
 
 
 

@@ -9,6 +9,8 @@ import de.ovgu.featureide.fm.core.init.FMCoreLibrary;
 import de.ovgu.featureide.fm.core.init.LibraryManager;
 import de.ovgu.featureide.fm.core.io.manager.FeatureModelManager;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 
@@ -20,16 +22,23 @@ public interface ITransformation extends IExtension {
                 .orElseThrow(p -> new RuntimeException("failed to load feature model at " + inputPath));
     }
 
-	static IFeatureModel loadModelFileWithFeatureIDE(Path inputPath) {
-	    LibraryManager.registerLibrary(FMCoreLibrary.getInstance());
-	    FMFormatManager.getInstance().addExtension(new KConfigReaderFormat());
-	    FMFormatManager.getInstance().addExtension(new ConFigFixFormat());
+    static IFeatureModel loadModelFileWithFeatureIDE(Path inputPath) throws IOException {
+    
+        LibraryManager.registerLibrary(FMCoreLibrary.getInstance());
 
-	    final IFeatureModel featureModel = FeatureModelManager.load(inputPath);
-	    if (featureModel == null) {
-		throw new RuntimeException("Failed to load feature model at " + inputPath);
-	    }
-	    return featureModel;
-	}
+      
+        String content = Files.readString(inputPath);
+        if (content.contains("definedEx(")) {
+            FMFormatManager.getInstance().addExtension(new ConFigFixFormat());
+        } else {
+            FMFormatManager.getInstance().addExtension(new KConfigReaderFormat());
+        }
 
+        final IFeatureModel featureModel = FeatureModelManager.load(inputPath);
+        if (featureModel == null) {
+            throw new RuntimeException("Failed to load feature model at " + inputPath);
+        }
+        return featureModel;
+    }
 }
+
