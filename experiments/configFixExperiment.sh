@@ -12,6 +12,7 @@ experiment-subjects() {
     #add-fiasco-kconfig 58aa50a8aae2e9396f1c8d1d0aa53f2da20262ed
     #add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af
     #add-uclibc-ng-kconfig-history --from v1.0.40 --to v1.0.41
+    #add-toybox-kconfig-history --from 0.4.5 --to 0.8.9
     #Problematish
     #add-buildroot-kconfig-history --from 2021.11.2 --to 2021.11.3
 
@@ -20,13 +21,46 @@ experiment-subjects() {
 experiment-stages() {
     clone-systems
     extract-kconfig-models-with --extractor configfixextractor 
+    #extract-kconfig-models-with --extractor kconfigreader
+    
+    # transform
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 2
     transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 2
-    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 2
+    transform-models-into-dimacs-with-featjar --transformer model_to_dimacs_featureide
+ 
+    transform-models-into-dimacs-with-featjar \
+        --transformer model_to_dimacs_featureide
+    transform-models-with-featjar \
+        --transformer model_to_smt_z3 \
+        --output-extension smt \
+        --jobs 16
+    transform-models-with-featjar \
+        --transformer model_to_model_featureide \
+        --output-extension featureide.model \
+        --jobs 16
     run \
-        --stage dimacs \
+        --stage model_to_dimacs_kconfigreader \
+        --image kconfigreader \
+        --input-directory model_to_model_featureide \
+        --command transform-into-dimacs-with-kconfigreader \
+        --input-extension featureide.model
+    join-into model_to_model_featureide model_to_dimacs_kconfigreader
+    run \
+        --stage smt_to_dimacs_z3 \
         --image z3 \
         --input-directory model_to_smt_z3 \
-        --command transform-into-dimacs-with-z3 \
-        --jobs 2
+        --command transform-into-dimacs-with-z3
+    join-into model_to_smt_z3 smt_to_dimacs_z3
+    aggregate \
+        --stage dimacs \
+        --directory-field dimacs-transformer \
+        --file-fields dimacs-file \
+        --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
+    join-into kconfig dimacs
+
+      
+   #ModelToDIMACSFeatJAR
+   #ModelToSMTZ3
+   #transform-models-into-dimacs --timeout "$TIMEOUT"
+           
 }

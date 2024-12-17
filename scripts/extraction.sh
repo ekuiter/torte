@@ -242,6 +242,19 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 
 			fi
 		    
+		    #preprocessing for Subject toybox
+		    if [[ "$system" == "toybox" ]]; then
+
+			config_files=$(find "$srctree" -type f -name "*.in") 
+
+			for file in $config_files; do
+			    
+			    sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/toybox/\1"|' \
+				       -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/toybox/\1"|' "$file"
+
+			done
+
+		    fi
 		    #ToDo
 
 			if [[ "$system" == "buildroot" ]]; then
