@@ -3,6 +3,7 @@ import de.featjar.base.cli.Commands;
 import de.featjar.base.io.IO;
 import de.featjar.formula.analysis.javasmt.solver.FormulaToJavaSMT;
 import de.featjar.formula.io.FormulaFormats;
+import de.featjar.formula.io.ConFigFixFormat;
 import de.featjar.formula.structure.formula.IFormula;
 import org.sosy_lab.common.ShutdownManager;
 import org.sosy_lab.common.configuration.Configuration;
@@ -16,13 +17,32 @@ import org.sosy_lab.java_smt.api.SolverContext;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.io.IOException;
 
 public class ModelToSMTZ3 implements ITransformation {
     public void transform(Path inputPath, Path outputPath, Duration timeout) {
         Commands.runInThread(() -> {
-            IFormula formula = IO.load(inputPath, FeatJAR.extensionPoint(FormulaFormats.class))
-                    .orElseThrow(p -> new RuntimeException("failed to load feature model at " + inputPath));
-            Files.write(outputPath, formulaToSMTString(formula).getBytes());
+             try {
+
+ 		IFormula formula ;
+                String content = Files.readString(inputPath);
+                if (content.contains("definedEx(")) {
+			formula = (IFormula) IO.load(inputPath, new ConFigFixFormat())
+                    		.orElseThrow(p -> new RuntimeException("failed to load feature model at " + inputPath));
+                    		Files.write(outputPath, formulaToSMTString(formula).getBytes());
+                } else {
+ 
+       	    
+            		formula = (IFormula) IO.load(inputPath,  FeatJAR.extensionPoint(FormulaFormats.class))
+                    		.orElseThrow(p -> new RuntimeException("failed to load feature model at " + inputPath));
+            			Files.write(outputPath, formulaToSMTString(formula).getBytes());
+                }
+                
+                
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }, timeout);
 
 
