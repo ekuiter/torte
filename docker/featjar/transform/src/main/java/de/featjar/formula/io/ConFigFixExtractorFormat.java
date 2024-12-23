@@ -33,12 +33,10 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
- * Parses feature-model formula files created by KConfigReader.
- * TODO: this is currently mostly a hack and should be parsed properly as first-order formulas
- *
- * @author Elias Kuiter
+ * Parses feature-model formula files created by ConfigFix.
+ * @author Rami Alfish
  */
-public class ConFigFixFormat implements IFormat<IExpression> {
+public class ConFigFixExtractorFormat implements IFormat<IExpression> {
 
     @Override
     public Result<IExpression> parse(AInputMapper inputMapper) {
@@ -86,6 +84,6 @@ public class ConFigFixFormat implements IFormat<IExpression> {
 
     @Override
     public String getName() {
-        return "ConfigFix";
+        return "ConFigFixExtractor";
     }
 }
