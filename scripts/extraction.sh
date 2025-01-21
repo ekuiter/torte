@@ -132,7 +132,7 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
     push "$(input-directory)/$system"
     
     local kconfig_model
-    kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision"."$file_extension")
+    kconfig_model=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model")
     local features_file
     features_file=$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.features")
     local output_log
@@ -170,11 +170,11 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 		    export srctree="/home/input/$system"
 
 
+		    
 		    #preprocessing for Subject busybox
 		    if [[ "$system" == "busybox" ]]; then
-		    
+		    	find "$srctree" -type f -exec sed -i '/source\s\+networking\/udhcp\/Config\.in/d' {} \;
 		    	find $srctree -name "$kconfig_file" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
-
 		    fi
 		    
 		    #preprocessing for Subject axtls
@@ -188,7 +188,8 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 		    if [[ "$system" == "uclibc-ng" ]]; then
 			find "$srctree" -type f -exec sed -i -r "s|^source\\s+\"(.*)\"|source \"$(realpath "$srctree")/\\1\"|" {} \;
 			# to ask 
-			find "$srctree" -type f -exec sed -i '/option env/d' {} \;	
+			find "$srctree" -type f -exec sed -i '/option env/d' {} \;
+	
 		    fi
 		    
 		    #preprocessing for Subject embtoolkit
@@ -276,11 +277,13 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 		    make -C "$linux_source" scripts/kconfig/cfoutconfig
 
 		    evaluate "$timeout"  make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
-
+		    time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
 		   
-		    if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.dimacs" ]]; then
-			cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
-		    fi
+			if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.dimacs" ]]; then
+			    cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
+			    grep -oP 'definedEx\(\K[^)]+(?=\))' "$linux_source/scripts/kconfig/cfout_constraints.txt" | sort | uniq > "$features_file"
+			fi
+
 		fi
 
             unset-environment "$environment"
@@ -308,9 +311,12 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 		literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
         
         else
-		local features=NA
-		local variables=NA
-		local literals=NA
+		local features
+		features=$(wc -l < "$features_file")
+		local variables
+		variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "definedEx(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
+		local literals
+		literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "definedEx(")
         fi
 
         kconfig_model=${kconfig_model#"$(output-directory)/"}
@@ -318,10 +324,6 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 
     echo "$system,$revision_clean,$architecture,$kconfig_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
 }
-
-
-
-
 
 # defines API functions for extracting kconfig models
 # sets the global EXTRACTOR and KCONFIG_BINDING variables

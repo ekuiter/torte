@@ -317,11 +317,16 @@ define-stage-helpers() {
 	    --iteration-field "$iteration_field" \
 	    --file-fields "$file_fields"
 
-        aggregate \
-            --stage "$output_stage" \
-            --stage-field extractor \
-            --file-fields binding-file,model-file \
-            --stages kconfigreader kmax
+	file_fields="binding-file"
+	if [ -z "$binding_file" ]; then
+	    binding_file=""
+	fi
+
+    aggregate \
+	    --stage "$output_stage" \
+	    --stage-field extractor \
+	    --file-fields "$binding_file",model-file\
+	    --stages kconfigreader kmax configfixextractor
     }
 
     # transforms model files with FeatJAR
