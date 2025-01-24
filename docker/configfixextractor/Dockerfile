@@ -21,7 +21,8 @@ RUN apt-get update && \
     bison
 
 # Clone the Configfix repository and checkout the desired version
-RUN wget -O linux.tar.gz https://github.com/delta-one/linux/archive/refs/heads/copy_patch_v6.10.tar.gz && \
+#RUN wget -O linux.tar.gz https://github.com/delta-one/linux/archive/refs/heads/copy_patch_v6.10.tar.gz && \
+RUN wget -O linux.tar.gz https://github.com/rami-alfish/linux/archive/refs/heads/copy_patch_v6.10.tar.gz && \
     tar -xzf linux.tar.gz && \
     mv linux-copy_patch_v6.10 linux && \
     rm linux.tar.gz

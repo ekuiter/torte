@@ -181,17 +181,29 @@ compute-unconstrained-features(input, output) {
     if [[ -f "$input" ]]; then
         local tmp
         tmp=$(mktemp)
-        sed "s/)/)\n/g" < "$input" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq > "$tmp"
+
+        if grep -q "def(" "$input"; then
+            sed "s/)/)\n/g" < "$input" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq > "$tmp"
+        elif grep -q "definedEx(" "$input"; then
+            sed "s/)/)\n/g" < "$input" | grep "definedEx(" | sed "s/.*definedEx(\(.*\)).*/\1/g" | sort | uniq > "$tmp"
+        fi
+
         local kextractor_file
         kextractor_file="$(dirname "$input")/$(basename "$input" .model).kextractor"
+
         if [[ -f $kextractor_file ]]; then
-             diff "$tmp" <(grep -E "^config " "$kextractor_file" | cut -d' ' -f2 | sed 's/^CONFIG_//' | sort | uniq) | grep '>' | cut -d' ' -f2 > "$output"
+
+            diff "$tmp" <(grep -E "^config " "$kextractor_file" | cut -d' ' -f2 | sed 's/^CONFIG_//' | sort | uniq) | grep '>' | cut -d' ' -f2 > "$output"
         else
-             diff "$tmp" <(grep -E "^#item " "$input" | cut -d' ' -f2 | sort | uniq) | grep '>' | cut -d' ' -f2 > "$output"
+
+            diff "$tmp" <(grep -E "^#item " "$input" | cut -d' ' -f2 | sort | uniq) | grep '>' | cut -d' ' -f2 > "$output"
         fi
+
         rm-safe "$tmp"
     fi
 }
+
+
 
 # transforms models into their unconstrained features
 transform-into-unconstrained-features(input_extension=model, output_extension=unconstrained.features, timeout=0, jobs=1) {

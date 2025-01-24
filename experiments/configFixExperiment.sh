@@ -4,6 +4,7 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
+TIMEOUT=300
 experiment-subjects() {
     #All versions
     #add-toybox-kconfig-history 
@@ -17,14 +18,14 @@ experiment-subjects() {
     #add-buildroot-kconfig-history
 
     #--architecture all
-    add-linux-kconfig-history --from v6.7 --to v6.8 
+    #add-linux-kconfig-history --from v6.7 --to v6.8 
     
     # vor V5 funktioniert bei configFix nicht
     #add-linux-kconfig-history --from v5.0  --to v5.1
     #add-linux-kconfig-history --from v6.10 --to v6.10
     #1_1_0 --to 1_4_2 Fehler , die ich nicht fixen konnte
     # --from 0.32 --to 1.01  kconfig file Config.in does not exist
-    #add-busybox-kconfig-history --from 1_5_1 --to 1_5_2
+    add-busybox-kconfig-history --from 1_5_1 --to 1_5_2
     #add-busybox-kconfig-history --from 1_36_1
     #add-axtls-kconfig-history --from release-1.0.0 --to release-1.0.1
     #add-axtls-kconfig-history --from release-2.0.0
@@ -49,19 +50,20 @@ experiment-stages() {
     #extract-kconfig-models-with --extractor kconfigreader
     #extract-kconfig-models-with --extractor kmax
     
-    #compute-unconstrained-features --jobs 16
+    compute-unconstrained-features --jobs 16
 
 
     #extract-kconfig-models
  
 
     # transform
-    #transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
-    #transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
+    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
+    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
     transform-models-into-dimacs --timeout "$TIMEOUT"
     
     # Bei ConfigFix funktioniert nicht 
     #compute-unconstrained-features --timeout "$TIMEOUT"
+    #compute-unconstrained-features --jobs 16
     compute-backbone-dimacs-with-cadiback --jobs 16
     compute-backbone-features --jobs 16
 

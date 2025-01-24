@@ -49,6 +49,7 @@ public class ConFigFixExtractorFormat implements IFormat<IExpression> {
                         .getLineStream()
                         .map(String::trim)
                         .filter(l -> !l.isEmpty())
+                        .filter(l -> !l.startsWith("#"))
                         .map(l -> l.replace("=", "_"))
                         .map(l -> l.replace(":", "_"))
                         .map(l -> l.replace(".", "_"))
