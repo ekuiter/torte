@@ -4,7 +4,8 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
-TIMEOUT=300
+TIMEOUT=3600
+
 experiment-subjects() {
     #All versions
     #add-toybox-kconfig-history 
@@ -14,18 +15,19 @@ experiment-subjects() {
     #add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af
     #add-axtls-kconfig-history
     #add-busybox-kconfig-history
-    #add-linux-kconfig-history --from v2.5.45 --to v6.12
     #add-buildroot-kconfig-history
+    #add-linux-kconfig-history --from v2.5.45 --to v6.12
+
 
     #--architecture all
     #add-linux-kconfig-history --from v6.7 --to v6.8 
     
     # vor V5 funktioniert bei configFix nicht
-    #add-linux-kconfig-history --from v5.0  --to v5.1
+    add-linux-kconfig-history --from v5.0  --to v5.1
     #add-linux-kconfig-history --from v6.10 --to v6.10
     #1_1_0 --to 1_4_2 Fehler , die ich nicht fixen konnte
     # --from 0.32 --to 1.01  kconfig file Config.in does not exist
-    add-busybox-kconfig-history --from 1_5_1 --to 1_5_2
+    #add-busybox-kconfig-history --from 1_5_1 --to 1_5_2
     #add-busybox-kconfig-history --from 1_36_1
     #add-axtls-kconfig-history --from release-1.0.0 --to release-1.0.1
     #add-axtls-kconfig-history --from release-2.0.0
@@ -46,29 +48,48 @@ experiment-subjects() {
 
 experiment-stages() {
     clone-systems
+    #read-statistics
     extract-kconfig-models-with --extractor configfixextractor 
     #extract-kconfig-models-with --extractor kconfigreader
     #extract-kconfig-models-with --extractor kmax
+    #extract-kconfig-models#
+
+
+    # transform
+    #transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
+    #transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    #transform-models-into-dimacs --timeout "$TIMEOUT"
     
+    # extract
     compute-unconstrained-features --jobs 16
-
-
-    #extract-kconfig-models
- 
 
     # transform
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
     transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
-    transform-models-into-dimacs --timeout "$TIMEOUT"
-    
-    # Bei ConfigFix funktioniert nicht 
-    #compute-unconstrained-features --timeout "$TIMEOUT"
-    #compute-unconstrained-features --jobs 16
+    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
+    run \
+        --stage dimacs \
+        --image z3 \
+        --input-directory model_to_smt_z3 \
+        --command transform-into-dimacs-with-z3 \
+        --jobs 16
+    join-into model_to_smt_z3 dimacs
+    join-into kconfig dimacs
+
+    # analyze
     compute-backbone-dimacs-with-cadiback --jobs 16
+    join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
-
-    
-
-    #evaluate
-    #run-notebook --file experiments/ConfigFix.ipynb
+    solve \
+        --input-stage backbone-dimacs \
+        --input-extension backbone.dimacs \
+        --kind model-count \
+        --timeout "$SOLVE_TIMEOUT" \
+        --jobs "$SOLVE_JOBS" \
+        --attempts "$SOLVE_ATTEMPTS" \
+        --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
+        --solver_specs \
+        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
+        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
+    join-into backbone-dimacs solve_model-count
 }
