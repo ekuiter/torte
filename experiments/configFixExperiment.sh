@@ -23,7 +23,7 @@ experiment-subjects() {
     #add-linux-kconfig-history --from v6.7 --to v6.8 
     
     # vor V5 funktioniert bei configFix nicht
-    add-linux-kconfig-history --from v5.0  --to v5.1
+    #add-linux-kconfig-history --from v5.0  --to v5.1
     #add-linux-kconfig-history --from v6.10 --to v6.10
     #1_1_0 --to 1_4_2 Fehler , die ich nicht fixen konnte
     # --from 0.32 --to 1.01  kconfig file Config.in does not exist
@@ -34,7 +34,7 @@ experiment-subjects() {
     #add-embtoolkit-kconfig-history --from embtoolkit-0.1.0 --to embtoolkit-1.0.0
     #add-embtoolkit-kconfig-history --from embtoolkit-1.8.0
     #toybox :0.0.1  bei Kmax und kconfigreader funktioniert nicht
-    #add-toybox-kconfig-history --from 0.0.2 --to 0.0.3
+    add-toybox-kconfig-history --from 0.0.2 --to 0.0.3
     #add-toybox-kconfig-history --from 0.8.11
     #Problematish
     #uclibc-ng
@@ -64,21 +64,20 @@ experiment-stages() {
     compute-unconstrained-features --jobs 16
 
     # transform
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
-    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
-    run \
-        --stage dimacs \
-        --image z3 \
-        --input-directory model_to_smt_z3 \
-        --command transform-into-dimacs-with-z3 \
-        --jobs 16
-    join-into model_to_smt_z3 dimacs
-    join-into kconfig dimacs
+    #transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
+    #transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
+    #transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
+    #run \
+        #--stage dimacs \
+        #--image z3 \
+        #--input-directory model_to_smt_z3 \
+        #--command transform-into-dimacs-with-z3 \
+        #--jobs 16
+    #join-into model_to_smt_z3 dimacs
+    #join-into kconfig dimacs
 
     # analyze
     compute-backbone-dimacs-with-cadiback --jobs 16
-    join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
     solve \
         --input-stage backbone-dimacs \
