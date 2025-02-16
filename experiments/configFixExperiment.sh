@@ -5,18 +5,22 @@
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
 TIMEOUT=3600
+# parameters for computing model count
+SOLVE_TIMEOUT=3600 # timeout in seconds
+SOLVE_JOBS=4 # number of parallel jobs to run, should not exceed number of attempts
+SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and moving on
 
 experiment-subjects() {
     #All versions
-    #add-toybox-kconfig-history 
-    #add-uclibc-ng-kconfig-history
-    #add-embtoolkit-kconfig-history
-    #add-fiasco-kconfig 58aa50a8aae2e9396f1c8d1d0aa53f2da20262ed
-    #add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af
-    #add-axtls-kconfig-history
-    #add-busybox-kconfig-history
-    #add-buildroot-kconfig-history
-    #add-linux-kconfig-history --from v2.5.45 --to v6.12
+    add-toybox-kconfig-history 
+    add-uclibc-ng-kconfig-history
+    add-embtoolkit-kconfig-history
+    add-fiasco-kconfig 58aa50a8aae2e9396f1c8d1d0aa53f2da20262ed
+    add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af
+    add-axtls-kconfig-history
+    add-busybox-kconfig-history
+    add-buildroot-kconfig-history
+    add-linux-kconfig-history --from v2.5.45 --to v6.12
 
 
     #--architecture all
@@ -34,7 +38,7 @@ experiment-subjects() {
     #add-embtoolkit-kconfig-history --from embtoolkit-0.1.0 --to embtoolkit-1.0.0
     #add-embtoolkit-kconfig-history --from embtoolkit-1.8.0
     #toybox :0.0.1  bei Kmax und kconfigreader funktioniert nicht
-    add-toybox-kconfig-history --from 0.0.2 --to 0.0.3
+    #add-toybox-kconfig-history --from 0.0.2 --to 0.0.3
     #add-toybox-kconfig-history --from 0.8.11
     #Problematish
     #uclibc-ng
@@ -54,30 +58,24 @@ experiment-stages() {
     #extract-kconfig-models-with --extractor kmax
     #extract-kconfig-models#
 
+    compute-unconstrained-features
 
     # transform
-    #transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
-    #transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
-    #transform-models-into-dimacs --timeout "$TIMEOUT"
-    
-    # extract
-    compute-unconstrained-features --jobs 16
-
-    # transform
-    #transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
-    #transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 16
-    #transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
-    #run \
-        #--stage dimacs \
-        #--image z3 \
-        #--input-directory model_to_smt_z3 \
-        #--command transform-into-dimacs-with-z3 \
-        #--jobs 16
-    #join-into model_to_smt_z3 dimacs
-    #join-into kconfig dimacs
+    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 2
+    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 2
+    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 2
+    run \
+        --stage dimacs \
+        --image z3 \
+        --input-directory model_to_smt_z3 \
+        --command transform-into-dimacs-with-z3 \
+        --jobs 2
+    join-into model_to_smt_z3 dimacs
+    join-into kconfig dimacs
 
     # analyze
-    compute-backbone-dimacs-with-cadiback --jobs 16
+    compute-backbone-dimacs-with-cadiback 
+    join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
     solve \
         --input-stage backbone-dimacs \
