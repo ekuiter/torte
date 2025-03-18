@@ -282,32 +282,35 @@ These are miscellaneous solvers from various sources.
 
 A subset of these SAT solvers was used in the evaluation of the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022).
 Each solver is the gold medal winner in the main track (SAT+UNSAT) of the SAT competition in the year encoded in its file name.
-These binaries were obtained from the [SAT competition](http://www.satcompetition.org/), [SAT heritage](https://github.com/sat-heritage/docker-images), and [SAT museum](https://cca.informatik.uni-freiburg.de/satmuseum/) initiatives.
+These binaries were obtained from the [SAT competition](http://www.satcompetition.org/) and [SAT heritage](https://github.com/sat-heritage/docker-images) initiatives.
+The [SAT museum](https://cca.informatik.uni-freiburg.de/satmuseum/), which has been developed in parallel to this work, also lists and archives single best solvers (SBS).
+We note differences to the SAT museum where there are any.
 
-| Year | Solver |
-| - | - |
-| 2002 | zchaff |
-| 2003 | Forklift |
-| 2004 | zchaff |
-| 2005 | SatELiteGTI |
-| 2006 | MiniSat |
-| 2007 | RSat |
-| 2008 | MiniSat |
-| 2009 | precosat |
-| 2010 | CryptoMiniSat |
-| 2011 | glucose |
-| 2012 | glucose |
-| 2013 | lingeling-aqw |
-| 2014 | lingeling-ayv |
-| 2015 | abcdSAT |
-| 2016 | MapleCOMSPS_DRUP |
-| 2017 | Maple_LCM_Dist |
-| 2018 | MapleLCMDistChronoBT |
-| 2019 | MapleLCMDiscChronoBT-DL-v3 |
-| 2020 | Kissat-sc2020-sat |
-| 2021 | Kissat_MAB |
-| 2022 | Kissat_MAB-HyWalk |
-| 2023 | sbva_cadical |
+| Year | Solver | Notes |
+| - | - | - |
+| 2002 | zchaff | [^30] |
+| 2003 | Forklift | [^31] |
+| 2004 | zchaff | |
+| 2005 | SatELiteGTI | |
+| 2006 | MiniSat | |
+| 2007 | RSat | |
+| 2008 | MiniSat | |
+| 2009 | precosat | |
+| 2010 | CryptoMiniSat | |
+| 2011 | glucose | |
+| 2012 | glucose | |
+| 2013 | lingeling-aqw | |
+| 2014 | lingeling-ayv | |
+| 2015 | abcdSAT | |
+| 2016 | MapleCOMSPS_DRUP | |
+| 2017 | Maple_LCM_Dist | |
+| 2018 | MapleLCMDistChronoBT | |
+| 2019 | MapleLCMDiscChronoBT-DL-v3 | |
+| 2020 | Kissat-sc2020-sat | |
+| 2021 | Kissat_MAB | |
+| 2022 | Kissat_MAB-HyWalk | |
+| 2023 | sbva_cadical | [^32] |
+| 2024 | kissat-sc2024 | [^32] |
 
 [^17]: For TwG, two configurations were provided by the model-counting competition (`TwG1` and `TwG2`).
 As there was no indication as to which configuration was used in the competition, we arbitrarily chose `TwG1`.
@@ -318,6 +321,12 @@ As there was no indication as to which configuration was used in the competition
 As only the second configuration actually runs SharpSAT-td, we chose `conf2` (`conf1` probably implements the approximate counter `SharpSAT-td-Arjun+ApproxMC`).
 
 [^20]: This version of dSharp is [known](https://doi.org/10.4230/LIPIcs.SAT.2022.30) to produce inaccurate results for some inputs, so use it with caution.
+
+[^30]: `zchaff` won as a complete solver on industrial instances (SAT+UNSAT), while the SAT museum lists `limmat`, which only won on satisfiable industrial instances.
+
+[^31]: `Forklift` inherits from `berkmin62` and is listed under that alias in the SAT museum.
+
+[^32]: This solver is not yet listed in the SAT museum as of March 2025.
 
 ## Predefined Experiments
 
