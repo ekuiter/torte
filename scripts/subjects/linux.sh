@@ -93,6 +93,7 @@ linux-config-types(revision) {
 }
 
 linux-attempt-grouper(file) {
+    # group solving attempts by architecture (so skipping after a certain number of attempts is scoped to a given architecture)
     # shellcheck disable=SC2001
     echo "$file" | sed 's#\(.*\)/linux/.*\[\(.*\)\]\..*#\1.\2#'
 }
