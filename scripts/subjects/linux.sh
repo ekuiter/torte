@@ -153,11 +153,12 @@ linux-kconfig-binding-file(revision) {
 }
 
 add-linux-kconfig-revisions(revisions=, architecture=x86) {
-    if [[ -z $revisions ]]; then
+    # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction, as previous versions cannot be compiled
+    # this requires that old revisions are tagged (tag-linux-revisions)
+    local first_binding_revision=v2.6.9
+    if [[ -z $revisions ]] || ! git -C "$(input-directory)/linux" tag | grep -q "^$first_binding_revision$"; then
         return
     fi
-    # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction, as previous versions cannot be compiled
-    local first_binding_revision=v2.6.9
     local first_binding_timestamp current_timestamp
     first_binding_timestamp=$(git-timestamp linux "$first_binding_revision")
     while read -r revision; do
