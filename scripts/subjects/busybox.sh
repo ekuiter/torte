@@ -60,3 +60,61 @@ generate-busybox-models() {
         fi
     done
 }
+
+read-busybox-configs() {
+    add-revision(system, revision) {
+        if [[ $system == busybox ]]; then
+            log "read-busybox-configs: $system@$revision" "$(echo-progress read)"
+            if grep -q "^$system,$revision," "$(output-csv)"; then
+                log "" "$(echo-skip)"
+                return
+            fi
+            if [[ ! -d $(input-directory)/busybox ]]; then
+                error "BusyBox has not been cloned yet. Please prepend a stage that clones BusyBox."
+            fi
+            
+            local configs config_types
+            configs=$(mktemp)
+            config_types=$(mktemp)
+
+            echo system,revision,kconfig-file,config >> "$configs"
+            echo system,revision,kconfig-file,config,type >> "$config_types"
+
+            busybox-configs "$revision" >> "$configs"
+            tail -n+2 < "$configs" >> "$(output-csv)"
+
+            busybox-config-types "$revision" >> "$config_types"
+            if [[ ! -f $(output-file types.csv) ]]; then
+                join-tables "$configs" "$config_types" | head -n1 > "$(output-file types.csv)"
+            fi
+            join-tables "$configs" "$config_types" | tail -n+2 >> "$(output-file types.csv)"
+
+            log "" "$(echo-done)"
+            rm-safe "$configs" "$config_types"
+        fi
+    }
+
+    echo system,revision,kconfig-file,config > "$(output-csv)"
+    experiment-subjects
+}
+
+busybox-configs(revision) {
+    git -C "$(input-directory)/busybox" grep -E $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Config*' \
+        | awk -F: $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print "busybox", $1, $2, $3}' \
+        | grep -E ',.*,.*,[0-9a-zA-Z_]+$' \
+        | sort | uniq
+}
+
+busybox-config-types(revision) {
+    git -C "$(input-directory)/busybox" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Config*' \
+        | perl -pe 's/[ \t]*(menu)?config[ \t]+([0-9a-zA-Z_]+).*/$2/' \
+        | perl -pe 's/\n/&&&/g' \
+        | perl -pe 's/&&&--&&&/\n/g' \
+        | perl -pe 's/&&&[^:&]*?:[^:&]*?Config[^:&]*?-/&&&/g' \
+        | perl -pe 's/&&&([^:&]*?:[^:&]*?Config[^:&]*?:)/&&&\n$1/g' \
+        | perl -pe 's/&&&/:/g' \
+        | awk -F: $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print "busybox", $1, $2, $3, $4}' \
+        | grep -E ',(bool|tristate|string|int|hex)$' \
+        | sort | uniq
+}
+

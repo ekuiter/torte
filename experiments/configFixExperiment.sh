@@ -12,15 +12,15 @@ SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and
 
 experiment-subjects() {
     #All versions
-    add-toybox-kconfig-history 
-    add-uclibc-ng-kconfig-history
-    add-embtoolkit-kconfig-history
+    #add-toybox-kconfig-history 
+    #add-uclibc-ng-kconfig-history
+    #add-embtoolkit-kconfig-history
     add-fiasco-kconfig 58aa50a8aae2e9396f1c8d1d0aa53f2da20262ed
-    add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af
-    add-axtls-kconfig-history
-    add-busybox-kconfig-history
-    add-buildroot-kconfig-history
-    add-linux-kconfig-history --from v2.5.45 --to v6.12
+    #add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af
+    #add-axtls-kconfig-history
+    #add-busybox-kconfig-history
+    #add-buildroot-kconfig-history
+    #add-linux-kconfig-history --from v2.5.45 --to v6.12
 
 
     #--architecture all
@@ -53,40 +53,41 @@ experiment-subjects() {
 experiment-stages() {
     clone-systems
     #read-statistics
-    extract-kconfig-models-with --extractor configfixextractor 
+    #read-embtoolkit-configs
+    #extract-kconfig-models-with --extractor configfixextractor 
     #extract-kconfig-models-with --extractor kconfigreader
-    #extract-kconfig-models-with --extractor kmax
-    #extract-kconfig-models#
+    extract-kconfig-models-with --extractor kmax
+    #extract-kconfig-models
 
-    compute-unconstrained-features
+    #compute-unconstrained-features
 
     # transform
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 2
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 2
-    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 2
-    run \
-        --stage dimacs \
-        --image z3 \
-        --input-directory model_to_smt_z3 \
-        --command transform-into-dimacs-with-z3 \
-        --jobs 2
-    join-into model_to_smt_z3 dimacs
-    join-into kconfig dimacs
+    #transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 2
+    #transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 2
+    #transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 2
+    #run \
+        #--stage dimacs \
+        #--image z3 \
+        #--input-directory model_to_smt_z3 \
+        #--command transform-into-dimacs-with-z3 \
+        #--jobs 2
+    #join-into model_to_smt_z3 dimacs
+    #join-into kconfig dimacs
 
     # analyze
-    compute-backbone-dimacs-with-cadiback 
-    join-into dimacs backbone-dimacs
-    compute-backbone-features --jobs 16
-    solve \
-        --input-stage backbone-dimacs \
-        --input-extension backbone.dimacs \
-        --kind model-count \
-        --timeout "$SOLVE_TIMEOUT" \
-        --jobs "$SOLVE_JOBS" \
-        --attempts "$SOLVE_ATTEMPTS" \
-        --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
-        --solver_specs \
-        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
-        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
-    join-into backbone-dimacs solve_model-count
+    #compute-backbone-dimacs-with-cadiback 
+    #join-into dimacs backbone-dimacs
+    #compute-backbone-features --jobs 16
+   # solve \
+        #--input-stage backbone-dimacs \
+        #--input-extension backbone.dimacs \
+        #--kind model-count \
+        #--timeout "$SOLVE_TIMEOUT" \
+        #--jobs "$SOLVE_JOBS" \
+        #--attempts "$SOLVE_ATTEMPTS" \
+        #--attempt-grouper "$(to-lambda linux-attempt-grouper)" \
+        #--solver_specs \
+        #model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
+        #model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
+    #join-into backbone-dimacs solve_model-count
 }
