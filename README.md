@@ -334,6 +334,7 @@ Experiments starting with `draft-` are experimental.
 | `feature-model-differences` | Extraction and comparison of all feature models of several feature-model histories |
 | `linux-history-releases` | Extraction, transformation, and analysis of a history of Linux feature models |
 | `linux-history-weekly` | Extraction of a weekly history of Linux feature models |
+| `linux-time-travel` | Extraction of a yearly history of Linux feature models, evaluation against SAT competition winners |
 | `linux-recent-release` | Extraction and transformation of a recent Linux feature model |
 | `prepare-linux-fork` | Clones and rewrites the Linux Git repository to avoid issues with case-insensitive file systems |
 | `tseitin-or-not-tseitin` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
