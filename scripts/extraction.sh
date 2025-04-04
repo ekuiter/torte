@@ -126,7 +126,7 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
         if [[ -f $kconfig_binding_file ]]; then
             set-environment "$environment"
             if [[ $extractor == kconfigreader ]]; then
-                evaluate "$timeout" /home/kconfigreader/run.sh de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf "$kconfig_binding_file" "$kconfig_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")" | tee "$output_log"
+                evaluate "$timeout" /home/kconfigreader/run.sh $(memory-limit 1) de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf "$kconfig_binding_file" "$kconfig_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")" | tee "$output_log"
                 local time
                 time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
             elif [[ $extractor == kmax ]]; then

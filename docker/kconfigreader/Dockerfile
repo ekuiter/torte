@@ -56,3 +56,7 @@ RUN git config --global --add safe.directory '*' \
     && git config --global user.email "anon@example.com" \
     && git config --global user.name "anon" \
     && git config --global init.defaultBranch mean
+
+# increase memory limit and disable assertions
+RUN sed -i 's/java/mem=$1; shift; java/' kconfigreader/run.sh
+RUN sed -i 's/-ea -Xmx3G/-da "-Xmx${mem}G"/' kconfigreader/run.sh

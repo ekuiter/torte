@@ -113,7 +113,7 @@ transform-into-dimacs-with-kconfigreader(input_extension=model, output_extension
         "$input_extension" \
         "$output_extension" \
         model_to_dimacs_kconfigreader \
-        "$(lambda input,output 'echo /home/kconfigreader/run.sh de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
+        "$(lambda input,output 'echo /home/kconfigreader/run.sh '$(memory-limit 1)' de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
         "$timeout" \
