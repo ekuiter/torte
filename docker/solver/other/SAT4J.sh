@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar "$(dirname "$0")/org.sat4j.core.jar" "$1"
+java -jar "$(dirname "$0")/org.sat4j.core.2.3.6.jar" "$1"
