@@ -514,8 +514,10 @@ define-stage-helpers() {
             sat-competition/22-kissat_MAB-HyWalk,solver,satisfiable
             sat-competition/23-sbva_cadical.sh,solver,satisfiable
             sat-competition/24-kissat-sc2024,solver,satisfiable
-            other/SAT4J.sh,solver,satisfiable
-            other/SAT4J-FeatureIDE.sh,solver,satisfiable
+            other/SAT4J.210.sh,solver,satisfiable
+            other/SAT4J.231.sh,solver,satisfiable
+            other/SAT4J.235.sh,solver,satisfiable
+            other/SAT4J.236.sh,solver,satisfiable
             z3,z3,satisfiable
         )
         solve --kind satisfiable --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs" \

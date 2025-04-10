@@ -276,8 +276,10 @@ These are miscellaneous solvers from various sources.
 | backbone_kissat.py | - | - | Backbone Extractor |
 | [d4v2](https://github.com/SoftVarE-Group/d4v2) | c1f6842 | 2023-02-15 | #SAT Solver, d-DNNF compiler, PMC |
 | [kissat_MAB-HyWalk](https://satcompetition.github.io/2022/downloads/sequential-solvers.zip) | ? | ? | SAT Solver |
-| SAT4J-FeatureIDE | 2.3.5 | 2013-05-25 | SAT Solver (version [used in FeatureIDE](https://github.com/FeatureIDE/FeatureIDE/commits/develop/plugins/de.ovgu.featureide.fm.core/lib/org.sat4j.core.jar) 2014/07-2025/04) |
-| SAT4J | 2.3.6 | 2020-12-14 | SAT Solver (more recent version) |
+| SAT4J.210 | 2.1.0 | 2009-03-12 | SAT Solver | used by [FeatureIDE](https://github.com/FeatureIDE/FeatureIDE/commits/develop/plugins/de.ovgu.featureide.fm.core/lib/org.sat4j.core.jar) from 05/2009 until 04/2011 |
+| SAT4J.231 | 2.3.1 | 2011 | SAT Solver | used by [FeatureIDE](https://github.com/FeatureIDE/FeatureIDE/commits/develop/plugins/de.ovgu.featureide.fm.core/lib/org.sat4j.core.jar) until 06/2014 |
+| SAT4J.235 | 2.3.5 | 2013-05-25 | SAT Solver | used by [FeatureIDE](https://github.com/FeatureIDE/FeatureIDE/commits/develop/plugins/de.ovgu.featureide.fm.core/lib/org.sat4j.core.jar) until 04/2025 |
+| SAT4J.236 | 2.3.6 | 2020-12-14 | SAT Solver |
 
 #### Collection: sat-competition
 
