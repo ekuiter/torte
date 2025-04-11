@@ -98,5 +98,8 @@ experiment-stages() {
         sat-competition/21-Kissat_MAB,solver,satisfiable \
         sat-competition/22-kissat_MAB-HyWalk,solver,satisfiable \
         sat-competition/23-sbva_cadical.sh,solver,satisfiable \
-        sat-competition/24-kissat-sc2024,solver,satisfiable
+        sat-competition/24-kissat-sc2024,solver,satisfiable \
+        other/SAT4J.210.sh,solver,satisfiable \
+        other/SAT4J.231.sh,solver,satisfiable \
+        other/SAT4J.235.sh,solver,satisfiable
 }
