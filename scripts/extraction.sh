@@ -146,6 +146,8 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
                 evaluate "$timeout" /home/kconfigreader/run.sh de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf "$kconfig_binding_file" "$kconfig_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")" | tee "$output_log"
                 local time
                 time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
+                
+                
             elif [[ $extractor == kmax ]]; then
                 evaluate "$timeout" /home/kextractor.sh \
                     "$kconfig_binding_file" \
@@ -192,6 +194,7 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 	
 		    fi
 		    
+		    
 		    #preprocessing for Subject embtoolkit
 		    if [[ "$system" == "embtoolkit" ]]; then
 		    
@@ -217,7 +220,7 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 
 		    fi
 		    
-			if [[ "$system" == "linux" ]]; then
+		    if [[ "$system" == "linux" ]]; then
 			    # Überprüfen, ob die Version v2.5.45 ist
 			    if [[ "$revision" == "v2.5.45" ]]; then
 				# Vorher gesetzte Variablen bereinigen und neu setzen
@@ -245,7 +248,7 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 				    -e 's|\$\(srctree\)|/home/input/linux|g' \
 				    "$file"
 			    done
-			fi
+		fi
 
 
 
@@ -290,7 +293,7 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 		    fi
 		    #ToDo
 
-			if [[ "$system" == "buildroot" ]]; then
+		    if [[ "$system" == "buildroot" ]]; then
 
 			    config_files=$(find "$srctree" -type f -name "Config.in*") 
 
@@ -311,8 +314,15 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 		    evaluate "$timeout"  make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
 		    time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
 		    
-		    cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
-                    cp "$linux_source/scripts/kconfig/cfout_constraints.features" "$features_file"
+		    
+		    
+		    if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.features" ]]; then
+ 
+		    	cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
+                    	cp "$linux_source/scripts/kconfig/cfout_constraints.features" "$features_file"
+ 
+		    fi
+		    
 		fi
 
             unset-environment "$environment"
@@ -370,6 +380,7 @@ register-kconfig-extractor(extractor, kconfig_binding="", timeout=0) {
     else
         echo "Using KCONFIG_BINDING: $KCONFIG_BINDING"
     fi
+    
 
     add-kconfig-binding(system, revision, kconfig_binding_files, environment=) {
         kconfig-checkout "$system" "$revision" "$kconfig_binding_files"
