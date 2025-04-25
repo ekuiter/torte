@@ -9,7 +9,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https:/
 # Analysis time can be cut in half by removing the slowest solver, 23-sbva_cadical.sh.
 
 SOLVE_TIMEOUT=1200 # timeout for SAT solvers in seconds (rarely needed)
-SOLVE_ITERATIONS=25 # number of iterations to avoid outliers
+ITERATIONS=3 # number of iterations to avoid outliers
 LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
 
 experiment-subjects() {
@@ -33,7 +33,10 @@ experiment-stages() {
     read-statistics skip-sloc
 
     # extract (with two KConfig extractors)
-    extract-kconfig-models
+    extract-kconfig-models \
+        --iterations "$ITERATIONS" \
+        --iteration-field extract-iteration \
+        --file-fields model-file
     join-into read-statistics kconfig
 
     # transform (with two CNF transformations)
@@ -41,7 +44,11 @@ experiment-stages() {
         --transformer model_to_smt_z3 \
         --output-extension smt \
         --jobs 8
-    run \
+    # we don't iterate this CNF transformation because it is fully deterministic
+    iterate \
+        --iterations 1 \
+        --iteration-field transform-iteration \
+        --file-fields dimacs-file \
         --stage smt_to_dimacs_z3 \
         --image z3 \
         --input-directory model_to_smt_z3 \
@@ -53,7 +60,10 @@ experiment-stages() {
         --transformer model_to_model_featureide \
         --output-extension featureide.model \
         --jobs 8
-    run \
+    iterate \
+        --iterations "$ITERATIONS" \
+        --iteration-field transform-iteration \
+        --file-fields dimacs-file \
         --stage model_to_dimacs_kconfigreader \
         --image kconfigreader \
         --input-directory model_to_model_featureide \
@@ -69,12 +79,13 @@ experiment-stages() {
         --stages model_to_dimacs_kconfigreader smt_to_dimacs_z3
     join-into kconfig dimacs
 
-    # analyze (not parallelized so as not to disturb time measurements)
+    # analyze (parallelization effectively does not disturb time measurements on a powerful machine)
     solve \
-        --iterations "$SOLVE_ITERATIONS" \
+        --iterations "$ITERATIONS" \
         --kind model-satisfiable \
         --timeout "$SOLVE_TIMEOUT" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
+        --jobs 8 \
         --solver_specs \
         sat-competition/02-zchaff,solver,satisfiable \
         sat-competition/03-Forklift,solver,satisfiable \
