@@ -62,8 +62,8 @@ uclibc-ng-config-types(revision) {
         | perl -pe 's/[ \t]*(menu)?config[ \t]+([0-9a-zA-Z_]+).*/$2/' \
         | perl -pe 's/\n/&&&/g' \
         | perl -pe 's/&&&--&&&/\n/g' \
-        | perl -pe 's/&&&[^:&]*?:[^:&]*?Config[^:&]*?-/&&&/g' \
-        | perl -pe 's/&&&([^:&]*?:[^:&]*?Config[^:&]*?:)/&&&\n$1/g' \
+        | perl -pe 's/&&&[^:&]*?:[^:&]*?Config.in[^:&]*?-/&&&/g' \
+        | perl -pe 's/&&&([^:&]*?:[^:&]*?Config.in[^:&]*?:)/&&&\n$1/g' \
         | perl -pe 's/&&&/:/g' \
         | awk -F: $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print "uclibc-ng", $1, $2, $3, $4}' \
         | grep -E ',(bool|tristate|string|int|hex)$' \

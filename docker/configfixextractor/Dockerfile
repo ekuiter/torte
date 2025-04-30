@@ -42,6 +42,9 @@ RUN cd /home/linux/linux-6.10 && make defconfig
 # Run the configuration interface
 #RUN cd /home/linux/linux-6.10 && make cfoutconfig
 
+COPY *.py /tools/
+
+
 # Optional: expose an entrypoint to allow further configuration or building
 ENTRYPOINT ["/bin/bash"]
 

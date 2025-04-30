@@ -170,6 +170,10 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 		    
 		    export KBUILD_KCONFIG=$(realpath "$kconfig_file")
 		    export srctree="/home/input/$system"
+		    #export ARCH=i386
+		    
+
+
 
 
 		    
@@ -220,38 +224,6 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 
 		    fi
 		    
-		    if [[ "$system" == "linux" ]]; then
-			    # Überprüfen, ob die Version v2.5.45 ist
-			    if [[ "$revision" == "v2.5.45" ]]; then
-				# Vorher gesetzte Variablen bereinigen und neu setzen
-				unset KBUILD_KCONFIG
-				unset srctree
-				export KBUILD_KCONFIG="/home/input/linux/arch/i386/Kconfig"
-				export srctree="/home/input/linux"
-				export ARCH=i386
-				echo "KBUILD_KCONFIG wurde explizit für v2.5.45 gesetzt: $KBUILD_KCONFIG"
-			    else
-				# Für andere Versionen wird der Pfad automatisch gesucht
-				kconfig_path=$(find "$srctree" -type f -name "Kconfig" | head -n 1)
-				export KBUILD_KCONFIG=$(realpath "$kconfig_path")
-				echo "KBUILD_KCONFIG wurde dynamisch gesetzt auf: $KBUILD_KCONFIG"
-			    fi
-
-			    # Anpassungen an Kconfig-Dateien
-			    config_files=$(find "$srctree" -type f -name "Kconfig")
-
-			    for file in $config_files; do
-				sed -i -r \
-				    -e 's|^source\s+"([^"]+)"|source "/home/input/linux/\1"|' \
-				    -e 's|^source\s+([^"/][^"]*)|source "/home/input/linux/\1"|' \
-				    -e 's|\$\(SRCARCH\)|i386|g' \
-				    -e 's|\$\(srctree\)|/home/input/linux|g' \
-				    "$file"
-			    done
-		fi
-
-
-
                     #preprocessing for Subject freetz-ng
 		    if [[ "$system" == "freetz-ng" ]]; then
 
@@ -307,9 +279,15 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 			    make 2>&1 | grep -vE "(warning:|syntax error|invalid statement|ignoring unsupported character)"
 
 			fi
+		    
+
+
+
 
 		    make -f "$linux_source/Makefile" mrproper
 		    make -C "$linux_source" scripts/kconfig/cfoutconfig
+		    
+
 
 		    evaluate "$timeout"  make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
 		    time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
@@ -428,3 +406,7 @@ extract-kconfig-models-with-configfixextractor(timeout=0) {
     register-kconfig-extractor configfixextractor "" "$timeout"
     experiment-subjects
 }
+
+
+
+

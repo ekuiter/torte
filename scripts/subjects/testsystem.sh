@@ -8,6 +8,6 @@ add-testsystem-kconfig(revision) {
     add-kconfig-model \
         --system testsystem \
         --revision "$revision" \
-        --kconfig-file dependencies.Kconfig \
+        --kconfig-file Kconfig \
         --kconfig-binding-file "$(linux-kconfig-binding-file v6.7)"
 }

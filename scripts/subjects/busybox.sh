@@ -105,7 +105,12 @@ busybox-configs(revision) {
         | sort | uniq
 }
 
+
+
 busybox-config-types(revision) {
+    # similar to linux-configs, reads all configuration options, but also tries to read their types from the succeeding line
+    # note that this is less accurate than linux-configs due to the complexity of the regular expressions
+    # also, this does not exclude the architecture um as done in other functions
     git -C "$(input-directory)/busybox" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Config*' \
         | perl -pe 's/[ \t]*(menu)?config[ \t]+([0-9a-zA-Z_]+).*/$2/' \
         | perl -pe 's/\n/&&&/g' \

@@ -310,6 +310,9 @@ define-stage-helpers() {
     read-uclibc-ng-configs() {
         run --stage read-uclibc-ng-configs
     }
+    
+
+    # read basic statistics for each system
     # read basic statistics for each system
     read-statistics(option=) {
         run --stage read-statistics --command read-statistics "$option"
