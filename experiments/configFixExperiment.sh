@@ -11,51 +11,32 @@ SOLVE_JOBS=4 # number of parallel jobs to run, should not exceed number of attem
 SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and moving on
 
 experiment-subjects() {
-    #All versions
-     #add-testsystem-kconfig v0.0
-    #add-toybox-kconfig-history 
-    #add-axtls-kconfig-history
-    #add-embtoolkit-kconfig-history
-    #add-fiasco-kconfig 58aa50a8aae2e9396f1c8d1d0aa53f2da20262ed
-    #add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af
-    #add-axtls-kconfig-history
-    #add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
-    #add-buildroot-kconfig-history
-    add-linux-kconfig-history --from v5.0 --to v5.1 --architecture x86
-    #add-uclibc-ng-kconfig-history
+  
+    #add-testsystem-kconfig v0.0
+    add-toybox-kconfig-history 
+    add-axtls-kconfig-history
+    add-embtoolkit-kconfig-history
+    add-fiasco-kconfig 58aa50a8aae2e9396f1c8d1d0aa53f2da20262ed
+    add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af
+    add-busybox-kconfig-history 
+    add-linux-kconfig-history --from v4.18 --to v5.6 --architecture x86
+    add-uclibc-ng-kconfig-history
 
 
-    #--architecture all
-    #add-linux-kconfig-history --from v4.19 --to v4.20 --architecture x86
-    #add-linux-kconfig-history --from v6.0 --to v6.1
-    
-    # vor V5 funktioniert bei configFix nicht
-    #add-linux-kconfig-history --from v5.0  --to v5.1
-    #add-linux-kconfig-history --from v6.10 --to v6.10
-    #1_1_0 --to 1_4_2 Fehler , die ich nicht fixen konnte
-    # --from 0.32 --to 1.01  kconfig file Config.in does not exist
-    #add-busybox-kconfig-history --from 1_5_1 --to 1_5_2
-    #add-busybox-kconfig-history --from 1_36_1
-    #add-axtls-kconfig-history --from release-1.0.0 --to release-1.0.1
-    #add-axtls-kconfig-history --from release-2.0.0
-    #add-embtoolkit-kconfig-history --from embtoolkit-0.1.0 --to embtoolkit-1.0.0
-    #add-embtoolkit-kconfig-history --from embtoolkit-1.8.0
-    #toybox :0.0.1  bei Kmax und kconfigreader funktioniert nicht
-    #add-toybox-kconfig-history --from 0.0.2 --to 0.0.3
-    #add-toybox-kconfig-history --from 0.8.11
-    #Problematish
-    #uclibc-ng
-    #add-uclibc-ng-kconfig-history --from v1.0.0 --to v1.0.1
-    #add-uclibc-ng-kconfig-history --from v1.0.47
-    
-    
-    #add-buildroot-kconfig-history --from 2021.11.2 --to 2021.11.3
+
 
 }
 
 experiment-stages() {
     clone-systems
-    #read-testsystem-configs
+    read-toybox-configs
+    read-axtls-configs
+    read-embtoolkit-configs
+    read-fiasco-configs
+    read-freetz-ng-configs
+    read-busybox-configs
+    read-uclibc-ng-configs
+    read-linux-configs
     extract-kconfig-models-with --extractor configfixextractor 
     #extract-kconfig-models-with --extractor kconfigreader
     #extract-kconfig-models-with --extractor kmax

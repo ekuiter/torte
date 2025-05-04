@@ -170,11 +170,6 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 		    
 		    export KBUILD_KCONFIG=$(realpath "$kconfig_file")
 		    export srctree="/home/input/$system"
-		    #export ARCH=i386
-		    
-
-
-
 
 		    
 		    #preprocessing for Subject busybox
@@ -248,7 +243,7 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 			done
 
 
-			fi
+		    fi
 		    
 		    #preprocessing for Subject toybox
 		    if [[ "$system" == "toybox" ]]; then
@@ -263,24 +258,6 @@ extract-kconfig-model(extractor, kconfig_binding="", system, revision, kconfig_f
 			done
 
 		    fi
-		    #ToDo
-
-		    if [[ "$system" == "buildroot" ]]; then
-
-			    config_files=$(find "$srctree" -type f -name "Config.in*") 
-
-			    for file in $config_files; do
-
-				sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/buildroot/\1"|' \
-					   -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/buildroot/\1"|' "$file"
-
-			    done
-
-			    make 2>&1 | grep -vE "(warning:|syntax error|invalid statement|ignoring unsupported character)"
-
-			fi
-		    
-
 
 
 
