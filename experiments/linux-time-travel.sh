@@ -9,7 +9,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https:/
 # Analysis time can be cut in half by removing the slowest solver, 23-sbva_cadical.sh.
 
 SOLVE_TIMEOUT=1200 # timeout for SAT solvers in seconds (rarely needed)
-ITERATIONS=3 # number of iterations to avoid outliers
+ITERATIONS=5 # number of iterations to avoid outliers
 LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
 
 experiment-subjects() {
@@ -79,13 +79,12 @@ experiment-stages() {
         --stages model_to_dimacs_kconfigreader smt_to_dimacs_z3
     join-into kconfig dimacs
 
-    # analyze (parallelization effectively does not disturb time measurements on a powerful machine)
+    # analyze (not parallelized so as not to disturb time measurements)
     solve \
         --iterations "$ITERATIONS" \
         --kind model-satisfiable \
         --timeout "$SOLVE_TIMEOUT" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
-        --jobs 8 \
         --solver_specs \
         sat-competition/02-zchaff,solver,satisfiable \
         sat-competition/03-Forklift,solver,satisfiable \
