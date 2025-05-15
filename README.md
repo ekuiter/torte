@@ -288,6 +288,8 @@ Each solver is the gold medal winner in the main track (SAT+UNSAT) of the SAT co
 These binaries were obtained from the [SAT competition](http://www.satcompetition.org/) and [SAT heritage](https://github.com/sat-heritage/docker-images) initiatives.
 The [SAT museum](https://cca.informatik.uni-freiburg.de/satmuseum/), which has been developed in parallel to this work, also lists and archives single best solvers (SBS).
 We note differences to the SAT museum where there are any.
+One overarching difference is that the SAT museum controls for compiler optimizations by patching and compiling every solver from source (whether this is desired depends on the evaluated research question).
+
 
 | Year | Solver | Notes |
 | - | - | - |
