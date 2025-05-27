@@ -290,7 +290,6 @@ The [SAT museum](https://cca.informatik.uni-freiburg.de/satmuseum/), which has b
 We note differences to the SAT museum where there are any.
 One overarching difference is that the SAT museum controls for compiler optimizations by patching and compiling every solver from source (whether this is desired depends on the evaluated research question).
 
-
 | Year | Solver | Notes |
 | - | - | - |
 | 2002 | zchaff | [^30] |
@@ -332,6 +331,41 @@ As only the second configuration actually runs SharpSAT-td, we chose `conf2` (`c
 [^31]: `Forklift` inherits from `berkmin62` and is listed under that alias in the SAT museum.
 
 [^32]: This solver is not yet listed in the SAT museum as of March 2025.
+
+#### Collection: sat-museum
+
+These binaries (available [here](https://cca.informatik.uni-freiburg.de/satmuseum/satmuseum-pos23.tar.xz)) were obtained from the [SAT museum](https://cca.informatik.uni-freiburg.de/satmuseum/), which was created by [Biere et al.](https://cca.informatik.uni-freiburg.de/papers/BiereFleuryFroleyksHeule-POS23.pdf)
+As noted above, this solver set is very similar to the `sat-competition` solver set and has been developed independently and in parallel.
+The biggest difference is that every solver in the set has been built from source using the same compiler (`gcc/g++ 9.4.0`), which removes any runtime influence of compiler evolution, allowing for "apple-to-apple comparison" to assess progress in SAT solvers.
+Biere et al. also made several patches to the original source code of some solvers to make them compatible with modern compilers and fix solver bugs.
+The `sat-competition` solver set does not include such restoration efforts and contains solvers "as is".
+
+| Year | Solver | Notes |
+| - | - | - |
+| 1992 | boehm1 | |
+| 1997 | grasp | |
+| 2001 | chaff | |
+| 2002 | limmat | |
+| 2003 | berkmin | |
+| 2004 | zchaff | |
+| 2005 | satelite-gti | |
+| 2006 | minisat | |
+| 2007 | rsat | |
+| 2008 | minisat | |
+| 2009 | precosat | |
+| 2010 | cryptominisat | |
+| 2011 | glucose | |
+| 2012 | glucose | |
+| 2013 | lingeling | |
+| 2014 | lingeling | |
+| 2015 | abcdsat | |
+| 2016 | maple-comsps-drup | |
+| 2017 | maple-lcm-dist | |
+| 2018 | maple-lcm-dist-cb | |
+| 2019 | maple-lcm-disc-cb-dl-v3 | |
+| 2020 | kissat | |
+| 2021 | kissat-mab | |
+| 2022 | kissat-mab-hywalk | |
 
 ## Predefined Experiments
 
@@ -380,4 +414,5 @@ New issues, pull requests, or any other kinds of feedback are always welcome.
 The source code of this project is released under the [LGPL v3 license](LICENSE.txt).
 To ensure reproducibility, we also provide binaries (e.g., for solvers) in this repository.
 These binaries have been collected or compiled from public sources.
-Their usage is subject to each binaries' respective license - please contact me if you perceive any licensing issues.
+Their usage is subject to each binaries' respective license as specified by the original authors.
+Please contact me if you perceive any licensing issues.

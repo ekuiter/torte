@@ -514,6 +514,30 @@ define-stage-helpers() {
             sat-competition/22-kissat_MAB-HyWalk,solver,satisfiable
             sat-competition/23-sbva_cadical.sh,solver,satisfiable
             sat-competition/24-kissat-sc2024,solver,satisfiable
+            sat-museum/boehm1-1992,solver,satisfiable
+            sat-museum/grasp-1997,solver,satisfiable
+            sat-museum/chaff-2001,solver,satisfiable
+            sat-museum/limmat-2002,solver,satisfiable
+            sat-museum/berkmin-2003.sh,solver,satisfiable
+            sat-museum/zchaff-2004,solver,satisfiable
+            sat-museum/satelite-gti-2005.sh,solver,satisfiable
+            sat-museum/minisat-2006,solver,satisfiable
+            sat-museum/rsat-2007.sh,solver,satisfiable
+            sat-museum/minisat-2008,solver,satisfiable
+            sat-museum/precosat-2009,solver,satisfiable
+            sat-museum/cryptominisat-2010,solver,satisfiable
+            sat-museum/glucose-2011.sh,solver,satisfiable
+            sat-museum/glucose-2012.sh,solver,satisfiable
+            sat-museum/lingeling-2013,solver,satisfiable
+            sat-museum/lingeling-2014,solver,satisfiable
+            sat-museum/abcdsat-2015.sh,solver,satisfiable
+            sat-museum/maple-comsps-drup-2016,solver,satisfiable
+            sat-museum/maple-lcm-dist-2017,solver,satisfiable
+            sat-museum/maple-lcm-dist-cb-2018,solver,satisfiable
+            sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,satisfiable
+            sat-museum/kissat-2020,solver,satisfiable
+            sat-museum/kissat-mab-2021,solver,satisfiable
+            sat-museum/kissat-mab-hywalk-2022,solver,satisfiable
             other/SAT4J.210.sh,solver,satisfiable
             other/SAT4J.231.sh,solver,satisfiable
             other/SAT4J.235.sh,solver,satisfiable
