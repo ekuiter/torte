@@ -14,8 +14,8 @@ mypath=.
 TMPDIR=/tmp
 
 TMP=$TMPDIR/glucose_$$ #set this to the location of temporary files
-SE=$mypath/SatELite-2012          #set this to the executable of SatELite
-RS=$mypath/glucose-2012              #set this to the executable of RSat
+SE=$(dirname "$0")/SatELite-2012          #set this to the executable of SatELite
+RS=$(dirname "$0")/glucose-2012              #set this to the executable of RSat
 INPUT=$1;
 
 cleanup () {
