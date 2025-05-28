@@ -5,11 +5,11 @@
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
 # This experiment extracts a yearly history of feature models from the Linux kernel and races it against the corresponding year's SAT solvers.
-# On an Intel Xeon E5-2630 machine with 2.40GHz and 1TiB RAM, extraction takes 3 hours, transformation takes 15 minutes, and analysis takes 9 days.
-# Analysis time can be cut in half by removing the slowest solver, 23-sbva_cadical.sh.
+# On an Intel Xeon E5-2630 machine with 2.40GHz and 1TiB RAM, extraction and transformation takes under one day and SAT solving takes about three weeks.
 
 SOLVE_TIMEOUT=1200 # timeout for SAT solvers in seconds (rarely needed)
-ITERATIONS=5 # number of iterations to avoid outliers
+ITERATIONS=5 # number of iterations for extraction and transformation
+SOLVE_ITERATIONS=3 # number of iterations for SAT solving
 LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
 
 experiment-subjects() {
@@ -80,9 +80,10 @@ experiment-stages() {
     join-into kconfig dimacs
 
     # analyze (not parallelized so as not to disturb time measurements)
+    # todo: reorder solvers sensibly
     solve \
-        --iterations "$ITERATIONS" \
         --kind model-satisfiable \
+        --iterations "$SOLVE_ITERATIONS" \
         --timeout "$SOLVE_TIMEOUT" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
         --solver_specs \
@@ -107,9 +108,30 @@ experiment-stages() {
         sat-competition/20-Kissat-sc2020-sat,solver,satisfiable \
         sat-competition/21-Kissat_MAB,solver,satisfiable \
         sat-competition/22-kissat_MAB-HyWalk,solver,satisfiable \
-        sat-competition/23-sbva_cadical.sh,solver,satisfiable \
-        sat-competition/24-kissat-sc2024,solver,satisfiable \
         other/SAT4J.210.sh,solver,satisfiable \
         other/SAT4J.231.sh,solver,satisfiable \
-        other/SAT4J.235.sh,solver,satisfiable
+        other/SAT4J.235.sh,solver,satisfiable \
+        sat-museum/limmat-2002,solver,satisfiable \
+        sat-museum/berkmin-2003.sh,solver,satisfiable \
+        sat-museum/zchaff-2004,solver,satisfiable \
+        sat-museum/satelite-gti-2005.sh,solver,satisfiable \
+        sat-museum/minisat-2006,solver,satisfiable \
+        sat-museum/rsat-2007.sh,solver,satisfiable \
+        sat-museum/minisat-2008,solver,satisfiable \
+        sat-museum/precosat-2009,solver,satisfiable \
+        sat-museum/cryptominisat-2010,solver,satisfiable \
+        sat-museum/glucose-2011.sh,solver,satisfiable \
+        sat-museum/glucose-2012.sh,solver,satisfiable \
+        sat-museum/lingeling-2013,solver,satisfiable \
+        sat-museum/lingeling-2014,solver,satisfiable \
+        sat-museum/abcdsat-2015.sh,solver,satisfiable \
+        sat-museum/maple-comsps-drup-2016,solver,satisfiable \
+        sat-museum/maple-lcm-dist-2017,solver,satisfiable \
+        sat-museum/maple-lcm-dist-cb-2018,solver,satisfiable \
+        sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,satisfiable \
+        sat-museum/kissat-2020,solver,satisfiable \
+        sat-museum/kissat-mab-2021,solver,satisfiable \
+        sat-museum/kissat-mab-hywalk-2022,solver,satisfiable \
+        sat-competition/24-kissat-sc2024,solver,satisfiable \
+        sat-competition/23-sbva_cadical.sh,solver,satisfiable
 }
