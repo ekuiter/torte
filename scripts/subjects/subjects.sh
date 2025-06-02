@@ -15,6 +15,7 @@ SYSTEMS=(
     linux
     toybox
     uclibc-ng
+    testsystem
 )
 
 for system in "${SYSTEMS[@]}"; do
