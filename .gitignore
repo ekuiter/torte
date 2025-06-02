@@ -5,3 +5,4 @@
 _*.sh
 *.gen.sh
 /*.tar.gz
+.ipynb_checkpoints

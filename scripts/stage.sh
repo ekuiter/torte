@@ -271,6 +271,48 @@ define-stage-helpers() {
         run --stage read-linux-configs
     }
 
+    # extracts configuration options of toybox revisions
+    read-toybox-configs() {
+        run --stage read-toybox-configs
+    }
+    
+    # extracts configuration options of axtls revisions
+    read-axtls-configs() {
+        run --stage read-axtls-configs
+    }
+
+    # extracts configuration options of busybox revisions
+    read-busybox-configs() {
+        run --stage read-busybox-configs
+    }
+    
+    # extracts configuration options of embtoolkit revisions
+    read-embtoolkit-configs() {
+        run --stage read-embtoolkit-configs
+    }
+    
+    # extracts configuration options of buildroot revisions
+    read-buildroot-configs() {
+        run --stage read-buildroot-configs
+    }
+
+    # extracts configuration options of fiasco revisions
+    read-fiasco-configs() {
+        run --stage read-fiasco-configs
+    }
+    
+    # extracts configuration options of freetz-ng revisions 
+    read-freetz-ng-configs() {
+        run --stage read-freetz-ng-configs
+    }
+    
+    # extracts configuration options of uclibc-ng revisions 
+    read-uclibc-ng-configs() {
+        run --stage read-uclibc-ng-configs
+    }
+    
+
+    # read basic statistics for each system
     # read basic statistics for each system
     read-statistics(option=) {
         run --stage read-statistics --command read-statistics "$option"
@@ -309,11 +351,22 @@ define-stage-helpers() {
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields"
+        extract-kconfig-models-with \
+        --extractor configfixextractor \
+        --output-stage configfixextractor \
+        --iterations "$iterations" \
+        --iteration-field "$iteration_field" \
+        --file-fields "$file_fields"
+        # todo ConfigFix: the idea was that not every extractor needs a binding file, which is not correctly realized here, I think
+        # file_fields="binding-file"
+        # if [ -z "$binding_file" ]; then
+        #     binding_file=""
+        # fi
         aggregate \
             --stage "$output_stage" \
             --stage-field extractor \
-            --file-fields binding-file,model-file \
-            --stages kconfigreader kmax
+            --file-fields binding-file,model-file\
+            --stages kconfigreader kmax configfixextractor
     }
 
     # transforms model files with FeatJAR

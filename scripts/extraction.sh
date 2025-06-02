@@ -101,14 +101,22 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
-extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file, kconfig_binding_file=, environment=, timeout=0) {
+extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_file, kconfig_binding_file=, environment=, timeout=0) {
     local revision_clean
     revision_clean=$(clean-revision "$revision")
     local architecture
     architecture=$(get-architecture "$revision")
-    kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision_clean")}
-    kconfig_binding_file+=.$kconfig_binding
+    if [[ -z "$kconfig_binding" ]]; then
+        kconfig_binding_file=""
+    else
+        kconfig_binding_file=${kconfig_binding_file:-$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" "$system" "$revision_clean")}
+        kconfig_binding_file+=.$kconfig_binding
+    fi
     log "$extractor: $system@$revision"
+    local file_extension="model"
+    if [[ $extractor == configfixextractor ]]; then
+        file_extension="model"
+    fi
     if [[ -f $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model") ]]; then
         log "" "$(echo-skip)"
         return
@@ -123,7 +131,8 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
     local output_log
     output_log=$(mktemp)
     if [[ -f $kconfig_file ]]; then
-        if [[ -f $kconfig_binding_file ]]; then
+        # todo ConfigFix: maybe create a dummy binding file for ConfigFix, so to avoid this parameter getting optional? (could just revert part of the change from the merge commit)
+        if [[ -z "$kconfig_binding_file" || -f $kconfig_binding_file ]]; then
             set-environment "$environment"
             if [[ $extractor == kconfigreader ]]; then
                 evaluate "$timeout" /home/kconfigreader/run.sh $(memory-limit 1) de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf "$kconfig_binding_file" "$kconfig_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")" | tee "$output_log"
@@ -144,6 +153,71 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
                     "$kconfig_model" \
                     | tee "$output_log"
                 time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
+            elif [[ $extractor == configfixextractor ]]; then
+                linux_source="/home/linux/linux-6.10"
+                export KBUILD_KCONFIG=$(realpath "$kconfig_file")
+                export srctree="/home/input/$system"
+                #todo ConfigFix: check these preprocessings and move them into hooks should they be necessary
+                #preprocessing for subject busybox
+                if [[ "$system" == "busybox" ]]; then
+                    find "$srctree" -type f -exec sed -i '/source\s\+networking\/udhcp\/Config\.in/d' {} \;
+                    find $srctree -name "$kconfig_file" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
+                fi
+                #preprocessing for subject axtls
+                if [[ "$system" == "axtls" ]]; then
+                    find "$srctree" -type f -name "Config.in" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
+                fi
+                #preprocessing for subject uclibc-ng
+                if [[ "$system" == "uclibc-ng" ]]; then
+                    find "$srctree" -type f -exec sed -i -r "s|^source\\s+\"(.*)\"|source \"$(realpath "$srctree")/\\1\"|" {} \;
+                    # to ask 
+                    find "$srctree" -type f -exec sed -i '/option env/d' {} \;
+                fi
+                #preprocessing for subject embtoolkit
+                if [[ "$system" == "embtoolkit" ]]; then
+                    find "$srctree" -type f -exec sed -i '/option env/d' {} \;
+                    config_files=$(find "$srctree" -type f -name "Kconfig") 
+                        for file in $config_files; do
+                            sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
+                                -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
+                        done
+                    config_files=$(find "$srctree" -type f -name "*.kconfig") 
+                        for file in $config_files; do
+                            sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
+                            -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
+                        done
+                fi
+                #preprocessing for subject freetz-ng
+                if [[ "$system" == "freetz-ng" ]]; then
+                    config_files=$(find "$srctree" -type f -name "*.in") 
+                    for file in $config_files; do
+                        sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
+                        sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
+                            -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
+                    done
+                    config_files=$(find "$srctree" -type f -name "Config.in.busybox") 
+                    for file in $config_files; do
+                        sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
+                        sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
+                            -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
+                    done
+                fi
+                #preprocessing for subject toybox
+                if [[ "$system" == "toybox" ]]; then
+                    config_files=$(find "$srctree" -type f -name "*.in") 
+                    for file in $config_files; do
+                        sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/toybox/\1"|' \
+                            -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/toybox/\1"|' "$file"
+                    done
+                fi
+                make -f "$linux_source/Makefile" mrproper
+                make -C "$linux_source" scripts/kconfig/cfoutconfig
+                evaluate "$timeout"  make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
+                time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
+                if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.features" ]]; then
+                    cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
+                            cp "$linux_source/scripts/kconfig/cfout_constraints.features" "$features_file"
+                fi
             fi
             unset-environment "$environment"
         else
@@ -160,12 +234,23 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
         kconfig_model=NA
     else
         log "" "$(echo-done)"
-        local features
-        features=$(wc -l < "$features_file")
-        local variables
-        variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
-        local literals
-        literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
+        # todo ConfigFix: review this
+        if [[ $extractor != "configfixextractor" ]]; then
+            local features
+            features=$(wc -l < "$features_file")
+            local variables
+            variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
+            local literals
+            literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
+        else
+            local features
+            features=$(wc -l < "$features_file")
+            local variables
+            variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "definedEx(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
+            local literals
+            literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "definedEx(")
+        fi
+
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
     echo "$system,$revision_clean,$architecture,$kconfig_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
@@ -173,15 +258,23 @@ extract-kconfig-model(extractor, kconfig_binding, system, revision, kconfig_file
 
 # defines API functions for extracting kconfig models
 # sets the global EXTRACTOR and KCONFIG_BINDING variables
-register-kconfig-extractor(extractor, kconfig_binding, timeout=0) {
+register-kconfig-extractor(extractor, kconfig_binding=, timeout=0) {
     EXTRACTOR=$extractor
     KCONFIG_BINDING=$kconfig_binding
     TIMEOUT=$timeout
-    require-value EXTRACTOR KCONFIG_BINDING TIMEOUT
+    require-value EXTRACTOR TIMEOUT
+    # todo ConfigFix: review this (maybe create a dummy binding)
+    if [ -z "$KCONFIG_BINDING" ]; then
+        echo "No KCONFIG_BINDING provided, running without KCONFIG_BINDING."
+    else
+        echo "Using KCONFIG_BINDING: $KCONFIG_BINDING"
+    fi
 
     add-kconfig-binding(system, revision, kconfig_binding_files, environment=) {
         kconfig-checkout "$system" "$revision" "$kconfig_binding_files"
-        compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
+        if [ -n "$KCONFIG_BINDING" ]; then
+            compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
+        fi
         git-clean "$(input-directory)/$system"
     }
 
@@ -194,7 +287,9 @@ register-kconfig-extractor(extractor, kconfig_binding, timeout=0) {
 
     add-kconfig(system, revision, kconfig_file, kconfig_binding_files, environment=) {
         kconfig-checkout "$system" "$revision" "$kconfig_binding_files"
-        compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
+        if [ -n "$KCONFIG_BINDING" ]; then
+            compile-kconfig-binding "$KCONFIG_BINDING" "$system" "$revision" "$kconfig_binding_files" "$environment"
+        fi
         extract-kconfig-model "$EXTRACTOR" "$KCONFIG_BINDING" \
             "$system" "$revision" "$kconfig_file" "" "$environment" "$TIMEOUT"
         git-clean "$(input-directory)/$system"
@@ -213,5 +308,10 @@ extract-kconfig-models-with-kmax(timeout=0) {
 # compiles kconfig bindings and extracts kconfig models using kconfigreader
 extract-kconfig-models-with-kconfigreader(timeout=0) {
     register-kconfig-extractor kconfigreader dumpconf "$timeout"
+    experiment-subjects
+}
+
+extract-kconfig-models-with-configfixextractor(timeout=0) {
+    register-kconfig-extractor configfixextractor "" "$timeout"
     experiment-subjects
 }
