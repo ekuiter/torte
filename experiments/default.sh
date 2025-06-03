@@ -8,6 +8,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # It serves as a demo and integration test for torte and also returns some common statistics of the model.
 
 TIMEOUT=10
+JOBS=4
 
 experiment-subjects() {
     add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
@@ -26,8 +27,8 @@ experiment-stages() {
     compute-backbone-dimacs-with-cadiback --timeout "$TIMEOUT"
     compute-unconstrained-features --timeout "$TIMEOUT"
     compute-backbone-features --timeout "$TIMEOUT"
-    solve-satisfiable --timeout "$TIMEOUT"
-    solve-model-count --timeout "$TIMEOUT"
+    solve-satisfiable --jobs "$JOBS" --timeout "$TIMEOUT"
+    solve-model-count --jobs "$JOBS" --timeout "$TIMEOUT"
 
     join-into kconfig dimacs
     join-into dimacs community-structure

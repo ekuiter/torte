@@ -351,12 +351,12 @@ define-stage-helpers() {
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields"
-        extract-kconfig-models-with \
-        --extractor configfixextractor \
-        --output-stage configfixextractor \
-        --iterations "$iterations" \
-        --iteration-field "$iteration_field" \
-        --file-fields "$file_fields"
+        # extract-kconfig-models-with \
+        # --extractor configfixextractor \
+        # --output-stage configfixextractor \
+        # --iterations "$iterations" \
+        # --iteration-field "$iteration_field" \
+        # --file-fields "$file_fields"
         # todo ConfigFix: the idea was that not every extractor needs a binding file, which is not correctly realized here, I think
         # file_fields="binding-file"
         # if [ -z "$binding_file" ]; then
@@ -365,8 +365,9 @@ define-stage-helpers() {
         aggregate \
             --stage "$output_stage" \
             --stage-field extractor \
-            --file-fields binding-file,model-file\
-            --stages kconfigreader kmax configfixextractor
+            --file-fields binding-file,model-file \
+            --stages kconfigreader kmax
+            # --stages kconfigreader kmax configfixextractor
     }
 
     # transforms model files with FeatJAR
