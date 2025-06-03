@@ -388,20 +388,12 @@ Core contributors:
 
 - [Elias Kuiter](https://www.dbse.ovgu.de/Mitarbeiter/Elias+Kuiter.html) (University of Magdeburg, Germany)
 
-Further contributors and former project members with their main contributions:
+Further contributors and former project members with their main contributions  (all from University of Magdeburg, Germany):
 
-- Eric Ketzler (University of Magdeburg, Germany)
-
-  `docker/hierarchy`
-- Urs-Benedict Braun (University of Magdeburg, Germany)
-
-  `experiments/linux-time-travel.sh`
-- Rami Alfish (University of Magdeburg, Germany)
-
-  `docker/configfixextractor`
-- Lukas Petermann (University of Magdeburg, Germany)
-
-  `torte-dashboard`
+- Eric Ketzler: `docker/hierarchy`
+- Urs-Benedict Braun: `experiments/linux-time-travel.sh`
+- Rami Alfish: `docker/configfixextractor`
+- Lukas Petermann: `torte-dashboard`
 
 If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).
 New issues, pull requests, or any other kinds of feedback are always welcome.
