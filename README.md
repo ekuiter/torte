@@ -9,7 +9,7 @@ Take your pick:
 - CNF **T**ransf**or**ma**t**ion Workb**e**nch
 - KConfig Extrac**tor** that **T**ackles **E**volution
 - **To**wards **R**eproducible Feature-Model **T**ransformation and **E**xtraction
-- **T**hat's an **O**bviously **R**everse-Engineered **T**ool Nam**e**
+- **T**hat's an **O**bviously **R**everse-Engineered **T**ool Nam**e**!
 - KConfig = 🍰 config ∧ 🍰 = torte ∎
 
 torte can be used to
@@ -137,7 +137,7 @@ Detailed system-specific information on potential threats to validity is availab
 | - | - | - |
 | [axtls](scripts/subjects/axtls.sh) | 1.0.0 - 2.0.0 | |
 | [buildroot](scripts/subjects/buildroot.sh) | 2009.02 - 2024.05 | |
-| [busybox](scripts/subjects/busybox.sh) | 1.3.0 - 1.36.0 | |
+| [busybox](scripts/subjects/busybox.sh) | 1.3.0 - 1.36.0 | [^27] |
 | [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
 | [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
 | [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
@@ -162,6 +162,8 @@ This does not affect typical use cases that involve tag and branch identifiers.
 [^22]: Feature models for this system are currently likely to be incomplete due to an inaccurate extraction.
 
 [^23]: This system does not regularly release tagged revisions, so only a single revision has been tested.
+
+[^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we use Git to detect changes in any KConfig files to identify relevant commits). We solve this problem by iterating over all commits to generate all KConfig files, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model. (This is only relevant for experiments that operate on the entire history of BusyBox instead of specific revisions.)
 
 ## Bundled Tools
 
@@ -369,27 +371,54 @@ The `sat-competition` solver set does not include such restoration efforts and c
 
 ## Predefined Experiments
 
-This is a list of all predefined experiments in the `experiments` directory and their purposes.
-Please create a pull request if you want to publish your own experiment.
-Experiments starting with `draft-` are experimental.
+The `experiments` directory contains a number of predefined experiments.
+Some of these experiments are for demo purposes (like the `default` experiment), while others are used for ongoing or published research.
+Typically, an experiment consists of a `.sh` Bash script, which is executed by torte, and an additional `.ipynb` Jupyter notebook, which visualizes the experiment's results.
 
-| Experiment | Purpose |
-| - | - |
-| `busybox-history-full` | Extraction of all feature models of BusyBox (for every commit that touches the feature model) [^27] |
-| `default` | "Hello-world" experiment that extracts and transforms a single feature model |
-| `feature-model-collection` | Extraction, transformation, and analysis of several feature-model histories |
-| `feature-model-collection-learning` | Learning from feature-model histories |
-| `feature-model-differences` | Extraction and comparison of all feature models of several feature-model histories |
-| `linux-history-releases` | Extraction, transformation, and analysis of a history of Linux feature models |
-| `linux-history-weekly` | Extraction of a weekly history of Linux feature models |
-| `linux-time-travel` | Extraction of a yearly history of Linux feature models, evaluation against SAT competition winners |
-| `linux-recent-release` | Extraction and transformation of a recent Linux feature model |
-| `prepare-linux-fork` | Clones and rewrites the Linux Git repository to avoid issues with case-insensitive file systems |
-| `tseitin-or-not-tseitin` | Evaluation for the paper [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022) |
+You can also create your own experiments locally.
+If you want to publish your own experiment, feel free to create a fork or pull request of this repository.
 
-[^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we need to detect changes in any KConfig files to identify relevant commits). We solve this problem by iterating over all commits to generate all feature models, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model.
+## Project Details
 
-## Project History
+Below, you can find information on the development of torte and its impact so far.
+
+### Contact
+
+Core contributors:
+
+- [Elias Kuiter](https://www.dbse.ovgu.de/Mitarbeiter/Elias+Kuiter.html) (University of Magdeburg, Germany)
+
+Further contributors and former project members with their main contributions:
+
+- Eric Ketzler (University of Magdeburg, Germany)
+
+  `docker/hierarchy`
+- Urs-Benedict Braun (University of Magdeburg, Germany)
+
+  `experiments/linux-time-travel.sh`
+- Rami Alfish (University of Magdeburg, Germany)
+
+  `docker/configfixextractor`
+- Lukas Petermann (University of Magdeburg, Germany)
+
+  `torte-dashboard`
+
+If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).
+New issues, pull requests, or any other kinds of feedback are always welcome.
+
+### Publications
+
+torte has been used in several research publications:
+
+- Elias Kuiter, Chico Sundermann, Thomas Thüm, Tobias Heß, Sebastian Krieter, and Gunter Saake. [How Configurable is the Linux Kernel? Analyzing Two Decades of Feature-Model History](https://doi.org/10.1145/3729423). Trans. on Software Engineering and Methodology (TOSEM), April 2025. To appear.
+  
+  [**TOSEM'25 Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2025/2025-TOSEM-Kuiter.pdf) | [**FOSD'24 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2024/2024-04-10-FOSD-Linux.pdf)
+
+- Elias Kuiter, Sebastian Krieter, Chico Sundermann, Thomas Thüm, and Gunter Saake. [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://doi.org/10.1145/3551349.3556938). In Proc. Int'l Conf. on Automated Software Engineering (ASE). ACM, October 2022.
+  
+  [**ASE'22 Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) | [**FOSD'22 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2022/2022-03-31-FOSD-Tseitin.pdf) | [**ASE'22 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2022/2022-10-13-ASE-Tseitin.pdf) | [**SE'23 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2023/2023-02-22-SE-Tseitin.pdf) | [**SAT'23 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2023/2023-07-04-SAT-Tseitin.pdf)
+
+### History
 
 This project has evolved through several stages and intends to replace them all:
 
@@ -405,9 +434,6 @@ This project has evolved through several stages and intends to replace them all:
   Its functionality is almost completely subsumed by torte, which can be used to create reproduction packages for many different experiments.
 
 If you are looking for a curated collection of feature models from various domains, have a look at our [feature-model-benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark).
-
-If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).
-New issues, pull requests, or any other kinds of feedback are always welcome.
 
 ## License
 
