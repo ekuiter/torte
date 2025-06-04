@@ -52,3 +52,8 @@ if [[ -z $MEMORY_LIMIT ]]; then
         MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024))
     fi
 fi
+
+# returns the memory limit, optionally adding a further limit
+memory-limit(further_limit=0) {
+    echo "$((MEMORY_LIMIT-further_limit))"
+}
