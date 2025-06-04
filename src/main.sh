@@ -5,25 +5,6 @@
 
 set -e # exit on error
 
-# prints help information
-command-help() {
-    echo "usage: $(basename "$0") [experiment_file] [command [option]...]"
-    echo
-    echo "experiment_file (default: default)"
-    echo
-    echo "command (default: run)"
-    echo "  run                              runs the experiment"
-    echo "  clean                            removes all output files for the experiment"
-    echo "  stop                             stops the experiment"
-    echo "  reset                            removes all Docker containers and images"
-    echo "  export                           prepares a reproduction package"
-    echo "  run-remote [host]                runs the experiment on a remote server"
-    echo "  copy-remote [host]               downloads results from the remote server"
-    echo "  install-remote [host] [image]    installs a Docker image on a remote server"
-    echo "  browse                           start a web server for browsing output files"
-    echo "  help                             prints help information"
-}
-
 # scripts to include
 SCRIPTS=(
     lib/helper.sh # miscellaneous helpers (loaded first so logging becomes available)
@@ -91,6 +72,26 @@ if [[ -z $IS_DOCKER_RUNNING ]] && [[ -z $TORTE_BANNER_PRINTED ]]; then
     echo
 fi
 
+# prints help information
+command-help() {
+    echo
+    echo "usage: $(basename "$0") [experiment_file] [command [option]...]"
+    echo
+    echo "experiment_file (default: default)"
+    echo
+    echo "command (default: run)"
+    echo "  run                              runs the experiment"
+    echo "  clean                            removes all output files for the experiment"
+    echo "  stop                             stops the experiment"
+    echo "  reset                            removes all Docker containers and images"
+    echo "  export                           prepares a reproduction package"
+    echo "  run-remote [host]                runs the experiment on a remote server"
+    echo "  copy-remote [host]               downloads results from the remote server"
+    echo "  install-remote [host] [image]    installs a Docker image on a remote server"
+    echo "  browse                           start a web server for browsing output files"
+    echo "  help                             prints help information"
+}
+
 # modify bash to allow for succinct function definitions
 source "$SRC_DIRECTORY/bootstrap.sh"
 
@@ -101,14 +102,8 @@ done
 
 # load all library and system scripts
 for script in "${SCRIPTS[@]}"; do
-    if [[ $script != lib/helper.sh ]]; then
-        log "$script" "$(echo-progress load)"
-    fi
     source-script "$SRC_DIRECTORY/$script"
-    if [[ $script != lib/helper.sh ]]; then
-        log "" "$(echo-done)"
-    fi
 done
 
 # initialize torte and run the given experiment or command
-# entrypoint "$@"
+entrypoint "$@"

@@ -17,13 +17,17 @@ entrypoint(arguments...) {
     # initialization done
     INITIALIZED=y
 
-    # run the given command
+    # identify which command to run (default: command-run)
     if [[ -z "${arguments[*]}" ]]; then
         arguments=(run)
     fi
     function=${arguments[0]}
+
+    # on the host, internal commands can be shadowed with user-facing commands (prefixed with command-)
     if is-host && has-function "command-$function"; then
         function=command-$function
     fi
+    
+    # run the given command
     "$function" "${arguments[@]:1}"
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 # a small medical preprocessor for Bash scripts that allows more succinct function definitions
 # e.g., fn(a, b, c=3) { echo $a $b $c; } it does not usually work in bash, but this preprocessor makes it work
-# depends on require-host defined in helper.sh
+# depends on require-host and log defined in helper.sh
 # preprocessed scripts should lie in the same directory tree as this script
 
 # the location of this script
@@ -43,11 +43,15 @@ compile-script() {
 
 # improves Bash's sourcing mechanism so scripts are compiled before inclusion
 source-script() {
-    local script
-    script=$1
+    local script=$1
+    # this code is specific to this project to improve logging
+    if [[ $script != */lib/helper.sh ]]; then
+        log "${script#"$SRC_DIRECTORY"/}" "$(echo-progress load)"
+    fi
     local generated_script_directory generated_script
     generated_script_directory=$(dirname "$script")
-    generated_script_directory=${generated_script_directory#"$BOOTSTRAP_DIRECTORY"/} # remove the bootstrap directory from the path
+    generated_script_directory=${generated_script_directory#"$BOOTSTRAP_DIRECTORY"/} # remove the bootstrap directory from a composite path
+    generated_script_directory=${generated_script_directory#"$BOOTSTRAP_DIRECTORY"} # remove the bootstrap directory from a root-level path
     generated_script_directory=$GEN_DIRECTORY/$generated_script_directory
     local -r generated_script=$generated_script_directory/$(basename "$script")
     mkdir -p "$generated_script_directory"
@@ -61,6 +65,10 @@ source-script() {
     fi
     # shellcheck source=/dev/null
     source "$generated_script"
+    # this code is specific to this project to improve logging
+    if [[ $script != */lib/helper.sh ]]; then
+        log "" "$(echo-done)"
+    fi
 }
 
 # generates code that parses function arguments in a flexible way, which is pretended to the function body
