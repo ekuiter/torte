@@ -1,4 +1,5 @@
 #!/bin/bash
+# transforms files
 
 # transforms a file from one file format into another
 # measures the transformation time

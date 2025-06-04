@@ -1,4 +1,5 @@
 #!/bin/bash
+# analyzes files
 
 # analyzes a file
 # measures the analysis time

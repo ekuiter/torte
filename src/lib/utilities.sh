@@ -1,4 +1,5 @@
 #!/bin/bash
+# functions for working with Git repositories and statistics
 
 # clones system repositories using git
 clone-systems() {

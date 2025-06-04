@@ -1,4 +1,5 @@
 #!/bin/bash
+# runs stages
 
 # removes all output for the given experiment stage
 clean(stages...) {

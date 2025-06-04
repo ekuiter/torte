@@ -1,4 +1,5 @@
 #!/bin/bash
+# runs experiments
 
 # prepares an experiment by loading its file
 # this has no effect besides defining variables and functions

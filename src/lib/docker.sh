@@ -1,4 +1,5 @@
 #!/bin/bash
+# functions for working with Docker containers
 
 # returns all experiment-related Docker containers
 containers() {

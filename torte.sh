@@ -12,7 +12,7 @@ require() {
     fi
 }
 
-# perform a bit of bash magic to determine if this script is sourced or executed directly
+# perform a bit of Bash magic to determine if this script is sourced or executed directly
 if (return 0 2>/dev/null); then
     # if this script is sourced from an experiment file, install into the working directory
     require git

@@ -1,37 +1,9 @@
 #!/usr/bin/env bash
 # main entry point, runs whatever command it is passed
 # behaves differently if run inside Docker
-# we need /usr/bin/env so the correct bash version is used on macOS
+# we need /usr/bin/env so the correct Bash version is used on macOS
 
 set -e # exit on error
-
-# scripts to include
-SCRIPTS=(
-    lib/helper.sh # miscellaneous helpers (loaded first so logging becomes available)
-    lib/analysis.sh # analyzes files
-    lib/docker.sh # functions for working with Docker containers
-    lib/entrypoint.sh # initializes and runs the tool
-    lib/experiment.sh # runs experiments
-    lib/extraction.sh # extracts kconfig models
-    lib/path.sh # deals with input/output paths
-    lib/stage.sh # runs stages
-    lib/transformation.sh # transforms files
-    lib/utilities.sh # functions for working with Git repositories and statistics
-)
-
-# API functions
-API=(
-    # implemented in experiment files
-    experiment-stages # defines the stages of the experiment in order of their execution
-    experiment-systems # defines the investigated systems
-
-    # implemented in Docker containers
-    add-system # adds a system (e.g., clone)
-    add-revision # adds a system revision (e.g., read statistics)
-    add-kconfig-binding # adds a kconfig binding (e.g., dumpconf or kextractor)
-    add-kconfig-model # adds a kconfig model (e.g., a model read by kconfigreader or kmax)
-    add-kconfig # adds a kconfig binding and model
-)
 
 # global configuration options, can optionally be overridden in experiment files
 TOOL=torte # tool name, used as prefix for naming Docker images and containers
@@ -64,6 +36,21 @@ else
     MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024))
 fi
 
+# API functions that are available to experiments
+# todo: is it necessary to specify these here at all?
+API=(
+    # implemented in experiment files
+    experiment-stages # defines the stages of the experiment in order of their execution
+    experiment-systems # defines the investigated systems
+
+    # implemented in Docker containers
+    add-system # adds a system (e.g., clone)
+    add-revision # adds a system revision (e.g., read statistics)
+    add-kconfig-binding # adds a kconfig binding (e.g., dumpconf or kextractor)
+    add-kconfig-model # adds a kconfig model (e.g., a model read by kconfigreader or kmax)
+    add-kconfig # adds a kconfig binding and model
+)
+
 # print banner image (if on host and not already done)
 if [[ -z $IS_DOCKER_RUNNING ]] && [[ -z $TORTE_BANNER_PRINTED ]]; then
     echo "┌────────────────────────────────────────────────┐"
@@ -92,18 +79,13 @@ command-help() {
     echo "  help                             prints help information"
 }
 
-# modify bash to allow for succinct function definitions
+# modify Bash to allow for succinct function definitions
 source "$SRC_DIRECTORY/bootstrap.sh"
 
-# add system scripts
-for system in "$SRC_DIRECTORY"/systems/*; do
-    SCRIPTS+=("${system#"$SRC_DIRECTORY"/}")
-done
-
-# load all library and system scripts
-for script in "${SCRIPTS[@]}"; do
-    source-script "$SRC_DIRECTORY/$script"
+# load all scripts, starting with the logging facilities, which are needed right away
+for script in lib/helper/log.sh $(find "$SRC_DIRECTORY"/lib -name '*.sh') $(find "$SRC_DIRECTORY"/systems -name '*.sh'); do
+    source-script "$script"
 done
 
 # initialize torte and run the given experiment or command
-entrypoint "$@"
+# entrypoint "$@"

@@ -1,4 +1,5 @@
 #!/bin/bash
+# deals with input/output paths
 
 # returns the root input directory
 input-directory() {

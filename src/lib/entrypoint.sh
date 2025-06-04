@@ -1,4 +1,9 @@
 #!/bin/bash
+# initializes and runs the tool
+
+if [[ -z $INITIALIZED ]]; then
+    INITIALIZED=
+fi
 
 entrypoint(arguments...) {
     # define stubs for API functions

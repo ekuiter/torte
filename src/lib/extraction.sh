@@ -1,4 +1,5 @@
 #!/bin/bash
+# extracts kconfig models
 
 # checks out a system and prepares it for further processing
 kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
