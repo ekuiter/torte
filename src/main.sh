@@ -16,7 +16,7 @@ SCRIPTS=(
     lib/path.sh # deals with input/output paths
     lib/stage.sh # runs stages
     lib/transformation.sh # transforms files
-    lib/utilities.sh # functions for working with Git repositories and other utilities
+    lib/utilities.sh # functions for working with Git repositories and statistics
 )
 
 # API functions

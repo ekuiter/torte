@@ -1,7 +1,7 @@
 #!/bin/bash
 # a small medical preprocessor for Bash scripts that allows more succinct function definitions
 # e.g., fn(a, b, c=3) { echo $a $b $c; } it does not usually work in bash, but this preprocessor makes it work
-# depends on require-host and log defined in helper.sh
+# depends on require-host and logging primitives defined in helper.sh
 # preprocessed scripts should lie in the same directory tree as this script
 
 # the location of this script
@@ -18,7 +18,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     sed() {
         if ! command -v gsed > /dev/null; then
             echo "Required command gsed is missing, please install manually." 1>&2
-            find "$(dirname "$0")" -name '*.gen.sh' -delete 1>&2
+            rm -rf "$GEN_DIRECTORY"
             exit 1
         fi
         gsed "$@"
