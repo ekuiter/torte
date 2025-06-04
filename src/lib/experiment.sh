@@ -6,8 +6,8 @@
 load-experiment(experiment_file=default) {
     if is-host; then
         if [[ ! -f $experiment_file ]]; then
-            if [[ -f $SRC_DIRECTORY/../experiments/$experiment_file/experiment.sh ]]; then
-                experiment_file=$SRC_DIRECTORY/../experiments/$experiment_file/experiment.sh
+            if [[ -f $TOOL_DIRECTORY/experiments/$experiment_file/experiment.sh ]]; then
+                experiment_file=$TOOL_DIRECTORY/experiments/$experiment_file/experiment.sh
             else
                 error-help "Please provide an experiment in $experiment_file."
             fi

@@ -47,7 +47,7 @@ read-axtls-configs() {
     }
 
     echo system,revision,kconfig-file,config > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 axtls-configs(revision) {

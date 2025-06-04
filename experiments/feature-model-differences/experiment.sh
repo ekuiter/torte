@@ -6,7 +6,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 # Extraction and comparison of all feature models of several feature-model histories
 
-experiment-subjects() {
+experiment-systems() {
     if [[ $PASS -eq 1 ]]; then
         add-busybox-kconfig-history --from 1_3_0 --to 1_36_1
     elif [[ $PASS -eq 2 ]]; then

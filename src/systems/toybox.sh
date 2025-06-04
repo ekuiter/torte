@@ -56,7 +56,7 @@ read-toybox-configs() {
     }
 
     echo system,revision,kconfig-file,config > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 toybox-configs(revision) {

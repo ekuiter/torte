@@ -8,7 +8,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
-experiment-subjects() {
+experiment-systems() {
     add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.1
     add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0
     add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.48

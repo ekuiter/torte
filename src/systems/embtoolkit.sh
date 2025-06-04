@@ -54,7 +54,7 @@ read-embtoolkit-configs() {
     }
 
     echo system,revision,kconfig-file,config > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 embtoolkit-configs(revision) {

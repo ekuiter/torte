@@ -16,7 +16,7 @@ N=3 # number of iterations
 TRANSFORM_TIMEOUT=180 # timeout for CNF transformation in seconds
 SOLVE_TIMEOUT=1200 # timeout for model counting in seconds
 
-experiment-subjects() {
+experiment-systems() {
     add-linux-kconfig-history --from v4.18 --to v4.19 --architecture x86
     add-axtls-kconfig-history --from release-2.0.0 --to release-2.0.1
     add-buildroot-kconfig-history --from 2021.11.2 --to 2021.11.3

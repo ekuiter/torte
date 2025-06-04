@@ -6,7 +6,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 # This experiment extracts a weekly history of feature models from the Linux kernel (x86).
 
-experiment-subjects() {
+experiment-systems() {
     add-linux-kconfig-sample --interval "$(interval weekly)"
 }
 

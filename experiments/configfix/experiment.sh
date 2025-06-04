@@ -10,7 +10,7 @@ SOLVE_TIMEOUT=3600 # timeout in seconds
 SOLVE_JOBS=4 # number of parallel jobs to run, should not exceed number of attempts
 SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and moving on
 
-experiment-subjects() {
+experiment-systems() {
     #add-testsystem-kconfig v0.0
     add-toybox-kconfig-history 
     add-axtls-kconfig-history

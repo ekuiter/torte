@@ -13,7 +13,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 TIMEOUT=10
 LINUX_CLONE_MODE=filter
 
-experiment-subjects() {
+experiment-systems() {
     add-linux-system
 }
 

@@ -95,7 +95,7 @@ read-busybox-configs() {
     }
 
     echo system,revision,kconfig-file,config > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 busybox-configs(revision) {

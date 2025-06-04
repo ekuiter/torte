@@ -45,7 +45,7 @@ read-fiasco-configs() {
     }
 
     echo system,revision,kconfig-file,config > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 fiasco-configs(revision) {

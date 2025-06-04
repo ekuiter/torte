@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# checks out a subject and prepares it for further processing
+# checks out a system and prepares it for further processing
 kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
     local revision_clean err
     revision_clean=$(clean-revision "$revision")
@@ -158,22 +158,22 @@ extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_fil
                 export KBUILD_KCONFIG=$(realpath "$kconfig_file")
                 export srctree="/home/input/$system"
                 #todo ConfigFix: check these preprocessings and move them into hooks should they be necessary
-                #preprocessing for subject busybox
+                #preprocessing for system busybox
                 if [[ "$system" == "busybox" ]]; then
                     find "$srctree" -type f -exec sed -i '/source\s\+networking\/udhcp\/Config\.in/d' {} \;
                     find $srctree -name "$kconfig_file" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
                 fi
-                #preprocessing for subject axtls
+                #preprocessing for system axtls
                 if [[ "$system" == "axtls" ]]; then
                     find "$srctree" -type f -name "Config.in" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
                 fi
-                #preprocessing for subject uclibc-ng
+                #preprocessing for system uclibc-ng
                 if [[ "$system" == "uclibc-ng" ]]; then
                     find "$srctree" -type f -exec sed -i -r "s|^source\\s+\"(.*)\"|source \"$(realpath "$srctree")/\\1\"|" {} \;
                     # to ask 
                     find "$srctree" -type f -exec sed -i '/option env/d' {} \;
                 fi
-                #preprocessing for subject embtoolkit
+                #preprocessing for system embtoolkit
                 if [[ "$system" == "embtoolkit" ]]; then
                     find "$srctree" -type f -exec sed -i '/option env/d' {} \;
                     config_files=$(find "$srctree" -type f -name "Kconfig") 
@@ -187,7 +187,7 @@ extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_fil
                             -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
                         done
                 fi
-                #preprocessing for subject freetz-ng
+                #preprocessing for system freetz-ng
                 if [[ "$system" == "freetz-ng" ]]; then
                     config_files=$(find "$srctree" -type f -name "*.in") 
                     for file in $config_files; do
@@ -202,7 +202,7 @@ extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_fil
                             -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
                     done
                 fi
-                #preprocessing for subject toybox
+                #preprocessing for system toybox
                 if [[ "$system" == "toybox" ]]; then
                     config_files=$(find "$srctree" -type f -name "*.in") 
                     for file in $config_files; do
@@ -302,16 +302,16 @@ register-kconfig-extractor(extractor, kconfig_binding=, timeout=0) {
 # compiles kconfig bindings and extracts kconfig models using kmax
 extract-kconfig-models-with-kmax(timeout=0) {
     register-kconfig-extractor kmax kextractor "$timeout"
-    experiment-subjects
+    experiment-systems
 }
 
 # compiles kconfig bindings and extracts kconfig models using kconfigreader
 extract-kconfig-models-with-kconfigreader(timeout=0) {
     register-kconfig-extractor kconfigreader dumpconf "$timeout"
-    experiment-subjects
+    experiment-systems
 }
 
 extract-kconfig-models-with-configfixextractor(timeout=0) {
     register-kconfig-extractor configfixextractor "" "$timeout"
-    experiment-subjects
+    experiment-systems
 }

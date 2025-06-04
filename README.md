@@ -127,23 +127,23 @@ You can also write your own experiments by adapting an existing experiment file.
 - The first execution of torte can take a while (~30 minutes), as several complex Docker containers need to be built.
 This can be avoided by loading a reproduction package that includes Docker images (built by `./torte.sh export`).
 
-## Supported Subject Systems
+## Supported Systems
 
 This is a list of all subject systems for which feature-model extraction has been tested and confirmed to work for at least one extraction tool.
 Other systems or revisions may also be supported.
-Detailed system-specific information on potential threats to validity is available in the `scripts/subjects` directory.
+Detailed system-specific information on potential threats to validity is available in the `scripts/systems` directory.
 
 | System | Revisions | Notes |
 | - | - | - |
-| [axtls](scripts/subjects/axtls.sh) | 1.0.0 - 2.0.0 | |
-| [buildroot](scripts/subjects/buildroot.sh) | 2009.02 - 2024.05 | |
-| [busybox](scripts/subjects/busybox.sh) | 1.3.0 - 1.36.0 | [^27] |
-| [embtoolkit](scripts/subjects/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
-| [fiasco](scripts/subjects/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
-| [freetz-ng](scripts/subjects/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
-| [linux](scripts/subjects/linux.sh) | 2.5.45 - 6.11 | [^21] [^25] [^26] [^29] | |
-| [toybox](scripts/subjects/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
-| [uclibc-ng](scripts/subjects/uclibc-ng.sh) | 1.0.2 - 1.0.47 | |
+| [axtls](scripts/systems/axtls.sh) | 1.0.0 - 2.0.0 | |
+| [buildroot](scripts/systems/buildroot.sh) | 2009.02 - 2024.05 | |
+| [busybox](scripts/systems/busybox.sh) | 1.3.0 - 1.36.0 | [^27] |
+| [embtoolkit](scripts/systems/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
+| [fiasco](scripts/systems/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
+| [freetz-ng](scripts/systems/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
+| [linux](scripts/systems/linux.sh) | 2.5.45 - 6.11 | [^21] [^25] [^26] [^29] | |
+| [toybox](scripts/systems/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
+| [uclibc-ng](scripts/systems/uclibc-ng.sh) | 1.0.2 - 1.0.47 | |
 
 [^21]: Most revisions and architectures of Linux (since the introduction of KConfig) can be extracted successfully.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
@@ -156,7 +156,7 @@ However, these constructs do not affect our feature-model extraction, as we want
 However, our experiments showed that the chosen parser version typically does not seem to affect the extracted formula, should it succeed in extracting a formula.
 
 [^29]: For Linux, specifying arbitrary commit hashes is not enabled by default, because we must perform a complete Git history rewrite (resetting the commit hashes in the process) in order to ensure that checking out the repository also succeeds cross-platform on case-insensitive file systems (e.g., APFS).
-To specify arbitrary and up-to-date commit hashes, use `LINUX_CLONE_MODE=original|filter` (see `scripts/subject/linux.sh#post-clone-hook-linux`: `original` only works on case-sensitive file systems, while `filter` is cross-platform, but takes several hours to run).
+To specify arbitrary and up-to-date commit hashes, use `LINUX_CLONE_MODE=original|filter` (see `scripts/systems/linux.sh#post-clone-hook-linux`: `original` only works on case-sensitive file systems, while `filter` is cross-platform, but takes several hours to run).
 This does not affect typical use cases that involve tag and branch identifiers.
 
 [^22]: Feature models for this system are currently likely to be incomplete due to an inaccurate extraction.

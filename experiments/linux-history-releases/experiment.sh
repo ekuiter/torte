@@ -29,7 +29,7 @@ SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and
 
 LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
 
-experiment-subjects() {
+experiment-systems() {
     # analyze all revisions and architectures of the Linux kernel
     add-linux-kconfig-history --from v2.5.45 --to v6.12 --architecture all
 }

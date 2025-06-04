@@ -47,7 +47,7 @@ read-uclibc-ng-configs() {
     }
 
     echo system,revision,kconfig-file,config > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 uclibc-ng-configs(revision) {

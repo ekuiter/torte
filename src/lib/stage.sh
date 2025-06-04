@@ -246,7 +246,7 @@ plot(stage, type, fields, arguments...) {
 
 # convenience functions for defining commonly used stages
 define-stage-helpers() {
-    # clone the systems specified as experiment subjects
+    # clone the systems specified in the experiment file
     clone-systems() {
         run --stage clone-systems
     }

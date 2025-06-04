@@ -54,7 +54,7 @@ read-freetz-ng-configs() {
     }
 
     echo system,revision,kconfig-file,config > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 freetz-ng-configs(revision) {

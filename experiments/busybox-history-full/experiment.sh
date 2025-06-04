@@ -6,7 +6,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 # Extraction of all feature models of BusyBox (for every commit that touches the feature model)
 
-experiment-subjects() {
+experiment-systems() {
     add-busybox-kconfig-history --from 1_3_0 --to 1_36_1
     add-busybox-kconfig-history-full
 }

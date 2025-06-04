@@ -61,7 +61,7 @@ read-buildroot-configs() {
     }
 
     echo system,revision,kconfig-file,config > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 buildroot-configs(revision) {

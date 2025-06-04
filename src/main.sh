@@ -26,24 +26,24 @@ command-help() {
 
 # scripts to include
 SCRIPTS=(
-    helper.sh # miscellaneous helpers
-    path.sh # deals with input/output paths
-    stage.sh # runs stages
-    experiment.sh # runs experiments
-    docker.sh # functions for working with Docker containers
-    utilities.sh # functions for working with Git repositories and other utilities
-    subjects/subjects.sh # configures common experiment subjects
-    extraction.sh # extracts kconfig models
-    transformation.sh # transforms files
-    analysis.sh # analyzes files
-    initialization.sh # initializes the tool
+    lib/analysis.sh # analyzes files
+    lib/docker.sh # functions for working with Docker containers
+    lib/experiment.sh # runs experiments
+    lib/extraction.sh # extracts kconfig models
+    lib/helper.sh # miscellaneous helpers
+    lib/initialization.sh # initializes the tool
+    lib/path.sh # deals with input/output paths
+    lib/stage.sh # runs stages
+    lib/transformation.sh # transforms files
+    lib/utilities.sh # functions for working with Git repositories and other utilities
+    systems/main.sh # configures common subject systems
 )
 
 # API functions
 API=(
     # implemented in experiment files
     experiment-stages # defines the stages of the experiment in order of their execution
-    experiment-subjects # defines the experiment subjects
+    experiment-systems # defines the investigated systems
 
     # implemented in Docker containers
     add-system # adds a system (e.g., clone)
@@ -66,7 +66,7 @@ PATH_SEPARATOR=/ # separator for building paths
 INPUT_DIRECTORY=input # path to system repositories
 OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
 SRC_DIRECTORY=$(dirname "$0") # scripts directory
-TOOL_DIRECTORY=$SRC_DIRECTORY# tool directory
+TOOL_DIRECTORY=$SRC_DIRECTORY/.. # tool directory
 DOCKER_DIRECTORY=$TOOL_DIRECTORY/docker # path to docker files
 EXPORT_DIRECTORY=$TOOL_DIRECTORY/export # path for exporting experiments
 CACHE_DIRECTORY=.cache # path for cached data in output directory

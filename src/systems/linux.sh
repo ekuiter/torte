@@ -258,7 +258,7 @@ tag-linux-revisions(tag_option=) {
         done
     }
 
-    experiment-subjects
+    experiment-systems
 }
 
 # extracts code names of linux revisions, just because it's fun :-)
@@ -282,7 +282,7 @@ read-linux-names() {
     }
 
     echo system,revision,name > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 # extracts architectures of linux revisions
@@ -307,7 +307,7 @@ read-linux-architectures() {
     }
 
     echo system,revision,architecture > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }
 
 # extracts configuration options of linux revisions
@@ -340,5 +340,5 @@ read-linux-configs() {
     }
 
     echo system,revision,kconfig-file,config > "$(output-csv)"
-    experiment-subjects
+    experiment-systems
 }

@@ -15,7 +15,7 @@ clone-systems() {
         fi
     }
 
-    experiment-subjects
+    experiment-systems
 }
 
 # counts number of source lines of codes using cloc
@@ -51,6 +51,6 @@ read-statistics(statistics_option=) {
 
     echo system,revision,committer_date_unix,committer_date_readable > "$(output-path date.csv)"
     echo system,revision,source_lines_of_code > "$(output-path sloc.csv)"
-    experiment-subjects
+    experiment-systems
     join-tables "$(output-path date.csv)" "$(output-path sloc.csv)" > "$(output-csv)"
 }

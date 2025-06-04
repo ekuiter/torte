@@ -12,7 +12,7 @@ ITERATIONS=5 # number of iterations for extraction and transformation
 SOLVE_ITERATIONS=3 # number of iterations for SAT solving
 LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
 
-experiment-subjects() {
+experiment-systems() {
     add-linux-system
     # choose the last revision of Linux for each year from 2002-2024,
     # which can then be analyzed with the corresponding year's SAT competition solver

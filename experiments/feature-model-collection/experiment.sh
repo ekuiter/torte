@@ -22,7 +22,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 PATH_SEPARATOR=_ # create no nested directories
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
-experiment-subjects() {
+experiment-systems() {
     add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
     add-buildroot-kconfig-history --from 2009.05 --to 2022.05
     add-busybox-kconfig-history --from 1_3_0 --to 1_36_0
