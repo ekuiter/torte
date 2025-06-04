@@ -113,7 +113,7 @@ curl -s https://ekuiter.github.io/torte/ | sh
 ```
 
 Above, we run the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
-To execute another experiment, run `curl -s https://ekuiter.github.io/torte/ | sh -s - <experiment>` (a list of predefined experiments is available [here](#predefined-experiments)).
+To execute another experiment, run `curl -s https://ekuiter.github.io/torte/ | sh -s - <experiment>` (information about predefined experiments is available [here](#predefined-experiments)).
 You can also write your own experiments by adapting an existing experiment file.
 
 **Further Tips**
