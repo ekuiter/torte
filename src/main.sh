@@ -29,9 +29,9 @@ SCRIPTS=(
     lib/helper.sh # miscellaneous helpers (loaded first so logging becomes available)
     lib/analysis.sh # analyzes files
     lib/docker.sh # functions for working with Docker containers
+    lib/entrypoint.sh # initializes and runs the tool
     lib/experiment.sh # runs experiments
     lib/extraction.sh # extracts kconfig models
-    lib/initialization.sh # initializes the tool
     lib/path.sh # deals with input/output paths
     lib/stage.sh # runs stages
     lib/transformation.sh # transforms files
@@ -94,9 +94,6 @@ fi
 # modify bash to allow for succinct function definitions
 source "$SRC_DIRECTORY/bootstrap.sh"
 
-# start initialization (only used to improve initial log output)
-INITIALIZING=y
-
 # add system scripts
 for system in "$SRC_DIRECTORY"/systems/*; do
     SCRIPTS+=("${system#"$SRC_DIRECTORY"/}")
@@ -114,4 +111,4 @@ for script in "${SCRIPTS[@]}"; do
 done
 
 # initialize torte and run the given experiment or command
-# initialize "$@"
+# entrypoint "$@"

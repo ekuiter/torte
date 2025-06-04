@@ -1,6 +1,6 @@
 #!/bin/bash
 
-initialize(arguments...) {
+entrypoint(arguments...) {
     # define stubs for API functions
     for function in "${API[@]}"; do
         define-stub "$function"
@@ -15,7 +15,7 @@ initialize(arguments...) {
     fi
 
     # initialization done
-    INITIALIZING=
+    INITIALIZED=y
 
     # run the given command
     if [[ -z "${arguments[*]}" ]]; then
