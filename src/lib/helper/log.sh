@@ -6,23 +6,6 @@ if [[ -z $CURRENT_SUBJECT ]]; then
     LOG_START=
 fi
 
-# formats a time in nanoseconds in a human-readable way
-format-time(nanoseconds=, prefix=, suffix=) {
-    if [[ -z $nanoseconds ]]; then
-        return
-    fi
-    local milliseconds="${nanoseconds%??????}"
-    if [[ $milliseconds -lt 1000 ]]; then
-        echo "$prefix${milliseconds}ms$suffix"
-    elif [[ $milliseconds -lt 60000 ]]; then
-        local seconds="${nanoseconds%?????????}"
-        echo "$prefix${seconds}s$suffix"
-    else
-        local minutes="$((${nanoseconds%?????????}/60))"
-        echo "$prefix${minutes}m$suffix"
-    fi
-}
-
 # logs a new message
 new-log(arguments...) {
     echo -e "[$TOOL] \r\033[0K${arguments[*]}"

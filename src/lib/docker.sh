@@ -22,7 +22,7 @@ dangling-images() {
 # prepares a reproduction package
 # exporting all data makes the reproduction package bigger, but has no network dependencies
 command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
-    require-command tar git
+    assert-command tar git
     rm-safe "$EXPORT_DIRECTORY" "$file"
     mkdir -p "$EXPORT_DIRECTORY"
     cp "$SRC_DIRECTORY/_experiment.sh" "$EXPORT_DIRECTORY"

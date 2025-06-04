@@ -49,7 +49,7 @@ nums(arguments...) {
 
 # transforms a list of files from one file format into another
 transform-files(csv_file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0, jobs=1) {
-    require-command parallel
+    assert-command parallel
     echo -n "$input_extension-file,$output_extension-file,$output_extension-transformer,$output_extension-time" > "$(output-csv)"
     if [[ -n $data_fields ]]; then
         echo ",$data_fields" >> "$(output-csv)"

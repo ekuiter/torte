@@ -13,7 +13,7 @@ input-directory() {
 # returns the directory for all outputs for a given stage
 output-directory(stage=) {
     if is-host; then
-        require-value stage
+        assert-value stage
         echo "$OUTPUT_DIRECTORY/$stage"
     else
         echo "$DOCKER_OUTPUT_DIRECTORY"
@@ -55,13 +55,13 @@ output-err(stage=) { output-file err "$stage"; }
 
 # returns whether the given experiment stage is done
 stage-done(stage) {
-    require-host
+    assert-host
     [[ -d $(output-directory "$stage") ]]
 }
 
-# requires that he given experiment stage is done
-require-stage-done(stage) {
-    require-host
+# asserts that he given experiment stage is done
+assert-stage-done(stage) {
+    assert-host
     if ! stage-done "$stage"; then
         error "Stage $stage not done yet, please run stage $stage."
     fi

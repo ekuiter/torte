@@ -55,7 +55,7 @@ command-stop() {
 # removes previous experiment results and reinstalls evaluation scripts
 # shellcheck disable=SC2029
 command-run-remote(host, file=experiment.tar.gz, directory=., sudo=) {
-    require-command ssh scp
+    assert-command ssh scp
     if [[ $sudo == y ]]; then
         sudo=sudo
     fi
@@ -79,7 +79,7 @@ command-run-remote(host, file=experiment.tar.gz, directory=., sudo=) {
 
 # downloads results from the remote server
 command-copy-remote(host, directory=.) {
-    require-command rsync
+    assert-command rsync
     rsync -av "$host:$directory/$OUTPUT_DIRECTORY/" "$OUTPUT_DIRECTORY-$host-$(date "+%Y-%m-%d")"
 }
 

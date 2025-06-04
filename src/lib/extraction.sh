@@ -263,7 +263,7 @@ register-kconfig-extractor(extractor, kconfig_binding=, timeout=0) {
     EXTRACTOR=$extractor
     KCONFIG_BINDING=$kconfig_binding
     TIMEOUT=$timeout
-    require-value EXTRACTOR TIMEOUT
+    assert-value EXTRACTOR TIMEOUT
     # todo ConfigFix: review this (maybe create a dummy binding)
     if [ -z "$KCONFIG_BINDING" ]; then
         echo "No KCONFIG_BINDING provided, running without KCONFIG_BINDING."

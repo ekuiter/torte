@@ -1,5 +1,15 @@
 #!/bin/bash
-# platform-specific helper functions
+# platform-specific adjustments and helper functions
+
+# asserts that the given commands are available
+assert-command(commands...) {
+    local command
+    for command in "${commands[@]}"; do
+        if ! command -v "$command" > /dev/null; then
+            error "Required command $command is missing, please install manually."
+        fi
+    done
+}
 
 # returns whether the processor architecture is ARM
 is-arm() {
@@ -14,22 +24,22 @@ is-macos() {
 # use gsed and ggrep on macOS
 if is-macos; then
     sed(args...) {
-        require-command gsed
+        assert-command gsed
         gsed "${args[@]}"
     }
 
     grep(args...) {
-        require-command ggrep
+        assert-command ggrep
         ggrep "${args[@]}"
     }
 
     cut(args...) {
-        require-command gcut
+        assert-command gcut
         gcut "${args[@]}"
     }
 
     date(args...) {
-        require-command gdate
+        assert-command gdate
         gdate "${args[@]}"
     }
 fi

@@ -3,8 +3,8 @@
 
 # removes all output for the given experiment stage
 clean(stages...) {
-    require-array stages
-    require-host
+    assert-array stages
+    assert-host
     for stage in "${stages[@]}"; do
         rm-safe "$(output-directory "$stage")"
     done
@@ -13,7 +13,7 @@ clean(stages...) {
 # runs a stage of some experiment in a Docker container
 run(stage=, image=util, input_directory=, command...) {
     stage=${stage:-$TRANSIENT_STAGE}
-    require-host
+    assert-host
     local readable_stage=$stage
     if [[ $stage == "$TRANSIENT_STAGE" ]]; then
         readable_stage="<transient>"
@@ -85,7 +85,7 @@ run(stage=, image=util, input_directory=, command...) {
             cmd+=(-v "$input_volume:$DOCKER_INPUT_DIRECTORY")
             cmd+=(-v "$output_volume:$DOCKER_OUTPUT_DIRECTORY")
             cmd+=(-v "$(realpath "$SRC_DIRECTORY"):$DOCKER_SRC_DIRECTORY")
-            cmd+=(-e IS_DOCKER_RUNNING=y)
+            cmd+=(-e INSIDE_DOCKER_CONTAINER=y)
             cmd+=(-e PASS)
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
@@ -112,7 +112,7 @@ run(stage=, image=util, input_directory=, command...) {
                 clean "$stage"
             fi
         else
-            require-command gzip
+            assert-command gzip
             local image_archive
             image_archive="$EXPORT_DIRECTORY/$image.tar.gz"
             mkdir -p "$(dirname "$image_archive")"
@@ -138,7 +138,7 @@ skip(stage=, image=util, input_directory=, command...) {
 aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field=, stages...) {
     directory_field=${directory_field:-$stage_field}
     stage_transformer=${stage_transformer:-$(lambda-identity)}
-    require-array stages
+    assert-array stages
     compile-lambda stage-transformer "$stage_transformer"
     source_transformer="$(lambda value "stage-transformer \$(basename \$(dirname \$value))")"
     csv_files=()
@@ -160,7 +160,7 @@ aggregate(stage, file_fields=, stage_field=, stage_transformer=, directory_field
     if ! stage-done "$stage"; then
         local current_stage
         for current_stage in "${stages[@]}"; do
-            require-stage-done "$current_stage"
+            assert-stage-done "$current_stage"
         done
     fi
     run "$stage" "" "$OUTPUT_DIRECTORY" aggregate-helper "$file_fields" "$stage_field" "$stage_transformer" "$directory_field" "${stages[@]}"

@@ -46,7 +46,7 @@ API=(
 )
 
 # print banner image (if on host and not already done)
-if [[ -z $IS_DOCKER_RUNNING ]] && [[ -z $TORTE_BANNER_PRINTED ]]; then
+if [[ -z $INSIDE_DOCKER_CONTAINER ]] && [[ -z $TORTE_BANNER_PRINTED ]]; then
     echo "┌────────────────────────────────────────────────┐"
     echo "│ $TOOL: feature-model experiments à la carte 🍰 │"
     echo "└────────────────────────────────────────────────┘"
@@ -76,8 +76,10 @@ command-help() {
 # modify Bash to allow for succinct function definitions
 source "$SRC_DIRECTORY/bootstrap.sh"
 
-# load all scripts, starting with the logging facilities, which are needed right away
-for script in lib/helper/log.sh \
+# load all scripts, starting with the time and logging facilities, which are needed right away
+for script in \
+    lib/helper/time.sh \
+    lib/helper/log.sh \
     $(find "$SRC_DIRECTORY"/lib -name '*.sh') \
     $(find "$SRC_DIRECTORY"/systems -name '*.sh'); do
     source-script "$script"

@@ -1,7 +1,7 @@
 #!/bin/bash
 # a small magical preprocessor for Bash scripts that allows more succinct function definitions
 # e.g., fn(a, b, c=3) { echo $a $b $c; } it does not usually work in Bash, but this preprocessor makes it work
-# depends on require-host defined in helper/function.sh and logging primitives defined in helper/log.sh
+# depends some primitives defined in lib/helper (assert-host and log)
 # preprocessed scripts should lie in the same directory tree as this script
 
 # the location of this script
@@ -44,9 +44,11 @@ compile-script() {
 # improves Bash's sourcing mechanism so scripts are compiled before inclusion
 source-script() {
     local script=$1
+    local logging
     # this code is specific to this project to improve logging
-    if [[ $script != *lib/helper/log.sh ]]; then
+    if declare -F log >/dev/null; then
         log "${script#"$SRC_DIRECTORY"/}" "$(echo-progress load)"
+        logging=y
     fi
     local generated_script_directory generated_script
     generated_script_directory=$(dirname "$script")
@@ -66,7 +68,7 @@ source-script() {
     # shellcheck source=/dev/null
     source "$generated_script"
     # this code is specific to this project to improve logging
-    if [[ $script != *lib/helper/log.sh ]]; then
+    if [[ -n $logging ]]; then
         log "" "$(echo-done)"
     fi
 }
@@ -174,7 +176,7 @@ parse-arguments() {
     # decorate special functions that should only be run on the host (requires helper.sh to be in scope)
     # this code is specific to this project and can be removed if only simple argument preprocessing is needed
     if [[ $function_name =~ ^command- ]]; then
-        code+="require-host; "
+        code+="assert-host; "
     fi
 
     echo "$code"
