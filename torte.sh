@@ -17,6 +17,7 @@ if (return 0 2>/dev/null); then
     # if this script is sourced from an experiment file, install into the working directory
     require git
     require make
+    export TORTE_BANNER_PRINTED=
     if [[ ! -d torte ]]; then
         echo "┌────────────────────────────────────────────────┐"
         echo "│ torte: feature-model experiments à la carte 🍰 │"
@@ -27,6 +28,7 @@ if (return 0 2>/dev/null); then
         echo "By default, all experiment data will be stored in the directory '$PWD/output'."
         echo
         git clone --recursive -q "$TORTE_REPOSITORY" 1>/dev/null
+        TORTE_BANNER_PRINTED=y # prevent printing the banner again in torte.sh
     fi
     git -C torte checkout --recurse-submodules -q "$TORTE_REVISION" 1>/dev/null
     torte/torte.sh "$0" "$@" # run main entry point for the given experiment file ($0 is the sourcing experiment file)
