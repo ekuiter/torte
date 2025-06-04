@@ -24,7 +24,7 @@ log(subject=, state=) {
     else
         command=update-log
     fi
-    if is-host && [[ -f $(output-log "$TOOL") ]] && ! tail -n1 "$(output-log "$TOOL")" | grep -q "m$subject\^"; then
+    if [[ -z $INITIALIZING ]] && is-host && has-function output-log && [[ -f $(output-log "$TOOL") ]] && ! tail -n1 "$(output-log "$TOOL")" | grep -q "m$subject\^"; then
         command=new-log
     fi
     if [[ -n $LOG_START ]] && { [[ $state == $(echo-fail) ]] || [[ $state == $(echo-done) ]]; }; then

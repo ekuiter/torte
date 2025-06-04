@@ -26,11 +26,11 @@ command-help() {
 
 # scripts to include
 SCRIPTS=(
+    lib/helper.sh # miscellaneous helpers (loaded first so logging becomes available)
     lib/analysis.sh # analyzes files
     lib/docker.sh # functions for working with Docker containers
     lib/experiment.sh # runs experiments
     lib/extraction.sh # extracts kconfig models
-    lib/helper.sh # miscellaneous helpers
     lib/initialization.sh # initializes the tool
     lib/path.sh # deals with input/output paths
     lib/stage.sh # runs stages
@@ -77,15 +77,15 @@ VERBOSE= # y if console output should be verbose
 DEBUG= # y for debugging stages interactively
 LINUX_CLONE_MODE=fork # clone mode for Linux repository, can be either fork, original, or filter
 
-# memory limit in GiB for running Docker containers and other tools, should be at least 2 GiB
+# define default memory limit (in GiB) for running Docker containers and other tools (should be at least 2 GiB)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     MEMORY_LIMIT=$(($(memory_pressure | head -n1 | cut -d' ' -f4)/1024/1024/1024))
 else
     MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024))
 fi
 
-# print banner image (if not already done)
-if [[ -z "$TORTE_BANNER_PRINTED" ]]; then
+# print banner image (if on host and not already done)
+if [[ -z $IS_DOCKER_RUNNING ]] && [[ -z $TORTE_BANNER_PRINTED ]]; then
     echo "┌────────────────────────────────────────────────┐"
     echo "│ $TOOL: feature-model experiments à la carte 🍰 │"
     echo "└────────────────────────────────────────────────┘"
@@ -95,10 +95,19 @@ fi
 # modify bash to allow for succinct function definitions
 source "$SRC_DIRECTORY/bootstrap.sh"
 
+# start initialization (only used to improve initial log output)
+INITIALIZING=y
+
 # load library scripts
 for script in "${SCRIPTS[@]}"; do
+    if [[ $script != lib/helper.sh ]]; then
+        log "$script" "$(echo-progress load)"
+    fi
     source-script "$SRC_DIRECTORY/$script"
+    if [[ $script != lib/helper.sh ]]; then
+        log "" "$(echo-done)"
+    fi
 done
 
 # initialize torte and run the given experiment or command
-initialize "$@"
+# initialize "$@"

@@ -14,6 +14,9 @@ initialize(arguments...) {
         load-experiment
     fi
 
+    # initialization done
+    INITIALIZING=
+
     # run the given command
     if [[ -z "${arguments[*]}" ]]; then
         arguments=(run)
