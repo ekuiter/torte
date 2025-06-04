@@ -28,13 +28,7 @@ FORCE_RUN= # y if every stage should be forced to run regardless of whether is i
 VERBOSE= # y if console output should be verbose
 DEBUG= # y for debugging stages interactively
 LINUX_CLONE_MODE=fork # clone mode for Linux repository, can be either fork, original, or filter
-
-# define default memory limit (in GiB) for running Docker containers and other tools (should be at least 2 GiB)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    MEMORY_LIMIT=$(($(memory_pressure | head -n1 | cut -d' ' -f4)/1024/1024/1024))
-else
-    MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024))
-fi
+MEMORY_LIMIT= # if unset, this is automatically determined in helper/platform.sh
 
 # API functions that are available to experiments
 # todo: is it necessary to specify these here at all?
@@ -83,7 +77,9 @@ command-help() {
 source "$SRC_DIRECTORY/bootstrap.sh"
 
 # load all scripts, starting with the logging facilities, which are needed right away
-for script in lib/helper/log.sh $(find "$SRC_DIRECTORY"/lib -name '*.sh') $(find "$SRC_DIRECTORY"/systems -name '*.sh'); do
+for script in lib/helper/log.sh \
+    $(find "$SRC_DIRECTORY"/lib -name '*.sh') \
+    $(find "$SRC_DIRECTORY"/systems -name '*.sh'); do
     source-script "$script"
 done
 

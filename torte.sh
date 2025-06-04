@@ -34,6 +34,6 @@ if (return 0 2>/dev/null); then
     torte/torte.sh "$0" "$@" # run main entry point for the given experiment file ($0 is the sourcing experiment file)
     exit 0 # exit the experiment file's parent shell once done
 else
-    # if this script is executed directly, run main entry point
+    # if this script is executed directly, run main entry point in src/main.sh
     "$(dirname "$0")"/src/main.sh "$@"
 fi

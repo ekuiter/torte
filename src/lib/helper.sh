@@ -1,39 +1,6 @@
 #!/bin/bash
 # miscellaneous helpers
 
-# returns whether the processor architecture is ARM
-is-arm() {
-    [[ $(uname -m) == arm64 ]] || [[ $(uname -m) == aarch64 ]]
-}
-
-# returns whether the operating system is macOS
-is-macos() {
-    [[ "$OSTYPE" == "darwin"* ]]
-}
-
-# use gsed and ggrep on macOS
-if is-macos; then
-    sed(args...) {
-        require-command gsed
-        gsed "${args[@]}"
-    }
-
-    grep(args...) {
-        require-command ggrep
-        ggrep "${args[@]}"
-    }
-
-    cut(args...) {
-        require-command gcut
-        gcut "${args[@]}"
-    }
-
-    date(args...) {
-        require-command gdate
-        gdate "${args[@]}"
-    }
-fi
-
 # requires that the given commands are available
 require-command(commands...) {
     local command
@@ -59,7 +26,7 @@ is-host() {
     [[ -z $IS_DOCKER_RUNNING ]]
 }
 
-# returns whether Docker is runningr
+# returns whether Docker is running
 is-docker-running() {
     docker info >/dev/null 2>&1
 }
