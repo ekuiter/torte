@@ -4,6 +4,8 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
+# Extraction of all feature models of BusyBox (for every commit that touches the feature model)
+
 experiment-subjects() {
     add-busybox-kconfig-history --from 1_3_0 --to 1_36_1
     add-busybox-kconfig-history-full

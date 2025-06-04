@@ -6,6 +6,9 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 # This experiment clones the original Linux git repository, then adds old revisions as tag, and rewrites its history to remove files with case-sensitive names.
 # The resulting repository has been pushed as a fork to https://github.com/ekuiter/linux and is used as a default for most experiments to avoid checkout issues on macOS.
+# There are only two reasons to avoid using this repository:
+# 1) When very recent revisions should be analyzed (which the repository may not include yet).
+# 2) When the original commit hashes are needed for a specific experiment (as they are rewritten). This restriction does not apply to tags, which are preserved.
 
 TIMEOUT=10
 LINUX_CLONE_MODE=filter

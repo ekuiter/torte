@@ -4,6 +4,8 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
+# Learning from feature-model histories
+
 TIMEOUT=300 # timeout for extraction and transformation in seconds
 
 experiment-subjects() {

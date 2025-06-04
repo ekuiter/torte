@@ -4,6 +4,8 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
+# This file reproduces the evaluation for the TOSEM'25 paper "How Configurable is the Linux Kernel? Analyzing Two Decades of Feature-Model History".
+
 # This experiment analyzes the feature model of the Linux kernel across a timespan of > 20 years
 # and across all its supported processor architectures. For each revision and architecture, a
 # feature model is extracted with both kconfigreader and kmax and then transformed into various
