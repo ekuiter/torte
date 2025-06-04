@@ -2,11 +2,11 @@
 # downloads and runs an experiment file
 
 set -e
-[ -z "$1" ] && EXPERIMENT=default || EXPERIMENT=$1
-EXPERIMENT_URL=https://raw.githubusercontent.com/ekuiter/torte/main/experiments/$EXPERIMENT/experiment.sh
+[ -z "$1" ] && TORTE_EXPERIMENT=default || TORTE_EXPERIMENT=$1
+TORTE_EXPERIMENT_URL=https://raw.githubusercontent.com/ekuiter/torte/main/experiments/$TORTE_EXPERIMENT/experiment.sh
 
 # this way, the experiment knows its own name, which may be needed to copy additional payload files
-export EXPERIMENT
+export TORTE_EXPERIMENT
 
 # this downloads the experiment file into the current working directory and runs it, which in turn will install torte
-curl -fsSL "$EXPERIMENT_URL" -o "$EXPERIMENT.sh" && bash "$EXPERIMENT.sh"
+curl -fsSL "$TORTE_EXPERIMENT_URL" -o "$TORTE_EXPERIMENT.sh" && bash "$TORTE_EXPERIMENT.sh"
