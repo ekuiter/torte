@@ -36,7 +36,6 @@ SCRIPTS=(
     lib/stage.sh # runs stages
     lib/transformation.sh # transforms files
     lib/utilities.sh # functions for working with Git repositories and other utilities
-    systems/main.sh # configures common subject systems
 )
 
 # API functions
@@ -98,7 +97,12 @@ source "$SRC_DIRECTORY/bootstrap.sh"
 # start initialization (only used to improve initial log output)
 INITIALIZING=y
 
-# load library scripts
+# add system scripts
+for system in "$SRC_DIRECTORY"/systems/*; do
+    SCRIPTS+=("${system#"$SRC_DIRECTORY"/}")
+done
+
+# load all library and system scripts
 for script in "${SCRIPTS[@]}"; do
     if [[ $script != lib/helper.sh ]]; then
         log "$script" "$(echo-progress load)"

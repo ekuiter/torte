@@ -131,7 +131,11 @@ This can be avoided by loading a reproduction package that includes Docker image
 
 This is a list of all subject systems for which feature-model extraction has been tested and confirmed to work for at least one extraction tool.
 Other systems or revisions may also be supported.
+
 Detailed system-specific information on potential threats to validity is available in the `scripts/systems` directory.
+The files in this directory include templates and convenience functions for working with well-known systems.
+Most functions extract (an excerpt of) the tagged history of a KConfig feature model.
+To extract a single revision, you can specify an excerpt with only one commit.
 
 | System | Revisions | Notes |
 | - | - | - |
