@@ -83,7 +83,7 @@ run(stage=, image=util, input_directory=, command...) {
             fi
             cmd+=(-v "$input_volume:$DOCKER_INPUT_DIRECTORY")
             cmd+=(-v "$output_volume:$DOCKER_OUTPUT_DIRECTORY")
-            cmd+=(-v "$(realpath "$SCRIPTS_DIRECTORY"):$DOCKER_SCRIPTS_DIRECTORY")
+            cmd+=(-v "$(realpath "$SRC_DIRECTORY"):$DOCKER_SRC_DIRECTORY")
             cmd+=(-e IS_DOCKER_RUNNING=y)
             cmd+=(-e PASS)
             cmd+=(--rm)
@@ -98,7 +98,7 @@ run(stage=, image=util, input_directory=, command...) {
                 "${cmd[@]}"
                 exit
             else
-                cmd+=("$DOCKER_SCRIPTS_DIRECTORY/$TOOL.sh")
+                cmd+=("$DOCKER_SRC_DIRECTORY/main.sh")
                 "${cmd[@]}" "${command[@]}" \
                     > >(write-all "$(output-log "$stage")") \
                     2> >(write-all "$(output-err "$stage")" >&2)
@@ -191,7 +191,7 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, 
 # only run if the specified file does not exist yet
 run-transient-unless(file=, command...) {
     if ([[ -z $file ]] || is-file-empty "$OUTPUT_DIRECTORY/$file") && [[ $DOCKER_RUN == y ]]; then
-        run "" "" "$OUTPUT_DIRECTORY" bash -c "cd $DOCKER_SCRIPTS_DIRECTORY; source $TOOL.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
+        run "" "" "$OUTPUT_DIRECTORY" bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
     fi
 }
 

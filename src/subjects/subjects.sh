@@ -19,5 +19,5 @@ SYSTEMS=(
 )
 
 for system in "${SYSTEMS[@]}"; do
-    source-script "$SCRIPTS_DIRECTORY/subjects/$system.sh"
+    source-script "$SRC_DIRECTORY/subjects/$system.sh"
 done

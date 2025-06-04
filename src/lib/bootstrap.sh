@@ -1,6 +1,6 @@
 #!/bin/bash
 # a small preprocessor for Bash scripts that allows more succinct function definitions
-# e.g., fn(a, b, c=3) { echo $a $b $c; } works as intuitively expected
+# e.g., fn(a, b, c=3) { echo $a $b $c; } it does not usually work in bash, but this preprocessor makes it work
 # depends on some helpers defined in helper.sh
 
 # requires the GNU version of sed

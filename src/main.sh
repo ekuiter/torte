@@ -9,7 +9,7 @@ set -e # exit on error
 command-help() {
     echo "usage: $(basename "$0") [experiment_file] [command [option]...]"
     echo
-    echo "experiment_file (default: experiments/default.sh)"
+    echo "experiment_file (default: default)"
     echo
     echo "command (default: run)"
     echo "  run                              runs the experiment"
@@ -36,12 +36,12 @@ SCRIPTS=(
     extraction.sh # extracts kconfig models
     transformation.sh # transforms files
     analysis.sh # analyzes files
-    initialization.sh # initializes the script
+    initialization.sh # initializes the tool
 )
 
 # API functions
 API=(
-    # implemented in config files
+    # implemented in experiment files
     experiment-stages # defines the stages of the experiment in order of their execution
     experiment-subjects # defines the experiment subjects
 
@@ -57,7 +57,7 @@ API=(
 TOOL=torte # tool name, used as prefix for naming Docker images and containers
 DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
 DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
-DOCKER_SCRIPTS_DIRECTORY=/home/${TOOL}_scripts # scripts directory inside Docker containers
+DOCKER_SRC_DIRECTORY=/home/${TOOL}_scripts # scripts directory inside Docker containers
 DOCKER_OUTPUT_FILE_PREFIX=output # prefix for output files inside Docker containers
 KCONFIG_MODELS_OUTPUT_DIRECTORY= # output directory for storing kconfig models
 KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storing Kconfig bindings
@@ -65,8 +65,8 @@ TRANSIENT_STAGE=transient # name for transient stages
 PATH_SEPARATOR=/ # separator for building paths
 INPUT_DIRECTORY=input # path to system repositories
 OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
-SCRIPTS_DIRECTORY=$(dirname "$0") # scripts directory
-TOOL_DIRECTORY=$SCRIPTS_DIRECTORY/.. # tool directory
+SRC_DIRECTORY=$(dirname "$0") # scripts directory
+TOOL_DIRECTORY=$SRC_DIRECTORY# tool directory
 DOCKER_DIRECTORY=$TOOL_DIRECTORY/docker # path to docker files
 EXPORT_DIRECTORY=$TOOL_DIRECTORY/export # path for exporting experiments
 CACHE_DIRECTORY=.cache # path for cached data in output directory
@@ -93,11 +93,11 @@ if [[ -z "$TORTE_BANNER_PRINTED" ]]; then
 fi
 
 # modify bash to allow for succinct function definitions
-source "$SCRIPTS_DIRECTORY/bootstrap.sh"
+source "$SRC_DIRECTORY/bootstrap.sh"
 
 # load library scripts
 for script in "${SCRIPTS[@]}"; do
-    source-script "$SCRIPTS_DIRECTORY/$script"
+    source-script "$SRC_DIRECTORY/$script"
 done
 
 # initialize torte and run the given experiment or command

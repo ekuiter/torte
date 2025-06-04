@@ -24,7 +24,7 @@ command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
     require-command tar git
     rm-safe "$EXPORT_DIRECTORY" "$file"
     mkdir -p "$EXPORT_DIRECTORY"
-    cp "$SCRIPTS_DIRECTORY/_experiment.sh" "$EXPORT_DIRECTORY"
+    cp "$SRC_DIRECTORY/_experiment.sh" "$EXPORT_DIRECTORY"
     # shellcheck disable=SC2128
     if [[ $images == y ]]; then
         export DOCKER_RUN=n
