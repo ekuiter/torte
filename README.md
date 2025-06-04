@@ -373,7 +373,7 @@ The `sat-competition` solver set does not include such restoration efforts and c
 
 The `experiments` directory contains a number of predefined experiments.
 Some of these experiments are for demo purposes (like the `default` experiment), while others are used for ongoing or published research.
-Typically, an experiment consists of a `.sh` Bash script, which is executed by torte, and an additional `.ipynb` Jupyter notebook, which visualizes the experiment's results.
+Typically, an experiment consists of an `experiment.sh` Bash script, which is executed by torte, and an additional `evaluation.ipynb` Jupyter notebook, which visualizes the experiment's results.
 
 You can also create your own experiments locally.
 If you want to publish your own experiment, feel free to create a fork or pull request of this repository.
