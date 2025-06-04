@@ -12,21 +12,26 @@ require() {
     fi
 }
 
+# perform a bit of bash magic to determine if this script is sourced or executed directly
 if (return 0 2>/dev/null); then
     # if this script is sourced from an experiment file, install into the working directory
     require git
     require make
     if [[ ! -d torte ]]; then
+        echo "┌────────────────────────────────────────────────┐"
+        echo "│ torte: feature-model experiments à la carte 🍰 │"
+        echo "└────────────────────────────────────────────────┘"
+        echo
         echo "NOTE: torte is not installed yet."
         echo "torte (revision $TORTE_REVISION) will now be installed into the directory '$PWD/torte'."
-        echo "By default, all experiment data will be stored in the directories '$PWD/input' and '$PWD/output'."
+        echo "By default, all experiment data will be stored in the directory '$PWD/output'."
         echo
         git clone --recursive -q "$TORTE_REPOSITORY" 1>/dev/null
     fi
     git -C torte checkout --recurse-submodules -q "$TORTE_REVISION" 1>/dev/null
-    torte/torte.sh "$0" "$@" # run main entry point for the given experiment file
-    exit 0 # exit the experiment file's parent shell
+    torte/torte.sh "$0" "$@" # run main entry point for the given experiment file ($0 is the sourcing experiment file)
+    exit 0 # exit the experiment file's parent shell once done
 else
     # if this script is executed directly, run main entry point
-    "$(dirname "$0")"/scripts/torte.sh "$@"
+    "$(dirname "$0")"/src/main.sh "$@"
 fi

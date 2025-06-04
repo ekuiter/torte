@@ -1,8 +1,6 @@
 /.vscode
-/input*
 /output*
 /export*
-_*.sh
-*.gen.sh
+/src/gen
 /*.tar.gz
 .ipynb_checkpoints

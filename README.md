@@ -390,9 +390,9 @@ Core contributors:
 
 Further contributors and former project members with their main contributions  (all from University of Magdeburg, Germany):
 
-- Eric Ketzler: `docker/hierarchy`
-- Urs-Benedict Braun: `experiments/linux-time-travel.sh`
-- Rami Alfish: `docker/configfixextractor`
+- Eric Ketzler: `src/docker/hierarchy`
+- Urs-Benedict Braun: `experiments/linux-time-travel`
+- Rami Alfish: `src/docker/configfixextractor`
 - Lukas Petermann: `torte-dashboard`
 
 If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).

@@ -53,7 +53,7 @@ API=(
     add-kconfig # adds a kconfig binding and model
 )
 
-# configuration options, can optionally be overridden in experiment files
+# global configuration options, can optionally be overridden in experiment files
 TOOL=torte # tool name, used as prefix for naming Docker images and containers
 DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
 DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
@@ -84,9 +84,19 @@ else
     MEMORY_LIMIT=$(($(sed -n '/^MemTotal:/ s/[^0-9]//gp' /proc/meminfo)/1024/1024))
 fi
 
-source "$SCRIPTS_DIRECTORY/bootstrap.sh" # modifies Bash to allow for succinct function definitions
+# print banner image
+echo "┌────────────────────────────────────────────────┐"
+echo "│ $TOOL: feature-model experiments à la carte 🍰 │"
+echo "└────────────────────────────────────────────────┘"
+echo
+
+# modify bash to allow for succinct function definitions
+source "$SCRIPTS_DIRECTORY/bootstrap.sh"
+
+# load library scripts
 for script in "${SCRIPTS[@]}"; do
     source-script "$SCRIPTS_DIRECTORY/$script"
 done
 
+# initialize torte and run the given experiment or command
 initialize "$@"
