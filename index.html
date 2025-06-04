@@ -3,7 +3,10 @@
 
 set -e
 [ -z "$1" ] && EXPERIMENT=default || EXPERIMENT=$1
-EXPERIMENT_URL=https://raw.githubusercontent.com/ekuiter/torte/main/experiments/$EXPERIMENT.sh
+EXPERIMENT_URL=https://raw.githubusercontent.com/ekuiter/torte/main/experiments/$EXPERIMENT/experiment.sh
 
-echo "NOTE: Will now download the experiment file to '$PWD/$EXPERIMENT.sh'."
+# this way, the experiment knows its own name, which may be needed to copy additional payload files
+export EXPERIMENT
+
+# this downloads the experiment file into the current working directory and runs it, which in turn will install torte
 curl -fsSL "$EXPERIMENT_URL" -o "$EXPERIMENT.sh" && bash "$EXPERIMENT.sh"
