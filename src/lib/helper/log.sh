@@ -60,7 +60,6 @@ error(arguments...) {
 # logs an error, prints help, and exits
 error-help(arguments...) {
     echo "ERROR: ${arguments[*]}" 1>&2
-    echo 1>&2
     command-help 1>&2
     exit 1
 }

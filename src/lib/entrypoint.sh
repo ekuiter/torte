@@ -7,10 +7,11 @@ fi
 
 entrypoint(arguments...) {
     # load experiment file
-    log-host "loading experiment"
-    if [[ ${#arguments[@]} -ge 1 ]] && [[ -f "${arguments[0]}" ]]; then 
+    if [[ ${#arguments[@]} -ge 1 ]] && [[ -n "$(experiment-file "${arguments[0]}")" ]]; then
         load-experiment "${arguments[0]}"
         arguments=("${arguments[@]:1}")
+    elif [[ ${#arguments[@]} -ge 1 ]] && ! has-function "${arguments[0]}"; then
+        error-help "${arguments[0]} is neither an experiment file nor a function."
     else
         load-experiment
     fi

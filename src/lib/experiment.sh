@@ -1,17 +1,22 @@
 #!/bin/bash
 # runs experiments
 
+# returns the path to a given experiment file
+experiment-file(experiment_file=default) {
+    if [[ -f $experiment_file ]]; then
+        echo "$experiment_file"
+    elif [[ -f $TOOL_DIRECTORY/experiments/$experiment_file/experiment.sh ]]; then
+        echo "$TOOL_DIRECTORY/experiments/$experiment_file/experiment.sh"
+    fi
+}
+
 # prepares an experiment by loading its file
-# this has no effect besides defining variables and functions
-# sets several global variables
+# this has no effect besides defining (global) variables and functions
 load-experiment(experiment_file=default) {
     if is-host; then
-        if [[ ! -f $experiment_file ]]; then
-            if [[ -f $TOOL_DIRECTORY/experiments/$experiment_file/experiment.sh ]]; then
-                experiment_file=$TOOL_DIRECTORY/experiments/$experiment_file/experiment.sh
-            else
-                error-help "Please provide an experiment in $experiment_file."
-            fi
+        experiment_file=$(experiment-file "$experiment_file")
+        if [[ -z $experiment_file ]]; then
+            error-help "Please provide an experiment in $experiment_file."
         fi
         if [[ ! $experiment_file -ef $SRC_DIRECTORY/_experiment.sh ]]; then
             cp "$experiment_file" "$SRC_DIRECTORY/_experiment.sh"
@@ -30,7 +35,7 @@ command-clean() {
 command-run() {
     mkdir -p "$INPUT_DIRECTORY"
     mkdir -p "$OUTPUT_DIRECTORY"
-    clean "$TOOL"
+    clean "$TOOL"s
     mkdir -p "$(output-directory "$TOOL")"
     cp "$SRC_DIRECTORY/_experiment.sh" "$(output-directory "$TOOL")/_experiment.sh"
     define-stage-helpers

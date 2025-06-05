@@ -41,7 +41,7 @@ fi
 # prints help information
 command-help() {
     echo
-    echo "usage: $(basename "$0") [experiment_file] [command [option]...]"
+    echo "usage: $TOOL.sh [experiment_file] [command [option]...]"
     echo
     echo "experiment_file (default: default)"
     echo
@@ -63,7 +63,6 @@ source "$SRC_DIRECTORY/bootstrap.sh"
 
 # load all scripts, starting with specific facilities, which are needed right away to enable logging
 for script in \
-    lib/helper/host.sh \
     lib/helper/time.sh \
     lib/helper/log.sh \
     $(find "$SRC_DIRECTORY"/lib -name '*.sh') \
