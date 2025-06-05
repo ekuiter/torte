@@ -1,11 +1,15 @@
 #!/bin/bash
 # platform-specific adjustments and helper functions
 
+has-command(command) {
+    command -v "$command" > /dev/null
+}
+
 # asserts that the given commands are available
 assert-command(commands...) {
     local command
     for command in "${commands[@]}"; do
-        if ! command -v "$command" > /dev/null; then
+        if ! has-command "$command"; then
             error "Required command $command is missing, please install manually."
         fi
     done

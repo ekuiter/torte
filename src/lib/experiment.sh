@@ -23,19 +23,21 @@ payload-file(payload_file) {
 # adds a new payload file
 # these are files of interest that reside besides the experiment file, such as Jupyter notebooks
 add-payload-file(payload_file) {
-    original_payload_file=$(dirname "$ORIGINAL_EXPERIMENT_FILE")/$payload_file
-    src_payload_file=$SRC_EXPERIMENT_DIRECTORY/$payload_file
-    if [[ $payload_file == "$(basename "$ORIGINAL_EXPERIMENT_FILE")" ]]; then
-        error-help "The payload file $payload_file cannot be the experiment file."
-    elif [[ ! -f $original_payload_file ]] && [[ -n $TORTE_EXPERIMENT ]] && [[ -f $(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file ]]; then
-        # this addresses the corner case where the experiment file has been obtained with the one-liner from the README file (which sets TORTE_EXPERIMENT)
-        # in that case, we obtain the payload from this project's repository
-        original_payload_file=$(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file
-    elif [[ ! -f $original_payload_file ]]; then
-        error-help "The requested payload file $payload_file does not exist and cannot be added."
+    if is-host; then
+        original_payload_file=$(dirname "$ORIGINAL_EXPERIMENT_FILE")/$payload_file
+        src_payload_file=$SRC_EXPERIMENT_DIRECTORY/$payload_file
+        if [[ $payload_file == "$(basename "$ORIGINAL_EXPERIMENT_FILE")" ]]; then
+            error-help "The payload file $payload_file cannot be the experiment file."
+        elif [[ ! -f $original_payload_file ]] && [[ -n $TORTE_EXPERIMENT ]] && [[ -f $(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file ]]; then
+            # this addresses the corner case where the experiment file has been obtained with the one-liner from the README file (which sets TORTE_EXPERIMENT)
+            # in that case, we obtain the payload from this project's repository
+            original_payload_file=$(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file
+        elif [[ ! -f $original_payload_file ]]; then
+            error-help "The requested payload file $payload_file does not exist and cannot be added."
+        fi
+        mkdir -p "$SRC_EXPERIMENT_DIRECTORY"
+        cp "$original_payload_file" "$src_payload_file"
     fi
-    mkdir -p "$SRC_EXPERIMENT_DIRECTORY"
-    cp "$original_payload_file" "$src_payload_file"
 }
 
 # prepares an experiment by loading its file

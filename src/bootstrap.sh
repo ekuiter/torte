@@ -45,7 +45,7 @@ compile-script() {
 source-script() {
     local script=$1
     # this code is specific to this project to improve logging
-    if declare -F log >/dev/null; then
+    if declare -F log >/dev/null && [[ -z $INSIDE_DOCKER_CONTAINER ]]; then
         log "${script#"$SRC_DIRECTORY"/}" "$(echo-progress load)"
     fi
     local generated_script_directory generated_script
