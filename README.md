@@ -183,33 +183,34 @@ For transparency, we document the changes we make to these tools and known limit
 | - | - | - | - |
 | [arminbiere/cadiback](https://github.com/arminbiere/cadiback) | 2e912fb | 2023-07-21 | |
 | [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] [^24] |
+| [delta-one/linux](https://github.com/delta-one/linux/tree/copy_patch_v6.10) (ConfigFix) | 8927ce7 | 2024-07-30 | [^33] |
 | [ekuiter/clausy](https://github.com/ekuiter/clausy) | 6b816a9 | 2024-01-15 | |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | e27aea7 | 2023-04-11 | [^12] [^15] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
-| [paulgazz/kmax](https://github.com/paulgazz/kmax) | 4.5.2 | 2023-12-20 | [^4] [^5] [^7] [^8] [^24] |
+| [paulgazz/kmax](https://github.com/paulgazz/kmax) (KClause) | 4.5.2 | 2023-12-20 | [^4] [^5] [^7] [^8] [^24] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 
 [^1]: Currently, non-Boolean variability (e.g., constraints on numerical features) is only partially supported (e.g., encoded naively into Boolean constraints).
 It is recommended to check manually whether non-Boolean variability is represented as desired in generated files.
 
-[^3]: We added the class `TransformIntoDIMACS.scala` to kconfigreader to decouple the extraction and transformation of feature models, so kconfigreader can also transform feature models extracted with other tools (e.g., kmax).
+[^3]: We added the class `TransformIntoDIMACS.scala` to KConfigReader to decouple the extraction and transformation of feature models, so KConfigReader can also transform feature models extracted with other tools (e.g., KClause).
 
-[^4]: We majorly revised the native C bindings `dumpconf.c` (kconfigreader) and `kextractor.c` (kmax), which are intended to be compiled against a system's Kconfig parser to get accurate feature models.
+[^4]: We majorly revised the native C bindings `dumpconf.c` (KConfigReader) and `kextractor.c` (KClause), which are intended to be compiled against a system's Kconfig parser to get accurate feature models.
 Our improved versions adapt to the KConfig constructs actually used in a system, which is important to extract evolution histories with evolving KConfig parsers.
 Our changes are generalizations of the original versions of `dumpconf.c` and `kextractor.c` and should pose no threat to validity.
 Specifically, we added support for `E_CHOICE` (treated as `E_LIST`), `P_IMPLY` (treated as `P_SELECT`, see [smba/kconfigreader](https://github.com/smba/kconfigreader)), and `E_NONE`, `E_LTH`, `E_LEQ`, `E_GTH`, `E_GEQ` (ignored).
 
-[^5]: Compiling the native C bindings of kconfigreader and kmax is not possible for all KConfig-based systems (e.g., if the Python-based [Kconfiglib](https://github.com/ulfalizer/Kconfiglib) parser is used).
+[^5]: Compiling the native C bindings of KConfigReader and KClause is not possible for all KConfig-based systems (e.g., if the Python-based [Kconfiglib](https://github.com/ulfalizer/Kconfiglib) parser is used).
 In that case, you can try to reuse a C binding from an existing system with similar KConfig files; however, this may limit the extracted model's accuracy.
 
-[^7]: We added the script `kclause2model.py` to kmax to translate kclause's pickle files into the kconfigreader's feature-model format.
+[^7]: We added the script `kclause2model.py` to KClause to translate KClause's pickle files into the KConfigReader's feature-model format.
 This file translates Boolean variability correctly, but non-Boolean variability is not supported.
 
-[^8]: We do not use kmax's `kclause_to_dimacs.py` script for CNF transformation, as it has had [some issues](https://github.com/paulgazz/kmax/issues/226) in the past.
+[^8]: We do not use KClause's `kclause_to_dimacs.py` script for CNF transformation, as it has had [some issues](https://github.com/paulgazz/kmax/issues/226) in the past.
 Instead, we have a separate Docker container for Z3.
 
-[^9]: The DIMACS files produced by kconfigreader may contain additional variables due to Plaisted-Greenbaum transformation (i.e., satisfiability is preserved, model counts are not).
+[^9]: The DIMACS files produced by KConfigReader may contain additional variables due to Plaisted-Greenbaum transformation (i.e., satisfiability is preserved, model counts are not).
 Currently, this behavior is not configurable.
 
 [^10]: The DIMACS files produced by Z3 may contain additional variables due to Tseitin transformation (i.e., satisfiability and model counts are preserved).
@@ -227,10 +228,12 @@ We also added a new feature for exporting the community structure visualization 
 [^15]: DIMACS files produced by FeatJAR and FeatureIDE do not contain additional variables (i.e., equivalence is preserved).
 Currently, this behavior is not configurable.
 
-[^16]: Feature models and formulas produced by kconfigreader have nondeterministic clause order.
+[^16]: Feature models and formulas produced by KConfigReader have nondeterministic clause order.
 This does not impact semantics, but it possibly influences the efficiency of solvers.
 
-[^24]: The formulas produced by kconfigreader and kmax do not explicitly mention unconstrained features (i.e., features that do not occur in any constraints). However, for many analyses that depend on knowing the entire feature set (e.g., simply listing all configurable features or calculating model counts), this is a threat to validity. We do not modify the extracted formulas, to preserve the original output of kconfigreader and kmax. To address this threat, we instead offer the transformation stage `transform-into-unconstrained-features`, which explicitly computes these features.
+[^24]: The formulas produced by KConfigReader and KClause do not explicitly mention unconstrained features (i.e., features that do not occur in any constraints). However, for many analyses that depend on knowing the entire feature set (e.g., simply listing all configurable features or calculating model counts), this is a threat to validity. We do not modify the extracted formulas, to preserve the original output of KConfigReader and KClause. To address this threat, we instead offer the transformation stage `transform-into-unconstrained-features`, which explicitly computes these features.
+
+[^33]: ConfigFix support is currently experimental.
 
 ### Solvers
 
@@ -420,9 +423,9 @@ This project has evolved through several stages and intends to replace them all:
 
 [kmax-vm](https://github.com/ekuiter/kmax-vm) > [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) > [tseitin-or-not-tseitin](https://github.com/ekuiter/tseitin-or-not-tseitin) > [torte](https://github.com/ekuiter/torte)
 
-- [kmax-vm](https://github.com/ekuiter/kmax-vm) was intended to provide an easy-to-use environment for integrating kmax with [PCLocator](https://github.com/ekuiter/PCLocator) in a virtual machine using Vagrant/VirtualBox.
-  It is now obsolete due to our Docker integration of kmax.
-- [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) extended [kmax-vm](https://github.com/ekuiter/kmax-vm) and could be used to extract feature models from Kconfig-based software systems with kconfigreader and kmax.
+- [kmax-vm](https://github.com/ekuiter/kmax-vm) was intended to provide an easy-to-use environment for integrating KClause with [PCLocator](https://github.com/ekuiter/PCLocator) in a virtual machine using Vagrant/VirtualBox.
+  It is now obsolete due to our Docker integration of KClause.
+- [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) extended [kmax-vm](https://github.com/ekuiter/kmax-vm) and could be used to extract feature models from Kconfig-based software systems with KConfigReader and KClause.
   The results were stored in the [feature-model-repository](https://github.com/ekuiter/feature-model-repository).
   Its functionality is completely subsumed by torte and more efficient and reliable due to our Docker integration.
 - [tseitin-or-not-tseitin](https://github.com/ekuiter/tseitin-or-not-tseitin) extended the [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) to allow for transformation and analysis of feature models.

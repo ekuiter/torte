@@ -2,7 +2,7 @@
 
 add-embtoolkit-kconfig-history(from=, to=) {
     add-system --system embtoolkit --url https://github.com/ndmsystems/embtoolkit # this seems not to be entirely up-to-date, todo: maybe create a new more up-to-date repository?
-    add-hook-step kmax-post-binding-hook embtoolkit "$(to-lambda kmax-post-binding-hook-embtoolkit)"
+    add-hook-step kclause-post-binding-hook embtoolkit "$(to-lambda kclause-post-binding-hook-embtoolkit)"
     for revision in $(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e '-.*-' | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system embtoolkit --revision "$revision"
         add-kconfig \
@@ -13,9 +13,9 @@ add-embtoolkit-kconfig-history(from=, to=) {
     done
 }
 
-kmax-post-binding-hook-embtoolkit(system, revision) {
+kclause-post-binding-hook-embtoolkit(system, revision) {
     if [[ $system == embtoolkit ]]; then
-        # fix incorrect feature names, which kmax interprets as a binary subtraction operator
+        # fix incorrect feature names, which kclause interprets as a binary subtraction operator
         sed -i 's/-/_/g' "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")"
     fi
 }

@@ -15,7 +15,7 @@ experiment-stages() {
     clone-systems
     generate-busybox-models
     read-statistics
-    extract-kconfig-models-with --extractor kmax
+    extract-kconfig-models-with --extractor kclause
     join-into read-statistics kconfig
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
     transform-models-into-dimacs --timeout "$TIMEOUT"

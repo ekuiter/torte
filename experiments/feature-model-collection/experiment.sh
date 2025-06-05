@@ -52,7 +52,7 @@ experiment-stages() {
 
 clean-up() {
     # clean up intermediate stages and rearrange output files
-    clean clone-systems tag-linux-revisions read-statistics kconfigreader kmax \
+    clean clone-systems tag-linux-revisions read-statistics kconfigreader kclause \
         model_to_model_featureide model_to_smt_z3 model_to_dimacs_kconfigreader \
         model_to_dimacs_featjar model_to_dimacs_featureide smt_to_dimacs_z3 torte
     rm-safe \

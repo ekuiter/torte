@@ -34,7 +34,7 @@ experiment-stages() {
     read-linux-configs
     extract-kconfig-models-with --extractor configfixextractor 
     #extract-kconfig-models-with --extractor kconfigreader
-    #extract-kconfig-models-with --extractor kmax
+    #extract-kconfig-models-with --extractor kclause
     #extract-kconfig-models
 
     compute-unconstrained-features

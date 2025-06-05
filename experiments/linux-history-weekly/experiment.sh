@@ -13,7 +13,7 @@ experiment-systems() {
 experiment-stages() {
     clone-systems
     read-statistics skip-sloc
-    extract-kconfig-models-with --extractor kmax
+    extract-kconfig-models-with --extractor kclause
     join-into read-statistics kconfig
 }
 

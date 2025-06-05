@@ -1,5 +1,5 @@
 /*
- * Kmax
+ * KClause
  * Copyright (C) 2012-2015 Paul Gazzillo, revised 2021-2024 Elias Kuiter
  * 
  * This program is free software: you can redistribute it and/or modify

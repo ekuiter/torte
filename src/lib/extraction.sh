@@ -50,7 +50,7 @@ kconfig-binding-directory(kconfig_binding_files_spec) {
 }
 
 # compiles a C program that extracts Kconfig constraints from Kconfig files
-# for kconfigreader and kmax, this compiles dumpconf and kextractor against the Kconfig parser, respectively
+# for kconfigreader and kclause, this compiles dumpconf and kextractor against the Kconfig parser, respectively
 compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_files_spec, environment=) {
     local kconfig_constructs=(S_UNKNOWN S_BOOLEAN S_TRISTATE S_INT S_HEX S_STRING S_OTHER P_UNKNOWN \
         P_PROMPT P_COMMENT P_MENU P_DEFAULT P_CHOICE P_SELECT P_RANGE P_ENV P_SYMBOL E_SYMBOL E_NOT \
@@ -139,15 +139,15 @@ extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_fil
                 evaluate "$timeout" /home/kconfigreader/run.sh $(memory-limit 1) de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf "$kconfig_binding_file" "$kconfig_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")" | tee "$output_log"
                 local time
                 time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
-            elif [[ $extractor == kmax ]]; then
+            elif [[ $extractor == kclause ]]; then
                 evaluate "$timeout" /home/kextractor.sh \
                     "$kconfig_binding_file" \
                     "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")" \
                     "$features_file" "$kconfig_file" \
                     | tee "$output_log"
                 time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
-                compile-hook kmax-post-binding-hook
-                kmax-post-binding-hook "$system" "$revision"
+                compile-hook kclause-post-binding-hook
+                kclause-post-binding-hook "$system" "$revision"
                 evaluate "$timeout" /home/kclause.sh \
                     "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")" \
                     "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")" \
@@ -300,9 +300,9 @@ register-kconfig-extractor(extractor, kconfig_binding=, timeout=0) {
     echo system,revision,architecture,binding-file,kconfig-file,environment,model-file,model-features,model-variables,model-literals,model-time > "$(output-csv)"
 }
 
-# compiles kconfig bindings and extracts kconfig models using kmax
-extract-kconfig-models-with-kmax(timeout=0) {
-    register-kconfig-extractor kmax kextractor "$timeout"
+# compiles kconfig bindings and extracts kconfig models using kclause
+extract-kconfig-models-with-kclause(timeout=0) {
+    register-kconfig-extractor kclause kextractor "$timeout"
     experiment-systems
 }
 

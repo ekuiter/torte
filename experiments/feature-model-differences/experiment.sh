@@ -28,7 +28,7 @@ experiment-stages() {
         generate-busybox-models
     fi
     read-statistics
-    extract-kconfig-models-with --extractor kmax
+    extract-kconfig-models-with --extractor kclause
     join-into read-statistics kconfig
     build-image clausy
 }

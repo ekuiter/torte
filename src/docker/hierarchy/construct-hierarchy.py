@@ -92,9 +92,9 @@ def construct_hierarchy(menu_lines, uvl_features, menu_features, constraints):
     choice_nr = 0
     choice_tag = False
     check_usage = {}
-    diff_kconfiglib = "Features in Kconfiglib but not in Kmax:\n\n"
+    diff_kconfiglib = "Features in Kconfiglib but not in KClause:\n\n"
     diff_count = 0
-    diff_kmax = "Features in Kmax not in Kconfiglib: \n\n"
+    diff_kclause = "Features in KClause not in Kconfiglib: \n\n"
 
     for i,line in enumerate(menu_features):
 
@@ -229,9 +229,9 @@ def construct_hierarchy(menu_lines, uvl_features, menu_features, constraints):
         output += "\t\toptional\n"
     for line in nv_features:
          output += "\t\t\t" + line
-         diff_kmax += line
+         diff_kclause += line
 
-    diff_kmax += "\nTotal Number: " + str(len(nv_features))
+    diff_kclause += "\nTotal Number: " + str(len(nv_features))
 
     for line in constraints:
         output += line
@@ -241,7 +241,7 @@ def construct_hierarchy(menu_lines, uvl_features, menu_features, constraints):
     output_file.close()
 
     output_file = open(uvl.rstrip("uvl") + "diff-features.txt", 'w')
-    output_file.write(diff_kconfiglib + diff_kmax)
+    output_file.write(diff_kconfiglib + diff_kclause)
     output_file.close()
 
 kconf = Kconfig(sys.argv[1])

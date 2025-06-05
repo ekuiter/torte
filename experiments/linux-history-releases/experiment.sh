@@ -8,7 +8,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 # This experiment analyzes the feature model of the Linux kernel across a timespan of > 20 years
 # and across all its supported processor architectures. For each revision and architecture, a
-# feature model is extracted with both kconfigreader and kmax and then transformed into various
+# feature model is extracted with both kconfigreader and kclause and then transformed into various
 # file formats using FeatureIDE (XML, UVL) and Z3 (DIMACS). Then, each feature model's core and dead
 # features and its model count are computed, if possible.
 # Note that this experiment is time- and space-intensive: The extraction phase alone takes about
