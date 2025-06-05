@@ -53,7 +53,8 @@ source-script() {
     generated_script_directory=${generated_script_directory#"$BOOTSTRAP_DIRECTORY"/} # remove the bootstrap directory from a composite path
     generated_script_directory=${generated_script_directory#"$BOOTSTRAP_DIRECTORY"} # remove the bootstrap directory from a root-level path
     generated_script_directory=$GEN_DIRECTORY/$generated_script_directory
-    local -r generated_script=$generated_script_directory/$(basename "$script")
+    local generated_script
+    generated_script=$generated_script_directory/$(basename "$script")
     mkdir -p "$generated_script_directory"
     # inside of Docker containers, make may not be installed (but also not required, as the generated script it has already been copied into the container)
     if command -v make > /dev/null; then

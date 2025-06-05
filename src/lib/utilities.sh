@@ -5,9 +5,9 @@
 clone-systems() {
     add-system(system, url) {
         log "git-clone: $system"
-        if [[ ! -d "$(input-directory)/$system" ]]; then
+        if [[ ! -d "$(output-directory)/$system" ]]; then
             log "" "$(echo-progress clone)"
-            git clone "$url" "$(input-directory)/$system"
+            git clone "$url" "$(output-directory)/$system"
             compile-hook post-clone-hook
             post-clone-hook "$system" "$url"
             log "" "$(echo-done)"
@@ -38,7 +38,7 @@ read-statistics(statistics_option=) {
         if [[ $STATISTICS_OPTION != skip-sloc ]]; then
             local sloc_file
             sloc_file=$(output-path "$system" "$revision.txt")
-            push "input/$system"
+            push "$(input-directory)/$system"
             cloc --git "$revision" > "$sloc_file"
             pop
             local sloc

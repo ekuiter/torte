@@ -90,7 +90,7 @@ compile-kconfig-binding(kconfig_binding_name, system, revision, kconfig_binding_
 
     # shellcheck disable=SC2086
     if ls $kconfig_binding_files > /dev/null 2>&1; then
-        local cmd="gcc ../../$kconfig_binding_name.c $kconfig_binding_files -I $kconfig_binding_directory -w -Werror=switch$gcc_arguments -o $kconfig_binding_output_file"
+        local cmd="gcc /home/$kconfig_binding_name.c $kconfig_binding_files -I $kconfig_binding_directory -w -Werror=switch$gcc_arguments -o $kconfig_binding_output_file"
         (echo "$cmd" && eval "$cmd") || true
         chmod +x "$kconfig_binding_output_file" || true
     fi

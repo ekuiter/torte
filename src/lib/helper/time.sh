@@ -13,7 +13,8 @@ format-time(nanoseconds=, prefix=, suffix=) {
         local seconds="${nanoseconds%?????????}"
         echo "$prefix${seconds}s$suffix"
     else
-        local minutes="$((${nanoseconds%?????????}/60))"
+        local minutes
+        minutes="$((${nanoseconds%?????????}/60))"
         echo "$prefix${minutes}m$suffix"
     fi
 }

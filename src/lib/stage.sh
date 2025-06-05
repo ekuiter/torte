@@ -14,7 +14,7 @@ clean(stages...) {
 }
 
 # runs a stage of some experiment in a Docker container
-run(stage=, image=util, input_directory=, command...) {
+run(stage=, image=util, input=, command...) {
     stage=${stage:-$TRANSIENT_STAGE}
     assert-host
     local readable_stage=$stage
@@ -24,15 +24,9 @@ run(stage=, image=util, input_directory=, command...) {
     fi
     log "$readable_stage"
     if [[ $FORCE_RUN == y ]] || ! stage-done "$stage"; then
-        input_directory=${input_directory:-$(input-directory)}
-        local dockerfile
-        if [[ ! -f $image ]] && [[ -f $DOCKER_DIRECTORY/$image/Dockerfile ]]; then
-            dockerfile=$DOCKER_DIRECTORY/$image/Dockerfile
-        else
-            dockerfile=$image
-        fi
-        if [[ ! -d $input_directory ]] && [[ -d $(stage-directory "$input_directory") ]]; then
-            input_directory=$(stage-directory "$input_directory")
+        local dockerfile=$DOCKER_DIRECTORY/$image/Dockerfile
+        if [[ ! -f $dockerfile ]]; then
+            error "Could not find Dockerfile for image $image."
         fi
         local build_flags=
         if is-array-empty command; then
@@ -76,19 +70,34 @@ run(stage=, image=util, input_directory=, command...) {
             if [[ ${command[*]} == /bin/bash ]]; then
                 cmd+=(-it)
             fi
-            local input_volume=$input_directory
+
+            if [[ $stage != clone-systems ]]; then
+                input=${input:-main=clone-systems}
+            fi
+            if [[ -n $input ]] && [[ $input != *=* ]] && stage-done "$input"; then
+                input="main=$input"
+            fi
+            input_directories=$(echo "$input" | tr "," "\n")
+            for input_directory_pair in $input_directories; do
+                local key=${input_directory_pair%%=*}
+                local input_directory=${input_directory_pair##*=}
+                input_directory=$(stage-directory "$input_directory")
+                local input_volume=$input_directory
+                if [[ $input_volume != /* ]]; then
+                    input_volume=$PWD/$input_volume
+                fi
+                cmd+=(-v "$input_volume:$DOCKER_INPUT_DIRECTORY/$key")
+            done
             local output_volume
             output_volume=$(stage-directory "$stage")
-            if [[ $input_volume != /* ]]; then
-                input_volume=$PWD/$input_volume
-            fi
             if [[ $output_volume != /* ]]; then
                 output_volume=$PWD/$output_volume
             fi
             cmd+=(-v "$output_volume:$DOCKER_OUTPUT_DIRECTORY")
             cmd+=(-v "$(realpath "$SRC_DIRECTORY"):$DOCKER_SRC_DIRECTORY")
+
             cmd+=(-e INSIDE_DOCKER_CONTAINER=y)
-            cmd+=(-e PASS)
+            cmd+=(-e PASS) # todo: possibly eliminate this?
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
             if [[ -n $platform ]]; then
@@ -270,6 +279,7 @@ define-stage-helpers() {
         run --stage read-linux-architectures
     }
 
+    # to do: remove/unify these
     # extracts configuration options of linux revisions
     read-linux-configs() {
         run --stage read-linux-configs
@@ -314,9 +324,7 @@ define-stage-helpers() {
     read-uclibc-ng-configs() {
         run --stage read-uclibc-ng-configs
     }
-    
 
-    # read basic statistics for each system
     # read basic statistics for each system
     read-statistics(option=) {
         run --stage read-statistics --command read-statistics "$option"
@@ -383,7 +391,7 @@ define-stage-helpers() {
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
             --image featjar \
-            --input-directory "$input_stage" \
+            --input "$input_stage" \
             --command "$command" \
             --input-extension model \
             --output-extension "$output_extension" \
@@ -438,7 +446,7 @@ define-stage-helpers() {
         run \
             --stage model_to_dimacs_kconfigreader \
             --image kconfigreader \
-            --input-directory model_to_model_featureide \
+            --input model_to_model_featureide \
             --command transform-into-dimacs-with-kconfigreader \
             --input-extension featureide.model \
             --timeout "$timeout" \
@@ -449,7 +457,7 @@ define-stage-helpers() {
         run \
             --stage smt_to_dimacs_z3 \
             --image z3 \
-            --input-directory model_to_smt_z3 \
+            --input model_to_smt_z3 \
             --command transform-into-dimacs-with-z3 \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -467,7 +475,7 @@ define-stage-helpers() {
         run \
             --stage "$output_stage" \
             --image satgraf \
-            --input-directory "$input_stage" \
+            --input "$input_stage" \
             --command transform-with-satgraf \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -478,7 +486,7 @@ define-stage-helpers() {
         run \
             --stage "$output_stage" \
             --image solver \
-            --input-directory "$input_stage" \
+            --input "$input_stage" \
             --command transform-into-backbone-dimacs-with-kissat \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -489,7 +497,7 @@ define-stage-helpers() {
         run \
             --stage "$output_stage" \
             --image cadiback \
-            --input-directory "$input_stage" \
+            --input "$input_stage" \
             --command transform-into-backbone-dimacs-with-cadiback \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -499,7 +507,7 @@ define-stage-helpers() {
     compute-unconstrained-features(input_stage=kconfig, output_stage=unconstrained-features, timeout=0, jobs=1) {
         run \
             --stage "$output_stage" \
-            --input-directory "$input_stage" \
+            --input "$input_stage" \
             --command transform-into-unconstrained-features \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -509,7 +517,7 @@ define-stage-helpers() {
     compute-backbone-features(input_stage=backbone-dimacs, output_stage=backbone-features, timeout=0, jobs=1) {
         run \
             --stage "$output_stage" \
-            --input-directory "$input_stage" \
+            --input "$input_stage" \
             --command transform-into-backbone-features \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -532,7 +540,7 @@ define-stage-helpers() {
                 --iteration-field "$iteration_field" \
                 --file-fields "$file_fields" \
                 --image "$image" \
-                --input-directory "$input_stage" \
+                --input "$input_stage" \
                 --command solve \
                 --solver "$solver" \
                 --kind "$kind" \
@@ -638,11 +646,12 @@ define-stage-helpers() {
     }
 
     # runs a Jupyter notebook
-    run-notebook(input_stage=$PWD, output_stage=notebook, file) {
+    run-notebook(input_stage=, output_stage=notebook, file) {
+        input_stage=${input_stage:-$PWD}
         run \
             --stage "$output_stage" \
             --image jupyter \
-            --input-directory "$input_stage" \
+            --input "$input_stage" \
             --command run-notebook \
             --file "$file"
     }

@@ -44,7 +44,7 @@ experiment-stages() {
     run \
         --stage dimacs \
         --image z3 \
-        --input-directory model_to_smt_z3 \
+        --input model_to_smt_z3 \
         --command transform-into-dimacs-with-z3 \
         --jobs 2
     join-into model_to_smt_z3 dimacs

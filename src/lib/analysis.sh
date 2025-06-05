@@ -117,8 +117,6 @@ run-notebook(file) {
 
 # computes differences for model files with clausy
 run-clausy-batch-diff(input_directory=, timeout=0) {
-    if [[ -z $input_directory ]]; then
-        input_directory=$(input-directory)
-    fi
+    input_directory=${input_directory:-$(input-directory)}
     scripts/batch_diff.sh "$input_directory" "$timeout" > "$(output-csv)"
 }

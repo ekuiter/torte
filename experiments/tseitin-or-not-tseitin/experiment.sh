@@ -50,14 +50,14 @@ experiment-stages() {
     run \
         --stage model_to_dimacs_kconfigreader \
         --image kconfigreader \
-        --input-directory model_to_model_featureide \
+        --input model_to_model_featureide \
         --command transform-into-dimacs-with-kconfigreader \
         --input-extension featureide.model
     join-into model_to_model_featureide model_to_dimacs_kconfigreader
     run \
         --stage smt_to_dimacs_z3 \
         --image z3 \
-        --input-directory model_to_smt_z3 \
+        --input model_to_smt_z3 \
         --command transform-into-dimacs-with-z3
     join-into model_to_smt_z3 smt_to_dimacs_z3
     aggregate \

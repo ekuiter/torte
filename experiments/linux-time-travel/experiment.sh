@@ -51,7 +51,7 @@ experiment-stages() {
         --file-fields dimacs-file \
         --stage smt_to_dimacs_z3 \
         --image z3 \
-        --input-directory model_to_smt_z3 \
+        --input model_to_smt_z3 \
         --command transform-into-dimacs-with-z3 \
         --jobs 8
     join-into model_to_smt_z3 smt_to_dimacs_z3
@@ -66,7 +66,7 @@ experiment-stages() {
         --file-fields dimacs-file \
         --stage model_to_dimacs_kconfigreader \
         --image kconfigreader \
-        --input-directory model_to_model_featureide \
+        --input model_to_model_featureide \
         --command transform-into-dimacs-with-kconfigreader \
         --input-extension featureide.model \
         --jobs 8

@@ -28,7 +28,8 @@ log(subject=, state=) {
         command=new-log
     fi
     if [[ -n $LOG_START ]] && { [[ $state == $(echo-fail) ]] || [[ $state == $(echo-done) ]]; }; then
-        local elapsed_time=$(($(date +%s%N) - LOG_START))
+        local elapsed_time
+        elapsed_time=$(($(date +%s%N) - LOG_START))
         LOG_START=
     fi
     "$command" "$(printf %30s "$(format-time "$elapsed_time" "" " ")$state")" "$(echo-bold "$subject")"

@@ -59,7 +59,7 @@ batch-diff() {
     run \
         --stage diff \
         --image clausy \
-        --input-directory output/models \
+        --input output/models \
         --command run-clausy-batch-diff \
         --timeout 1800
 }
