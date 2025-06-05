@@ -1,7 +1,7 @@
 #!/bin/bash
 
 add-embtoolkit-kconfig-history(from=, to=) {
-    add-system --system embtoolkit --url https://github.com/ndmsystems/embtoolkit
+    add-system --system embtoolkit --url https://github.com/ndmsystems/embtoolkit # this seems not to be entirely up-to-date, todo: maybe create a new more up-to-date repository?
     add-hook-step kmax-post-binding-hook embtoolkit "$(to-lambda kmax-post-binding-hook-embtoolkit)"
     for revision in $(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e '-.*-' | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system embtoolkit --revision "$revision"

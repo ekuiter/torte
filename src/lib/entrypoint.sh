@@ -6,13 +6,8 @@ if [[ -z $INITIALIZED ]]; then
 fi
 
 entrypoint(arguments...) {
-    # define stubs for API functions
-    for function in "${API[@]}"; do
-        define-stub "$function"
-    done
-
     # load experiment file
-    log "loading experiment"
+    log-host "loading experiment"
     if [[ ${#arguments[@]} -ge 1 ]] && [[ -f "${arguments[0]}" ]]; then 
         load-experiment "${arguments[0]}"
         arguments=("${arguments[@]:1}")

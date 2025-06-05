@@ -30,21 +30,6 @@ DEBUG= # y for debugging stages interactively
 LINUX_CLONE_MODE=fork # clone mode for Linux repository, can be either fork, original, or filter
 MEMORY_LIMIT= # if unset, this is automatically determined in helper/platform.sh
 
-# API functions that are available to experiments
-# todo: is it necessary to specify these here at all?
-API=(
-    # implemented in experiment files
-    experiment-stages # defines the stages of the experiment in order of their execution
-    experiment-systems # defines the investigated systems
-
-    # implemented in Docker containers
-    add-system # adds a system (e.g., clone)
-    add-revision # adds a system revision (e.g., read statistics)
-    add-kconfig-binding # adds a kconfig binding (e.g., dumpconf or kextractor)
-    add-kconfig-model # adds a kconfig model (e.g., a model read by kconfigreader or kmax)
-    add-kconfig # adds a kconfig binding and model
-)
-
 # print banner image (if on host and not already done)
 if [[ -z $INSIDE_DOCKER_CONTAINER ]] && [[ -z $TORTE_BANNER_PRINTED ]]; then
     echo "┌────────────────────────────────────────────────┐"
@@ -76,8 +61,9 @@ command-help() {
 # modify Bash to allow for succinct function definitions
 source "$SRC_DIRECTORY/bootstrap.sh"
 
-# load all scripts, starting with the time and logging facilities, which are needed right away
+# load all scripts, starting with specific facilities, which are needed right away to enable logging
 for script in \
+    lib/helper/host.sh \
     lib/helper/time.sh \
     lib/helper/log.sh \
     $(find "$SRC_DIRECTORY"/lib -name '*.sh') \

@@ -246,6 +246,7 @@ plot(stage, type, fields, arguments...) {
 }
 
 # convenience functions for defining commonly used stages
+# we do not define these directly here to not shadow functions defined elsewhere (as these stages are only needed in the host environment)
 define-stage-helpers() {
     # clone the systems specified in the experiment file
     clone-systems() {

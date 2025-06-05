@@ -47,7 +47,7 @@ source-script() {
     # this code is specific to this project to improve logging
     if declare -F log >/dev/null; then
         if [[ -z $CURRENT_SUBJECT ]]; then
-            log "loading scripts"
+            log-host "loading scripts"
         fi
         log "${script#"$SRC_DIRECTORY"/}" "$(echo-progress load)"
     fi

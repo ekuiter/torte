@@ -34,3 +34,10 @@ assert-host() {
         error "Docker is not running in rootless mode (see https://docs.docker.com/engine/security/rootless/). Please run $TOOL as root (e.g., use 'sudo')."
     fi
 }
+
+# logs a message on the Docker host environment
+log-host(arguments...) {
+    if is-host; then
+        log "${arguments[@]}"
+    fi
+}

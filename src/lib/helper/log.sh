@@ -48,7 +48,8 @@ echo-blue(text=) { echo -e "\033[0;34m$text\033[0m"; }
 echo-fail() { echo-red fail; }
 echo-progress(state=) { echo-yellow "$state"; }
 echo-done() { echo-green "done"; }
-echo-skip() { echo-blue skip; }
+echo-note(state=) { echo-blue "$state"; }
+echo-skip() { echo-note skip; }
 
 # logs an error and exits
 error(arguments...) {
