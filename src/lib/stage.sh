@@ -140,7 +140,7 @@ run(stage=, image=util, input=, command...) {
 }
 
 # skips a stage, useful to comment out a stage temporarily
-skip(stage=, image=util, input_directory=, command...) {
+skip(stage=, image=util, input=, command...) {
     echo "Skipping stage $stage"
 }
 
@@ -154,10 +154,10 @@ aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field
     source_transformer="$(lambda value "stage-transformer \$(basename \$(dirname \$value))")"
     csv_files=()
     for stage in "${stages[@]}"; do
-        csv_files+=("$(input-directory)/$stage/$OUTPUT_FILE_PREFIX.csv")
+        csv_files+=("$(input-directory "$stage")/$OUTPUT_FILE_PREFIX.csv")
         while IFS= read -r -d $'\0' file; do
-            cp "$file" "$(output-path "$(stage-transformer "$stage")" "${file#"$(input-directory)/$stage/"}")"
-        done < <(find "$(input-directory)/$stage" -type f -print0)
+            cp "$file" "$(output-path "$(stage-transformer "$stage")" "${file#"$(input-directory "$stage")/"}")"
+        done < <(find "$(input-directory "$stage")" -type f -print0)
     done
     aggregate-tables "$stage_field" "$source_transformer" "${csv_files[@]}" > "$(output-csv)"
     tmp=$(mktemp)
@@ -168,29 +168,33 @@ aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field
 
 # merges the output files of two or more stages in a new stage
 aggregate(stage, file_fields=, stage_field=, stage_transformer=, directory_field=, stages...) {
+    local current_stage input
     if ! stage-done "$stage"; then
-        local current_stage
         for current_stage in "${stages[@]}"; do
             assert-stage-done "$current_stage"
         done
     fi
-    run "$stage" "" "$OUTPUT_DIRECTORY" aggregate-helper "$file_fields" "$stage_field" "$stage_transformer" "$directory_field" "${stages[@]}"
+    for current_stage in "${stages[@]}"; do
+        input=$input,$current_stage=$current_stage
+    done
+    input=${input#,}
+    run "$stage" "" "$input" aggregate-helper "$file_fields" "$stage_field" "$stage_transformer" "$directory_field" "${stages[@]}"
 }
 
 # runs a stage a given number of time and merges the output files in a new stage
-iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, input_directory=, command...) {
+iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, input=, command...) {
     if [[ $iterations -lt 1 ]]; then
         error "At least one iteration is required for stage $stage."
     fi
     if [[ $iterations -eq 1 ]]; then
-        run "$stage" "$image" "$input_directory" "${command[@]}"
+        run "$stage" "$image" "$input" "${command[@]}"
     else
         local stages=()
         local i
         for i in $(seq "$iterations"); do
             local current_stage="${stage}_$i"
             stages+=("$current_stage")
-            run "$current_stage" "$image" "$input_directory" "${command[@]}"
+            run "$current_stage" "$image" "$input" "${command[@]}"
         done
         if [[ ! -f "$(stage-csv "${stage}_1")" ]]; then
             error "Required output CSV for stage ${stage}_1 is missing, please re-run stage ${stage}_1."
