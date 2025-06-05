@@ -86,4 +86,4 @@ for script in \
 done
 
 # initialize torte and run the given experiment or command
-# entrypoint "$@"
+entrypoint "$@"

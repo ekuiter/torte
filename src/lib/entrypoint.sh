@@ -12,6 +12,7 @@ entrypoint(arguments...) {
     done
 
     # load experiment file
+    log "loading experiment"
     if [[ ${#arguments[@]} -ge 1 ]] && [[ -f "${arguments[0]}" ]]; then 
         load-experiment "${arguments[0]}"
         arguments=("${arguments[@]:1}")
@@ -19,7 +20,7 @@ entrypoint(arguments...) {
         load-experiment
     fi
 
-    # initialization done
+    # initialization done (todo: avoid this?)
     INITIALIZED=y
 
     # identify which command to run (default: command-run)

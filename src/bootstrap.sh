@@ -1,6 +1,6 @@
 #!/bin/bash
 # a small magical preprocessor for Bash scripts that allows more succinct function definitions
-# e.g., fn(a, b, c=3) { echo $a $b $c; } it does not usually work in Bash, but this preprocessor makes it work
+# e.g., the syntax fn(a, b, c=3) { echo $a $b $c; } does not usually work in Bash, but this preprocessor makes it work
 # depends some primitives defined in lib/helper (assert-host and log)
 # preprocessed scripts should lie in the same directory tree as this script
 
@@ -44,11 +44,12 @@ compile-script() {
 # improves Bash's sourcing mechanism so scripts are compiled before inclusion
 source-script() {
     local script=$1
-    local logging
     # this code is specific to this project to improve logging
     if declare -F log >/dev/null; then
+        if [[ -z $CURRENT_SUBJECT ]]; then
+            log "loading scripts"
+        fi
         log "${script#"$SRC_DIRECTORY"/}" "$(echo-progress load)"
-        logging=y
     fi
     local generated_script_directory generated_script
     generated_script_directory=$(dirname "$script")
@@ -68,7 +69,7 @@ source-script() {
     # shellcheck source=/dev/null
     source "$generated_script"
     # this code is specific to this project to improve logging
-    if [[ -n $logging ]]; then
+    if [[ -n $CURRENT_SUBJECT ]]; then
         log "" "$(echo-done)"
     fi
 }
