@@ -1,4 +1,5 @@
 /.vscode
+/input*
 /output*
 /export*
 /src/gen
