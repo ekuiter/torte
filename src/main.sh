@@ -5,8 +5,15 @@
 
 set -e # exit on error
 
-# global configuration options, can optionally be overridden in experiment files
+# global constants, should not be overridden
 TOOL=torte # tool name, used as prefix for naming Docker images and containers
+SRC_DIRECTORY=$(dirname "$0") # scripts directory
+TOOL_DIRECTORY=$SRC_DIRECTORY/.. # tool directory
+DOCKER_DIRECTORY=$SRC_DIRECTORY/docker # path to Docker files
+EXPORT_DIRECTORY=$TOOL_DIRECTORY/export # path for exporting experiments
+TOOL_SCRIPT=$TOOL_DIRECTORY/$TOOL.sh # tool script
+CACHE_DIRECTORY=.cache # path for cached data in output directory
+DOCKER_RUN=${DOCKER_RUN:-y} # y if running Docker containers is enabled, otherwise saves image archives
 DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
 DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
 DOCKER_SRC_DIRECTORY=/home/${TOOL}_scripts # scripts directory inside Docker containers
@@ -14,16 +21,11 @@ DOCKER_OUTPUT_FILE_PREFIX=output # prefix for output files inside Docker contain
 KCONFIG_MODELS_OUTPUT_DIRECTORY= # output directory for storing kconfig models
 KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storing Kconfig bindings
 TRANSIENT_STAGE=transient # name for transient stages
-PATH_SEPARATOR=/ # separator for building paths
+
+# global configuration options, can optionally be overridden in experiment files
 INPUT_DIRECTORY=input # path to system repositories
 OUTPUT_DIRECTORY=output # path to resulting outputs, created if necessary
-SRC_DIRECTORY=$(dirname "$0") # scripts directory
-TOOL_DIRECTORY=$SRC_DIRECTORY/.. # tool directory
-DOCKER_DIRECTORY=$TOOL_DIRECTORY/docker # path to docker files
-EXPORT_DIRECTORY=$TOOL_DIRECTORY/export # path for exporting experiments
-CACHE_DIRECTORY=.cache # path for cached data in output directory
-TOOL_SCRIPT=$TOOL_DIRECTORY/$TOOL.sh # tool script
-DOCKER_RUN=${DOCKER_RUN:-y} # y if running Docker containers is enabled, otherwise saves image archives
+PATH_SEPARATOR=/ # separator for building paths
 FORCE_RUN= # y if every stage should be forced to run regardless of whether is is already done
 VERBOSE= # y if console output should be verbose
 DEBUG= # y for debugging stages interactively

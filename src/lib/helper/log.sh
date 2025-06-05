@@ -1,11 +1,6 @@
 #!/bin/bash
 # logging facilities
 
-if [[ -z $CURRENT_SUBJECT ]]; then
-    CURRENT_SUBJECT=""
-    LOG_START=
-fi
-
 # logs a new message
 new-log(arguments...) {
     echo -e "[$TOOL] \r\033[0K${arguments[*]}"

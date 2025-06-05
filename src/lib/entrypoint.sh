@@ -1,10 +1,6 @@
 #!/bin/bash
 # initializes and runs the tool
 
-if [[ -z $INITIALIZED ]]; then
-    INITIALIZED=
-fi
-
 entrypoint(arguments...) {
     # load experiment file
     if [[ ${#arguments[@]} -ge 1 ]] && [[ -n "$(experiment-file "${arguments[0]}")" ]]; then
