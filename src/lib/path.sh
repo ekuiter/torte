@@ -43,7 +43,7 @@ compose-path(base_directory, components...) {
 
 # miscellaneous helpers for creating paths and file names
 stage-path(stage, components...) { compose-path "$(stage-directory "$stage")" "${components[@]}"; }
-input-path(key, components...) { compose-path "$(input-directory "$key")" "${components[@]}"; }
+input-path(key=, components...) { compose-path "$(input-directory "$key")" "${components[@]}"; }
 output-path(components...) { compose-path "$(output-directory)" "${components[@]}"; }
 stage-file(extension, stage) { stage-path "$stage" "$OUTPUT_FILE_PREFIX.$extension"; }
 input-file(extension, key=) { input-path "$key" "$OUTPUT_FILE_PREFIX.$extension"; }

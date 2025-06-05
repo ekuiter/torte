@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-public class ConfigFixFormat extends AFeatureModelFormat {
+public class ConfigFixFormatFeatureIDE extends AFeatureModelFormat {
 
 	private static Pattern equivalencePattern = Pattern.compile("definedEx\\((Choice_[\\w\\d_]+)\\)");
 	
@@ -74,7 +74,7 @@ public class ConfigFixFormat extends AFeatureModelFormat {
 			.map(String::trim) //
 			.filter(l -> !l.isEmpty()) //
 			.filter(l -> !l.startsWith("#")) //
-			.map(ConfigFixFormat::fixNonBooleanConstraints)
+			.map(ConfigFixFormatFeatureIDE::fixNonBooleanConstraints)
 			.map(l -> l.replaceAll("definedEx\\((\\w+)\\)", "$1"))
 			.map(nodeReader::stringToNode) //
 			.filter(Objects::nonNull) // ignore non-Boolean constraints
@@ -145,13 +145,13 @@ public class ConfigFixFormat extends AFeatureModelFormat {
 	}
 
 	@Override
-	public ConfigFixFormat getInstance() {
+	public ConfigFixFormatFeatureIDE getInstance() {
 		return this;
 	}
 
 	@Override
 	public String getId() {
-		return ConfigFixFormat.class.getCanonicalName();
+		return ConfigFixFormatFeatureIDE.class.getCanonicalName();
 	}
 
 	@Override

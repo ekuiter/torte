@@ -8,7 +8,6 @@ import de.ovgu.featureide.fm.core.base.impl.FMFormatManager;
 import de.ovgu.featureide.fm.core.init.FMCoreLibrary;
 import de.ovgu.featureide.fm.core.init.LibraryManager;
 import de.ovgu.featureide.fm.core.io.manager.FeatureModelManager;
-import de.featjar.formula.io.ConfigFixFormat;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,7 +23,7 @@ public interface ITransformation extends IExtension {
             String content = Files.readString(inputPath);
             // to do ConfigFix: can we do this a bit more elegantly? maybe actually introduce a new file extension for ConfigFix, which then gets transformed into standard model format?
             if (content.contains("definedEx(")) {
-                return (IFormula) IO.load(inputPath, new ConfigFixFormat())
+                return (IFormula) IO.load(inputPath, new ConfigFixFormatFeatJAR())
                             .orElseThrow(p -> new RuntimeException("failed to load feature model at " + inputPath));
             } else {
                 return (IFormula) IO.load(inputPath,  FeatJAR.extensionPoint(FormulaFormats.class))
@@ -40,7 +39,7 @@ public interface ITransformation extends IExtension {
 
         String content = Files.readString(inputPath);
         if (content.contains("definedEx(")) {
-            FMFormatManager.getInstance().addExtension(new ConfigFixFormat());
+            FMFormatManager.getInstance().addExtension(new ConfigFixFormatFeatureIDE());
         } else {
             FMFormatManager.getInstance().addExtension(new KConfigReaderFormat());
         }

@@ -1,5 +1,3 @@
-package de.featjar.formula.io;
-
 import de.featjar.base.data.Problem;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.IFormat;
@@ -19,7 +17,7 @@ import java.util.stream.Collectors;
  * 
  * @author Rami
  */
-public class ConfigFixFormat implements IFormat<IExpression> {
+public class ConfigFixFormatFeatJAR implements IFormat<IExpression> {
 
     @Override
     public Result<IExpression> parse(AInputMapper inputMapper) {

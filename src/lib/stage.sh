@@ -205,17 +205,18 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, 
 
 # runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
 # only run if the specified file does not exist yet
-run-transient-unless(file=, command...) {
+run-transient-unless(file=, input=, command...) {
     if ([[ -z $file ]] || is-file-empty "$OUTPUT_DIRECTORY/$file") && [[ $DOCKER_RUN == y ]]; then
-        run "" "" "$OUTPUT_DIRECTORY" bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; cd \"\$(input-directory)\"; $(to-list command "; ")"
+        run "" "" "$input" bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; $(to-list command "; ")"
     fi
 }
 
 # joins the results of the first stage into the results of the second stage
 join-into(first_stage, second_stage) {
     run-transient-unless "$second_stage/$OUTPUT_FILE_PREFIX.$first_stage.csv" \
-        "mv $second_stage/$OUTPUT_FILE_PREFIX.csv $second_stage/$OUTPUT_FILE_PREFIX.$first_stage.csv" \
-        "join-tables $first_stage/$OUTPUT_FILE_PREFIX.csv $second_stage/$OUTPUT_FILE_PREFIX.$first_stage.csv > $second_stage/$OUTPUT_FILE_PREFIX.csv"
+        "1=$first_stage,2=$second_stage" \
+        "mv $DOCKER_INPUT_DIRECTORY/2/$OUTPUT_FILE_PREFIX.csv $DOCKER_INPUT_DIRECTORY/2/$OUTPUT_FILE_PREFIX.$first_stage.csv" \
+        "join-tables $DOCKER_INPUT_DIRECTORY/1/$OUTPUT_FILE_PREFIX.csv $DOCKER_INPUT_DIRECTORY/2/$OUTPUT_FILE_PREFIX.$first_stage.csv > $DOCKER_INPUT_DIRECTORY/2/$OUTPUT_FILE_PREFIX.csv"
 }
 
 # forces all subsequent stages to be run
@@ -387,7 +388,7 @@ define-stage-helpers() {
     }
 
     # transforms model files with FeatJAR
-    transform-models-with-featjar(transformer, output_extension, input_stage=kconfig, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+    transform-models-with-featjar(transformer, output_extension, input=kconfig, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
         # shellcheck disable=SC2128
         iterate \
             --stage "$transformer" \
@@ -395,7 +396,7 @@ define-stage-helpers() {
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
             --image featjar \
-            --input "$input_stage" \
+            --input "$input" \
             --command "$command" \
             --input-extension model \
             --output-extension "$output_extension" \
@@ -405,11 +406,11 @@ define-stage-helpers() {
     }
 
     # transforms model files into DIMACS with FeatJAR
-    transform-models-into-dimacs-with-featjar(transformer, input_stage=kconfig, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+    transform-models-into-dimacs-with-featjar(transformer, input=kconfig, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
         transform-models-with-featjar \
             --command transform-into-dimacs-with-featjar \
             --output-extension dimacs \
-            --input-stage "$input_stage" \
+            --input "$input" \
             --transformer "$transformer" \
             --timeout "$timeout" \
             --jobs "$jobs" \
@@ -419,16 +420,16 @@ define-stage-helpers() {
     }
 
     # transforms model files into DIMACS
-    transform-models-into-dimacs(input_stage=kconfig, output_stage=dimacs, timeout=0, jobs=1) {
+    transform-models-into-dimacs(input=kconfig, output_stage=dimacs, timeout=0, jobs=1) {
         # distributive tranformation
         transform-models-into-dimacs-with-featjar \
             --transformer model_to_dimacs_featureide \
-            --input-stage "$input_stage" \
+            --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
         transform-models-into-dimacs-with-featjar \
             --transformer model_to_dimacs_featjar \
-            --input-stage "$input_stage" \
+            --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
         
@@ -436,13 +437,13 @@ define-stage-helpers() {
         transform-models-with-featjar \
             --transformer model_to_model_featureide \
             --output-extension featureide.model \
-            --input-stage "$input_stage" \
+            --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
         transform-models-with-featjar \
             --transformer model_to_smt_z3 \
             --output-extension smt \
-            --input-stage "$input_stage" \
+            --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
 
@@ -475,60 +476,60 @@ define-stage-helpers() {
     }
 
     # visualize community structure of DIMACS files as a JPEG file
-    draw-community-structure(input_stage=dimacs, output_stage=community-structure, timeout=0, jobs=1) {
+    draw-community-structure(input=dimacs, output_stage=community-structure, timeout=0, jobs=1) {
         run \
             --stage "$output_stage" \
             --image satgraf \
-            --input "$input_stage" \
+            --input "$input" \
             --command transform-with-satgraf \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # compute DIMACS files with explicit backbone using kissat
-    compute-backbone-dimacs-with-kissat(input_stage=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
+    compute-backbone-dimacs-with-kissat(input=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
         run \
             --stage "$output_stage" \
             --image solver \
-            --input "$input_stage" \
+            --input "$input" \
             --command transform-into-backbone-dimacs-with-kissat \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # compute DIMACS files with explicit backbone using cadiback
-    compute-backbone-dimacs-with-cadiback(input_stage=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
+    compute-backbone-dimacs-with-cadiback(input=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
         run \
             --stage "$output_stage" \
             --image cadiback \
-            --input "$input_stage" \
+            --input "$input" \
             --command transform-into-backbone-dimacs-with-cadiback \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # compute unconstrained features that are not mentioned in a DIMACS file
-    compute-unconstrained-features(input_stage=kconfig, output_stage=unconstrained-features, timeout=0, jobs=1) {
+    compute-unconstrained-features(input=kconfig, output_stage=unconstrained-features, timeout=0, jobs=1) {
         run \
             --stage "$output_stage" \
-            --input "$input_stage" \
+            --input "$input" \
             --command transform-into-unconstrained-features \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # compute features in the backbone of DIMACS files
-    compute-backbone-features(input_stage=backbone-dimacs, output_stage=backbone-features, timeout=0, jobs=1) {
+    compute-backbone-features(input=backbone-dimacs, output_stage=backbone-features, timeout=0, jobs=1) {
         run \
             --stage "$output_stage" \
-            --input "$input_stage" \
+            --input "$input" \
             --command transform-into-backbone-features \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # solve DIMACS files
-    solve(kind, input_stage=dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
+    solve(kind, input=dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
@@ -544,7 +545,7 @@ define-stage-helpers() {
                 --iteration-field "$iteration_field" \
                 --file-fields "$file_fields" \
                 --image "$image" \
-                --input "$input_stage" \
+                --input "$input" \
                 --command solve \
                 --solver "$solver" \
                 --kind "$kind" \
@@ -559,7 +560,7 @@ define-stage-helpers() {
     }
 
     # solve DIMACS files for satisfiability
-    solve-satisfiable(input_stage=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
+    solve-satisfiable(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
             sat-competition/02-zchaff,solver,satisfiable
             sat-competition/03-Forklift,solver,satisfiable
@@ -614,14 +615,14 @@ define-stage-helpers() {
             other/SAT4J.236.sh,solver,satisfiable
             z3,z3,satisfiable
         )
-        solve --kind satisfiable --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs" \
+        solve --kind satisfiable --input "$input" --timeout "$timeout" --jobs "$jobs" \
             --attempts "$attempts" --attempt-grouper "$attempt_grouper" \
             --iterations "$iterations" --iteration_field "$iteration_field" --file_fields "$file_fields" \
             --solver_specs "${solver_specs[@]}"
     }
 
     # solve DIMACS files for model count
-    solve-model-count(input_stage=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
+    solve-model-count(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
         local solver_specs=(
             emse-2023/countAntom,solver,model-count
             emse-2023/d4,solver,model-count
@@ -638,7 +639,7 @@ define-stage-helpers() {
             other/d4v2.sh,solver,model-count
             other/ApproxMC,solver,model-count
         )
-        solve --kind model-count --input-stage "$input_stage" --timeout "$timeout" --jobs "$jobs" \
+        solve --kind model-count --input "$input" --timeout "$timeout" --jobs "$jobs" \
             --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
     }
 
@@ -650,12 +651,13 @@ define-stage-helpers() {
     }
 
     # runs a Jupyter notebook
-    run-notebook(input_stage=, output_stage=notebook, file) {
-        input_stage=${input_stage:-$PWD}
+    # todo: revise this
+    run-notebook(input=, output_stage=notebook, file) {
+        input=${input:-$PWD}
         run \
             --stage "$output_stage" \
             --image jupyter \
-            --input "$input_stage" \
+            --input "$input" \
             --command run-notebook \
             --file "$file"
     }

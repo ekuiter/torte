@@ -18,13 +18,13 @@ public class ModelToModelFeatureIDE implements ITransformation {
                     FileHandler.save(
                             outputPath,
                             ITransformation.loadModelFileWithFeatureIDE(inputPath),
-                            new ConfigFixFormat() 
+                            new ConfigFixFormatFeatureIDE()
                     );
                 } else {
                     FileHandler.save(
                             outputPath,
                             ITransformation.loadModelFileWithFeatureIDE(inputPath),
-                            new KConfigReaderFormat() 
+                            new KConfigReaderFormat()
                     );
                 }
             } catch (IOException e) {

@@ -73,7 +73,7 @@ experiment-stages() {
     compute-backbone-features --jobs 16
 
     solve \
-        --input-stage backbone-dimacs \
+        --input backbone-dimacs \
         --input-extension backbone.dimacs \
         --kind model-count \
         --timeout "$SOLVE_TIMEOUT" \

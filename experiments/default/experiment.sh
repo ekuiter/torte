@@ -20,7 +20,7 @@ experiment-stages() {
     clone-systems
     read-statistics
     extract-kconfig-models
-    
+
     transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
     transform-models-into-dimacs --timeout "$TIMEOUT"
