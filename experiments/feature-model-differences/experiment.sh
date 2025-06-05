@@ -72,7 +72,7 @@ if [[ -z $PASS ]]; then
             export PASS=$i
             command-clean
             rm-safe "${OUTPUT_DIRECTORY}_$PASS"
-            "$TOOL_SCRIPT" "$SRC_DIRECTORY/_experiment.sh"
+            "$TOOL_SCRIPT" "$SRC_EXPERIMENT_FILE"
             if [[ $DOCKER_RUN != y ]]; then
                 return
             fi

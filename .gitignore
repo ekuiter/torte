@@ -2,5 +2,6 @@
 /output*
 /export*
 /src/gen
+/src/experiment
 /*.tar.gz
 .ipynb_checkpoints

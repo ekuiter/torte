@@ -1,6 +1,10 @@
 #!/bin/bash
 # runs experiments
 
+# where to store the preprocessed experiment file
+SRC_EXPERIMENT_DIRECTORY=$SRC_DIRECTORY/experiment
+SRC_EXPERIMENT_FILE=$SRC_EXPERIMENT_DIRECTORY/experiment.sh
+
 # returns the path to a given experiment file
 experiment-file(experiment_file=default) {
     if [[ -f $experiment_file ]]; then
@@ -8,6 +12,30 @@ experiment-file(experiment_file=default) {
     elif [[ -f $TOOL_DIRECTORY/experiments/$experiment_file/experiment.sh ]]; then
         echo "$TOOL_DIRECTORY/experiments/$experiment_file/experiment.sh"
     fi
+}
+
+# returns the path to a given payload file
+payload-file(payload_file) {
+    payload_file=$SRC_EXPERIMENT_DIRECTORY/$payload_file
+    [[ -f $payload_file ]] && echo "$payload_file"
+}
+
+# adds a new payload file
+# these are files of interest that reside besides the experiment file, such as Jupyter notebooks
+add-payload-file(payload_file) {
+    original_payload_file=$(dirname "$ORIGINAL_EXPERIMENT_FILE")/$payload_file
+    src_payload_file=$SRC_EXPERIMENT_DIRECTORY/$payload_file
+    if [[ $payload_file == "$(basename "$ORIGINAL_EXPERIMENT_FILE")" ]]; then
+        error-help "The payload file $payload_file cannot be the experiment file."
+    # elif [[ ! -f $original_payload_file ]] && [[ -n $TORTE_EXPERIMENT ]] && [[ -f $(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file ]]; then
+    #     # this addresses the corner case where the experiment file has been obtained with the one-liner from the README file (which sets TORTE_EXPERIMENT)
+    #     # in that case, we obtain the payload from this project's repository
+    #     original_payload_file=$(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file
+    elif [[ ! -f $original_payload_file ]]; then
+        error-help "The requested payload file $payload_file does not exist and cannot be added."
+    fi
+    mkdir -p "$SRC_EXPERIMENT_DIRECTORY"
+    cp "$original_payload_file" "$src_payload_file"
 }
 
 # prepares an experiment by loading its file
@@ -18,11 +46,14 @@ load-experiment(experiment_file=default) {
         if [[ -z $experiment_file ]]; then
             error-help "Please provide an experiment in $experiment_file."
         fi
-        if [[ ! $experiment_file -ef $SRC_DIRECTORY/_experiment.sh ]]; then
-            cp "$experiment_file" "$SRC_DIRECTORY/_experiment.sh"
+        ORIGINAL_EXPERIMENT_FILE=$experiment_file
+        if [[ ! $experiment_file -ef $SRC_EXPERIMENT_FILE ]]; then
+            rm-safe "$SRC_EXPERIMENT_DIRECTORY"
+            mkdir -p "$SRC_EXPERIMENT_DIRECTORY"
+            cp "$experiment_file" "$SRC_EXPERIMENT_FILE"
         fi
     fi
-    source-script "$SRC_DIRECTORY/_experiment.sh"
+    source-script "$SRC_EXPERIMENT_FILE"
 }
 
 # removes all output files for the experiment
@@ -37,9 +68,9 @@ command-run() {
     mkdir -p "$OUTPUT_DIRECTORY"
     clean "$TOOL"s
     mkdir -p "$(output-directory "$TOOL")"
-    cp "$SRC_DIRECTORY/_experiment.sh" "$(output-directory "$TOOL")/_experiment.sh"
+    cp -R "$SRC_EXPERIMENT_DIRECTORY" "$(output-directory "$TOOL")"
     define-stage-helpers
-    if grep -q '^\s*debug\s*$' "$SRC_DIRECTORY/_experiment.sh"; then
+    if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE"; then
         experiment-stages
     else
         experiment-stages \
@@ -68,7 +99,7 @@ command-run-remote(host, file=experiment.tar.gz, directory=., sudo=) {
     local cmd="(cd $directory;"
     cmd+="  tar xzvf $(basename "$file"); "
     cmd+="  rm $(basename "$file"); "
-    cmd+="  screen -dmSL $TOOL $sudo bash _experiment.sh; "
+    cmd+="  screen -dmSL $TOOL $sudo bash experiment/experiment.sh; "
     cmd+=");"
     ssh "$host" "$cmd"
     echo "$TOOL is now running on $host, opening an SSH session."
@@ -76,7 +107,7 @@ command-run-remote(host, file=experiment.tar.gz, directory=., sudo=) {
     echo "To stop it, run $TOOL-stop."
     cmd=""
     cmd+="$TOOL() { screen -x $TOOL; };"
-    cmd+="$TOOL-stop() { screen -X -S $TOOL kill; bash $directory/_experiment.sh stop; };"
+    cmd+="$TOOL-stop() { screen -X -S $TOOL kill; bash $directory/experiment/experiment.sh stop; };"
     cmd+="export -f $TOOL $TOOL-stop;"
     cmd+="/bin/bash"
     ssh -t "$host" "$cmd"

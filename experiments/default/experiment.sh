@@ -10,6 +10,8 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 TIMEOUT=10
 JOBS=4
 
+add-payload-file evaluation.ipynb
+
 experiment-systems() {
     add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
 }
@@ -40,5 +42,5 @@ experiment-stages() {
     log-output-field dimacs dimacs-variables
     log-output-field solve_satisfiable satisfiable
     log-output-field solve_model-count model-count
-    run-notebook --file experiments/default.ipynb
+    run-notebook --file evaluation.ipynb # todo: fix this, rename to payload-file?
 }
