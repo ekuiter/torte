@@ -1,6 +1,8 @@
 #!/bin/bash
 # functions for working with Bash functions
 
+CACHE_DIRECTORY=.cache # path for cached data in output directory
+
 # returns whether a function is defined, useful for providing fallback implementations
 has-function(function) {
     declare -F "$function" >/dev/null
@@ -69,7 +71,7 @@ memoize(command...) {
     local hash file
     hash=$(md5sum <<<"${command[*]}" | awk NF=1)
     file=$(output-directory)/$CACHE_DIRECTORY/$hash
-    mkdir -p "$(output-directory)/$CACHE_DIRECTORY"
+    mkdir -p "$(output-directory)/$CACHE_DIRECTORY" # todo: this might break, now that output directory is only available inside of containers. use mktmp instead?
     if [[ ! -f $file ]]; then
         "${command[@]}" | tee "$file"
     else

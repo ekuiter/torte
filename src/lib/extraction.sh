@@ -1,6 +1,10 @@
 #!/bin/bash
 # extracts kconfig models
 
+
+KCONFIG_MODELS_OUTPUT_DIRECTORY= # output directory for storing kconfig models
+KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storing Kconfig bindings
+
 # checks out a system and prepares it for further processing
 kconfig-checkout(system, revision, kconfig_binding_files_spec=) {
     local revision_clean err

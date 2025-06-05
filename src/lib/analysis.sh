@@ -12,7 +12,7 @@ analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeo
     local output_log
     output_log=$(mktemp)
     local timeout_file
-    timeout_file=$(output-file "$(attempt-grouper "$file").timeout" "$stage")
+    timeout_file=$(output-file "$(attempt-grouper "$file").timeout")
     log "$analyzer_name: $file" "$(echo-progress analyze)"
     local timeouts
     timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"

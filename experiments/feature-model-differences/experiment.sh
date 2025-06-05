@@ -81,7 +81,7 @@ if [[ -z $PASS ]]; then
             pop
             batch-diff
             mkdir -p output_all
-            cp "$(output-csv diff)" "output_all/diff_$PASS.csv"
+            cp "$(stage-csv diff)" "output_all/diff_$PASS.csv"
             mv "$OUTPUT_DIRECTORY" "${OUTPUT_DIRECTORY}_$PASS"
         done
     }

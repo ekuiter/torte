@@ -59,25 +59,25 @@ load-experiment(experiment_file=default) {
 }
 
 # removes all output files for the experiment
-# does not touch input files or Docker images
+# does not touch Docker images
+# todo: only remove starting from specified (numbered) stage
 command-clean() {
     rm-safe "$OUTPUT_DIRECTORY"
 }
 
 # runs the experiment
 command-run() {
-    mkdir -p "$INPUT_DIRECTORY"
     mkdir -p "$OUTPUT_DIRECTORY"
     clean "$TOOL"s
-    mkdir -p "$(output-directory "$TOOL")"
-    cp -R "$SRC_EXPERIMENT_DIRECTORY" "$(output-directory "$TOOL")"
+    mkdir -p "$(stage-directory "$TOOL")"
+    cp -R "$SRC_EXPERIMENT_DIRECTORY" "$(stage-directory "$TOOL")"
     define-stage-helpers
     if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE"; then
         experiment-stages
     else
         experiment-stages \
-            > >(write-log "$(output-log "$TOOL")") \
-            2> >(write-all "$(output-err "$TOOL")" >&2)
+            > >(write-log "$(stage-log "$TOOL")") \
+            2> >(write-all "$(stage-err "$TOOL")" >&2)
     fi
 }
 

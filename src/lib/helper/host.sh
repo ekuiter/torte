@@ -35,6 +35,13 @@ assert-host() {
     fi
 }
 
+# asserts that we are in a Docker container
+assert-container() {
+    if is-host; then
+        error "Cannot be run outside a Docker container."
+    fi
+}
+
 # logs a message on the Docker host environment
 log-host(arguments...) {
     if is-host; then

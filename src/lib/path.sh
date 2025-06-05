@@ -1,32 +1,32 @@
 #!/bin/bash
-# deals with input/output paths
+# deals with paths of stages, input, and output files
 
-# returns the root input directory
-input-directory() {
-    if is-host; then
-        echo "$INPUT_DIRECTORY"
-    else
-        echo "$DOCKER_INPUT_DIRECTORY"
-    fi
+DOCKER_INPUT_DIRECTORY=/home/input # input directory inside Docker containers
+DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
+DOCKER_SRC_DIRECTORY=/home/${TOOL}_src # source directory inside Docker containers
+MAIN_INPUT_KEY=main # the name of the canonical input key
+OUTPUT_FILE_PREFIX=output # prefix for output files
+
+# on the host, returns the directory for the output of a given stage
+stage-directory(stage) {
+    assert-host
+    echo "$OUTPUT_DIRECTORY/$stage"
 }
 
-# returns the directory for all outputs for a given stage
-output-directory(stage=) {
-    if is-host; then
-        assert-value stage
-        echo "$OUTPUT_DIRECTORY/$stage"
-    else
-        echo "$DOCKER_OUTPUT_DIRECTORY"
-    fi
+# in a Docker container, returns the input directory for the given key
+input-directory(key=$MAIN_INPUT_KEY) {
+    assert-container
+    echo "$DOCKER_INPUT_DIRECTORY/$key"
 }
 
-# returns a file with a given extension for the input of the current stage
-input-file(extension) {
-    echo "$(input-directory)/$DOCKER_OUTPUT_FILE_PREFIX.$extension"
+# in a Docker container, returns the directory for the current stage's output
+output-directory() {
+    assert-container
+    echo "$DOCKER_OUTPUT_DIRECTORY"
 }
 
-# returns a file at a given (created if necessary) path for the output of a given stage
-output-path(components...) {
+# returns the path to a file at a given composite path, which is created if necessary
+compose-path(base_directory, components...) {
     local new_components=()
     for component in "${components[@]}"; do
         if [ -z "$component" ]; then
@@ -34,32 +34,38 @@ output-path(components...) {
         fi
         new_components+=("$component")
     done
-    local path
-    path=$(output-directory)/$(printf '%s\n' "${new_components[@]}" | paste -sd"$PATH_SEPARATOR")
+    local -r path=$base_directory/$(printf '%s\n' "${new_components[@]}" | paste -sd"$PATH_SEPARATOR")
     mkdir -p "$(dirname "$path")"
     echo "$path"
 }
 
-# returns a file with a given extension for the output of a given stage
-output-file(extension, stage=) {
-    echo "$(output-directory "$stage")/$DOCKER_OUTPUT_FILE_PREFIX.$extension"
-}
+# miscellaneous helpers for creating paths and file names
+stage-path(stage, components...) { compose-path "$(stage-directory "$stage")" "${components[@]}"; }
+input-path(key, components...) { compose-path "$(input-directory "$key")" "${components[@]}"; }
+output-path(components...) { compose-path "$(output-directory)" "${components[@]}"; }
+stage-file(extension, stage) { stage-path "$stage" "$OUTPUT_FILE_PREFIX.$extension"; }
+input-file(extension, key=$MAIN_INPUT_KEY) { input-path "$key" "$OUTPUT_FILE_PREFIX.$extension"; }
+output-file(extension) { output-path "$OUTPUT_FILE_PREFIX.$extension"; }
 
-# standard files for experimental results, human-readable output, and human-readable errors
-input-csv() { input-file csv; }
-input-log() { input-file log; }
-input-err() { input-file err; }
-output-csv(stage=) { output-file csv "$stage"; }
-output-log(stage=) { output-file log "$stage"; }
-output-err(stage=) { output-file err "$stage"; }
+# standard files for experimental results, human-readable output, and errors
+stage-csv(stage) { stage-file csv "$stage"; }
+stage-log(stage) { stage-file log "$stage"; }
+stage-err(stage) { stage-file err "$stage"; }
+input-csv(key=$MAIN_INPUT_KEY) { input-file csv "$key"; }
+input-log(key=$MAIN_INPUT_KEY) { input-file log "$key"; }
+input-err(key=$MAIN_INPUT_KEY) { input-file err "$key"; }
+output-csv() { output-file csv; }
+output-log() { output-file log; }
+output-err() { output-file err; }
 
 # returns whether the given experiment stage is done
+# todo: this does not account for an interrupted stage (maybe create a marker file at the end of each stage like .done?)
 stage-done(stage) {
     assert-host
-    [[ -d $(output-directory "$stage") ]]
+    [[ -d $(stage-directory "$stage") ]]
 }
 
-# asserts that he given experiment stage is done
+# asserts that the given experiment stage is done
 assert-stage-done(stage) {
     assert-host
     if ! stage-done "$stage"; then

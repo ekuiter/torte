@@ -1,12 +1,15 @@
 #!/bin/bash
 # runs stages
 
+# name for transient stages
+TRANSIENT_STAGE=transient
+
 # removes all output for the given experiment stage
 clean(stages...) {
     assert-array stages
     assert-host
     for stage in "${stages[@]}"; do
-        rm-safe "$(output-directory "$stage")"
+        rm-safe "$(stage-directory "$stage")"
     done
 }
 
@@ -28,8 +31,8 @@ run(stage=, image=util, input_directory=, command...) {
         else
             dockerfile=$image
         fi
-        if [[ ! -d $input_directory ]] && [[ -d $(output-directory "$input_directory") ]]; then
-            input_directory=$(output-directory "$input_directory")
+        if [[ ! -d $input_directory ]] && [[ -d $(stage-directory "$input_directory") ]]; then
+            input_directory=$(stage-directory "$input_directory")
         fi
         local build_flags=
         if is-array-empty command; then
@@ -61,11 +64,11 @@ run(stage=, image=util, input_directory=, command...) {
             "${cmd[@]}" >/dev/null
         fi
         if [[ $DOCKER_RUN == y ]]; then
-            mkdir -p "$(output-directory "$stage")"
-            chmod 0777 "$(output-directory "$stage")"
+            mkdir -p "$(stage-directory "$stage")"
+            chmod 0777 "$(stage-directory "$stage")"
             log "" "$(echo-progress run)"
-            mkdir -p "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY"
-            mv "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY" "$(output-directory "$stage")/$CACHE_DIRECTORY"
+            mkdir -p "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY" # todo: possibly eliminate this?
+            mv "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY" "$(stage-directory "$stage")/$CACHE_DIRECTORY"
             local cmd=(docker run)
             if [[ $DEBUG == y ]]; then
                 command=(/bin/bash)
@@ -75,14 +78,13 @@ run(stage=, image=util, input_directory=, command...) {
             fi
             local input_volume=$input_directory
             local output_volume
-            output_volume=$(output-directory "$stage")
+            output_volume=$(stage-directory "$stage")
             if [[ $input_volume != /* ]]; then
                 input_volume=$PWD/$input_volume
             fi
             if [[ $output_volume != /* ]]; then
                 output_volume=$PWD/$output_volume
             fi
-            cmd+=(-v "$input_volume:$DOCKER_INPUT_DIRECTORY")
             cmd+=(-v "$output_volume:$DOCKER_OUTPUT_DIRECTORY")
             cmd+=(-v "$(realpath "$SRC_DIRECTORY"):$DOCKER_SRC_DIRECTORY")
             cmd+=(-e INSIDE_DOCKER_CONTAINER=y)
@@ -101,13 +103,13 @@ run(stage=, image=util, input_directory=, command...) {
             else
                 cmd+=("$DOCKER_SRC_DIRECTORY/main.sh")
                 "${cmd[@]}" "${command[@]}" \
-                    > >(write-all "$(output-log "$stage")") \
-                    2> >(write-all "$(output-err "$stage")" >&2)
+                    > >(write-all "$(stage-log "$stage")") \
+                    2> >(write-all "$(stage-err "$stage")" >&2)
             fi
-            mv "$(output-directory "$stage")/$CACHE_DIRECTORY" "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY"
-            rm-if-empty "$(output-log "$stage")"
-            rm-if-empty "$(output-err "$stage")"
-            find "$(output-directory "$stage")" -mindepth 1 -type d -empty -delete
+            mv "$(stage-directory "$stage")/$CACHE_DIRECTORY" "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY"
+            rm-if-empty "$(stage-log "$stage")"
+            rm-if-empty "$(stage-err "$stage")"
+            find "$(stage-directory "$stage")" -mindepth 1 -type d -empty -delete
             if [[ $stage == "$TRANSIENT_STAGE" ]]; then
                 clean "$stage"
             fi
@@ -116,7 +118,7 @@ run(stage=, image=util, input_directory=, command...) {
             local image_archive
             image_archive="$EXPORT_DIRECTORY/$image.tar.gz"
             mkdir -p "$(dirname "$image_archive")"
-            mkdir -p "$(output-directory "$stage")"
+            mkdir -p "$(stage-directory "$stage")"
             if [[ ! -f $image_archive ]]; then
                 log "" "$(echo-progress save)"
                 docker save "${TOOL}_$image" | gzip > "$image_archive"
@@ -143,7 +145,7 @@ aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field
     source_transformer="$(lambda value "stage-transformer \$(basename \$(dirname \$value))")"
     csv_files=()
     for stage in "${stages[@]}"; do
-        csv_files+=("$(input-directory)/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv")
+        csv_files+=("$(input-directory)/$stage/$OUTPUT_FILE_PREFIX.csv")
         while IFS= read -r -d $'\0' file; do
             cp "$file" "$(output-path "$(stage-transformer "$stage")" "${file#"$(input-directory)/$stage/"}")"
         done < <(find "$(input-directory)/$stage" -type f -print0)
@@ -181,7 +183,7 @@ iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, 
             stages+=("$current_stage")
             run "$current_stage" "$image" "$input_directory" "${command[@]}"
         done
-        if [[ ! -f "$(output-csv "${stage}_1")" ]]; then
+        if [[ ! -f "$(stage-csv "${stage}_1")" ]]; then
             error "Required output CSV for stage ${stage}_1 is missing, please re-run stage ${stage}_1."
         fi
         aggregate "$stage" "$file_fields" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "" "${stages[@]}"
@@ -198,9 +200,9 @@ run-transient-unless(file=, command...) {
 
 # joins the results of the first stage into the results of the second stage
 join-into(first_stage, second_stage) {
-    run-transient-unless "$second_stage/$DOCKER_OUTPUT_FILE_PREFIX.$first_stage.csv" \
-        "mv $second_stage/$DOCKER_OUTPUT_FILE_PREFIX.csv $second_stage/$DOCKER_OUTPUT_FILE_PREFIX.$first_stage.csv" \
-        "join-tables $first_stage/$DOCKER_OUTPUT_FILE_PREFIX.csv $second_stage/$DOCKER_OUTPUT_FILE_PREFIX.$first_stage.csv > $second_stage/$DOCKER_OUTPUT_FILE_PREFIX.csv"
+    run-transient-unless "$second_stage/$OUTPUT_FILE_PREFIX.$first_stage.csv" \
+        "mv $second_stage/$OUTPUT_FILE_PREFIX.csv $second_stage/$OUTPUT_FILE_PREFIX.$first_stage.csv" \
+        "join-tables $first_stage/$OUTPUT_FILE_PREFIX.csv $second_stage/$OUTPUT_FILE_PREFIX.$first_stage.csv > $second_stage/$OUTPUT_FILE_PREFIX.csv"
 }
 
 # forces all subsequent stages to be run
@@ -237,8 +239,8 @@ plot-helper(file, type, fields, arguments...) {
 # plots data on the command line
 plot(stage, type, fields, arguments...) {
     local file
-    if [[ ! -f $stage ]] && [[ -f $OUTPUT_DIRECTORY/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv ]]; then
-        file=$OUTPUT_DIRECTORY/$stage/$DOCKER_OUTPUT_FILE_PREFIX.csv
+    if [[ ! -f $stage ]] && [[ -f $OUTPUT_DIRECTORY/$stage/$OUTPUT_FILE_PREFIX.csv ]]; then
+        file=$OUTPUT_DIRECTORY/$stage/$OUTPUT_FILE_PREFIX.csv
     else
         file=$stage
     fi
@@ -324,7 +326,7 @@ define-stage-helpers() {
     generate-busybox-models() {
         if [[ ! -d "$(input-directory)/busybox-models" ]]; then
             run --stage busybox-models --command generate-busybox-models
-            mv "$(output-directory busybox-models)" "$(input-directory)/busybox-models"
+            mv "$(output-directory busybox-models)" "$(input-directory)/busybox-models" # todo: does output/input directory work here?
         fi
     }
 
@@ -630,8 +632,8 @@ define-stage-helpers() {
 
     # logs a specific field of a given stage's output file
     log-output-field(stage, field) {
-        if [[ -f $(output-csv "$stage") ]]; then
-            log "$field: $(table-field "$(output-csv "$stage")" "$field" | sort | uniq | tr '\n' ' ')"
+        if [[ -f $(stage-csv "$stage") ]]; then
+            log "$field: $(table-field "$(stage-csv "$stage")" "$field" | sort | uniq | tr '\n' ' ')"
         fi
     }
 

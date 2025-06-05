@@ -24,7 +24,7 @@ log(subject=, state=) {
         command=update-log
     fi
     # todo: this is pretty complicated logic for a corner case and can probably be done in a smarter way
-    if [[ -n $INITIALIZED ]] && is-host && has-function output-log && [[ -f $(output-log "$TOOL") ]] && ! tail -n1 "$(output-log "$TOOL")" | grep -q "m$subject\^"; then
+    if [[ -n $INITIALIZED ]] && is-host && has-function stage-log && [[ -f $(stage-log "$TOOL") ]] && ! tail -n1 "$(stage-log "$TOOL")" | grep -q "m$subject\^"; then
         command=new-log
     fi
     if [[ -n $LOG_START ]] && { [[ $state == $(echo-fail) ]] || [[ $state == $(echo-done) ]]; }; then
