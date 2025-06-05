@@ -399,7 +399,7 @@ Further contributors and former project members with their main contributions  (
 
 - Eric Ketzler: `src/docker/hierarchy`
 - Urs-Benedict Braun: `experiments/linux-time-travel`
-- Rami Alfish: `src/docker/configfixextractor`
+- Rami Alfish: `src/docker/configfix`
 - Lukas Petermann: `torte-dashboard`
 
 If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).

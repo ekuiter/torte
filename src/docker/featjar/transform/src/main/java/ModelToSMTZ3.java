@@ -3,7 +3,7 @@ import de.featjar.base.cli.Commands;
 import de.featjar.base.io.IO;
 import de.featjar.formula.analysis.javasmt.solver.FormulaToJavaSMT;
 import de.featjar.formula.io.FormulaFormats;
-import de.featjar.formula.io.ConFigFixExtractorFormat;
+import de.featjar.formula.io.ConfigFixFormat;
 import de.featjar.formula.structure.formula.IFormula;
 import org.sosy_lab.common.ShutdownManager;
 import org.sosy_lab.common.configuration.Configuration;
@@ -27,7 +27,7 @@ public class ModelToSMTZ3 implements ITransformation {
                 IFormula formula;
                 String content = Files.readString(inputPath);
                 if (content.contains("definedEx(")) {
-                    formula = (IFormula) IO.load(inputPath, new ConFigFixExtractorFormat())
+                    formula = (IFormula) IO.load(inputPath, new ConfigFixFormat())
                             .orElseThrow(p -> new RuntimeException("failed to load feature model at " + inputPath));
                             Files.write(outputPath, formulaToSMTString(formula).getBytes());
                 } else {

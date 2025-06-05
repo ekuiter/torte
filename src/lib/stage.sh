@@ -354,8 +354,8 @@ define-stage-helpers() {
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields"
         # extract-kconfig-models-with \
-        # --extractor configfixextractor \
-        # --output-stage configfixextractor \
+        # --extractor configfix \
+        # --output-stage configfix \
         # --iterations "$iterations" \
         # --iteration-field "$iteration_field" \
         # --file-fields "$file_fields"
@@ -369,7 +369,7 @@ define-stage-helpers() {
             --stage-field extractor \
             --file-fields binding-file,model-file \
             --stages kconfigreader kclause
-            # --stages kconfigreader kclause configfixextractor
+            # --stages kconfigreader kclause configfix
     }
 
     # transforms model files with FeatJAR

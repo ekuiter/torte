@@ -18,7 +18,7 @@ public class ModelToModelFeatureIDE implements ITransformation {
                     FileHandler.save(
                             outputPath,
                             ITransformation.loadModelFileWithFeatureIDE(inputPath),
-                            new ConFigFixFormat() 
+                            new ConfigFixFormat() 
                     );
                 } else {
                     FileHandler.save(

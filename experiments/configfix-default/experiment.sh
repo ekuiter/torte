@@ -24,5 +24,5 @@ experiment-systems() {
 experiment-stages() {
     clone-systems
     read-statistics
-    extract-kconfig-models-with --extractor configfixextractor
+    extract-kconfig-models-with --extractor configfix
 }

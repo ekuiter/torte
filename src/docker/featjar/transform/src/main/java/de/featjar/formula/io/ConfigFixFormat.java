@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * 
  * @author Rami
  */
-public class ConFigFixExtractorFormat implements IFormat<IExpression> {
+public class ConfigFixFormat implements IFormat<IExpression> {
 
     @Override
     public Result<IExpression> parse(AInputMapper inputMapper) {
@@ -73,7 +73,7 @@ public class ConFigFixExtractorFormat implements IFormat<IExpression> {
 
     @Override
     public String getName() {
-        return "ConFigFixExtractor";
+        return "ConFigFix";
     }
 }
 

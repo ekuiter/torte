@@ -115,7 +115,7 @@ extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_fil
     fi
     log "$extractor: $system@$revision"
     local file_extension="model"
-    if [[ $extractor == configfixextractor ]]; then
+    if [[ $extractor == configfix ]]; then
         file_extension="model"
     fi
     if [[ -f $(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.model") ]]; then
@@ -154,7 +154,7 @@ extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_fil
                     "$kconfig_model" \
                     | tee "$output_log"
                 time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
-            elif [[ $extractor == configfixextractor ]]; then
+            elif [[ $extractor == configfix ]]; then
                 linux_source="/home/linux/linux-6.10"
                 export KBUILD_KCONFIG=$(realpath "$kconfig_file")
                 export srctree="/home/input/$system"
@@ -236,7 +236,7 @@ extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_fil
     else
         log "" "$(echo-done)"
         # todo ConfigFix: review this
-        if [[ $extractor != "configfixextractor" ]]; then
+        if [[ $extractor != "configfix" ]]; then
             local features
             features=$(wc -l < "$features_file")
             local variables
@@ -312,7 +312,7 @@ extract-kconfig-models-with-kconfigreader(timeout=0) {
     experiment-systems
 }
 
-extract-kconfig-models-with-configfixextractor(timeout=0) {
-    register-kconfig-extractor configfixextractor "" "$timeout"
+extract-kconfig-models-with-configfix(timeout=0) {
+    register-kconfig-extractor configfix "" "$timeout"
     experiment-systems
 }

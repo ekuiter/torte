@@ -32,7 +32,7 @@ experiment-stages() {
     read-busybox-configs
     read-uclibc-ng-configs
     read-linux-configs
-    extract-kconfig-models-with --extractor configfixextractor 
+    extract-kconfig-models-with --extractor configfix 
     #extract-kconfig-models-with --extractor kconfigreader
     #extract-kconfig-models-with --extractor kclause
     #extract-kconfig-models

@@ -10,6 +10,6 @@
 		<extension id="ModelToXMLFeatureIDE" />
 		<extension id="ModelToModelFeatureIDE" />
 		<extension id="ModelToSMTZ3" />
-		<extension id="ConFigFixFormat" />
+		<extension id="ConfigFixFormat" />
 	</point>
 </extensions>
