@@ -114,6 +114,7 @@ run(stage=, image=util, input=, command...) {
                 "${cmd[@]}" "${command[@]}" \
                     > >(write-all "$(stage-log "$stage")") \
                     2> >(write-all "$(stage-err "$stage")" >&2)
+                FORCE_NEW_LOG=y
             fi
             mv "$(stage-directory "$stage")/$CACHE_DIRECTORY" "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY"
             rm-if-empty "$(stage-log "$stage")"

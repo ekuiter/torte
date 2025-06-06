@@ -12,9 +12,6 @@ entrypoint(arguments...) {
         load-experiment
     fi
 
-    # initialization done (todo: avoid this?)
-    INITIALIZED=y
-
     # identify which command to run (default: command-run)
     if [[ -z "${arguments[*]}" ]]; then
         arguments=(run)

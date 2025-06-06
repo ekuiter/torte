@@ -23,9 +23,9 @@ log(subject=, state=) {
     else
         command=update-log
     fi
-    # todo: this is pretty complicated logic for a corner case and can probably be done in a smarter way
-    if [[ -n $INITIALIZED ]] && is-host && has-function stage-log && [[ -f $(stage-log "$TOOL") ]] && ! tail -n1 "$(stage-log "$TOOL")" | grep -q "m$subject\^"; then
+    if [[ -n $FORCE_NEW_LOG ]]; then
         command=new-log
+        FORCE_NEW_LOG=
     fi
     if [[ -n $LOG_START ]] && { [[ $state == $(echo-fail) ]] || [[ $state == $(echo-done) ]]; }; then
         local elapsed_time
