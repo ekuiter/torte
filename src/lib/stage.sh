@@ -120,6 +120,7 @@ run(stage=, image=util, input=, command...) {
             rm-if-empty "$(stage-log "$stage")"
             rm-if-empty "$(stage-err "$stage")"
             find "$(stage-directory "$stage")" -mindepth 1 -type d -empty -delete
+            touch "$(stage-done-file "$stage")"
             if [[ $stage == "$TRANSIENT_STAGE" ]]; then
                 clean "$stage"
             fi

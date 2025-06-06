@@ -48,6 +48,7 @@ output-path(components...) { compose-path "$(output-directory)" "${components[@]
 stage-file(extension, stage) { stage-path "$stage" "$OUTPUT_FILE_PREFIX.$extension"; }
 input-file(extension, key=) { input-path "$key" "$OUTPUT_FILE_PREFIX.$extension"; }
 output-file(extension) { output-path "$OUTPUT_FILE_PREFIX.$extension"; }
+stage-done-file(stage) { stage-path "$stage" ".done"; }
 
 # standard files for experimental results, human-readable output, and errors
 stage-csv(stage) { stage-file csv "$stage"; }
@@ -64,7 +65,7 @@ output-err() { output-file err; }
 # todo: this does not account for an interrupted stage (maybe create a marker file at the end of each stage like .done?)
 stage-done(stage) {
     assert-host
-    [[ -d $(stage-directory "$stage") ]]
+    [[ -f $(stage-done-file "$stage") ]]
 }
 
 # asserts that the given experiment stage is done
