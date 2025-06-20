@@ -335,9 +335,14 @@ As only the second configuration actually runs SharpSAT-td, we chose `conf2` (`c
 
 [^20]: This version of dSharp is [known](https://doi.org/10.4230/LIPIcs.SAT.2022.30) to produce inaccurate results for some inputs, so use it with caution.
 
-[^30]: `zchaff` won as a complete solver on industrial instances (SAT+UNSAT), while the SAT museum lists `limmat`, which only won on satisfiable industrial instances.
+[^30]: `zchaff` won as a complete solver on industrial instances (SAT+UNSAT), while the SAT museum lists `limmat`, which only won on satisfiable industrial instances. According to [satmuseum-pos23.tar.xz](https://cca.informatik.uni-freiburg.de/satmuseum/satmuseum-pos23.tar.xz)'s `selection/README`, this is because:
+> Note that the 2002 version of 'zchaff' available from the authors webpage, which apparently took also part in the competition, shows discrepancies even after porting some of the fixes from the 2004 and 2007 version.
+> The 2002 version we were running produced two discrepancies, all claimed by 'zchaff' to be 'satisfiable', while two of them are provably 'unsatisfiable'.
+> All 9 models produced by that 'zchaff' version are incorrect.  Therefore we do not include that version for the offical plot but use 'Limmat' instead.
 
-[^31]: `Forklift` inherits from `berkmin62` and is listed under that alias in the SAT museum.
+[^31]: `Forklift` won as a complete solver on industrial instances (SAT+UNSAT), while the SAT museum lists `berkmin` 5.61, which only came in second place. According to [satmuseum-pos23.tar.xz](https://cca.informatik.uni-freiburg.de/satmuseum/satmuseum-pos23.tar.xz)'s `selection/README`, this is because:
+> Already in 2003 (see Fig.1 on page 8 of the competition paper) 'Forklift' dominated, followed by 'Berkmin561' (banner says dated to October 2002) and 'siege' (version v1 according to the authors siege home page).
+> We only have binaries for 'Berkmin' and 'siege' and thus decided to choose 'Berkmin' (it solved one instance more).
 
 [^32]: This solver is not yet listed in the SAT museum as of March 2025.
 
