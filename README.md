@@ -359,8 +359,8 @@ The `sat-competition` solver set does not include such restoration efforts and c
 | 1992 | boehm1 | |
 | 1997 | grasp | |
 | 2001 | chaff | |
-| 2002 | limmat | |
-| 2003 | berkmin | |
+| 2002 | limmat | [^30] |
+| 2003 | berkmin | [^31] |
 | 2004 | zchaff | |
 | 2005 | satelite-gti | |
 | 2006 | minisat | |
