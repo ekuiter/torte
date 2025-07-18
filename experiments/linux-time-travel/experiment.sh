@@ -80,7 +80,6 @@ experiment-stages() {
     join-into kconfig dimacs
 
     # analyze (not parallelized so as not to disturb time measurements)
-    # todo: reorder solvers sensibly
     solve \
         --kind model-satisfiable \
         --iterations "$SOLVE_ITERATIONS" \
@@ -108,6 +107,8 @@ experiment-stages() {
         sat-competition/20-Kissat-sc2020-sat,solver,satisfiable \
         sat-competition/21-Kissat_MAB,solver,satisfiable \
         sat-competition/22-kissat_MAB-HyWalk,solver,satisfiable \
+        sat-competition/23-sbva_cadical.sh,solver,satisfiable \
+        sat-competition/24-kissat-sc2024,solver,satisfiable \
         other/SAT4J.210.sh,solver,satisfiable \
         other/SAT4J.231.sh,solver,satisfiable \
         other/SAT4J.235.sh,solver,satisfiable \
@@ -131,7 +132,5 @@ experiment-stages() {
         sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,satisfiable \
         sat-museum/kissat-2020,solver,satisfiable \
         sat-museum/kissat-mab-2021,solver,satisfiable \
-        sat-museum/kissat-mab-hywalk-2022,solver,satisfiable \
-        sat-competition/24-kissat-sc2024,solver,satisfiable \
-        sat-competition/23-sbva_cadical.sh,solver,satisfiable
+        sat-museum/kissat-mab-hywalk-2022,solver,satisfiable
 }
