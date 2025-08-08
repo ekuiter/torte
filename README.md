@@ -1,4 +1,4 @@
-# torte: feature-model experiments à la carte 🍰
+# torte: Feature-Model Experiments à La Carte 🍰
 
 **torte is a declarative workbench for reproducible experiments in feature-model analysis research.**
 
@@ -31,6 +31,12 @@ This way, you can
 This one-liner will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required).
 ```
 curl -sL https://elias-kuiter.de/torte/ | sh
+```
+If piping into a shell is no option for you, you can also clone this repository and run torte directly.
+```
+git clone --recursive https://github.com/ekuiter/torte.git
+cd torte
+./torte.sh
 ```
 Read on if you want to know more details.
 
