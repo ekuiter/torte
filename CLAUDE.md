@@ -80,6 +80,7 @@ Experiments are Bash scripts that define:
 - Jupyter notebooks can be integrated for result visualization
 - is written fully in bash to leverage the composition effects of pipes and bash's ease of use
 - uses a bash dialect specified in `src/bootstrap.sh` to allow for python-like passing of arguments (either just positional with `<value>`, or named with `--<arg> <value>`)
+- make sure to, whenever you update a signature of a function, also update all occurrences of that change in that function's body
 - DO NOT attempt to run any file directly, because they need the bash dialect preprocessor
 - to run and test any given function, it can just be executed with `./torte.sh <function> <args>`
 

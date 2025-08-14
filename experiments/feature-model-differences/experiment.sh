@@ -57,9 +57,9 @@ copy-models() {
 # analyzes differences between model files
 batch-diff() {
     run \
-        --stage diff \
         --image clausy \
-        --input output/models \
+        --input models \
+        --output diff \
         --command run-clausy-batch-diff \
         --timeout 1800
 }
@@ -71,18 +71,18 @@ if [[ -z $PASS ]]; then
         for i in $(seq 6); do
             export PASS=$i
             command-clean
-            rm-safe "${OUTPUT_DIRECTORY}_$PASS"
+            rm-safe "${STAGE_DIRECTORY}_$PASS"
             "$TOOL_SCRIPT" "$SRC_EXPERIMENT_FILE"
             if [[ $DOCKER_RUN != y ]]; then
                 return
             fi
-            push "$OUTPUT_DIRECTORY"
+            push "$STAGE_DIRECTORY"
             copy-models
             pop
             batch-diff
             mkdir -p output_all
             cp "$(stage-csv diff)" "output_all/diff_$PASS.csv"
-            mv "$OUTPUT_DIRECTORY" "${OUTPUT_DIRECTORY}_$PASS"
+            mv "$STAGE_DIRECTORY" "${STAGE_DIRECTORY}_$PASS"
         done
     }
 fi

@@ -7,10 +7,10 @@ DOCKER_SRC_DIRECTORY=/home/${TOOL}_src # source directory inside Docker containe
 MAIN_INPUT_KEY=main # the name of the canonical input key
 OUTPUT_FILE_PREFIX=output # prefix for output files
 
-# on the host, returns the directory for the output of a given stage
+# on the host, returns the directory for where to store the output or find the input of a given stage
 stage-directory(stage) {
     assert-host
-    echo "$OUTPUT_DIRECTORY/$stage"
+    echo "$STAGE_DIRECTORY/$stage"
 }
 
 # in a Docker container, returns the input directory for the given key

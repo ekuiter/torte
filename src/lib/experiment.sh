@@ -62,12 +62,12 @@ load-experiment(experiment_file=default) {
 # does not touch Docker images
 # todo: only remove starting from specified (numbered) stage
 command-clean() {
-    rm-safe "$OUTPUT_DIRECTORY"
+    rm-safe "$STAGE_DIRECTORY"
 }
 
 # runs the experiment
 command-run() {
-    mkdir -p "$OUTPUT_DIRECTORY"
+    mkdir -p "$STAGE_DIRECTORY"
     clean "$TOOL"s
     mkdir -p "$(stage-directory "$TOOL")"
     cp -R "$SRC_EXPERIMENT_DIRECTORY" "$(stage-directory "$TOOL")"
@@ -118,7 +118,7 @@ command-run-remote(host, file=experiment.tar.gz, directory=., sudo=) {
 # downloads results from the remote server
 command-copy-remote(host, directory=.) {
     assert-command rsync
-    rsync -av "$host:$directory/$OUTPUT_DIRECTORY/" "$OUTPUT_DIRECTORY-$host-$(date "+%Y-%m-%d")"
+    rsync -av "$host:$directory/$STAGE_DIRECTORY/" "$STAGE_DIRECTORY-$host-$(date "+%Y-%m-%d")"
 }
 
 # installs a Docker image on a remote server

@@ -49,9 +49,9 @@ experiment-stages() {
         --iterations 1 \
         --iteration-field transform-iteration \
         --file-fields dimacs-file \
-        --stage smt_to_dimacs_z3 \
         --image z3 \
         --input model_to_smt_z3 \
+        --output smt_to_dimacs_z3 \
         --command transform-into-dimacs-with-z3 \
         --jobs 8
     join-into model_to_smt_z3 smt_to_dimacs_z3
@@ -64,19 +64,19 @@ experiment-stages() {
         --iterations "$ITERATIONS" \
         --iteration-field transform-iteration \
         --file-fields dimacs-file \
-        --stage model_to_dimacs_kconfigreader \
         --image kconfigreader \
         --input model_to_model_featureide \
+        --output model_to_dimacs_kconfigreader \
         --command transform-into-dimacs-with-kconfigreader \
         --input-extension featureide.model \
         --jobs 8
     join-into model_to_model_featureide model_to_dimacs_kconfigreader
     
     aggregate \
-        --stage dimacs \
+        --output dimacs \
         --directory-field dimacs-transformer \
         --file-fields dimacs-file \
-        --stages model_to_dimacs_kconfigreader smt_to_dimacs_z3
+        --inputs model_to_dimacs_kconfigreader smt_to_dimacs_z3
     join-into kconfig dimacs
 
     # analyze (not parallelized so as not to disturb time measurements)

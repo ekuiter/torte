@@ -40,7 +40,7 @@ command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
         cp -R "$(input-directory)" "$EXPORT_DIRECTORY"
     fi
     if [[ $output == y ]]; then
-        cp -R "$OUTPUT_DIRECTORY" "$EXPORT_DIRECTORY"
+        cp -R "$STAGE_DIRECTORY" "$EXPORT_DIRECTORY"
     fi
     file=$PWD/$file
     push "$EXPORT_DIRECTORY"
@@ -71,7 +71,7 @@ command-browse() {
     database_file=$(mktemp)
     chmod 0777 "$database_file"
     docker run \
-        -v "$OUTPUT_DIRECTORY:/srv" \
+        -v "$STAGE_DIRECTORY:/srv" \
         -v "$database_file:/database.db" \
         -u "$(id -u):$(id -g)" \
         -p 8080:80 \

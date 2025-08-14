@@ -14,29 +14,29 @@ clean(stages...) {
 }
 
 # runs a stage of some experiment in a Docker container
-run(stage=, image=util, input=, command...) {
-    stage=${stage:-$TRANSIENT_STAGE}
+run(image=util, input=, output=, command...) {
+    output=${output:-$TRANSIENT_STAGE}
     assert-host
-    local readable_stage=$stage
-    if [[ $stage == "$TRANSIENT_STAGE" ]]; then
+    local readable_stage=$output
+    if [[ $output == "$TRANSIENT_STAGE" ]]; then
         readable_stage="<transient>"
-        clean "$stage"
+        clean "$output"
     fi
     log "$readable_stage"
-    if [[ $FORCE_RUN == y ]] || ! stage-done "$stage"; then
+    if [[ $FORCE_RUN == y ]] || ! stage-done "$output"; then
         local dockerfile=$DOCKER_DIRECTORY/$image/Dockerfile
         if [[ ! -f $dockerfile ]]; then
             error "Could not find Dockerfile for image $image."
         fi
         local build_flags=
         if is-array-empty command; then
-            command=("$stage")
+            command=("$output")
         fi
         local platform
         if grep -q platform-override= "$dockerfile"; then
             platform=$(grep platform-override= "$dockerfile" | cut -d= -f2)
         fi
-        clean "$stage"
+        clean "$output"
         if [[ -f $image.tar.gz ]]; then
             if ! docker image inspect "${TOOL}_$image" > /dev/null 2>&1; then
                 log "" "$(echo-progress load)"
@@ -58,11 +58,11 @@ run(stage=, image=util, input=, command...) {
             "${cmd[@]}" >/dev/null
         fi
         if [[ $DOCKER_RUN == y ]]; then
-            mkdir -p "$(stage-directory "$stage")"
-            chmod 0777 "$(stage-directory "$stage")"
+            mkdir -p "$(stage-directory "$output")"
+            chmod 0777 "$(stage-directory "$output")"
             log "" "$(echo-progress run)"
-            mkdir -p "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY" # todo: possibly eliminate this?
-            mv "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY" "$(stage-directory "$stage")/$CACHE_DIRECTORY"
+            mkdir -p "$STAGE_DIRECTORY/$CACHE_DIRECTORY" # todo: possibly eliminate this?
+            mv "$STAGE_DIRECTORY/$CACHE_DIRECTORY" "$(stage-directory "$output")/$CACHE_DIRECTORY"
             local cmd=(docker run)
             if [[ $DEBUG == y ]]; then
                 command=(/bin/bash)
@@ -71,7 +71,7 @@ run(stage=, image=util, input=, command...) {
                 cmd+=(-it)
             fi
 
-            if [[ $stage != clone-systems ]]; then
+            if [[ $output != clone-systems ]]; then
                 input=${input:-main=clone-systems}
             fi
             if [[ -n $input ]] && [[ $input != *=* ]] && stage-done "$input"; then
@@ -89,7 +89,7 @@ run(stage=, image=util, input=, command...) {
                 cmd+=(-v "$input_volume:$DOCKER_INPUT_DIRECTORY/$key")
             done
             local output_volume
-            output_volume=$(stage-directory "$stage")
+            output_volume=$(stage-directory "$output")
             if [[ $output_volume != /* ]]; then
                 output_volume=$PWD/$output_volume
             fi
@@ -112,17 +112,17 @@ run(stage=, image=util, input=, command...) {
             else
                 cmd+=("$DOCKER_SRC_DIRECTORY/main.sh")
                 "${cmd[@]}" "${command[@]}" \
-                    > >(write-all "$(stage-log "$stage")") \
-                    2> >(write-all "$(stage-err "$stage")" >&2)
+                    > >(write-all "$(stage-log "$output")") \
+                    2> >(write-all "$(stage-err "$output")" >&2)
                 FORCE_NEW_LOG=y
             fi
-            mv "$(stage-directory "$stage")/$CACHE_DIRECTORY" "$OUTPUT_DIRECTORY/$CACHE_DIRECTORY"
-            rm-if-empty "$(stage-log "$stage")"
-            rm-if-empty "$(stage-err "$stage")"
-            find "$(stage-directory "$stage")" -mindepth 1 -type d -empty -delete
-            touch "$(stage-done-file "$stage")"
-            if [[ $stage == "$TRANSIENT_STAGE" ]]; then
-                clean "$stage"
+            mv "$(stage-directory "$output")/$CACHE_DIRECTORY" "$STAGE_DIRECTORY/$CACHE_DIRECTORY"
+            rm-if-empty "$(stage-log "$output")"
+            rm-if-empty "$(stage-err "$output")"
+            find "$(stage-directory "$output")" -mindepth 1 -type d -empty -delete
+            touch "$(stage-done-file "$output")"
+            if [[ $output == "$TRANSIENT_STAGE" ]]; then
+                clean "$output"
             fi
         else
             assert-command gzip
@@ -142,20 +142,20 @@ run(stage=, image=util, input=, command...) {
 }
 
 # skips a stage, useful to comment out a stage temporarily
-skip(stage=, image=util, input=, command...) {
-    echo "Skipping stage $stage"
+skip(image=util, input=, output=, command...) {
+    echo "Skipping stage $output"
 }
 
-# merges the output files of two or more stages in a new stage
+# merges the output files of two or more input stages in a new stage
 # assumes that the input directory is the root output directory, also makes some assumptions about its layout
-aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field=, stages...) {
+aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field=, inputs...) {
     directory_field=${directory_field:-$stage_field}
     stage_transformer=${stage_transformer:-$(lambda-identity)}
-    assert-array stages
+    assert-array inputs
     compile-lambda stage-transformer "$stage_transformer"
     source_transformer="$(lambda value "stage-transformer \$(basename \$(dirname \$value))")"
     csv_files=()
-    for stage in "${stages[@]}"; do
+    for stage in "${inputs[@]}"; do
         csv_files+=("$(input-directory "$stage")/$OUTPUT_FILE_PREFIX.csv")
         while IFS= read -r -d $'\0' file; do
             cp "$file" "$(output-path "$(stage-transformer "$stage")" "${file#"$(input-directory "$stage")/"}")"
@@ -168,48 +168,48 @@ aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field
     rm-safe "$tmp"
 }
 
-# merges the output files of two or more stages in a new stage
-aggregate(stage, file_fields=, stage_field=, stage_transformer=, directory_field=, stages...) {
+# merges the output files of two or more input stages in a new stage
+aggregate(output, file_fields=, stage_field=, stage_transformer=, directory_field=, inputs...) {
     local current_stage input
-    if ! stage-done "$stage"; then
-        for current_stage in "${stages[@]}"; do
+    if ! stage-done "$output"; then
+        for current_stage in "${inputs[@]}"; do
             assert-stage-done "$current_stage"
         done
     fi
-    for current_stage in "${stages[@]}"; do
+    for current_stage in "${inputs[@]}"; do
         input=$input,$current_stage=$current_stage
     done
     input=${input#,}
-    run "$stage" "" "$input" aggregate-helper "$file_fields" "$stage_field" "$stage_transformer" "$directory_field" "${stages[@]}"
+    run util "$input" "$output" aggregate-helper "$file_fields" "$stage_field" "$stage_transformer" "$directory_field" "${inputs[@]}"
 }
 
 # runs a stage a given number of time and merges the output files in a new stage
-iterate(stage, iterations, iteration_field=iteration, file_fields=, image=util, input=, command...) {
+iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=, output=, command...) {
     if [[ $iterations -lt 1 ]]; then
-        error "At least one iteration is required for stage $stage."
+        error "At least one iteration is required for stage $output."
     fi
     if [[ $iterations -eq 1 ]]; then
-        run "$stage" "$image" "$input" "${command[@]}"
+        run "$image" "$input" "$output" "${command[@]}"
     else
         local stages=()
         local i
         for i in $(seq "$iterations"); do
-            local current_stage="${stage}_$i"
+            local current_stage="${output}_$i"
             stages+=("$current_stage")
-            run "$current_stage" "$image" "$input" "${command[@]}"
+            run "$image" "$input" "$current_stage" "${command[@]}"
         done
-        if [[ ! -f "$(stage-csv "${stage}_1")" ]]; then
-            error "Required output CSV for stage ${stage}_1 is missing, please re-run stage ${stage}_1."
+        if [[ ! -f "$(stage-csv "${output}_1")" ]]; then
+            error "Required output CSV for stage ${output}_1 is missing, please re-run stage ${output}_1."
         fi
-        aggregate "$stage" "$file_fields" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "" "${stages[@]}"
+        aggregate "$output" "$file_fields" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "" "${stages[@]}"
     fi
 }
 
 # runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
 # only run if the specified file does not exist yet
 run-transient-unless(file=, input=, command...) {
-    if ([[ -z $file ]] || is-file-empty "$OUTPUT_DIRECTORY/$file") && [[ $DOCKER_RUN == y ]]; then
-        run "" "" "$input" bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; $(to-list command "; ")"
+    if ([[ -z $file ]] || is-file-empty "$STAGE_DIRECTORY/$file") && [[ $DOCKER_RUN == y ]]; then
+        run util "$input" "" bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; $(to-list command "; ")"
     fi
 }
 
@@ -255,12 +255,12 @@ plot-helper(file, type, fields, arguments...) {
 # plots data on the command line
 plot(stage, type, fields, arguments...) {
     local file
-    if [[ ! -f $stage ]] && [[ -f $OUTPUT_DIRECTORY/$stage/$OUTPUT_FILE_PREFIX.csv ]]; then
-        file=$OUTPUT_DIRECTORY/$stage/$OUTPUT_FILE_PREFIX.csv
+    if [[ ! -f $stage ]] && [[ -f $STAGE_DIRECTORY/$stage/$OUTPUT_FILE_PREFIX.csv ]]; then
+        file=$STAGE_DIRECTORY/$stage/$OUTPUT_FILE_PREFIX.csv
     else
         file=$stage
     fi
-    run-transient-unless "" "plot-helper \"${file#"$OUTPUT_DIRECTORY/"}\" \"$type\" \"$fields\" ${arguments[*]}"
+    run-transient-unless "" "plot-helper \"${file#"$STAGE_DIRECTORY/"}\" \"$type\" \"$fields\" ${arguments[*]}"
 }
 
 # convenience functions for defining commonly used stages
@@ -268,91 +268,91 @@ plot(stage, type, fields, arguments...) {
 define-stage-helpers() {
     # clone the systems specified in the experiment file
     clone-systems() {
-        run --stage clone-systems
+        run --output clone-systems
     }
 
     # tag old Linux revisions that are not included in its Git history
     tag-linux-revisions(option=) {
-        run --stage tag-linux-revisions --command tag-linux-revisions "$option"
+        run --output tag-linux-revisions --command tag-linux-revisions "$option"
     }
 
     # extracts code names of linux revisions
     read-linux-names() {
-        run --stage read-linux-names
+        run --output read-linux-names
     }
 
     # extracts architectures of linux revisions
     read-linux-architectures() {
-        run --stage read-linux-architectures
+        run --output read-linux-architectures
     }
 
     # to do: remove/unify these
     # extracts configuration options of linux revisions
     read-linux-configs() {
-        run --stage read-linux-configs
+        run --output read-linux-configs
     }
 
     # extracts configuration options of toybox revisions
     read-toybox-configs() {
-        run --stage read-toybox-configs
+        run --output read-toybox-configs
     }
     
     # extracts configuration options of axtls revisions
     read-axtls-configs() {
-        run --stage read-axtls-configs
+        run --output read-axtls-configs
     }
 
     # extracts configuration options of busybox revisions
     read-busybox-configs() {
-        run --stage read-busybox-configs
+        run --output read-busybox-configs
     }
     
     # extracts configuration options of embtoolkit revisions
     read-embtoolkit-configs() {
-        run --stage read-embtoolkit-configs
+        run --output read-embtoolkit-configs
     }
     
     # extracts configuration options of buildroot revisions
     read-buildroot-configs() {
-        run --stage read-buildroot-configs
+        run --output read-buildroot-configs
     }
 
     # extracts configuration options of fiasco revisions
     read-fiasco-configs() {
-        run --stage read-fiasco-configs
+        run --output read-fiasco-configs
     }
     
     # extracts configuration options of freetz-ng revisions 
     read-freetz-ng-configs() {
-        run --stage read-freetz-ng-configs
+        run --output read-freetz-ng-configs
     }
     
     # extracts configuration options of uclibc-ng revisions 
     read-uclibc-ng-configs() {
-        run --stage read-uclibc-ng-configs
+        run --output read-uclibc-ng-configs
     }
 
     # read basic statistics for each system
     read-statistics(option=) {
-        run --stage read-statistics --command read-statistics "$option"
+        run --output read-statistics --command read-statistics "$option"
     }
 
     # generate repository with full history of BusyBox
     generate-busybox-models() {
         if [[ ! -d "$(input-directory)/busybox-models" ]]; then
-            run --stage busybox-models --command generate-busybox-models
-            mv "$(output-directory busybox-models)" "$(input-directory)/busybox-models" # todo: does output/input directory work here?
+            run --output busybox-models --command generate-busybox-models
+            mv "$(stage-directory busybox-models)" "$(input-directory)/busybox-models" # todo: does output/input directory work here?
         fi
     }
 
     # extracts kconfig models with the given extractor
     extract-kconfig-models-with(extractor, output_stage=kconfig, iterations=1, iteration_field=iteration, file_fields=) {
         iterate \
-            --stage "$output_stage" \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
             --image "$extractor" \
+            --output "$output_stage" \
             --command "extract-kconfig-models-with-$extractor"
     }
 
@@ -382,23 +382,23 @@ define-stage-helpers() {
         #     binding_file=""
         # fi
         aggregate \
-            --stage "$output_stage" \
+            --output "$output_stage" \
             --stage-field extractor \
             --file-fields binding-file,model-file \
-            --stages kconfigreader kclause
-            # --stages kconfigreader kclause configfix
+            --inputs kconfigreader kclause
+            # --inputs kconfigreader kclause configfix
     }
 
     # transforms model files with FeatJAR
     transform-models-with-featjar(transformer, output_extension, input=kconfig, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
         # shellcheck disable=SC2128
         iterate \
-            --stage "$transformer" \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
             --image featjar \
             --input "$input" \
+            --output "$transformer" \
             --command "$command" \
             --input-extension model \
             --output-extension "$output_extension" \
@@ -451,9 +451,9 @@ define-stage-helpers() {
 
         # Plaisted-Greenbaum CNF tranformation
         run \
-            --stage model_to_dimacs_kconfigreader \
             --image kconfigreader \
             --input model_to_model_featureide \
+            --output model_to_dimacs_kconfigreader \
             --command transform-into-dimacs-with-kconfigreader \
             --input-extension featureide.model \
             --timeout "$timeout" \
@@ -462,27 +462,27 @@ define-stage-helpers() {
 
         # Tseitin CNF tranformation
         run \
-            --stage smt_to_dimacs_z3 \
             --image z3 \
             --input model_to_smt_z3 \
+            --output smt_to_dimacs_z3 \
             --command transform-into-dimacs-with-z3 \
             --timeout "$timeout" \
             --jobs "$jobs"
         join-into model_to_smt_z3 smt_to_dimacs_z3
 
         aggregate \
-            --stage "$output_stage" \
+            --output "$output_stage" \
             --directory-field dimacs-transformer \
             --file-fields dimacs-file \
-            --stages model_to_dimacs_featureide model_to_dimacs_featjar model_to_dimacs_kconfigreader smt_to_dimacs_z3
+            --inputs model_to_dimacs_featureide model_to_dimacs_featjar model_to_dimacs_kconfigreader smt_to_dimacs_z3
     }
 
     # visualize community structure of DIMACS files as a JPEG file
     draw-community-structure(input=dimacs, output_stage=community-structure, timeout=0, jobs=1) {
         run \
-            --stage "$output_stage" \
             --image satgraf \
             --input "$input" \
+            --output "$output_stage" \
             --command transform-with-satgraf \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -491,9 +491,9 @@ define-stage-helpers() {
     # compute DIMACS files with explicit backbone using kissat
     compute-backbone-dimacs-with-kissat(input=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
         run \
-            --stage "$output_stage" \
             --image solver \
             --input "$input" \
+            --output "$output_stage" \
             --command transform-into-backbone-dimacs-with-kissat \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -502,9 +502,9 @@ define-stage-helpers() {
     # compute DIMACS files with explicit backbone using cadiback
     compute-backbone-dimacs-with-cadiback(input=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
         run \
-            --stage "$output_stage" \
             --image cadiback \
             --input "$input" \
+            --output "$output_stage" \
             --command transform-into-backbone-dimacs-with-cadiback \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -513,8 +513,8 @@ define-stage-helpers() {
     # compute unconstrained features that are not mentioned in a DIMACS file
     compute-unconstrained-features(input=kconfig, output_stage=unconstrained-features, timeout=0, jobs=1) {
         run \
-            --stage "$output_stage" \
             --input "$input" \
+            --output "$output_stage" \
             --command transform-into-unconstrained-features \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -523,8 +523,8 @@ define-stage-helpers() {
     # compute features in the backbone of DIMACS files
     compute-backbone-features(input=backbone-dimacs, output_stage=backbone-features, timeout=0, jobs=1) {
         run \
-            --stage "$output_stage" \
             --input "$input" \
+            --output "$output_stage" \
             --command transform-into-backbone-features \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -542,12 +542,12 @@ define-stage-helpers() {
             parser=$(echo "$solver_spec" | cut -d, -f3)
             stages+=("$stage")
             iterate \
-                --stage "$stage" \
                 --iterations "$iterations" \
                 --iteration-field "$iteration_field" \
                 --file-fields "$file_fields" \
                 --image "$image" \
                 --input "$input" \
+                --output "$stage" \
                 --command solve \
                 --solver "$solver" \
                 --kind "$kind" \
@@ -558,7 +558,7 @@ define-stage-helpers() {
                 --attempts "$attempts" \
                 --attempt-grouper "$attempt_grouper"
         done
-        aggregate --stage "solve_$kind" --stages "${stages[@]}"
+        aggregate --output "solve_$kind" --inputs "${stages[@]}"
     }
 
     # solve DIMACS files for satisfiability
@@ -657,9 +657,9 @@ define-stage-helpers() {
     run-notebook(input=, output_stage=notebook, file) {
         input=${input:-$PWD}
         run \
-            --stage "$output_stage" \
             --image jupyter \
             --input "$input" \
+            --output "$output_stage" \
             --command run-notebook \
             --file "$file"
     }
@@ -667,6 +667,6 @@ define-stage-helpers() {
     # build10 the given image, if necessary
     build-image(image) {
         # shellcheck disable=SC2128
-        run --stage "" --image "$image" --command echo
+        run --image "$image" --output "" --command echo
     }
 }

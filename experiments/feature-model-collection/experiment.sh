@@ -56,14 +56,14 @@ clean-up() {
         model_to_model_featureide model_to_smt_z3 model_to_dimacs_kconfigreader \
         model_to_dimacs_featjar model_to_dimacs_featureide smt_to_dimacs_z3 torte
     rm-safe \
-        "$OUTPUT_DIRECTORY"/model/*binding* \
-        "$OUTPUT_DIRECTORY"/model/*.features \
-        "$OUTPUT_DIRECTORY"/model/*.rsf \
-        "$OUTPUT_DIRECTORY"/model/*.kclause \
-        "$OUTPUT_DIRECTORY"/model/*.kextractor \
-        "$OUTPUT_DIRECTORY"/*/*_output*.csv \
-        "$OUTPUT_DIRECTORY"/*/*output.*.csv \
-        "$OUTPUT_DIRECTORY"/*/*.log \
-        "$OUTPUT_DIRECTORY"/*/*.err
-    mv "$OUTPUT_DIRECTORY"/model_to_uvl_featureide "$OUTPUT_DIRECTORY"/uvl
+        "$STAGE_DIRECTORY"/model/*binding* \
+        "$STAGE_DIRECTORY"/model/*.features \
+        "$STAGE_DIRECTORY"/model/*.rsf \
+        "$STAGE_DIRECTORY"/model/*.kclause \
+        "$STAGE_DIRECTORY"/model/*.kextractor \
+        "$STAGE_DIRECTORY"/*/*_output*.csv \
+        "$STAGE_DIRECTORY"/*/*output.*.csv \
+        "$STAGE_DIRECTORY"/*/*.log \
+        "$STAGE_DIRECTORY"/*/*.err
+    mv "$STAGE_DIRECTORY"/model_to_uvl_featureide "$STAGE_DIRECTORY"/uvl
 }

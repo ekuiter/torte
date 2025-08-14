@@ -48,23 +48,23 @@ experiment-stages() {
         --output-extension featureide.model \
         --jobs 16
     run \
-        --stage model_to_dimacs_kconfigreader \
         --image kconfigreader \
         --input model_to_model_featureide \
+        --output model_to_dimacs_kconfigreader \
         --command transform-into-dimacs-with-kconfigreader \
         --input-extension featureide.model
     join-into model_to_model_featureide model_to_dimacs_kconfigreader
     run \
-        --stage smt_to_dimacs_z3 \
         --image z3 \
         --input model_to_smt_z3 \
+        --output smt_to_dimacs_z3 \
         --command transform-into-dimacs-with-z3
     join-into model_to_smt_z3 smt_to_dimacs_z3
     aggregate \
-        --stage dimacs \
+        --output dimacs \
         --directory-field dimacs-transformer \
         --file-fields dimacs-file \
-        --stages model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
+        --inputs model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
     join-into kconfig dimacs
 
     # analyze

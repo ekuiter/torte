@@ -52,9 +52,9 @@ experiment-stages() {
     transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
     transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
     run \
-        --stage dimacs \
         --image z3 \
         --input model_to_smt_z3 \
+        --output dimacs \
         --command transform-into-dimacs-with-z3 \
         --jobs 16
     join-into model_to_smt_z3 dimacs
