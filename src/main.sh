@@ -7,6 +7,7 @@ set -e # exit on error
 
 # global constants, should not be overridden
 TOOL=torte # tool name, used as prefix for naming Docker images and containers
+EXPERIMENT_STAGE=experiment # name for the stage directory containing the experiment and logs
 SRC_DIRECTORY=$(dirname "$0") # scripts directory
 TOOL_DIRECTORY=$SRC_DIRECTORY/.. # tool directory
 DOCKER_DIRECTORY=$SRC_DIRECTORY/docker # path to Docker files

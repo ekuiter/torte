@@ -74,35 +74,37 @@ list-stages() {
             local stage_number stage_name status size csv_entries
             stage_number=$(get-stage-number "$numbered_stage")
             stage_name=$(get-stage-name "$numbered_stage")
-            if stage-moved "$stage_name"; then
-                local moved_to
-                moved_to=$(cat "$(stage-moved-file "$stage_name")")
-                status="moved: $(lookup-stage-number "$moved_to")"
-                total_complete=$((total_complete + 1))
-            elif stage-done "$stage_name"; then
-                status="$(echo-green "done      ")"
-                total_complete=$((total_complete + 1))
-            else
-                status="$(echo-yellow incomplete)"
+            if [[ -n $stage_name ]]; then
+                if stage-moved "$stage_name"; then
+                    local moved_to
+                    moved_to=$(cat "$(stage-moved-file "$stage_name")")
+                    status="moved: #$(lookup-stage-number "$moved_to")"
+                    total_complete=$((total_complete + 1))
+                elif stage-done "$stage_name"; then
+                    status="$(echo-green "done      ")"
+                    total_complete=$((total_complete + 1))
+                else
+                    status="$(echo-yellow incomplete)"
+                fi
+                if [[ -d "$numbered_stage" ]] && ! stage-moved "$stage_name"; then
+                    size=$(du -sh "$numbered_stage" 2>/dev/null | cut -f1 || echo "")
+                else
+                    size=""
+                fi
+                local csv_file="$numbered_stage/output.csv"
+                if [[ -f "$csv_file" ]]; then
+                    csv_entries=$(( $(wc -l < "$csv_file" 2>/dev/null || echo "0") - 1 ))
+                    [[ $csv_entries -lt 0 ]] && csv_entries=0
+                    total_csv_rows=$((total_csv_rows + csv_entries))
+                else
+                    csv_entries=""
+                fi
+                if [[ ${#stage_name} -gt 27 ]]; then
+                    stage_name="${stage_name:0:24}..."
+                fi
+                printf "│ %2s │ %-27s │ %-10s │ %6s │ %4s │\n" \
+                    "$stage_number" "$stage_name" "$status" "$size" "$csv_entries"
             fi
-            if [[ -d "$numbered_stage" ]]; then
-                size=$(du -sh "$numbered_stage" 2>/dev/null | cut -f1 || echo "")
-            else
-                size=""
-            fi
-            local csv_file="$numbered_stage/output.csv"
-            if [[ -f "$csv_file" ]]; then
-                csv_entries=$(( $(wc -l < "$csv_file" 2>/dev/null || echo "0") - 1 ))
-                [[ $csv_entries -lt 0 ]] && csv_entries=0
-                total_csv_rows=$((total_csv_rows + csv_entries))
-            else
-                csv_entries=""
-            fi
-            if [[ ${#stage_name} -gt 27 ]]; then
-                stage_name="${stage_name:0:24}..."
-            fi
-            printf "│ %2s │ %-27s │ %-10s │ %6s │ %4s │\n" \
-                "$stage_number" "$stage_name" "$status" "$size" "$csv_entries"
         fi
     done
     local total_size=""
@@ -139,17 +141,17 @@ command-clean(stage_number=) {
 command-run() {
     list-stages
     mkdir -p "$STAGE_DIRECTORY"
-    clean "$TOOL"
-    mkdir -p "$(stage-directory "$TOOL")"
-    cp -R "$SRC_EXPERIMENT_DIRECTORY" "$(stage-directory "$TOOL")"
-    touch "$(stage-done-file "$TOOL")"
+    clean "$EXPERIMENT_STAGE"
+    mkdir -p "$(stage-directory "$EXPERIMENT_STAGE")"
+    cp -R "$SRC_EXPERIMENT_DIRECTORY/" "$(stage-directory "$EXPERIMENT_STAGE")"
+    touch "$(stage-done-file "$EXPERIMENT_STAGE")"
     define-stage-helpers
     if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE"; then
         experiment-stages
     else
         experiment-stages \
-            > >(write-log "$(stage-log "$TOOL")") \
-            2> >(write-all "$(stage-err "$TOOL")" >&2)
+            > >(write-log "$(stage-log "$EXPERIMENT_STAGE")") \
+            2> >(write-all "$(stage-err "$EXPERIMENT_STAGE")" >&2)
     fi
 }
 

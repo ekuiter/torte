@@ -79,8 +79,8 @@ lookup-stage-number(stage) {
 # automatically assigns numbers to new stages: 1_stage, 2_stage, etc.
 stage-directory(stage) {
     assert-host
-    if [[ "$stage" == "$TOOL" ]]; then
-        echo "$STAGE_DIRECTORY/0_$TOOL"
+    if [[ "$stage" == "$EXPERIMENT_STAGE" ]]; then
+        echo "$STAGE_DIRECTORY/0_$EXPERIMENT_STAGE"
         return
     fi
     local existing_dir
