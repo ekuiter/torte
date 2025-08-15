@@ -580,59 +580,60 @@ define-stage-helpers() {
     }
 
     # solve DIMACS files for satisfiability
+    # many solvers are available, which are listed below, but only few are enabled by default
     solve-satisfiable(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
-            sat-competition/02-zchaff,solver,satisfiable
-            sat-competition/03-Forklift,solver,satisfiable
-            sat-competition/04-zchaff,solver,satisfiable
-            sat-competition/05-SatELiteGTI.sh,solver,satisfiable
+            # sat-competition/02-zchaff,solver,satisfiable
+            # sat-competition/03-Forklift,solver,satisfiable
+            # sat-competition/04-zchaff,solver,satisfiable
+            # sat-competition/05-SatELiteGTI.sh,solver,satisfiable
             sat-competition/06-MiniSat,solver,satisfiable
-            sat-competition/07-RSat.sh,solver,satisfiable
-            sat-competition/08-MiniSat,solver,satisfiable
-            sat-competition/09-precosat,solver,satisfiable
-            sat-competition/10-CryptoMiniSat,solver,satisfiable
-            sat-competition/11-glucose.sh,solver,satisfiable
-            sat-competition/12-glucose.sh,solver,satisfiable
-            sat-competition/13-lingeling-aqw,solver,satisfiable
-            sat-competition/14-lingeling-ayv,solver,satisfiable
-            sat-competition/15-abcdSAT,solver,satisfiable
-            sat-competition/16-MapleCOMSPS_DRUP,solver,satisfiable
-            sat-competition/17-Maple_LCM_Dist,solver,satisfiable
-            sat-competition/18-MapleLCMDistChronoBT,solver,satisfiable
-            sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,satisfiable
-            sat-competition/20-Kissat-sc2020-sat,solver,satisfiable
-            sat-competition/21-Kissat_MAB,solver,satisfiable
+            # sat-competition/07-RSat.sh,solver,satisfiable
+            # sat-competition/08-MiniSat,solver,satisfiable
+            # sat-competition/09-precosat,solver,satisfiable
+            # sat-competition/10-CryptoMiniSat,solver,satisfiable
+            # sat-competition/11-glucose.sh,solver,satisfiable
+            # sat-competition/12-glucose.sh,solver,satisfiable
+            # sat-competition/13-lingeling-aqw,solver,satisfiable
+            # sat-competition/14-lingeling-ayv,solver,satisfiable
+            # sat-competition/15-abcdSAT,solver,satisfiable
+            # sat-competition/16-MapleCOMSPS_DRUP,solver,satisfiable
+            # sat-competition/17-Maple_LCM_Dist,solver,satisfiable
+            # sat-competition/18-MapleLCMDistChronoBT,solver,satisfiable
+            # sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,satisfiable
+            # sat-competition/20-Kissat-sc2020-sat,solver,satisfiable
+            # sat-competition/21-Kissat_MAB,solver,satisfiable
             sat-competition/22-kissat_MAB-HyWalk,solver,satisfiable
-            sat-competition/23-sbva_cadical.sh,solver,satisfiable
-            sat-competition/24-kissat-sc2024,solver,satisfiable
-            sat-museum/boehm1-1992,solver,satisfiable
-            sat-museum/grasp-1997,solver,satisfiable
-            sat-museum/chaff-2001,solver,satisfiable
-            sat-museum/limmat-2002,solver,satisfiable
-            sat-museum/berkmin-2003.sh,solver,satisfiable
-            sat-museum/zchaff-2004,solver,satisfiable
-            sat-museum/satelite-gti-2005.sh,solver,satisfiable
-            sat-museum/minisat-2006,solver,satisfiable
-            sat-museum/rsat-2007.sh,solver,satisfiable
-            sat-museum/minisat-2008,solver,satisfiable
-            sat-museum/precosat-2009,solver,satisfiable
-            sat-museum/cryptominisat-2010,solver,satisfiable
-            sat-museum/glucose-2011.sh,solver,satisfiable
-            sat-museum/glucose-2012.sh,solver,satisfiable
-            sat-museum/lingeling-2013,solver,satisfiable
-            sat-museum/lingeling-2014,solver,satisfiable
-            sat-museum/abcdsat-2015.sh,solver,satisfiable
-            sat-museum/maple-comsps-drup-2016,solver,satisfiable
-            sat-museum/maple-lcm-dist-2017,solver,satisfiable
-            sat-museum/maple-lcm-dist-cb-2018,solver,satisfiable
-            sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,satisfiable
-            sat-museum/kissat-2020,solver,satisfiable
-            sat-museum/kissat-mab-2021,solver,satisfiable
-            sat-museum/kissat-mab-hywalk-2022,solver,satisfiable
-            other/SAT4J.210.sh,solver,satisfiable
-            other/SAT4J.231.sh,solver,satisfiable
-            other/SAT4J.235.sh,solver,satisfiable
-            other/SAT4J.236.sh,solver,satisfiable
+            # sat-competition/23-sbva_cadical.sh,solver,satisfiable
+            # sat-competition/24-kissat-sc2024,solver,satisfiable
+            # sat-museum/boehm1-1992,solver,satisfiable
+            # sat-museum/grasp-1997,solver,satisfiable
+            # sat-museum/chaff-2001,solver,satisfiable
+            # sat-museum/limmat-2002,solver,satisfiable
+            # sat-museum/berkmin-2003.sh,solver,satisfiable
+            # sat-museum/zchaff-2004,solver,satisfiable
+            # sat-museum/satelite-gti-2005.sh,solver,satisfiable
+            # sat-museum/minisat-2006,solver,satisfiable
+            # sat-museum/rsat-2007.sh,solver,satisfiable
+            # sat-museum/minisat-2008,solver,satisfiable
+            # sat-museum/precosat-2009,solver,satisfiable
+            # sat-museum/cryptominisat-2010,solver,satisfiable
+            # sat-museum/glucose-2011.sh,solver,satisfiable
+            # sat-museum/glucose-2012.sh,solver,satisfiable
+            # sat-museum/lingeling-2013,solver,satisfiable
+            # sat-museum/lingeling-2014,solver,satisfiable
+            # sat-museum/abcdsat-2015.sh,solver,satisfiable
+            # sat-museum/maple-comsps-drup-2016,solver,satisfiable
+            # sat-museum/maple-lcm-dist-2017,solver,satisfiable
+            # sat-museum/maple-lcm-dist-cb-2018,solver,satisfiable
+            # sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,satisfiable
+            # sat-museum/kissat-2020,solver,satisfiable
+            # sat-museum/kissat-mab-2021,solver,satisfiable
+            # sat-museum/kissat-mab-hywalk-2022,solver,satisfiable
+            # other/SAT4J.210.sh,solver,satisfiable
+            # other/SAT4J.231.sh,solver,satisfiable
+            # other/SAT4J.235.sh,solver,satisfiable
+            # other/SAT4J.236.sh,solver,satisfiable
             z3,z3,satisfiable
         )
         solve --kind satisfiable --input "$input" --timeout "$timeout" --jobs "$jobs" \
@@ -642,22 +643,23 @@ define-stage-helpers() {
     }
 
     # solve DIMACS files for model count
+    # many solvers are available, which are listed below, but only few are enabled by default
     solve-model-count(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
         local solver_specs=(
-            emse-2023/countAntom,solver,model-count
-            emse-2023/d4,solver,model-count
-            emse-2023/dSharp,solver,model-count
-            emse-2023/ganak,solver,model-count
-            emse-2023/sharpSAT,solver,model-count
-            model-counting-competition-2022/c2d.sh,solver,model-counting-competition-2022
-            model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022
-            model-counting-competition-2022/DPMC/DPMC.sh,solver,model-counting-competition-2022
-            model-counting-competition-2022/gpmc.sh,solver,model-counting-competition-2022
-            model-counting-competition-2022/TwG.sh,solver,model-counting-competition-2022
+            # emse-2023/countAntom,solver,model-count
+            # emse-2023/d4,solver,model-count
+            # emse-2023/dSharp,solver,model-count
+            # emse-2023/ganak,solver,model-count
+            # emse-2023/sharpSAT,solver,model-count
+            # model-counting-competition-2022/c2d.sh,solver,model-counting-competition-2022
+            # model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022
+            # model-counting-competition-2022/DPMC/DPMC.sh,solver,model-counting-competition-2022
+            # model-counting-competition-2022/gpmc.sh,solver,model-counting-competition-2022
+            # model-counting-competition-2022/TwG.sh,solver,model-counting-competition-2022
             model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
-            model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022
+            # model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022
             other/d4v2.sh,solver,model-count
-            other/ApproxMC,solver,model-count
+            # other/ApproxMC,solver,model-count
         )
         solve --kind model-count --input "$input" --timeout "$timeout" --jobs "$jobs" \
             --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
