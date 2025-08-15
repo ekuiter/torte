@@ -82,7 +82,7 @@ transform-with-featjar(input_extension, output_extension, transformer, timeout=0
             --timeout "${timeout}000" \
             --input "\$input" \
             --output "\$output" \
-            --transformation "${transformer//_/}")" \
+            --transformation "${transformer//-/}")" \
         "$data_fields" \
         "$data_extractor" \
         "$timeout" \
@@ -108,7 +108,7 @@ transform-model-to-dimacs-with-kconfigreader(input_extension=model, output_exten
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
-        model_to_dimacs_kconfigreader \
+        transform-model-to-dimacs-with-kconfigreader \
         "$(lambda input,output 'echo /home/kconfigreader/run.sh '$(memory-limit 1)' de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
@@ -122,7 +122,7 @@ transform-smt-to-dimacs-with-z3(input_extension=smt, output_extension=dimacs, ti
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
-        smt_to_dimacs_z3 \
+        transform-smt-to-dimacs-with-z3 \
         "$(lambda input,output 'echo python3 smt2dimacs.py "$input" "$output"')" \
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
@@ -199,7 +199,7 @@ compute-unconstrained-features(input_extension=model, output_extension=unconstra
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
-        model_to_unconstrained_features \
+        compute-unconstrained-features \
         "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-unconstrained-features-helper "$input" "$output"')" \
         "" \
         "" \

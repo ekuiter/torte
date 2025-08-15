@@ -256,7 +256,7 @@ These #SAT solvers (available [here](https://github.com/SoftVarE-Group/emse-eval
 * [Evaluating State-of-the-Art #SAT Solvers on Industrial Configuration Spaces](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2023/2023-EMSE-Sundermann.pdf) (EMSE 2023)
 * [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022)
 
-The #SAT solvers from the collection `model-counting-competition-2022` should be preferred for new experiments.
+The #SAT solvers from the collection `mcc-2022` should be preferred for new experiments.
 
 | Solver | Version | Date | Notes |
 | - | - | - | - |
@@ -266,7 +266,7 @@ The #SAT solvers from the collection `model-counting-competition-2022` should be
 | Ganak | ? | ? | |
 | sharpSAT | ? | ? | |
 
-#### Collection: model-counting-competition-2022
+#### Collection: mcc-2022
 
 These #SAT solvers (available [here](https://cloudstore.zih.tu-dresden.de/index.php/s/pXFAfnJffKyNA77)) were used in the [model-counting competition 2022](https://mccompetition.org/past_iterations).
 Not all evaluated solvers are included here, as some solver binaries (i.e., for MTMC and ExactMC) have not been disclosed.

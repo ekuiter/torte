@@ -45,37 +45,37 @@ experiment-stages() {
     join-into read-statistics read-linux-names
     join-into read-statistics read-linux-architectures
     extract-kconfig-models
-    join-into read-statistics kconfig
+    join-into read-statistics extract-kconfig-models
     compute-unconstrained-features --jobs 16
 
     # transform
-    transform-model-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
-    transform-model-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
+    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl --jobs 16
+    transform-model-with-featjar --transformer transform-model-to-smt-with-z3 --output-extension smt --jobs 16
     run \
         --image z3 \
-        --input model_to_smt_z3 \
-        --output dimacs \
+        --input transform-model-to-smt-with-z3 \
+        --output transform-model-to-dimacs \
         --command transform-smt-to-dimacs-with-z3 \
         --jobs 16
-    join-into model_to_smt_z3 dimacs
-    join-into kconfig dimacs
+    join-into transform-model-to-smt-with-z3 transform-model-to-dimacs
+    join-into extract-kconfig-models transform-model-to-dimacs
 
     # analyze
     transform-dimacs-to-backbone-dimacs-with-cadiback --jobs 16
-    join-into dimacs backbone-dimacs
+    join-into transform-model-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs 16
     solve \
-        --input backbone-dimacs \
+        --input transform-dimacs-to-backbone-dimacs \
         --input-extension backbone.dimacs \
-        --kind model-count \
+        --kind sharp-sat \
         --timeout "$SOLVE_TIMEOUT" \
         --jobs "$SOLVE_JOBS" \
         --attempts "$SOLVE_ATTEMPTS" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
         --solver_specs \
-        model-counting-competition-2022/d4.sh,solver,sharp-sat-mcc22 \
-        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
-    join-into backbone-dimacs solve-sharp-sat
+        mcc-2022/d4.sh,solver,sharp-sat-mcc22 \
+        mcc-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
+    join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 
     # evaluate
     run-notebook --file experiments/linux-history-releases.ipynb

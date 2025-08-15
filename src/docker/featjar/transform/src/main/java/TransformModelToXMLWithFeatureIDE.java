@@ -1,17 +1,17 @@
 import de.featjar.base.cli.Commands;
-import de.ovgu.featureide.fm.core.io.dimacs.DIMACSFormat;
 import de.ovgu.featureide.fm.core.io.manager.FileHandler;
+import de.ovgu.featureide.fm.core.io.xml.XmlFeatureModelFormat;
 
 import java.nio.file.Path;
 import java.time.Duration;
 
-public class ModelToDIMACSFeatureIDE implements ITransformation {
+public class TransformModelToXMLWithFeatureIDE implements ITransformation {
     public void transform(Path inputPath, Path outputPath, Duration timeout) {
         Commands.runInThread(() -> {
             FileHandler.save(
                     outputPath,
                     ITransformation.loadModelFileWithFeatureIDE(inputPath),
-                    new DIMACSFormat());
+                    new XmlFeatureModelFormat());
         }, timeout);
     }
 }

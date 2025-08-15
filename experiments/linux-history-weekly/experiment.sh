@@ -14,13 +14,13 @@ experiment-stages() {
     clone-systems
     read-statistics skip-sloc
     extract-kconfig-models-with --extractor kclause
-    join-into read-statistics kconfig
+    join-into read-statistics extract-kconfig-models-with-kclause
 }
 
 # can be executed from output directory to copy and rename model files
 copy-models() {
     mkdir -p models
-    for f in kconfig/linux/*.model; do
+    for f in extract-kconfig-models-with-kclause/linux/*.model; do
         local revision
         revision=$(echo "$f" | cut -d/ -f3 | cut -d'[' -f1)
         cp "$f" "models/$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f3).model"

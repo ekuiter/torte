@@ -34,72 +34,72 @@ experiment-stages() {
     extract-kconfig-models \
         --iterations "$N" \
         --file-fields model-file
-    join-into read-statistics kconfig
+    join-into read-statistics extract-kconfig-models
 
     # transform
     transform-model-to-dimacs-with-featjar \
-        --transformer model_to_dimacs_featureide
+        --transformer transform-model-to-dimacs-with-featureide
     transform-model-with-featjar \
-        --transformer model_to_smt_z3 \
+        --transformer transform-model-to-smt-with-z3 \
         --output-extension smt \
         --jobs 16
     transform-model-with-featjar \
-        --transformer model_to_model_featureide \
+        --transformer transform-model-to-model-with-featureide \
         --output-extension featureide.model \
         --jobs 16
     run \
         --image kconfigreader \
-        --input model_to_model_featureide \
-        --output model_to_dimacs_kconfigreader \
+        --input transform-model-to-model-with-featureide \
+        --output transform-model-to-dimacs-with-kconfigreader \
         --command transform-model-to-dimacs-with-kconfigreader \
         --input-extension featureide.model
-    join-into model_to_model_featureide model_to_dimacs_kconfigreader
+    join-into transform-model-to-model-with-featureide transform-model-to-dimacs-with-kconfigreader
     run \
         --image z3 \
-        --input model_to_smt_z3 \
-        --output smt_to_dimacs_z3 \
+        --input transform-model-to-smt-with-z3 \
+        --output transform-smt-to-dimacs-with-z3 \
         --command transform-smt-to-dimacs-with-z3
-    join-into model_to_smt_z3 smt_to_dimacs_z3
+    join-into transform-model-to-smt-with-z3 transform-smt-to-dimacs-with-z3
     aggregate \
-        --output dimacs \
+        --output transform-model-to-dimacs \
         --directory-field dimacs-transformer \
         --file-fields dimacs-file \
-        --inputs model_to_dimacs_featureide model_to_dimacs_kconfigreader smt_to_dimacs_z3
-    join-into kconfig dimacs
+        --inputs transform-model-to-dimacs-with-featureide transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
+    join-into extract-kconfig-models transform-model-to-dimacs
 
     # analyze
     transform-dimacs-to-backbone-dimacs-with-cadiback
-    join-into dimacs backbone-dimacs
+    join-into transform-model-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs 16
 
     solve \
-        --input backbone-dimacs \
+        --input transform-dimacs-to-backbone-dimacs \
         --input-extension backbone.dimacs \
-        --kind model-count \
+        --kind sharp-sat \
         --timeout "$SOLVE_TIMEOUT" \
         --solver_specs \
-        sat-competition/02-zchaff,solver,satisfiable \
-        sat-competition/03-Forklift,solver,satisfiable \
-        sat-competition/04-zchaff,solver,satisfiable \
-        sat-competition/05-SatELiteGTI.sh,solver,satisfiable \
-        sat-competition/06-MiniSat,solver,satisfiable \
-        sat-competition/07-RSat.sh,solver,satisfiable \
-        sat-competition/09-precosat,solver,satisfiable \
-        sat-competition/10-CryptoMiniSat,solver,satisfiable \
-        sat-competition/11-glucose.sh,solver,satisfiable \
-        sat-competition/12-glucose.sh,solver,satisfiable \
-        sat-competition/13-lingeling-aqw,solver,satisfiable \
-        sat-competition/14-lingeling-ayv,solver,satisfiable \
-        sat-competition/16-MapleCOMSPS_DRUP,solver,satisfiable \
-        sat-competition/17-Maple_LCM_Dist,solver,satisfiable \
-        sat-competition/18-MapleLCMDistChronoBT,solver,satisfiable \
-        sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,satisfiable \
-        sat-competition/20-Kissat-sc2020-sat,solver,satisfiable \
-        sat-competition/21-Kissat_MAB,solver,satisfiable \
-        emse-2023/countAntom,solver,model-count \
-        emse-2023/d4,solver,model-count \
-        emse-2023/dSharp,solver,model-count \
-        emse-2023/ganak,solver,model-count \
-        emse-2023/sharpSAT,solver,model-count
-   join-into backbone-dimacs solve-sharp-sat
+        sat-competition/02-zchaff,solver,sat \
+        sat-competition/03-Forklift,solver,sat \
+        sat-competition/04-zchaff,solver,sat \
+        sat-competition/05-SatELiteGTI.sh,solver,sat \
+        sat-competition/06-MiniSat,solver,sat \
+        sat-competition/07-RSat.sh,solver,sat \
+        sat-competition/09-precosat,solver,sat \
+        sat-competition/10-CryptoMiniSat,solver,sat \
+        sat-competition/11-glucose.sh,solver,sat \
+        sat-competition/12-glucose.sh,solver,sat \
+        sat-competition/13-lingeling-aqw,solver,sat \
+        sat-competition/14-lingeling-ayv,solver,sat \
+        sat-competition/16-MapleCOMSPS_DRUP,solver,sat \
+        sat-competition/17-Maple_LCM_Dist,solver,sat \
+        sat-competition/18-MapleLCMDistChronoBT,solver,sat \
+        sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,sat \
+        sat-competition/20-Kissat-sc2020-sat,solver,sat \
+        sat-competition/21-Kissat_MAB,solver,sat \
+        emse-2023/countAntom,solver,sharp-sat \
+        emse-2023/d4,solver,sharp-sat \
+        emse-2023/dSharp,solver,sharp-sat \
+        emse-2023/ganak,solver,sharp-sat \
+        emse-2023/sharpSAT,solver,sharp-sat
+   join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 }

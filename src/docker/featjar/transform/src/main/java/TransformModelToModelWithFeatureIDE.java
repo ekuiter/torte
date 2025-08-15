@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 
-public class ModelToModelFeatureIDE implements ITransformation {
+public class TransformModelToModelWithFeatureIDE implements ITransformation {
 
 
     public void transform(Path inputPath, Path outputPath, Duration timeout) {

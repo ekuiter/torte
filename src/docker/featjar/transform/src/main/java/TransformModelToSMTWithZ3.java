@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.io.IOException;
 
-public class ModelToSMTZ3 implements ITransformation {
+public class TransformModelToSMTWithZ3 implements ITransformation {
     public void transform(Path inputPath, Path outputPath, Duration timeout) {
         Commands.runInThread(() -> {
             // to do ConfigFix: can we do this a bit more elegantly and revert the merge commit?

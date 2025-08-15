@@ -37,11 +37,11 @@ experiment-stages() {
         --iterations "$ITERATIONS" \
         --iteration-field extract-iteration \
         --file-fields model-file
-    join-into read-statistics kconfig
+    join-into read-statistics extract-kconfig-models
 
     # transform (with two CNF transformations)
     transform-model-with-featjar \
-        --transformer model_to_smt_z3 \
+        --transformer transform-model-to-smt-with-z3 \
         --output-extension smt \
         --jobs 8
     # we don't iterate this CNF transformation because it is fully deterministic
@@ -50,14 +50,14 @@ experiment-stages() {
         --iteration-field transform-iteration \
         --file-fields dimacs-file \
         --image z3 \
-        --input model_to_smt_z3 \
-        --output smt_to_dimacs_z3 \
+        --input transform-model-to-smt-with-z3 \
+        --output transform-smt-to-dimacs-with-z3 \
         --command transform-smt-to-dimacs-with-z3 \
         --jobs 8
-    join-into model_to_smt_z3 smt_to_dimacs_z3
+    join-into transform-model-to-smt-with-z3 transform-smt-to-dimacs-with-z3
 
     transform-model-with-featjar \
-        --transformer model_to_model_featureide \
+        --transformer transform-model-to-model-with-featureide \
         --output-extension featureide.model \
         --jobs 8
     iterate \
@@ -65,72 +65,72 @@ experiment-stages() {
         --iteration-field transform-iteration \
         --file-fields dimacs-file \
         --image kconfigreader \
-        --input model_to_model_featureide \
-        --output model_to_dimacs_kconfigreader \
+        --input transform-model-to-model-with-featureide \
+        --output transform-model-to-dimacs-with-kconfigreader \
         --command transform-model-to-dimacs-with-kconfigreader \
         --input-extension featureide.model \
         --jobs 8
-    join-into model_to_model_featureide model_to_dimacs_kconfigreader
+    join-into transform-model-to-model-with-featureide transform-model-to-dimacs-with-kconfigreader
     
     aggregate \
-        --output dimacs \
+        --output transform-model-to-dimacs \
         --directory-field dimacs-transformer \
         --file-fields dimacs-file \
-        --inputs model_to_dimacs_kconfigreader smt_to_dimacs_z3
-    join-into kconfig dimacs
+        --inputs transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
+    join-into extract-kconfig-models transform-model-to-dimacs
 
     # analyze (not parallelized so as not to disturb time measurements)
     solve \
-        --kind model-satisfiable \
+        --kind sat \
         --iterations "$SOLVE_ITERATIONS" \
         --timeout "$SOLVE_TIMEOUT" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
         --solver_specs \
-        sat-competition/02-zchaff,solver,satisfiable \
-        sat-competition/03-Forklift,solver,satisfiable \
-        sat-competition/04-zchaff,solver,satisfiable \
-        sat-competition/05-SatELiteGTI.sh,solver,satisfiable \
-        sat-competition/06-MiniSat,solver,satisfiable \
-        sat-competition/07-RSat.sh,solver,satisfiable \
-        sat-competition/08-MiniSat,solver,satisfiable \
-        sat-competition/09-precosat,solver,satisfiable \
-        sat-competition/10-CryptoMiniSat,solver,satisfiable \
-        sat-competition/11-glucose.sh,solver,satisfiable \
-        sat-competition/12-glucose.sh,solver,satisfiable \
-        sat-competition/13-lingeling-aqw,solver,satisfiable \
-        sat-competition/14-lingeling-ayv,solver,satisfiable \
-        sat-competition/15-abcdSAT,solver,satisfiable \
-        sat-competition/16-MapleCOMSPS_DRUP,solver,satisfiable \
-        sat-competition/17-Maple_LCM_Dist,solver,satisfiable \
-        sat-competition/18-MapleLCMDistChronoBT,solver,satisfiable \
-        sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,satisfiable \
-        sat-competition/20-Kissat-sc2020-sat,solver,satisfiable \
-        sat-competition/21-Kissat_MAB,solver,satisfiable \
-        sat-competition/22-kissat_MAB-HyWalk,solver,satisfiable \
-        sat-competition/23-sbva_cadical.sh,solver,satisfiable \
-        sat-competition/24-kissat-sc2024,solver,satisfiable \
-        other/SAT4J.210.sh,solver,satisfiable \
-        other/SAT4J.231.sh,solver,satisfiable \
-        other/SAT4J.235.sh,solver,satisfiable \
-        sat-museum/limmat-2002,solver,satisfiable \
-        sat-museum/berkmin-2003.sh,solver,satisfiable \
-        sat-museum/zchaff-2004,solver,satisfiable \
-        sat-museum/satelite-gti-2005.sh,solver,satisfiable \
-        sat-museum/minisat-2006,solver,satisfiable \
-        sat-museum/rsat-2007.sh,solver,satisfiable \
-        sat-museum/minisat-2008,solver,satisfiable \
-        sat-museum/precosat-2009,solver,satisfiable \
-        sat-museum/cryptominisat-2010,solver,satisfiable \
-        sat-museum/glucose-2011.sh,solver,satisfiable \
-        sat-museum/glucose-2012.sh,solver,satisfiable \
-        sat-museum/lingeling-2013,solver,satisfiable \
-        sat-museum/lingeling-2014,solver,satisfiable \
-        sat-museum/abcdsat-2015.sh,solver,satisfiable \
-        sat-museum/maple-comsps-drup-2016,solver,satisfiable \
-        sat-museum/maple-lcm-dist-2017,solver,satisfiable \
-        sat-museum/maple-lcm-dist-cb-2018,solver,satisfiable \
-        sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,satisfiable \
-        sat-museum/kissat-2020,solver,satisfiable \
-        sat-museum/kissat-mab-2021,solver,satisfiable \
-        sat-museum/kissat-mab-hywalk-2022,solver,satisfiable
+        sat-competition/02-zchaff,solver,sat \
+        sat-competition/03-Forklift,solver,sat \
+        sat-competition/04-zchaff,solver,sat \
+        sat-competition/05-SatELiteGTI.sh,solver,sat \
+        sat-competition/06-MiniSat,solver,sat \
+        sat-competition/07-RSat.sh,solver,sat \
+        sat-competition/08-MiniSat,solver,sat \
+        sat-competition/09-precosat,solver,sat \
+        sat-competition/10-CryptoMiniSat,solver,sat \
+        sat-competition/11-glucose.sh,solver,sat \
+        sat-competition/12-glucose.sh,solver,sat \
+        sat-competition/13-lingeling-aqw,solver,sat \
+        sat-competition/14-lingeling-ayv,solver,sat \
+        sat-competition/15-abcdSAT,solver,sat \
+        sat-competition/16-MapleCOMSPS_DRUP,solver,sat \
+        sat-competition/17-Maple_LCM_Dist,solver,sat \
+        sat-competition/18-MapleLCMDistChronoBT,solver,sat \
+        sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,sat \
+        sat-competition/20-Kissat-sc2020-sat,solver,sat \
+        sat-competition/21-Kissat_MAB,solver,sat \
+        sat-competition/22-kissat_MAB-HyWalk,solver,sat \
+        sat-competition/23-sbva_cadical.sh,solver,sat \
+        sat-competition/24-kissat-sc2024,solver,sat \
+        other/SAT4J.210.sh,solver,sat \
+        other/SAT4J.231.sh,solver,sat \
+        other/SAT4J.235.sh,solver,sat \
+        sat-museum/limmat-2002,solver,sat \
+        sat-museum/berkmin-2003.sh,solver,sat \
+        sat-museum/zchaff-2004,solver,sat \
+        sat-museum/satelite-gti-2005.sh,solver,sat \
+        sat-museum/minisat-2006,solver,sat \
+        sat-museum/rsat-2007.sh,solver,sat \
+        sat-museum/minisat-2008,solver,sat \
+        sat-museum/precosat-2009,solver,sat \
+        sat-museum/cryptominisat-2010,solver,sat \
+        sat-museum/glucose-2011.sh,solver,sat \
+        sat-museum/glucose-2012.sh,solver,sat \
+        sat-museum/lingeling-2013,solver,sat \
+        sat-museum/lingeling-2014,solver,sat \
+        sat-museum/abcdsat-2015.sh,solver,sat \
+        sat-museum/maple-comsps-drup-2016,solver,sat \
+        sat-museum/maple-lcm-dist-2017,solver,sat \
+        sat-museum/maple-lcm-dist-cb-2018,solver,sat \
+        sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,sat \
+        sat-museum/kissat-2020,solver,sat \
+        sat-museum/kissat-mab-2021,solver,sat \
+        sat-museum/kissat-mab-hywalk-2022,solver,sat
 }

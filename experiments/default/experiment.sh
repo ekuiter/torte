@@ -21,8 +21,8 @@ experiment-stages() {
     read-statistics
     extract-kconfig-models
 
-    transform-model-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
-    transform-model-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-model-with-featjar --transformer transform-model-to-xml-with-featureide --output-extension xml --timeout "$TIMEOUT"
+    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl --timeout "$TIMEOUT"
     transform-model-to-dimacs --timeout "$TIMEOUT"
     
     draw-community-structure-with-satgraf --timeout "$TIMEOUT"
@@ -32,14 +32,14 @@ experiment-stages() {
     solve-sat --jobs "$JOBS" --timeout "$TIMEOUT"
     solve-sharp-sat --jobs "$JOBS" --timeout "$TIMEOUT"
 
-    join-into kconfig dimacs
-    join-into dimacs community-structure
-    join-into dimacs solve-sat
-    join-into dimacs solve-sharp-sat
+    join-into extract-kconfig-models transform-model-to-dimacs
+    join-into transform-model-to-dimacs draw-community-structure-with-satgraf
+    join-into transform-model-to-dimacs solve-sat
+    join-into transform-model-to-dimacs solve-sharp-sat
 
     log-output-field read-statistics source_lines_of_code
-    log-output-field kconfig model-features
-    log-output-field dimacs dimacs-variables
+    log-output-field extract-kconfig-models model-features
+    log-output-field transform-model-to-dimacs dimacs-variables
     log-output-field solve-sat sat
     log-output-field solve-sharp-sat sharp-sat
     run-notebook --file evaluation.ipynb # todo: fix this, rename to payload-file?

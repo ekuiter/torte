@@ -446,25 +446,25 @@ define-stage-helpers() {
     transform-model-to-dimacs(input=extract-kconfig-models, output=transform-model-to-dimacs, timeout=0, jobs=1) {
         # distributive tranformation
         transform-model-to-dimacs-with-featjar \
-            --transformer model_to_dimacs_featureide \
+            --transformer transform-model-to-dimacs-with-featureide \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
         transform-model-to-dimacs-with-featjar \
-            --transformer model_to_dimacs_featjar \
+            --transformer transform-model-to-dimacs-with-featjar \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
         
         # intermediate formats for CNF transformation
         transform-model-with-featjar \
-            --transformer model_to_model_featureide \
+            --transformer transform-model-to-model-with-featureide \
             --output-extension featureide.model \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
         transform-model-with-featjar \
-            --transformer model_to_smt_z3 \
+            --transformer transform-model-to-smt-with-z3 \
             --output-extension smt \
             --input "$input" \
             --timeout "$timeout" \
@@ -473,33 +473,33 @@ define-stage-helpers() {
         # Plaisted-Greenbaum CNF tranformation
         run \
             --image kconfigreader \
-            --input model_to_model_featureide \
-            --output model_to_dimacs_kconfigreader \
+            --input transform-model-to-model-with-featureide \
+            --output transform-model-to-dimacs-with-kconfigreader \
             --command transform-model-to-dimacs-with-kconfigreader \
             --input-extension featureide.model \
             --timeout "$timeout" \
             --jobs "$jobs"
-        join-into model_to_model_featureide model_to_dimacs_kconfigreader
+        join-into transform-model-to-model-with-featureide transform-model-to-dimacs-with-kconfigreader
 
         # Tseitin CNF tranformation
         run \
             --image z3 \
-            --input model_to_smt_z3 \
-            --output smt_to_dimacs_z3 \
+            --input transform-model-to-smt-with-z3 \
+            --output transform-smt-to-dimacs-with-z3 \
             --command transform-smt-to-dimacs-with-z3 \
             --timeout "$timeout" \
             --jobs "$jobs"
-        join-into model_to_smt_z3 smt_to_dimacs_z3
+        join-into transform-model-to-smt-with-z3 transform-smt-to-dimacs-with-z3
 
         aggregate \
             --output "$output" \
             --directory-field dimacs-transformer \
             --file-fields dimacs-file \
-            --inputs model_to_dimacs_featureide model_to_dimacs_featjar model_to_dimacs_kconfigreader smt_to_dimacs_z3
+            --inputs transform-model-to-dimacs-with-featureide transform-model-to-dimacs-with-featjar transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
     }
 
     # visualize community structure of DIMACS files as a JPEG file
-    draw-community-structure-with-satgraf(input=dimacs, output=draw-community-structure-with-satgraf, timeout=0, jobs=1) {
+    draw-community-structure-with-satgraf(input=transform-model-to-dimacs, output=draw-community-structure-with-satgraf, timeout=0, jobs=1) {
         run \
             --image satgraf \
             --input "$input" \
@@ -510,7 +510,7 @@ define-stage-helpers() {
     }
 
     # compute DIMACS files with explicit backbone using kissat
-    transform-dimacs-to-backbone-dimacs-with-kissat(input=dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
+    transform-dimacs-to-backbone-dimacs-with-kissat(input=transform-model-to-dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
         run \
             --image solver \
             --input "$input" \
@@ -521,7 +521,7 @@ define-stage-helpers() {
     }
 
     # compute DIMACS files with explicit backbone using cadiback
-    transform-dimacs-to-backbone-dimacs-with-cadiback(input=dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
+    transform-dimacs-to-backbone-dimacs-with-cadiback(input=transform-model-to-dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
         run \
             --image cadiback \
             --input "$input" \
@@ -532,7 +532,7 @@ define-stage-helpers() {
     }
 
     # compute unconstrained features that are not mentioned in a DIMACS file
-    compute-unconstrained-features(input=kconfig, output=compute-unconstrained-features, timeout=0, jobs=1) {
+    compute-unconstrained-features(input=extract-kconfig-models, output=compute-unconstrained-features, timeout=0, jobs=1) {
         run \
             --input "$input" \
             --output "$output" \
@@ -542,7 +542,7 @@ define-stage-helpers() {
     }
 
     # compute features in the backbone of DIMACS files
-    compute-backbone-features(input=backbone-dimacs, output=compute-backbone-features, timeout=0, jobs=1) {
+    compute-backbone-features(input=transform-dimacs-to-backbone-dimacs, output=compute-backbone-features, timeout=0, jobs=1) {
         run \
             --input "$input" \
             --output "$output" \
@@ -552,12 +552,12 @@ define-stage-helpers() {
     }
 
     # solve DIMACS files
-    solve(kind, input=dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
+    solve(kind, input=transform-model-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
             solver=$(echo "$solver_spec" | cut -d, -f1)
-            stage=${solver//\//_}
+            stage=${solver//[\/_.+]/-}
             stage=solve-${stage,,}
             image=$(echo "$solver_spec" | cut -d, -f2)
             parser=$(echo "$solver_spec" | cut -d, -f3)
@@ -584,7 +584,7 @@ define-stage-helpers() {
 
     # solve DIMACS files for satisfiability
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-sat(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
+    solve-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
             # sat-competition/02-zchaff,solver,sat
             # sat-competition/03-Forklift,solver,sat
@@ -647,20 +647,20 @@ define-stage-helpers() {
 
     # solve DIMACS files for model count
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-sharp-sat(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
+    solve-sharp-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
         local solver_specs=(
             # emse-2023/countAntom,solver,sharp-sat
             # emse-2023/d4,solver,sharp-sat
             # emse-2023/dSharp,solver,sharp-sat
             # emse-2023/ganak,solver,sharp-sat
             # emse-2023/sharpSAT,solver,sharp-sat
-            # model-counting-competition-2022/c2d.sh,solver,sharp-sat-mcc22
-            # model-counting-competition-2022/d4.sh,solver,sharp-sat-mcc22
-            # model-counting-competition-2022/DPMC/DPMC.sh,solver,sharp-sat-mcc22
-            # model-counting-competition-2022/gpmc.sh,solver,sharp-sat-mcc22
-            # model-counting-competition-2022/TwG.sh,solver,sharp-sat-mcc22
-            model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
-            # model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,sharp-sat-mcc22
+            # mcc-2022/c2d.sh,solver,sharp-sat-mcc22
+            # mcc-2022/d4.sh,solver,sharp-sat-mcc22
+            # mcc-2022/DPMC/DPMC.sh,solver,sharp-sat-mcc22
+            # mcc-2022/gpmc.sh,solver,sharp-sat-mcc22
+            # mcc-2022/TwG.sh,solver,sharp-sat-mcc22
+            mcc-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
+            # mcc-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,sharp-sat-mcc22
             other/d4v2.sh,solver,sharp-sat
             # other/ApproxMC,solver,sharp-sat
         )

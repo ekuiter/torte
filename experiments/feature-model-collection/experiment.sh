@@ -44,7 +44,7 @@ experiment-stages() {
     join-into read-statistics model
 
     # transform into UVL
-    transform-model-with-featjar --input model --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-model-with-featjar --input model --transformer transform-model-to-uvl-with-featureide --output-extension uvl --timeout "$TIMEOUT"
 
     # CNF transformation
     transform-model-to-dimacs --input model --timeout "$TIMEOUT"
@@ -53,8 +53,8 @@ experiment-stages() {
 clean-up() {
     # clean up intermediate stages and rearrange output files
     clean clone-systems tag-linux-revisions read-statistics kconfigreader kclause \
-        model_to_model_featureide model_to_smt_z3 model_to_dimacs_kconfigreader \
-        model_to_dimacs_featjar model_to_dimacs_featureide smt_to_dimacs_z3 torte
+        transform-model-to-model-with-featureide transform-model-to-smt-with-z3 transform-model-to-dimacs-with-kconfigreader \
+        transform-model-to-dimacs-with-featjar transform-model-to-dimacs-with-featureide transform-smt-to-dimacs-with-z3 torte
     
     # Clean up files from the model stage (now numbered)
     local model_dir
@@ -77,7 +77,7 @@ clean-up() {
     
     # Move the UVL stage to a more convenient name
     local uvl_source_dir uvl_target_dir
-    uvl_source_dir=$(stage-directory model_to_uvl_featureide)
+    uvl_source_dir=$(stage-directory transform-model-to-uvl-with-featureide)
     uvl_target_dir=$(stage-directory uvl)
     if [[ -d "$uvl_source_dir" ]] && [[ ! -d "$uvl_target_dir" ]]; then
         mv "$uvl_source_dir" "$uvl_target_dir"

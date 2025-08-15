@@ -4,11 +4,11 @@
 		<extension id="Transform" />
 	</point>
 	<point id="Transformations">
-		<extension id="ModelToDIMACSFeatJAR" />
-		<extension id="ModelToDIMACSFeatureIDE" />
-		<extension id="ModelToUVLFeatureIDE" />
-		<extension id="ModelToXMLFeatureIDE" />
-		<extension id="ModelToModelFeatureIDE" />
-		<extension id="ModelToSMTZ3" />
+		<extension id="TransformModelToDIMACSWithFeatJAR" />
+		<extension id="TransformModelToDIMACSWithFeatureIDE" />
+		<extension id="TransformModelToUVLWithFeatureIDE" />
+		<extension id="TransformModelToXMLWithFeatureIDE" />
+		<extension id="TransformModelToModelWithFeatureIDE" />
+		<extension id="TransformModelToSMTWithZ3" />
 	</point>
 </extensions>

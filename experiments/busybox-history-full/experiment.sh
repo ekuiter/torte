@@ -17,20 +17,20 @@ experiment-stages() {
     read-statistics
     extract-kconfig-models-with --extractor kclause
     join-into read-statistics kconfig
-    transform-model-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl --timeout "$TIMEOUT"
     transform-model-to-dimacs --timeout "$TIMEOUT"
 }
 
 # can be executed from output directory to copy and rename model files
 copy-models() {
     mkdir -p dimacs_clean/releases dimacs_clean/commits
-    for f in model_to_dimacs_featureide/busybox/*.dimacs; do
+    for f in transform-model-to-dimacs-with-featureide/busybox/*.dimacs; do
         local revision
         local original_revision
         revision=$(basename "$f" .dimacs)
         cp "$f" "dimacs_clean/releases/$(date -d "@$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$revision.dimacs"
     done
-    for f in model_to_dimacs_featureide/busybox-models/*.dimacs; do
+    for f in transform-model-to-dimacs-with-featureide/busybox-models/*.dimacs; do
         local revision
         local original_revision
         revision=$(basename "$f" .dimacs | cut -d'[' -f1)

@@ -9,7 +9,7 @@ import java.time.Duration;
 
 import static de.featjar.base.computation.Computations.async;
 
-public class ModelToDIMACSFeatJAR implements ITransformation {
+public class TransformModelToDIMACSWithFeatJAR implements ITransformation {
     public void transform(Path inputPath, Path outputPath, Duration timeout) {
         Commands.runInThread(() -> {
             IO.save(async(ITransformation.loadModelFileWithFeatJAR(inputPath))
