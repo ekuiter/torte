@@ -16,7 +16,7 @@ get-stage-number(numbered_stage) {
 
 # extracts the base stage name from a numbered stage name
 get-stage-name(numbered_stage) {
-    basename "$numbered_stage" | sed 's/^[0-9]*_//'
+    basename "$numbered_stage" | sed 's/^[0-9]*_//' | sed 's/_/-/g'
 }
 
 # lists all numbered stages in order
@@ -56,7 +56,7 @@ get-next-stage-number() {
 lookup-stage-directory(stage) {
     assert-host
     if [[ -d "$STAGE_DIRECTORY" ]]; then
-        for dir in "$STAGE_DIRECTORY"/[0-9]*_"$stage"; do
+        for dir in "$STAGE_DIRECTORY"/[0-9]*_"${stage//-/_}"; do
             if [[ -d "$dir" ]] && [[ "$(get-stage-name "$dir")" == "$stage" ]]; then
                 echo "$dir"
                 return
@@ -90,7 +90,7 @@ stage-directory(stage) {
     else
         local stage_number
         stage_number=$(get-next-stage-number)
-        echo "$STAGE_DIRECTORY/${stage_number}_$stage"
+        echo "$STAGE_DIRECTORY/${stage_number}_${stage//-/_}"
     fi
 }
 

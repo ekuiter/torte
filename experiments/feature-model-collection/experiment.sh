@@ -40,7 +40,7 @@ experiment-stages() {
     read-statistics
     
     # extract feature models
-    extract-kconfig-models --output-stage model
+    extract-kconfig-models --output model
     join-into read-statistics model
 
     # transform into UVL

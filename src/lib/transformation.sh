@@ -82,7 +82,7 @@ transform-with-featjar(input_extension, output_extension, transformer, timeout=0
             --timeout "${timeout}000" \
             --input "\$input" \
             --output "\$output" \
-            --transformation "${transformer//-/}")" \
+            --transformation "${transformer//_/}")" \
         "$data_fields" \
         "$data_extractor" \
         "$timeout" \

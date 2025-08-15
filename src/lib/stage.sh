@@ -381,19 +381,19 @@ define-stage-helpers() {
     extract-kconfig-models(output=extract-kconfig-models, iterations=1, iteration_field=iteration, file_fields=) {
         extract-kconfig-models-with \
             --extractor kconfigreader \
-            --output-stage extract-kconfig-models-with-kconfigreader \
+            --output extract-kconfig-models-with-kconfigreader \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields"
         extract-kconfig-models-with \
             --extractor kclause \
-            --output-stage extract-kconfig-models-with-kclause \
+            --output extract-kconfig-models-with-kclause \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields"
         # extract-kconfig-models-with \
         # --extractor configfix \
-        # --output-stage configfix \
+        # --output configfix \
         # --iterations "$iterations" \
         # --iteration-field "$iteration_field" \
         # --file-fields "$file_fields"
@@ -406,12 +406,12 @@ define-stage-helpers() {
             --output "$output" \
             --stage-field extractor \
             --file-fields binding-file,model-file \
-            --inputs kconfigreader kclause
+            --inputs extract-kconfig-models-with-kconfigreader extract-kconfig-models-with-kclause
             # --inputs kconfigreader kclause configfix
     }
 
     # transforms model files with FeatJAR
-    transform-model-with-featjar(transformer, output_extension, input=kconfig, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+    transform-model-with-featjar(transformer, output_extension, input=extract-kconfig-models, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
         # shellcheck disable=SC2128
         iterate \
             --iterations "$iterations" \
@@ -429,7 +429,7 @@ define-stage-helpers() {
     }
 
     # transforms model files to DIMACS with FeatJAR
-    transform-model-to-dimacs-with-featjar(transformer, input=kconfig, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+    transform-model-to-dimacs-with-featjar(transformer, input=extract-kconfig-models, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
         transform-model-with-featjar \
             --command transform-to-dimacs-with-featjar \
             --output-extension dimacs \
@@ -443,7 +443,7 @@ define-stage-helpers() {
     }
 
     # transforms model files to DIMACS
-    transform-model-to-dimacs(input=kconfig, output=dimacs, timeout=0, jobs=1) {
+    transform-model-to-dimacs(input=extract-kconfig-models, output=transform-model-to-dimacs, timeout=0, jobs=1) {
         # distributive tranformation
         transform-model-to-dimacs-with-featjar \
             --transformer model_to_dimacs_featureide \
@@ -499,7 +499,7 @@ define-stage-helpers() {
     }
 
     # visualize community structure of DIMACS files as a JPEG file
-    draw-community-structure-with-satgraf(input=dimacs, output=community-structure, timeout=0, jobs=1) {
+    draw-community-structure-with-satgraf(input=dimacs, output=draw-community-structure-with-satgraf, timeout=0, jobs=1) {
         run \
             --image satgraf \
             --input "$input" \
@@ -510,7 +510,7 @@ define-stage-helpers() {
     }
 
     # compute DIMACS files with explicit backbone using kissat
-    transform-dimacs-to-backbone-dimacs-with-kissat(input=dimacs, output=backbone-dimacs, timeout=0, jobs=1) {
+    transform-dimacs-to-backbone-dimacs-with-kissat(input=dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
         run \
             --image solver \
             --input "$input" \
@@ -521,7 +521,7 @@ define-stage-helpers() {
     }
 
     # compute DIMACS files with explicit backbone using cadiback
-    transform-dimacs-to-backbone-dimacs-with-cadiback(input=dimacs, output=backbone-dimacs, timeout=0, jobs=1) {
+    transform-dimacs-to-backbone-dimacs-with-cadiback(input=dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
         run \
             --image cadiback \
             --input "$input" \
@@ -532,7 +532,7 @@ define-stage-helpers() {
     }
 
     # compute unconstrained features that are not mentioned in a DIMACS file
-    compute-unconstrained-features(input=kconfig, output=unconstrained-features, timeout=0, jobs=1) {
+    compute-unconstrained-features(input=kconfig, output=compute-unconstrained-features, timeout=0, jobs=1) {
         run \
             --input "$input" \
             --output "$output" \
@@ -542,7 +542,7 @@ define-stage-helpers() {
     }
 
     # compute features in the backbone of DIMACS files
-    compute-backbone-features(input=backbone-dimacs, output=backbone-features, timeout=0, jobs=1) {
+    compute-backbone-features(input=backbone-dimacs, output=compute-backbone-features, timeout=0, jobs=1) {
         run \
             --input "$input" \
             --output "$output" \
