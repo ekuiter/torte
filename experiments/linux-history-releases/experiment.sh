@@ -49,19 +49,19 @@ experiment-stages() {
     compute-unconstrained-features --jobs 16
 
     # transform
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
-    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
+    transform-model-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 16
+    transform-model-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 16
     run \
         --image z3 \
         --input model_to_smt_z3 \
         --output dimacs \
-        --command transform-into-dimacs-with-z3 \
+        --command transform-smt-to-dimacs-with-z3 \
         --jobs 16
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
 
     # analyze
-    compute-backbone-dimacs-with-cadiback --jobs 16
+    transform-dimacs-to-backbone-dimacs-with-cadiback --jobs 16
     join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
     solve \
@@ -73,9 +73,9 @@ experiment-stages() {
         --attempts "$SOLVE_ATTEMPTS" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
         --solver_specs \
-        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
-        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
-    join-into backbone-dimacs solve_model-count
+        model-counting-competition-2022/d4.sh,solver,sharp-sat-mcc22 \
+        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
+    join-into backbone-dimacs solve-sharp-sat
 
     # evaluate
     run-notebook --file experiments/linux-history-releases.ipynb

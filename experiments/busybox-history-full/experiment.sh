@@ -17,8 +17,8 @@ experiment-stages() {
     read-statistics
     extract-kconfig-models-with --extractor kclause
     join-into read-statistics kconfig
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
-    transform-models-into-dimacs --timeout "$TIMEOUT"
+    transform-model-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-model-to-dimacs --timeout "$TIMEOUT"
 }
 
 # can be executed from output directory to copy and rename model files

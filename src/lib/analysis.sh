@@ -82,7 +82,7 @@ solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempt
 }
 
 # parses results of typical satisfiability solvers
-parse-result-satisfiable(output_log) {
+parse-result-sat(output_log) {
     if grep -q "^s SATISFIABLE\|^SATISFIABLE" "$output_log"; then
         echo true
     elif grep -q "^s UNSATISFIABLE\|^UNSATISFIABLE" "$output_log"; then
@@ -93,7 +93,7 @@ parse-result-satisfiable(output_log) {
 }
 
 # parses results of various model counters
-parse-result-model-count(output_log) {
+parse-result-sharp-sat(output_log) {
     local model_count
     model_count=$(sed -z 's/\n# solutions \n/SHARPSAT/g' < "$output_log" \
         | grep -oP "((?<=Counting...)\d+(?= models)|(?<=  Counting... )\d+(?= models)|(?<=c model count\.{12}: )\d+|(?<=^s )\d+|(?<=^s mc )\d+|(?<=#SAT \(full\):   		)\d+|(?<=SHARPSAT)\d+|(?<=Number of solutions\t\t\t)[.e+\-\d]+)" || true)
@@ -101,7 +101,7 @@ parse-result-model-count(output_log) {
 }
 
 # parses results of model counters that use the format of the model-counting competition 2022
-parse-result-model-counting-competition-2022(output_log) {
+parse-result-sharp-sat-mcc22(output_log) {
     model_count_int=$(grep "^c s exact .* int" < "$output_log" | cut -d' ' -f6)
     model_count_double=$(grep "^c s exact double prec-sci" < "$output_log" | cut -d' ' -f6)
     model_count_log10=$(grep "^c s log10-estimate" < "$output_log" | cut -d' ' -f4)

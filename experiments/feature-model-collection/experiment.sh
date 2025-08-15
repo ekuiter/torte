@@ -44,10 +44,10 @@ experiment-stages() {
     join-into read-statistics model
 
     # transform into UVL
-    transform-models-with-featjar --input model --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-model-with-featjar --input model --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
 
     # CNF transformation
-    transform-models-into-dimacs --input model --timeout "$TIMEOUT"
+    transform-model-to-dimacs --input model --timeout "$TIMEOUT"
 }
 
 clean-up() {

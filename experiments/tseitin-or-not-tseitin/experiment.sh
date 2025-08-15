@@ -37,13 +37,13 @@ experiment-stages() {
     join-into read-statistics kconfig
 
     # transform
-    transform-models-into-dimacs-with-featjar \
+    transform-model-to-dimacs-with-featjar \
         --transformer model_to_dimacs_featureide
-    transform-models-with-featjar \
+    transform-model-with-featjar \
         --transformer model_to_smt_z3 \
         --output-extension smt \
         --jobs 16
-    transform-models-with-featjar \
+    transform-model-with-featjar \
         --transformer model_to_model_featureide \
         --output-extension featureide.model \
         --jobs 16
@@ -51,14 +51,14 @@ experiment-stages() {
         --image kconfigreader \
         --input model_to_model_featureide \
         --output model_to_dimacs_kconfigreader \
-        --command transform-into-dimacs-with-kconfigreader \
+        --command transform-model-to-dimacs-with-kconfigreader \
         --input-extension featureide.model
     join-into model_to_model_featureide model_to_dimacs_kconfigreader
     run \
         --image z3 \
         --input model_to_smt_z3 \
         --output smt_to_dimacs_z3 \
-        --command transform-into-dimacs-with-z3
+        --command transform-smt-to-dimacs-with-z3
     join-into model_to_smt_z3 smt_to_dimacs_z3
     aggregate \
         --output dimacs \
@@ -68,7 +68,7 @@ experiment-stages() {
     join-into kconfig dimacs
 
     # analyze
-    compute-backbone-dimacs-with-cadiback
+    transform-dimacs-to-backbone-dimacs-with-cadiback
     join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
 
@@ -101,5 +101,5 @@ experiment-stages() {
         emse-2023/dSharp,solver,model-count \
         emse-2023/ganak,solver,model-count \
         emse-2023/sharpSAT,solver,model-count
-   join-into backbone-dimacs solve_model-count
+   join-into backbone-dimacs solve-sharp-sat
 }

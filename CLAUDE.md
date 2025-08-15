@@ -54,7 +54,7 @@ Experiments are Bash scripts that define:
 ### Common Stages
 - `clone-systems`: Download and prepare source systems
 - `extract-kconfig-models`: Extract feature models from KConfig files
-- `transform-models-*`: Convert between formats (DIMACS, UVL, XML)
+- `transform-model-*`: Convert between formats (DIMACS, UVL, XML)
 - `solve-*`: Run analysis (satisfiability, model counting, backbone computation)
 - `join-into`: Combine results from multiple stages
 
@@ -92,9 +92,11 @@ torte automatically numbers stages in execution order for easier navigation:
 - uses a bash dialect specified in `src/bootstrap.sh` to allow for python-like passing of arguments (either just positional with `<value>`, or named with `--<arg> <value>`)
 - make sure to, whenever you update a signature of a function, also update all occurrences of that change in that function's body
 - DO NOT attempt to run any file directly, because they need the bash dialect preprocessor
+- DO NOT consider any files in the `src/gen` directory, which are only generated from the source files
 - torte is bash-based, so use bash features like `[[]]`, arrays, `readarray`, process substitution `< <()`
 - to run and test any given function, it can just be executed with `./torte.sh <function> <args>`
 - when committing with git, keep generated commit message rather short (at most 4 bullet points) and do not refer to Claude in them
+- DO NOT attempt to refactor Jupyter notebooks because Claude is not able to do it correctly
 
 ## Important Files to Understand
 

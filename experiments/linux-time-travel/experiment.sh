@@ -40,7 +40,7 @@ experiment-stages() {
     join-into read-statistics kconfig
 
     # transform (with two CNF transformations)
-    transform-models-with-featjar \
+    transform-model-with-featjar \
         --transformer model_to_smt_z3 \
         --output-extension smt \
         --jobs 8
@@ -52,11 +52,11 @@ experiment-stages() {
         --image z3 \
         --input model_to_smt_z3 \
         --output smt_to_dimacs_z3 \
-        --command transform-into-dimacs-with-z3 \
+        --command transform-smt-to-dimacs-with-z3 \
         --jobs 8
     join-into model_to_smt_z3 smt_to_dimacs_z3
 
-    transform-models-with-featjar \
+    transform-model-with-featjar \
         --transformer model_to_model_featureide \
         --output-extension featureide.model \
         --jobs 8
@@ -67,7 +67,7 @@ experiment-stages() {
         --image kconfigreader \
         --input model_to_model_featureide \
         --output model_to_dimacs_kconfigreader \
-        --command transform-into-dimacs-with-kconfigreader \
+        --command transform-model-to-dimacs-with-kconfigreader \
         --input-extension featureide.model \
         --jobs 8
     join-into model_to_model_featureide model_to_dimacs_kconfigreader

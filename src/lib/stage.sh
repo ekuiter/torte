@@ -283,6 +283,7 @@ plot(stage, type, fields, arguments...) {
 
 # convenience functions for defining commonly used stages
 # we do not define these directly here to not shadow functions defined elsewhere (as these stages are only needed in the host environment)
+# shellcheck disable=SC2329
 define-stage-helpers() {
     # clone the systems specified in the experiment file
     clone-systems() {
@@ -356,6 +357,7 @@ define-stage-helpers() {
     }
 
     # generate repository with full history of BusyBox
+    # todo: this currently probably does not work with a new stage input architecture
     generate-busybox-models() {
         if [[ ! -d "$(input-directory)/busybox-models" ]]; then
             run --output busybox-models --command generate-busybox-models
@@ -364,27 +366,28 @@ define-stage-helpers() {
     }
 
     # extracts kconfig models with the given extractor
-    extract-kconfig-models-with(extractor, output_stage=kconfig, iterations=1, iteration_field=iteration, file_fields=) {
+    extract-kconfig-models-with(extractor, output=, iterations=1, iteration_field=iteration, file_fields=) {
+        output="${output:-extract-kconfig-models-with-$extractor}"
         iterate \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
             --image "$extractor" \
-            --output "$output_stage" \
+            --output "$output" \
             --command "extract-kconfig-models-with-$extractor"
     }
 
     # extracts kconfig models with kconfigreader and kclause
-    extract-kconfig-models(output_stage=kconfig, iterations=1, iteration_field=iteration, file_fields=) {
+    extract-kconfig-models(output=extract-kconfig-models, iterations=1, iteration_field=iteration, file_fields=) {
         extract-kconfig-models-with \
             --extractor kconfigreader \
-            --output-stage kconfigreader \
+            --output-stage extract-kconfig-models-with-kconfigreader \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields"
         extract-kconfig-models-with \
             --extractor kclause \
-            --output-stage kclause \
+            --output-stage extract-kconfig-models-with-kclause \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields"
@@ -400,7 +403,7 @@ define-stage-helpers() {
         #     binding_file=""
         # fi
         aggregate \
-            --output "$output_stage" \
+            --output "$output" \
             --stage-field extractor \
             --file-fields binding-file,model-file \
             --inputs kconfigreader kclause
@@ -408,7 +411,7 @@ define-stage-helpers() {
     }
 
     # transforms model files with FeatJAR
-    transform-models-with-featjar(transformer, output_extension, input=kconfig, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+    transform-model-with-featjar(transformer, output_extension, input=kconfig, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
         # shellcheck disable=SC2128
         iterate \
             --iterations "$iterations" \
@@ -425,10 +428,10 @@ define-stage-helpers() {
             --jobs "$jobs"
     }
 
-    # transforms model files into DIMACS with FeatJAR
-    transform-models-into-dimacs-with-featjar(transformer, input=kconfig, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
-        transform-models-with-featjar \
-            --command transform-into-dimacs-with-featjar \
+    # transforms model files to DIMACS with FeatJAR
+    transform-model-to-dimacs-with-featjar(transformer, input=kconfig, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+        transform-model-with-featjar \
+            --command transform-to-dimacs-with-featjar \
             --output-extension dimacs \
             --input "$input" \
             --transformer "$transformer" \
@@ -439,28 +442,28 @@ define-stage-helpers() {
             --file-fields "$file_fields"
     }
 
-    # transforms model files into DIMACS
-    transform-models-into-dimacs(input=kconfig, output_stage=dimacs, timeout=0, jobs=1) {
+    # transforms model files to DIMACS
+    transform-model-to-dimacs(input=kconfig, output=dimacs, timeout=0, jobs=1) {
         # distributive tranformation
-        transform-models-into-dimacs-with-featjar \
+        transform-model-to-dimacs-with-featjar \
             --transformer model_to_dimacs_featureide \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
-        transform-models-into-dimacs-with-featjar \
+        transform-model-to-dimacs-with-featjar \
             --transformer model_to_dimacs_featjar \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
         
         # intermediate formats for CNF transformation
-        transform-models-with-featjar \
+        transform-model-with-featjar \
             --transformer model_to_model_featureide \
             --output-extension featureide.model \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
-        transform-models-with-featjar \
+        transform-model-with-featjar \
             --transformer model_to_smt_z3 \
             --output-extension smt \
             --input "$input" \
@@ -472,7 +475,7 @@ define-stage-helpers() {
             --image kconfigreader \
             --input model_to_model_featureide \
             --output model_to_dimacs_kconfigreader \
-            --command transform-into-dimacs-with-kconfigreader \
+            --command transform-model-to-dimacs-with-kconfigreader \
             --input-extension featureide.model \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -483,67 +486,67 @@ define-stage-helpers() {
             --image z3 \
             --input model_to_smt_z3 \
             --output smt_to_dimacs_z3 \
-            --command transform-into-dimacs-with-z3 \
+            --command transform-smt-to-dimacs-with-z3 \
             --timeout "$timeout" \
             --jobs "$jobs"
         join-into model_to_smt_z3 smt_to_dimacs_z3
 
         aggregate \
-            --output "$output_stage" \
+            --output "$output" \
             --directory-field dimacs-transformer \
             --file-fields dimacs-file \
             --inputs model_to_dimacs_featureide model_to_dimacs_featjar model_to_dimacs_kconfigreader smt_to_dimacs_z3
     }
 
     # visualize community structure of DIMACS files as a JPEG file
-    draw-community-structure(input=dimacs, output_stage=community-structure, timeout=0, jobs=1) {
+    draw-community-structure-with-satgraf(input=dimacs, output=community-structure, timeout=0, jobs=1) {
         run \
             --image satgraf \
             --input "$input" \
-            --output "$output_stage" \
-            --command transform-with-satgraf \
+            --output "$output" \
+            --command draw-community-structure-with-satgraf \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # compute DIMACS files with explicit backbone using kissat
-    compute-backbone-dimacs-with-kissat(input=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
+    transform-dimacs-to-backbone-dimacs-with-kissat(input=dimacs, output=backbone-dimacs, timeout=0, jobs=1) {
         run \
             --image solver \
             --input "$input" \
-            --output "$output_stage" \
-            --command transform-into-backbone-dimacs-with-kissat \
+            --output "$output" \
+            --command transform-dimacs-to-backbone-dimacs-with-kissat \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # compute DIMACS files with explicit backbone using cadiback
-    compute-backbone-dimacs-with-cadiback(input=dimacs, output_stage=backbone-dimacs, timeout=0, jobs=1) {
+    transform-dimacs-to-backbone-dimacs-with-cadiback(input=dimacs, output=backbone-dimacs, timeout=0, jobs=1) {
         run \
             --image cadiback \
             --input "$input" \
-            --output "$output_stage" \
-            --command transform-into-backbone-dimacs-with-cadiback \
+            --output "$output" \
+            --command transform-dimacs-to-backbone-dimacs-with-cadiback \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # compute unconstrained features that are not mentioned in a DIMACS file
-    compute-unconstrained-features(input=kconfig, output_stage=unconstrained-features, timeout=0, jobs=1) {
+    compute-unconstrained-features(input=kconfig, output=unconstrained-features, timeout=0, jobs=1) {
         run \
             --input "$input" \
-            --output "$output_stage" \
-            --command transform-into-unconstrained-features \
+            --output "$output" \
+            --command compute-unconstrained-features \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
     # compute features in the backbone of DIMACS files
-    compute-backbone-features(input=backbone-dimacs, output_stage=backbone-features, timeout=0, jobs=1) {
+    compute-backbone-features(input=backbone-dimacs, output=backbone-features, timeout=0, jobs=1) {
         run \
             --input "$input" \
-            --output "$output_stage" \
-            --command transform-into-backbone-features \
+            --output "$output" \
+            --command compute-backbone-features \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
@@ -555,7 +558,7 @@ define-stage-helpers() {
             local solver stage image parser
             solver=$(echo "$solver_spec" | cut -d, -f1)
             stage=${solver//\//_}
-            stage=solve_${stage,,}
+            stage=solve-${stage,,}
             image=$(echo "$solver_spec" | cut -d, -f2)
             parser=$(echo "$solver_spec" | cut -d, -f3)
             stages+=("$stage")
@@ -576,67 +579,67 @@ define-stage-helpers() {
                 --attempts "$attempts" \
                 --attempt-grouper "$attempt_grouper"
         done
-        aggregate --output "solve_$kind" --inputs "${stages[@]}"
+        aggregate --output "solve-$kind" --inputs "${stages[@]}"
     }
 
     # solve DIMACS files for satisfiability
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-satisfiable(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
+    solve-sat(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
-            # sat-competition/02-zchaff,solver,satisfiable
-            # sat-competition/03-Forklift,solver,satisfiable
-            # sat-competition/04-zchaff,solver,satisfiable
-            # sat-competition/05-SatELiteGTI.sh,solver,satisfiable
-            sat-competition/06-MiniSat,solver,satisfiable
-            # sat-competition/07-RSat.sh,solver,satisfiable
-            # sat-competition/08-MiniSat,solver,satisfiable
-            # sat-competition/09-precosat,solver,satisfiable
-            # sat-competition/10-CryptoMiniSat,solver,satisfiable
-            # sat-competition/11-glucose.sh,solver,satisfiable
-            # sat-competition/12-glucose.sh,solver,satisfiable
-            # sat-competition/13-lingeling-aqw,solver,satisfiable
-            # sat-competition/14-lingeling-ayv,solver,satisfiable
-            # sat-competition/15-abcdSAT,solver,satisfiable
-            # sat-competition/16-MapleCOMSPS_DRUP,solver,satisfiable
-            # sat-competition/17-Maple_LCM_Dist,solver,satisfiable
-            # sat-competition/18-MapleLCMDistChronoBT,solver,satisfiable
-            # sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,satisfiable
-            # sat-competition/20-Kissat-sc2020-sat,solver,satisfiable
-            # sat-competition/21-Kissat_MAB,solver,satisfiable
-            sat-competition/22-kissat_MAB-HyWalk,solver,satisfiable
-            # sat-competition/23-sbva_cadical.sh,solver,satisfiable
-            # sat-competition/24-kissat-sc2024,solver,satisfiable
-            # sat-museum/boehm1-1992,solver,satisfiable
-            # sat-museum/grasp-1997,solver,satisfiable
-            # sat-museum/chaff-2001,solver,satisfiable
-            # sat-museum/limmat-2002,solver,satisfiable
-            # sat-museum/berkmin-2003.sh,solver,satisfiable
-            # sat-museum/zchaff-2004,solver,satisfiable
-            # sat-museum/satelite-gti-2005.sh,solver,satisfiable
-            # sat-museum/minisat-2006,solver,satisfiable
-            # sat-museum/rsat-2007.sh,solver,satisfiable
-            # sat-museum/minisat-2008,solver,satisfiable
-            # sat-museum/precosat-2009,solver,satisfiable
-            # sat-museum/cryptominisat-2010,solver,satisfiable
-            # sat-museum/glucose-2011.sh,solver,satisfiable
-            # sat-museum/glucose-2012.sh,solver,satisfiable
-            # sat-museum/lingeling-2013,solver,satisfiable
-            # sat-museum/lingeling-2014,solver,satisfiable
-            # sat-museum/abcdsat-2015.sh,solver,satisfiable
-            # sat-museum/maple-comsps-drup-2016,solver,satisfiable
-            # sat-museum/maple-lcm-dist-2017,solver,satisfiable
-            # sat-museum/maple-lcm-dist-cb-2018,solver,satisfiable
-            # sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,satisfiable
-            # sat-museum/kissat-2020,solver,satisfiable
-            # sat-museum/kissat-mab-2021,solver,satisfiable
-            # sat-museum/kissat-mab-hywalk-2022,solver,satisfiable
-            # other/SAT4J.210.sh,solver,satisfiable
-            # other/SAT4J.231.sh,solver,satisfiable
-            # other/SAT4J.235.sh,solver,satisfiable
-            # other/SAT4J.236.sh,solver,satisfiable
-            z3,z3,satisfiable
+            # sat-competition/02-zchaff,solver,sat
+            # sat-competition/03-Forklift,solver,sat
+            # sat-competition/04-zchaff,solver,sat
+            # sat-competition/05-SatELiteGTI.sh,solver,sat
+            sat-competition/06-MiniSat,solver,sat
+            # sat-competition/07-RSat.sh,solver,sat
+            # sat-competition/08-MiniSat,solver,sat
+            # sat-competition/09-precosat,solver,sat
+            # sat-competition/10-CryptoMiniSat,solver,sat
+            # sat-competition/11-glucose.sh,solver,sat
+            # sat-competition/12-glucose.sh,solver,sat
+            # sat-competition/13-lingeling-aqw,solver,sat
+            # sat-competition/14-lingeling-ayv,solver,sat
+            # sat-competition/15-abcdSAT,solver,sat
+            # sat-competition/16-MapleCOMSPS_DRUP,solver,sat
+            # sat-competition/17-Maple_LCM_Dist,solver,sat
+            # sat-competition/18-MapleLCMDistChronoBT,solver,sat
+            # sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,sat
+            # sat-competition/20-Kissat-sc2020-sat,solver,sat
+            # sat-competition/21-Kissat_MAB,solver,sat
+            sat-competition/22-kissat_MAB-HyWalk,solver,sat
+            # sat-competition/23-sbva_cadical.sh,solver,sat
+            # sat-competition/24-kissat-sc2024,solver,sat
+            # sat-museum/boehm1-1992,solver,sat
+            # sat-museum/grasp-1997,solver,sat
+            # sat-museum/chaff-2001,solver,sat
+            # sat-museum/limmat-2002,solver,sat
+            # sat-museum/berkmin-2003.sh,solver,sat
+            # sat-museum/zchaff-2004,solver,sat
+            # sat-museum/satelite-gti-2005.sh,solver,sat
+            # sat-museum/minisat-2006,solver,sat
+            # sat-museum/rsat-2007.sh,solver,sat
+            # sat-museum/minisat-2008,solver,sat
+            # sat-museum/precosat-2009,solver,sat
+            # sat-museum/cryptominisat-2010,solver,sat
+            # sat-museum/glucose-2011.sh,solver,sat
+            # sat-museum/glucose-2012.sh,solver,sat
+            # sat-museum/lingeling-2013,solver,sat
+            # sat-museum/lingeling-2014,solver,sat
+            # sat-museum/abcdsat-2015.sh,solver,sat
+            # sat-museum/maple-comsps-drup-2016,solver,sat
+            # sat-museum/maple-lcm-dist-2017,solver,sat
+            # sat-museum/maple-lcm-dist-cb-2018,solver,sat
+            # sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,sat
+            # sat-museum/kissat-2020,solver,sat
+            # sat-museum/kissat-mab-2021,solver,sat
+            # sat-museum/kissat-mab-hywalk-2022,solver,sat
+            # other/SAT4J.210.sh,solver,sat
+            # other/SAT4J.231.sh,solver,sat
+            # other/SAT4J.235.sh,solver,sat
+            # other/SAT4J.236.sh,solver,sat
+            z3,z3,sat
         )
-        solve --kind satisfiable --input "$input" --timeout "$timeout" --jobs "$jobs" \
+        solve --kind sat --input "$input" --timeout "$timeout" --jobs "$jobs" \
             --attempts "$attempts" --attempt-grouper "$attempt_grouper" \
             --iterations "$iterations" --iteration_field "$iteration_field" --file_fields "$file_fields" \
             --solver_specs "${solver_specs[@]}"
@@ -644,24 +647,24 @@ define-stage-helpers() {
 
     # solve DIMACS files for model count
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-model-count(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
+    solve-sharp-sat(input=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
         local solver_specs=(
-            # emse-2023/countAntom,solver,model-count
-            # emse-2023/d4,solver,model-count
-            # emse-2023/dSharp,solver,model-count
-            # emse-2023/ganak,solver,model-count
-            # emse-2023/sharpSAT,solver,model-count
-            # model-counting-competition-2022/c2d.sh,solver,model-counting-competition-2022
-            # model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022
-            # model-counting-competition-2022/DPMC/DPMC.sh,solver,model-counting-competition-2022
-            # model-counting-competition-2022/gpmc.sh,solver,model-counting-competition-2022
-            # model-counting-competition-2022/TwG.sh,solver,model-counting-competition-2022
-            model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
-            # model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,model-counting-competition-2022
-            other/d4v2.sh,solver,model-count
-            # other/ApproxMC,solver,model-count
+            # emse-2023/countAntom,solver,sharp-sat
+            # emse-2023/d4,solver,sharp-sat
+            # emse-2023/dSharp,solver,sharp-sat
+            # emse-2023/ganak,solver,sharp-sat
+            # emse-2023/sharpSAT,solver,sharp-sat
+            # model-counting-competition-2022/c2d.sh,solver,sharp-sat-mcc22
+            # model-counting-competition-2022/d4.sh,solver,sharp-sat-mcc22
+            # model-counting-competition-2022/DPMC/DPMC.sh,solver,sharp-sat-mcc22
+            # model-counting-competition-2022/gpmc.sh,solver,sharp-sat-mcc22
+            # model-counting-competition-2022/TwG.sh,solver,sharp-sat-mcc22
+            model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
+            # model-counting-competition-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,sharp-sat-mcc22
+            other/d4v2.sh,solver,sharp-sat
+            # other/ApproxMC,solver,sharp-sat
         )
-        solve --kind model-count --input "$input" --timeout "$timeout" --jobs "$jobs" \
+        solve --kind sharp-sat --input "$input" --timeout "$timeout" --jobs "$jobs" \
             --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
     }
 
@@ -674,12 +677,12 @@ define-stage-helpers() {
 
     # runs a Jupyter notebook
     # todo: revise this
-    run-notebook(input=, output_stage=notebook, file) {
+    run-notebook(input=, output=notebook, file) {
         input=${input:-$PWD}
         run \
             --image jupyter \
             --input "$input" \
-            --output "$output_stage" \
+            --output "$output" \
             --command run-notebook \
             --file "$file"
     }

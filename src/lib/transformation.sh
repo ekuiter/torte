@@ -1,7 +1,7 @@
 #!/bin/bash
 # transforms files
 
-# transforms a file from one file format into another
+# transforms a file from one file format to another
 # measures the transformation time
 transform-file(file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0) {
     local input
@@ -42,12 +42,7 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
     rm-safe "$output_log"
 }
 
-nums(arguments...) {
-    echo "${arguments[*]}"
-    echo "${#arguments[@]}"
-}
-
-# transforms a list of files from one file format into another
+# transforms a list of files from one file format to another
 transform-files(csv_file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0, jobs=1) {
     assert-command parallel
     echo -n "$input_extension-file,$output_extension-file,$output_extension-transformer,$output_extension-time" > "$(output-csv)"
@@ -71,7 +66,7 @@ dimacs-data-extractor() {
     lambda output,output_log echo '$(grep -E ^p < "$output" | cut -d" " -f3),$(grep -E "^[^pc]" < "$output" | grep -Fo " " | wc -l)'
 }
 
-# transforms files into various formats using FeatJAR
+# transforms files to various formats using FeatJAR
 transform-with-featjar(input_extension, output_extension, transformer, timeout=0, data_fields=, data_extractor=, jobs=1) {
     local jar=/home/FeatJAR/transform/build/libs/transform-0.1.0-SNAPSHOT-all.jar
     transform-files \
@@ -87,15 +82,15 @@ transform-with-featjar(input_extension, output_extension, transformer, timeout=0
             --timeout "${timeout}000" \
             --input "\$input" \
             --output "\$output" \
-            --transformation "${transformer//_/}")" \
+            --transformation "${transformer//-/}")" \
         "$data_fields" \
         "$data_extractor" \
         "$timeout" \
         "$jobs"
 }
 
-# transforms files into DIMACS using FeatJAR
-transform-into-dimacs-with-featjar(input_extension, output_extension, transformer, timeout=0, jobs=1) {
+# transforms files to DIMACS using FeatJAR
+transform-to-dimacs-with-featjar(input_extension, output_extension, transformer, timeout=0, jobs=1) {
     transform-with-featjar \
         --data-fields "$(dimacs-data-fields)" \
         --data-extractor "$(dimacs-data-extractor)" \
@@ -107,8 +102,8 @@ transform-into-dimacs-with-featjar(input_extension, output_extension, transforme
         --jobs "$jobs"
 }
 
-# transforms kconfigreader model files into DIMACS using kconfigreader
-transform-into-dimacs-with-kconfigreader(input_extension=model, output_extension=dimacs, timeout=0, jobs=1) {
+# transforms kconfigreader model files to DIMACS using kconfigreader
+transform-model-to-dimacs-with-kconfigreader(input_extension=model, output_extension=dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -121,8 +116,8 @@ transform-into-dimacs-with-kconfigreader(input_extension=model, output_extension
         "$jobs"
 }
 
-# transforms SMT files into DIMACS using Z3
-transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, timeout=0, jobs=1) {
+# transforms SMT files to DIMACS using Z3
+transform-smt-to-dimacs-with-z3(input_extension=smt, output_extension=dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -136,7 +131,7 @@ transform-into-dimacs-with-z3(input_extension=smt, output_extension=dimacs, time
 }
 
 # displays community structure of a DIMACS file with SATGraf
-transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0, jobs=1) {
+draw-community-structure-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -150,7 +145,7 @@ transform-with-satgraf(input_extension=dimacs, output_extension=jpg, timeout=0, 
 }
 
 # computes backbone of a DIMACS file using kissat
-transform-into-backbone-dimacs-with-kissat(input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
+transform-dimacs-to-backbone-dimacs-with-kissat(input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -164,7 +159,7 @@ transform-into-backbone-dimacs-with-kissat(input_extension=dimacs, output_extens
 }
 
 # computes backbone of a DIMACS file using cadiback
-transform-into-backbone-dimacs-with-cadiback(input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
+transform-dimacs-to-backbone-dimacs-with-cadiback(input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
@@ -178,7 +173,7 @@ transform-into-backbone-dimacs-with-cadiback(input_extension=dimacs, output_exte
 }
 
 # for model files, computes all features that are unconstrained and not mentioned in the formula
-compute-unconstrained-features(input, output) {
+compute-unconstrained-features-helper(input, output) {
     if [[ -f "$input" ]]; then
         local tmp
         tmp=$(mktemp)
@@ -198,14 +193,14 @@ compute-unconstrained-features(input, output) {
     fi
 }
 
-# transforms models into their unconstrained features
-transform-into-unconstrained-features(input_extension=model, output_extension=unconstrained.features, timeout=0, jobs=1) {
+# computes unconstrained features from models
+compute-unconstrained-features(input_extension=model, output_extension=unconstrained.features, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
         model_to_unconstrained_features \
-        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-unconstrained-features "$input" "$output"')" \
+        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-unconstrained-features-helper "$input" "$output"')" \
         "" \
         "" \
         "$timeout" \
@@ -245,19 +240,19 @@ compute-core-or-dead-features(input, output, prefix=) {
 }
 
 # extracts all backbone features from a backbone dimacs file
-compute-backbone-features(input, output, prefix=) {
+compute-backbone-features-helper(input, output, prefix=) {
     compute-core-or-dead-features "$input" "$output" '' | awk '{print "+" $0}' > "$output"
     compute-core-or-dead-features "$input" "$output" '-' | awk '{print "-" $0}' >> "$output"
 }
 
-# transforms models into their unconstrained features
-transform-into-backbone-features(input_extension=backbone.dimacs, output_extension=backbone.features, timeout=0, jobs=1) {
+# computes backbone features from backbone DIMACS
+compute-backbone-features(input_extension=backbone.dimacs, output_extension=backbone.features, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
         dimacs_to_backbone_features \
-        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-backbone-features "$input" "$output"')" \
+        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-backbone-features-helper "$input" "$output"')" \
         "" \
         "" \
         "$timeout" \

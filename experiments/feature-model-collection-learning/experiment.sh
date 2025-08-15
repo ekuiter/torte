@@ -19,5 +19,5 @@ experiment-stages() {
     read-statistics skip-sloc
     extract-kconfig-models-with --extractor kclause
     join-into read-statistics kconfig
-    transform-models-into-dimacs --timeout "$TIMEOUT"
+    transform-model-to-dimacs --timeout "$TIMEOUT"
 }

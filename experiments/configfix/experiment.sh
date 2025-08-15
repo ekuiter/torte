@@ -40,18 +40,18 @@ experiment-stages() {
     compute-unconstrained-features
 
     # transform
-    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 2
+    transform-model-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 2
     run \
         --image z3 \
         --input model_to_smt_z3 \
         --output dimacs \
-        --command transform-into-dimacs-with-z3 \
+        --command transform-smt-to-dimacs-with-z3 \
         --jobs 2
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
 
     # analyze
-    compute-backbone-dimacs-with-cadiback 
+    transform-dimacs-to-backbone-dimacs-with-cadiback 
     join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
     solve \
@@ -63,7 +63,7 @@ experiment-stages() {
         --attempts "$SOLVE_ATTEMPTS" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
         --solver_specs \
-        model-counting-competition-2022/d4.sh,solver,model-counting-competition-2022 \
-        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,model-counting-competition-2022
-    join-into backbone-dimacs solve_model-count
+        model-counting-competition-2022/d4.sh,solver,sharp-sat-mcc22 \
+        model-counting-competition-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
+    join-into backbone-dimacs solve-sharp-sat
 }

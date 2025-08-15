@@ -237,7 +237,7 @@ Currently, this behavior is not configurable.
 [^16]: Feature models and formulas produced by KConfigReader have nondeterministic clause order.
 This does not impact semantics, but it possibly influences the efficiency of solvers.
 
-[^24]: The formulas produced by KConfigReader and KClause do not explicitly mention unconstrained features (i.e., features that do not occur in any constraints). However, for many analyses that depend on knowing the entire feature set (e.g., simply listing all configurable features or calculating model counts), this is a threat to validity. We do not modify the extracted formulas, to preserve the original output of KConfigReader and KClause. To address this threat, we instead offer the transformation stage `transform-into-unconstrained-features`, which explicitly computes these features.
+[^24]: The formulas produced by KConfigReader and KClause do not explicitly mention unconstrained features (i.e., features that do not occur in any constraints). However, for many analyses that depend on knowing the entire feature set (e.g., simply listing all configurable features or calculating model counts), this is a threat to validity. We do not modify the extracted formulas, to preserve the original output of KConfigReader and KClause. To address this threat, we instead offer the transformation stage `compute-unconstrained-features`, which explicitly computes these features.
 
 [^33]: ConfigFix support is currently experimental.
 

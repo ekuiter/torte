@@ -17,20 +17,20 @@ experiment-stages() {
     compute-unconstrained-features
 
     # transform
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 2
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 2
-    transform-models-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 2
+    transform-model-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --jobs 2
+    transform-model-with-featjar --transformer model_to_xml_featureide --output-extension xml --jobs 2
+    transform-model-with-featjar --transformer model_to_smt_z3 --output-extension smt --jobs 2
     run \
         --image z3 \
         --input model_to_smt_z3 \
         --output dimacs \
-        --command transform-into-dimacs-with-z3 \
+        --command transform-smt-to-dimacs-with-z3 \
         --jobs 2
     join-into model_to_smt_z3 dimacs
     join-into kconfig dimacs
 
     # analyze
-    compute-backbone-dimacs-with-cadiback --jobs 16
+    transform-dimacs-to-backbone-dimacs-with-cadiback --jobs 16
     join-into dimacs backbone-dimacs
     compute-backbone-features --jobs 16
 }

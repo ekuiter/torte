@@ -21,26 +21,26 @@ experiment-stages() {
     read-statistics
     extract-kconfig-models
 
-    transform-models-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
-    transform-models-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
-    transform-models-into-dimacs --timeout "$TIMEOUT"
+    transform-model-with-featjar --transformer model_to_xml_featureide --output-extension xml --timeout "$TIMEOUT"
+    transform-model-with-featjar --transformer model_to_uvl_featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-model-to-dimacs --timeout "$TIMEOUT"
     
-    draw-community-structure --timeout "$TIMEOUT"
-    compute-backbone-dimacs-with-cadiback --timeout "$TIMEOUT"
+    draw-community-structure-with-satgraf --timeout "$TIMEOUT"
+    transform-dimacs-to-backbone-dimacs-with-cadiback --timeout "$TIMEOUT"
     compute-unconstrained-features --timeout "$TIMEOUT"
     compute-backbone-features --timeout "$TIMEOUT"
-    solve-satisfiable --jobs "$JOBS" --timeout "$TIMEOUT"
-    solve-model-count --jobs "$JOBS" --timeout "$TIMEOUT"
+    solve-sat --jobs "$JOBS" --timeout "$TIMEOUT"
+    solve-sharp-sat --jobs "$JOBS" --timeout "$TIMEOUT"
 
     join-into kconfig dimacs
     join-into dimacs community-structure
-    join-into dimacs solve_satisfiable
-    join-into dimacs solve_model-count
+    join-into dimacs solve-sat
+    join-into dimacs solve-sharp-sat
 
     log-output-field read-statistics source_lines_of_code
     log-output-field kconfig model-features
     log-output-field dimacs dimacs-variables
-    log-output-field solve_satisfiable satisfiable
-    log-output-field solve_model-count model-count
+    log-output-field solve-sat sat
+    log-output-field solve-sharp-sat sharp-sat
     run-notebook --file evaluation.ipynb # todo: fix this, rename to payload-file?
 }
