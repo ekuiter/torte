@@ -18,6 +18,9 @@ is-docker-rootless() {
 
 # asserts that we are not in a Docker container
 assert-host() {
+    if [[ -n $HOST_ASSERTED ]]; then
+        return
+    fi
     if ! is-host; then
         error "Cannot be run inside a Docker container."
     fi
@@ -33,6 +36,7 @@ assert-host() {
     elif [[ $(whoami) != root ]] && ! is-docker-rootless; then
         error "Docker is not running in rootless mode (see https://docs.docker.com/engine/security/rootless/). Please run $TOOL as root (e.g., use 'sudo')."
     fi
+    HOST_ASSERTED=y
 }
 
 # asserts that we are in a Docker container

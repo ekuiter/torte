@@ -58,19 +58,86 @@ load-experiment(experiment_file=default) {
     source-script "$SRC_EXPERIMENT_FILE"
 }
 
-# removes all output files for the experiment
+# lists all stages with their numbers in a user-friendly table format
+list-stages() {
+    local stages
+    readarray -t numbered_stages < <(list-numbered-stages)
+    if [[ ${#numbered_stages[@]} -eq 0 ]]; then
+        return
+    fi
+    printf "┌────┬─────────────────────────────┬────────────┬────────┬──────┐\n"
+    printf "│ %2s │ %-27s │ %-10s │ %6s │ %4s │\n" "#" "Stage" "Status" "Size" "#Row"
+    printf "├────┼─────────────────────────────┼────────────┼────────┼──────┤\n"
+    local total_complete=0 total_csv_rows=0
+    for numbered_stage in "${numbered_stages[@]}"; do
+        if [[ -n "$numbered_stage" ]]; then
+            local stage_number stage_name status size csv_entries
+            stage_number=$(get-stage-number "$numbered_stage")
+            stage_name=$(get-stage-name "$numbered_stage")
+            if [[ -f "$numbered_stage/$STAGE_DONE_FILE" ]]; then
+                status="$(echo-green 'done      ')"
+                total_complete=$((total_complete + 1))
+            else
+                status="$(echo-yellow incomplete)"
+            fi
+            if [[ -d "$numbered_stage" ]]; then
+                size=$(du -sh "$numbered_stage" 2>/dev/null | cut -f1 || echo "")
+            else
+                size=""
+            fi
+            local csv_file="$numbered_stage/output.csv"
+            if [[ -f "$csv_file" ]]; then
+                csv_entries=$(( $(wc -l < "$csv_file" 2>/dev/null || echo "0") - 1 ))
+                [[ $csv_entries -lt 0 ]] && csv_entries=0
+                total_csv_rows=$((total_csv_rows + csv_entries))
+            else
+                csv_entries=""
+            fi
+            if [[ ${#stage_name} -gt 27 ]]; then
+                stage_name="${stage_name:0:24}..."
+            fi
+            printf "│ %2s │ %-27s │ %-10s │ %6s │ %4s │\n" \
+                "$stage_number" "$stage_name" "$status" "$size" "$csv_entries"
+        fi
+    done
+    local total_size=""
+    if [[ -d "$STAGE_DIRECTORY" ]]; then
+        total_size=$(du -sh "$STAGE_DIRECTORY" 2>/dev/null | cut -f1 || echo "")
+    fi
+    printf "├────┼─────────────────────────────┼────────────┼────────┼──────┤\n"
+    printf "│ %2s │ %-27s │ %-10s │ %6s │ %4s │\n" \
+        "" "total" "${total_complete} done" "$total_size" "$total_csv_rows"
+    printf "└────┴─────────────────────────────┴────────────┴────────┴──────┘\n"
+}
+
+# removes all stages of the experiment (optionally, only the ones after the one with the specified number)
 # does not touch Docker images
-# todo: only remove starting from specified (numbered) stage
-command-clean() {
-    rm-safe "$STAGE_DIRECTORY"
+command-clean(stage_number=) {
+    if [[ -z "$stage_number" ]]; then
+        rm-safe "$STAGE_DIRECTORY"
+    else
+        local stages
+        readarray -t numbered_stages < <(list-numbered-stages)
+        for numbered_stage in "${numbered_stages[@]}"; do
+            if [[ -n "$numbered_stage" ]]; then
+                local current_number
+                current_number=$(get-stage-number "$numbered_stage")
+                if [[ "$current_number" -ge "$stage_number" ]]; then
+                    rm-safe "$numbered_stage"
+                fi
+            fi
+        done
+    fi
 }
 
 # runs the experiment
 command-run() {
+    list-stages
     mkdir -p "$STAGE_DIRECTORY"
-    clean "$TOOL"s
+    clean "$TOOL"
     mkdir -p "$(stage-directory "$TOOL")"
     cp -R "$SRC_EXPERIMENT_DIRECTORY" "$(stage-directory "$TOOL")"
+    touch "$(stage-done-file "$TOOL")"
     define-stage-helpers
     if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE"; then
         experiment-stages

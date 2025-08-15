@@ -6,7 +6,7 @@ entrypoint(arguments...) {
     if [[ ${#arguments[@]} -ge 1 ]] && [[ -n "$(experiment-file "${arguments[0]}")" ]]; then
         load-experiment "${arguments[0]}"
         arguments=("${arguments[@]:1}")
-    elif [[ ${#arguments[@]} -ge 1 ]] && ! has-command "${arguments[0]}" && ! has-function "${arguments[0]}"; then
+    elif [[ ${#arguments[@]} -ge 1 ]] && ! has-command "${arguments[0]}" && ! has-function "${arguments[0]}" && (! is-host || ! has-function "command-${arguments[0]}"); then
         error-help "${arguments[0]} is neither an experiment file nor a command or function."
     else
         load-experiment

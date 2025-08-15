@@ -6,11 +6,91 @@ DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
 DOCKER_SRC_DIRECTORY=/home/${TOOL}_src # source directory inside Docker containers
 MAIN_INPUT_KEY=main # the name of the canonical input key
 OUTPUT_FILE_PREFIX=output # prefix for output files
+STAGE_DONE_FILE=".done" # file indicating stage completion
+
+# extracts the stage number from a numbered stage name
+get-stage-number(numbered_stage) {
+    basename "$numbered_stage" | sed 's/_.*$//'
+}
+
+# extracts the base stage name from a numbered stage name
+get-stage-name(numbered_stage) {
+    basename "$numbered_stage" | sed 's/^[0-9]*_//'
+}
+
+# lists all numbered stages in order
+list-numbered-stages() {
+    assert-host
+    if [[ -d "$STAGE_DIRECTORY" ]]; then
+        local stages=()
+        for dir in "$STAGE_DIRECTORY"/[0-9]*_*; do
+            if [[ -d "$dir" ]]; then
+                stages+=("$dir")
+            fi
+        done
+        printf '%s\n' "${stages[@]}" | while IFS= read -r current_stage; do
+            if [[ -n "$current_stage" ]]; then
+                stage_num=$(get-stage-number "$current_stage")
+                printf '%03d %s\n' "$stage_num" "$current_stage"
+            fi
+        done | sort -n | cut -d' ' -f2-
+    fi
+}
+
+# returns the next available stage number by finding the highest existing number
+get-next-stage-number() {
+    assert-host
+    local last_numbered_stage
+    last_numbered_stage=$(list-numbered-stages | tail -n 1)
+    if [[ -z "$last_numbered_stage" ]]; then
+        echo "1"
+    else
+        local last_number
+        last_number=$(get-stage-number "$last_numbered_stage")
+        echo "$((last_number + 1))"
+    fi
+}
+
+# finds existing numbered directory for a stage, returns empty if not found
+lookup-stage-directory(stage) {
+    assert-host
+    if [[ -d "$STAGE_DIRECTORY" ]]; then
+        for dir in "$STAGE_DIRECTORY"/*_"$stage"; do
+            if [[ -d "$dir" ]]; then
+                echo "$dir"
+                return
+            fi
+        done
+    fi
+}
+
+# gets the stage number for a given stage name, returns empty if not found
+lookup-stage-number(stage) {
+    assert-host
+    local existing_stage
+    existing_stage=$(lookup-stage-directory "$stage")
+    if [[ -n "$existing_stage" ]]; then
+        get-stage-number "$existing_stage"
+    fi
+}
 
 # on the host, returns the directory for where to store the output or find the input of a given stage
+# automatically assigns numbers to new stages: 1_stage, 2_stage, etc.
 stage-directory(stage) {
     assert-host
-    echo "$STAGE_DIRECTORY/$stage"
+    if [[ "$stage" == "$TOOL" ]]; then
+        echo "$STAGE_DIRECTORY/0_$TOOL"
+        return
+    fi
+    local existing_dir
+    existing_dir=$(lookup-stage-directory "$stage")
+    if [[ -n "$existing_dir" ]]; then
+        echo "$existing_dir"
+    else
+        local stage_number
+        stage_number=$(get-next-stage-number)
+        echo "$STAGE_DIRECTORY/${stage_number}_$stage"
+    fi
 }
 
 # in a Docker container, returns the input directory for the given key
@@ -48,7 +128,7 @@ output-path(components...) { compose-path "$(output-directory)" "${components[@]
 stage-file(extension, stage) { stage-path "$stage" "$OUTPUT_FILE_PREFIX.$extension"; }
 input-file(extension, key=) { input-path "$key" "$OUTPUT_FILE_PREFIX.$extension"; }
 output-file(extension) { output-path "$OUTPUT_FILE_PREFIX.$extension"; }
-stage-done-file(stage) { stage-path "$stage" ".done"; }
+stage-done-file(stage) { stage-path "$stage" "$STAGE_DONE_FILE"; }
 
 # standard files for experimental results, human-readable output, and errors
 stage-csv(stage) { stage-file csv "$stage"; }

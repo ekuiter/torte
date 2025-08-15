@@ -15,7 +15,7 @@ TOOL_SCRIPT=$TOOL_DIRECTORY/$TOOL.sh # tool script
 DOCKER_RUN=${DOCKER_RUN:-y} # y if running Docker containers is enabled, otherwise saves image archives
 
 # global configuration options, can optionally be overridden in experiment files
-STAGE_DIRECTORY=output # path to resulting experiment output, created if necessary (should not include ., .., or /)
+STAGE_DIRECTORY=stages # path to resulting experiment output, created if necessary (should not include ., .., or /)
 PATH_SEPARATOR=/ # separator for building paths
 FORCE_RUN= # y if every stage should be forced to run regardless of whether is is already done
 VERBOSE= # y if console output should be verbose

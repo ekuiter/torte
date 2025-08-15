@@ -58,6 +58,16 @@ Experiments are Bash scripts that define:
 - `solve-*`: Run analysis (satisfiability, model counting, backbone computation)
 - `join-into`: Combine results from multiple stages
 
+### Stage Numbering System
+torte automatically numbers stages in execution order for easier navigation:
+- Stages are created as `1_clone-systems`, `2_kconfig`, `3_dimacs`, etc.
+- Internal stage references still use original names (e.g., `clone-systems`)
+- Directory ordering in file explorer reflects execution sequence
+- Helper functions:
+  - `list-numbered-stages`: Show all stages with numbers and completion status
+  - `clean-after <number>`: Remove all stages after the specified number
+  - `get-stage-number <stage-name>`: Get the number for a specific stage
+
 ## Configuration
 
 ### Global Variables
@@ -82,7 +92,9 @@ Experiments are Bash scripts that define:
 - uses a bash dialect specified in `src/bootstrap.sh` to allow for python-like passing of arguments (either just positional with `<value>`, or named with `--<arg> <value>`)
 - make sure to, whenever you update a signature of a function, also update all occurrences of that change in that function's body
 - DO NOT attempt to run any file directly, because they need the bash dialect preprocessor
+- torte is bash-based, so use bash features like `[[]]`, arrays, `readarray`, process substitution `< <()`
 - to run and test any given function, it can just be executed with `./torte.sh <function> <args>`
+- keep generated commit message rather short and do not refer to Claude in them
 
 ## Important Files to Understand
 

@@ -55,15 +55,31 @@ clean-up() {
     clean clone-systems tag-linux-revisions read-statistics kconfigreader kclause \
         model_to_model_featureide model_to_smt_z3 model_to_dimacs_kconfigreader \
         model_to_dimacs_featjar model_to_dimacs_featureide smt_to_dimacs_z3 torte
+    
+    # Clean up files from the model stage (now numbered)
+    local model_dir
+    model_dir=$(stage-directory model)
+    if [[ -d "$model_dir" ]]; then
+        rm-safe \
+            "$model_dir"/*binding* \
+            "$model_dir"/*.features \
+            "$model_dir"/*.rsf \
+            "$model_dir"/*.kclause \
+            "$model_dir"/*.kextractor
+    fi
+    
+    # Clean up output files from all numbered stage directories
     rm-safe \
-        "$STAGE_DIRECTORY"/model/*binding* \
-        "$STAGE_DIRECTORY"/model/*.features \
-        "$STAGE_DIRECTORY"/model/*.rsf \
-        "$STAGE_DIRECTORY"/model/*.kclause \
-        "$STAGE_DIRECTORY"/model/*.kextractor \
         "$STAGE_DIRECTORY"/*/*_output*.csv \
         "$STAGE_DIRECTORY"/*/*output.*.csv \
         "$STAGE_DIRECTORY"/*/*.log \
         "$STAGE_DIRECTORY"/*/*.err
-    mv "$STAGE_DIRECTORY"/model_to_uvl_featureide "$STAGE_DIRECTORY"/uvl
+    
+    # Move the UVL stage to a more convenient name
+    local uvl_source_dir uvl_target_dir
+    uvl_source_dir=$(stage-directory model_to_uvl_featureide)
+    uvl_target_dir=$(stage-directory uvl)
+    if [[ -d "$uvl_source_dir" ]] && [[ ! -d "$uvl_target_dir" ]]; then
+        mv "$uvl_source_dir" "$uvl_target_dir"
+    fi
 }

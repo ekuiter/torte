@@ -208,7 +208,17 @@ iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=,
 # runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
 # only run if the specified file does not exist yet
 run-transient-unless(file=, input=, command...) {
-    if ([[ -z $file ]] || is-file-empty "$STAGE_DIRECTORY/$file") && [[ $DOCKER_RUN == y ]]; then
+    local file_path="$STAGE_DIRECTORY/$file"
+    # If file contains a stage name, resolve to numbered directory
+    if [[ "$file" == */* ]]; then
+        local stage_part="${file%%/*}"
+        local file_part="${file#*/}"
+        local stage_dir
+        stage_dir=$(stage-directory "$stage_part")
+        file_path="$stage_dir/$file_part"
+    fi
+    
+    if ([[ -z $file ]] || is-file-empty "$file_path") && [[ $DOCKER_RUN == y ]]; then
         run util "$input" "" bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; $(to-list command "; ")"
     fi
 }
@@ -255,8 +265,8 @@ plot-helper(file, type, fields, arguments...) {
 # plots data on the command line
 plot(stage, type, fields, arguments...) {
     local file
-    if [[ ! -f $stage ]] && [[ -f $STAGE_DIRECTORY/$stage/$OUTPUT_FILE_PREFIX.csv ]]; then
-        file=$STAGE_DIRECTORY/$stage/$OUTPUT_FILE_PREFIX.csv
+    if [[ ! -f $stage ]] && [[ -f $(stage-csv "$stage") ]]; then
+        file=$(stage-csv "$stage")
     else
         file=$stage
     fi
