@@ -157,11 +157,14 @@ aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field
     csv_files=()
     for stage in "${inputs[@]}"; do
         csv_files+=("$(input-directory "$stage")/$OUTPUT_FILE_PREFIX.csv")
-        while IFS= read -r -d $'\0' file; do
-            cp "$file" "$(output-path "$(stage-transformer "$stage")" "${file#"$(input-directory "$stage")/"}")"
-        done < <(find "$(input-directory "$stage")" -type f -print0)
     done
     aggregate-tables "$stage_field" "$source_transformer" "${csv_files[@]}" > "$(output-csv)"
+    for stage in "${inputs[@]}"; do
+        while IFS= read -r -d $'\0' file; do
+            mv "$file" "$(output-path "$(stage-transformer "$stage")" "${file#"$(input-directory "$stage")/"}")"
+        done < <(find "$(input-directory "$stage")" -type f -print0)
+        find "$(input-directory "$stage")" -type d -empty -delete 2>/dev/null || true
+    done
     tmp=$(mktemp)
     mutate-table-field "$(output-csv)" "$file_fields" "$directory_field" "$(lambda value,context_value echo "\$context_value\$PATH_SEPARATOR\$value")" > "$tmp"
     cp "$tmp" "$(output-csv)"
@@ -181,6 +184,9 @@ aggregate(output, file_fields=, stage_field=, stage_transformer=, directory_fiel
     done
     input=${input#,}
     run util "$input" "$output" aggregate-helper "$file_fields" "$stage_field" "$stage_transformer" "$directory_field" "${inputs[@]}"
+    for current_stage in "${inputs[@]}"; do
+        echo "$output" > "$(stage-moved-file "$current_stage")"
+    done
 }
 
 # runs a stage a given number of time and merges the output files in a new stage
@@ -207,17 +213,19 @@ iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=,
 
 # runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
 # only run if the specified file does not exist yet
+# should be run before the existing stage is moved (e.g., by an aggregation)
 run-transient-unless(file=, input=, command...) {
     local file_path="$STAGE_DIRECTORY/$file"
-    # If file contains a stage name, resolve to numbered directory
     if [[ "$file" == */* ]]; then
         local stage_part="${file%%/*}"
         local file_part="${file#*/}"
         local stage_dir
         stage_dir=$(stage-directory "$stage_part")
         file_path="$stage_dir/$file_part"
+        if stage-moved "$stage_part"; then
+            return
+        fi
     fi
-    
     if ([[ -z $file ]] || is-file-empty "$file_path") && [[ $DOCKER_RUN == y ]]; then
         run util "$input" "" bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; $(to-list command "; ")"
     fi

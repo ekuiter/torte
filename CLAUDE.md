@@ -94,7 +94,7 @@ torte automatically numbers stages in execution order for easier navigation:
 - DO NOT attempt to run any file directly, because they need the bash dialect preprocessor
 - torte is bash-based, so use bash features like `[[]]`, arrays, `readarray`, process substitution `< <()`
 - to run and test any given function, it can just be executed with `./torte.sh <function> <args>`
-- keep generated commit message rather short and do not refer to Claude in them
+- when committing with git, keep generated commit message rather short (at most 4 bullet points) and do not refer to Claude in them
 
 ## Important Files to Understand
 

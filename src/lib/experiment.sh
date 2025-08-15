@@ -74,8 +74,13 @@ list-stages() {
             local stage_number stage_name status size csv_entries
             stage_number=$(get-stage-number "$numbered_stage")
             stage_name=$(get-stage-name "$numbered_stage")
-            if [[ -f "$numbered_stage/$STAGE_DONE_FILE" ]]; then
-                status="$(echo-green 'done      ')"
+            if stage-moved "$stage_name"; then
+                local moved_to
+                moved_to=$(cat "$(stage-moved-file "$stage_name")")
+                status="moved: $(lookup-stage-number "$moved_to")"
+                total_complete=$((total_complete + 1))
+            elif stage-done "$stage_name"; then
+                status="$(echo-green "done      ")"
                 total_complete=$((total_complete + 1))
             else
                 status="$(echo-yellow incomplete)"

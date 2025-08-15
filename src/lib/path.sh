@@ -6,7 +6,8 @@ DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
 DOCKER_SRC_DIRECTORY=/home/${TOOL}_src # source directory inside Docker containers
 MAIN_INPUT_KEY=main # the name of the canonical input key
 OUTPUT_FILE_PREFIX=output # prefix for output files
-STAGE_DONE_FILE=".done" # file indicating stage completion
+STAGE_DONE_FILE=".stage_done" # file indicating stage completion
+STAGE_MOVED_FILE=".stage_moved" # file indicating stage has been moved
 
 # extracts the stage number from a numbered stage name
 get-stage-number(numbered_stage) {
@@ -55,8 +56,8 @@ get-next-stage-number() {
 lookup-stage-directory(stage) {
     assert-host
     if [[ -d "$STAGE_DIRECTORY" ]]; then
-        for dir in "$STAGE_DIRECTORY"/*_"$stage"; do
-            if [[ -d "$dir" ]]; then
+        for dir in "$STAGE_DIRECTORY"/[0-9]*_"$stage"; do
+            if [[ -d "$dir" ]] && [[ "$(get-stage-name "$dir")" == "$stage" ]]; then
                 echo "$dir"
                 return
             fi
@@ -129,6 +130,7 @@ stage-file(extension, stage) { stage-path "$stage" "$OUTPUT_FILE_PREFIX.$extensi
 input-file(extension, key=) { input-path "$key" "$OUTPUT_FILE_PREFIX.$extension"; }
 output-file(extension) { output-path "$OUTPUT_FILE_PREFIX.$extension"; }
 stage-done-file(stage) { stage-path "$stage" "$STAGE_DONE_FILE"; }
+stage-moved-file(stage) { stage-path "$stage" "$STAGE_MOVED_FILE"; }
 
 # standard files for experimental results, human-readable output, and errors
 stage-csv(stage) { stage-file csv "$stage"; }
@@ -142,10 +144,23 @@ output-log() { output-file log; }
 output-err() { output-file err; }
 
 # returns whether the given experiment stage is done
-# todo: this does not account for an interrupted stage (maybe create a marker file at the end of each stage like .done?)
 stage-done(stage) {
     assert-host
-    [[ -f $(stage-done-file "$stage") ]]
+    [[ -f $(stage-done-file "$stage") ]] || stage-moved "$stage"
+}
+
+# returns whether the given stage has been moved to an aggregate stage
+stage-moved(stage) {
+    assert-host
+    [[ -f "$(stage-moved-file "$stage")" ]]
+}
+
+# returns the name of the aggregate stage that this stage was moved to
+stage-moved-to(stage) {
+    assert-host
+    if stage-moved "$stage"; then
+        cat "$(stage-moved-file "$stage")"
+    fi
 }
 
 # asserts that the given experiment stage is done
