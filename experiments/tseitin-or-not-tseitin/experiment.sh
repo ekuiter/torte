@@ -33,7 +33,7 @@ experiment-stages() {
     read-statistics
     extract-kconfig-models \
         --iterations "$N" \
-        --file-fields model-file
+        --file-fields model_file
     join-into read-statistics extract-kconfig-models
 
     # transform
@@ -62,8 +62,8 @@ experiment-stages() {
     join-into transform-model-to-smt-with-z3 transform-smt-to-dimacs-with-z3
     aggregate \
         --output transform-model-to-dimacs \
-        --directory-field dimacs-transformer \
-        --file-fields dimacs-file \
+        --directory-field dimacs_transformer \
+        --file-fields dimacs_file \
         --inputs transform-model-to-dimacs-with-featureide transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
     join-into extract-kconfig-models transform-model-to-dimacs
 

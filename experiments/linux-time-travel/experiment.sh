@@ -36,7 +36,7 @@ experiment-stages() {
     extract-kconfig-models \
         --iterations "$ITERATIONS" \
         --iteration-field extract-iteration \
-        --file-fields model-file
+        --file-fields model_file
     join-into read-statistics extract-kconfig-models
 
     # transform (with two CNF transformations)
@@ -48,7 +48,7 @@ experiment-stages() {
     iterate \
         --iterations 1 \
         --iteration-field transform-iteration \
-        --file-fields dimacs-file \
+        --file-fields dimacs_file \
         --image z3 \
         --input transform-model-to-smt-with-z3 \
         --output transform-smt-to-dimacs-with-z3 \
@@ -63,7 +63,7 @@ experiment-stages() {
     iterate \
         --iterations "$ITERATIONS" \
         --iteration-field transform-iteration \
-        --file-fields dimacs-file \
+        --file-fields dimacs_file \
         --image kconfigreader \
         --input transform-model-to-model-with-featureide \
         --output transform-model-to-dimacs-with-kconfigreader \
@@ -74,8 +74,8 @@ experiment-stages() {
     
     aggregate \
         --output transform-model-to-dimacs \
-        --directory-field dimacs-transformer \
-        --file-fields dimacs-file \
+        --directory-field dimacs_transformer \
+        --file-fields dimacs_file \
         --inputs transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
     join-into extract-kconfig-models transform-model-to-dimacs
 

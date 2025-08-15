@@ -45,20 +45,20 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
 # transforms a list of files from one file format to another
 transform-files(csv_file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0, jobs=1) {
     assert-command parallel
-    echo -n "$input_extension-file,$output_extension-file,$output_extension-transformer,$output_extension-time" > "$(output-csv)"
+    echo -n "${input_extension}_file,${output_extension}_file,${output_extension}_transformer,${output_extension}_time" > "$(output-csv)"
     if [[ -n $data_fields ]]; then
-        echo ",$data_fields" >> "$(output-csv)"
+        echo ",${data_fields//-/_}" >> "$(output-csv)"
     else
         echo >> "$(output-csv)"
     fi
-    table-field "$csv_file" "$input_extension-file" | grep -v NA$ | sort -V \
+    table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V \
         | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
         transform-file "{}" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_fields" "$data_extractor" "$timeout"
 }
 
 # returns additional data fields for DIMACS files
 dimacs-data-fields() {
-    echo dimacs-variables,dimacs-literals
+    echo dimacs_variables,dimacs_literals
 }
 
 # returns a data extractor lambda for DIMACS files
@@ -138,7 +138,7 @@ draw-community-structure-with-satgraf(input_extension=dimacs, output_extension=j
         "$output_extension" \
         dimacs_to_jpg_satgraf \
         "$(lambda input,output 'echo ./satgraf.sh "$input" "$output"')" \
-        satgraf-modularity \
+        satgraf_modularity \
         "$(lambda output,output_log 'grep -v ^evaluate_ < "$output_log"')" \
         "$timeout" \
         "$jobs"

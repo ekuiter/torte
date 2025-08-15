@@ -300,8 +300,8 @@ register-kconfig-extractor(extractor, kconfig_binding=, timeout=0) {
         git-clean "$(input-directory)/$system"
     }
 
-    echo system,revision,binding-file > "$(output-path kconfig-bindings.csv)"
-    echo system,revision,architecture,binding-file,kconfig-file,environment,model-file,model-features,model-variables,model-literals,model-time > "$(output-csv)"
+    echo system,revision,binding_file > "$(output-path kconfig-bindings.csv)"
+    echo system,revision,architecture,binding_file,kconfig_file,environment,model_file,model_features,model_variables,model_literals,model_time > "$(output-csv)"
 }
 
 # compiles kconfig bindings and extracts kconfig models using kclause

@@ -398,14 +398,14 @@ define-stage-helpers() {
         # --iteration-field "$iteration_field" \
         # --file-fields "$file_fields"
         # todo ConfigFix: the idea was that not every extractor needs a binding file, which is not correctly realized here, I think
-        # file_fields="binding-file"
+        # file_fields="binding_file"
         # if [ -z "$binding_file" ]; then
         #     binding_file=""
         # fi
         aggregate \
             --output "$output" \
             --stage-field extractor \
-            --file-fields binding-file,model-file \
+            --file-fields binding_file,model_file \
             --inputs extract-kconfig-models-with-kconfigreader extract-kconfig-models-with-kclause
             # --inputs kconfigreader kclause configfix
     }
@@ -493,8 +493,8 @@ define-stage-helpers() {
 
         aggregate \
             --output "$output" \
-            --directory-field dimacs-transformer \
-            --file-fields dimacs-file \
+            --directory-field dimacs_transformer \
+            --file-fields dimacs_file \
             --inputs transform-model-to-dimacs-with-featureide transform-model-to-dimacs-with-featjar transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
     }
 

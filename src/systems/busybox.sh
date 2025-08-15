@@ -7,7 +7,7 @@ add-busybox-kconfig-history(from=, to=) {
         add-kconfig \
             --system busybox \
             --revision "$revision" \
-            --kconfig-file Config.in \
+            --kconfig_file Config.in \
             --kconfig-binding-files scripts/kconfig/*.o
     done
 }
@@ -21,7 +21,7 @@ add-busybox-kconfig-history-full() {
         add-kconfig \
             --system busybox-models \
             --revision "${revision}[$original_revision]" \
-            --kconfig-file Config.in \
+            --kconfig_file Config.in \
             --kconfig-binding-files scripts/kconfig/*.o
     done
 }
@@ -77,8 +77,8 @@ read-busybox-configs() {
             configs=$(mktemp)
             config_types=$(mktemp)
 
-            echo system,revision,kconfig-file,config >> "$configs"
-            echo system,revision,kconfig-file,config,type >> "$config_types"
+            echo system,revision,kconfig_file,config >> "$configs"
+            echo system,revision,kconfig_file,config,type >> "$config_types"
 
             busybox-configs "$revision" >> "$configs"
             tail -n+2 < "$configs" >> "$(output-csv)"
@@ -94,7 +94,7 @@ read-busybox-configs() {
         fi
     }
 
-    echo system,revision,kconfig-file,config > "$(output-csv)"
+    echo system,revision,kconfig_file,config > "$(output-csv)"
     experiment-systems
 }
 

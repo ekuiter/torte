@@ -38,9 +38,9 @@ experiment-stages() {
     join-into transform-model-to-dimacs solve-sharp-sat
 
     log-output-field read-statistics source_lines_of_code
-    log-output-field extract-kconfig-models model-features
-    log-output-field transform-model-to-dimacs dimacs-variables
+    log-output-field extract-kconfig-models model_features
+    log-output-field transform-model-to-dimacs dimacs_variables
     log-output-field solve-sat sat
-    log-output-field solve-sharp-sat sharp-sat
+    log-output-field solve-sharp-sat sharp_sat
     run-notebook --file evaluation.ipynb # todo: fix this, rename to payload-file?
 }

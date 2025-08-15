@@ -53,13 +53,13 @@ analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeo
 
 # analyzes a list of files
 analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=) {
-    echo -n "$input_extension-file,$input_extension-analyzer,$input_extension-analyzer-time" > "$(output-csv)"
+    echo -n "${input_extension}_file,${input_extension}_analyzer,${input_extension}_analyzer_time" > "$(output-csv)"
     if [[ -n $data_fields ]]; then
-        echo ",$data_fields" >> "$(output-csv)"
+        echo ",${data_fields//-/_}" >> "$(output-csv)"
     else
         echo >> "$(output-csv)"
     fi
-    table-field "$csv_file" "$input_extension-file" | grep -v NA$ | sort -V \
+    table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V \
         | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
         analyze-file "{}" "$analyzer_name" "$analyzer" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"
 }

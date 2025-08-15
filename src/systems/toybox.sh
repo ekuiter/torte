@@ -38,8 +38,8 @@ read-toybox-configs() {
             configs=$(mktemp)
             config_types=$(mktemp)
 
-            echo system,revision,kconfig-file,config >> "$configs"
-            echo system,revision,kconfig-file,config,type >> "$config_types"
+            echo system,revision,kconfig_file,config >> "$configs"
+            echo system,revision,kconfig_file,config,type >> "$config_types"
 
             toybox-configs "$revision" >> "$configs"
             tail -n+2 < "$configs" >> "$(output-csv)"
@@ -55,7 +55,7 @@ read-toybox-configs() {
         fi
     }
 
-    echo system,revision,kconfig-file,config > "$(output-csv)"
+    echo system,revision,kconfig_file,config > "$(output-csv)"
     experiment-systems
 }
 
