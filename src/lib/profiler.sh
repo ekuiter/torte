@@ -81,7 +81,7 @@ save-speedscope(file=output.prf) {
 
 # open the profiling data with speedscope in the browser
 # alternatively use https://www.speedscope.app/ manually
-open-speedscope(file=output.prf) {
+open-speedscope(file=output.speedscope) {
     assert-command npm
     npm install -g speedscope
     save-speedscope "$file"
@@ -100,9 +100,9 @@ list-functions() {
 detect-dead-code() {
     local profile_data
     profile_data=$(combine-stage-profiles)
-    echo "Functions defined but never called:"
-    comm -23 <(list-functions) <(echo "$profile_data" | tail -n +2 | cut -d, -f2 | sort -u)
-    echo ""
     echo "Functions called but not defined:"
     comm -13 <(list-functions) <(echo "$profile_data" | tail -n +2 | cut -d, -f2 | sort -u)
+    echo ""
+    echo "Functions defined but never called:"
+    comm -23 <(list-functions) <(echo "$profile_data" | tail -n +2 | cut -d, -f2 | sort -u)
 }
