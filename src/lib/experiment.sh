@@ -1,6 +1,8 @@
 #!/bin/bash
 # runs experiments
 
+ORIGINAL_EXPERIMENT_FILE= # original experiment file path, required for finding payload files
+
 # where to store the preprocessed experiment file
 SRC_EXPERIMENT_DIRECTORY=$SRC_DIRECTORY/experiment
 SRC_EXPERIMENT_FILE=$SRC_EXPERIMENT_DIRECTORY/experiment.sh

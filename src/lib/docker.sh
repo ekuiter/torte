@@ -1,6 +1,8 @@
 #!/bin/bash
 # functions for working with Docker containers
 
+DOCKER_EXPORT= # empty if running Docker containers is enabled, otherwise saves image archives
+
 # returns all experiment-related Docker containers
 containers() {
     readarray -t containers < <(docker ps -a | tail -n+2 | awk '$2 ~ /^'"$TOOL"'_/ {print $1}')
@@ -28,7 +30,7 @@ command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
     cp -R "$SRC_EXPERIMENT_DIRECTORY" "$EXPORT_DIRECTORY"
     # shellcheck disable=SC2128
     if [[ $images == y ]]; then
-        export DOCKER_RUN=n
+        DOCKER_EXPORT=y
         command-clean
         command-run
         command-clean

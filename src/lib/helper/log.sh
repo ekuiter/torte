@@ -48,7 +48,7 @@ echo-note(state=) { echo-blue "$state"; }
 echo-skip() { echo-note skip; }
 
 # logs an error and exits
-error(arguments...) {
+error(__NO_PROFILE__, arguments...) {
     echo "ERROR: ${arguments[*]}" 1>&2
     exit 1
 }

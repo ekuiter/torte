@@ -131,7 +131,12 @@ You can also write your own experiments by adapting an existing experiment file.
 - Developers are recommended to use [ShellCheck](https://www.shellcheck.net/) to improve code quality.
 - If Docker is running in rootless mode, experiments must not be run as `sudo`. Otherwise, experiments must be run as `sudo`.
 - The first execution of torte can take a while (~30 minutes), as several complex Docker containers need to be built.
-This can be avoided by loading a reproduction package that includes Docker images (built by `./torte.sh export`).
+  This can be avoided by loading a reproduction package that includes Docker images (built by `./torte.sh export`).
+- Run `PROFILE=y ./torte.sh <experiment-file>` to profile all function calls.
+  This data can be used to draw a [flame graph](https://www.speedscope.app/) with `./torte.sh (save|open)-speedscope`.
+  It can also be used to detect dead code with `./torte.sh detect-dead-code`.
+  Note that profiling is enabled at compile time of torte. This means that successive or parallel calls of torte should be run with the same value of `PROFILE`.
+  This can be ensured easily by running `export PROFILE=y` once before calling torte.
 
 ## Supported Systems
 

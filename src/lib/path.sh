@@ -136,12 +136,14 @@ stage-moved-file(stage) { stage-path "$stage" "$STAGE_MOVED_FILE"; }
 stage-csv(stage) { stage-file csv "$stage"; }
 stage-log(stage) { stage-file log "$stage"; }
 stage-err(stage) { stage-file err "$stage"; }
+stage-prf(stage) { stage-file prf "$stage"; }
 input-csv(key=) { input-file csv "$key"; }
 input-log(key=) { input-file log "$key"; }
 input-err(key=) { input-file err "$key"; }
 output-csv() { output-file csv; }
 output-log() { output-file log; }
 output-err() { output-file err; }
+output-prf() { output-file prf; }
 
 # returns whether the given experiment stage is done
 stage-done(stage) {

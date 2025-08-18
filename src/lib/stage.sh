@@ -57,7 +57,7 @@ run(image=util, input=, output=, command...) {
             cmd+=("$(dirname "$dockerfile")")
             "${cmd[@]}" >/dev/null
         fi
-        if [[ $DOCKER_RUN == y ]]; then
+        if [[ -z $DOCKER_EXPORT ]]; then
             mkdir -p "$(stage-directory "$output")"
             chmod 0777 "$(stage-directory "$output")"
             log "" "$(echo-progress run)"
@@ -96,7 +96,8 @@ run(image=util, input=, output=, command...) {
             cmd+=(-v "$output_volume:$DOCKER_OUTPUT_DIRECTORY")
             cmd+=(-v "$(realpath "$SRC_DIRECTORY"):$DOCKER_SRC_DIRECTORY")
 
-            cmd+=(-e INSIDE_DOCKER_CONTAINER=y)
+            cmd+=(-e INSIDE_STAGE="$output")
+            cmd+=(-e PROFILE)
             cmd+=(-e PASS) # todo: possibly eliminate this?
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
@@ -226,7 +227,7 @@ run-transient-unless(file=, input=, command...) {
             return
         fi
     fi
-    if ([[ -z $file ]] || is-file-empty "$file_path") && [[ $DOCKER_RUN == y ]]; then
+    if ([[ -z $file ]] || is-file-empty "$file_path") && [[ -z $DOCKER_EXPORT ]]; then
         run util "$input" "" bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; $(to-list command "; ")"
     fi
 }
@@ -240,13 +241,8 @@ join-into(first_stage, second_stage) {
 }
 
 # forces all subsequent stages to be run
-force() {
+force-run() {
     FORCE_RUN=y
-}
-
-# do not force all subsequent stages to be run
-unforce() {
-    FORCE_RUN=
 }
 
 # debugs the next stage interactively

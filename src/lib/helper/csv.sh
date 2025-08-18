@@ -44,15 +44,17 @@ join-tables-by-prefix(first_file, second_file, n=1) {
         | replace-times $n $escape_sequence ,
 }
 
+# converts field names from stdin into process substitution arguments used by join-two-tables
+add-fields(file) {
+    xargs -I {} echo -n \<\(table-field "$file" {} y\)" "
+}
+
 # joins two CSV files on at least one common field
 join-two-tables(first_file, second_file) {
     local common_fields
     common_fields=$(diff-fields "$first_file" "$second_file" -12)
     fields_left=$(diff-fields "$first_file" "$second_file" -23)
     fields_right=$(diff-fields "$first_file" "$second_file" -13)
-    add-fields(file) {
-        xargs -I {} echo -n \<\(table-field "$file" {} y\)" "
-    }
     local first_file_tmp
     first_file_tmp=$(mktemp)
     local second_file_tmp

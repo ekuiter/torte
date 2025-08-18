@@ -78,7 +78,6 @@ torte automatically numbers stages in execution order for easier navigation:
 - `JOBS=`: Number of parallel jobs for analysis
 
 ### Docker Configuration
-- `DOCKER_RUN=y`: Enable Docker container execution
 - `MEMORY_LIMIT=`: Automatically determined if unset
 
 ## Development Notes
@@ -89,7 +88,7 @@ torte automatically numbers stages in execution order for easier navigation:
 - Results are stored in CSV format for easy analysis
 - Jupyter notebooks can be integrated for result visualization
 - is written fully in bash to leverage the composition effects of pipes and bash's ease of use
-- uses a bash dialect specified in `src/bootstrap.sh` to allow for python-like passing of arguments (either just positional with `<value>`, or named with `--<arg> <value>`)
+- uses a bash dialect specified in `src/preprocessor.sh` to allow for python-like passing of arguments (either just positional with `<value>`, or named with `--<arg> <value>`)
 - the definition of function arguments in this dialect always uses underscores in the function header (e.g., `<my_arg>`), while calling named arguments with dashes (e.g., `<my-arg>`)
 - make sure to, whenever you update a signature of a function, also update all occurrences of that change in that function's body
 - DO NOT attempt to run any file directly, because they need the bash dialect preprocessor

@@ -74,7 +74,7 @@ if [[ -z $PASS ]]; then
             command-clean
             rm-safe "${STAGE_DIRECTORY}_$PASS"
             "$TOOL_SCRIPT" "$SRC_EXPERIMENT_FILE"
-            if [[ $DOCKER_RUN != y ]]; then
+            if [[ -n $DOCKER_EXPORT ]]; then
                 return
             fi
             push "$STAGE_DIRECTORY"

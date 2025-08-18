@@ -1,7 +1,6 @@
 #!/bin/bash
 # extracts kconfig models
 
-
 KCONFIG_MODELS_OUTPUT_DIRECTORY= # output directory for storing kconfig models
 KCONFIG_BINDINGS_OUTPUT_DIRECTORY=kconfig-bindings # output directory for storing Kconfig bindings
 

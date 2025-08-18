@@ -3,7 +3,7 @@
 
 # returns whether we are in a Docker container
 is-host() {
-    [[ -z $INSIDE_DOCKER_CONTAINER ]]
+    [[ -z $INSIDE_STAGE ]]
 }
 
 # returns whether Docker is running

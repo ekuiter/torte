@@ -1,12 +1,13 @@
 #!/bin/bash
 # platform-specific adjustments and helper functions
+# we cannot profile some of these functions, as they are needed for profiling itself
 
-has-command(command) {
+has-command(__NO_PROFILE__, command) {
     command -v "$command" > /dev/null
 }
 
 # asserts that the given commands are available
-assert-command(commands...) {
+assert-command(__NO_PROFILE__, commands...) {
     local command
     for command in "${commands[@]}"; do
         if ! has-command "$command"; then
@@ -42,7 +43,7 @@ if is-macos; then
         gcut "${args[@]}"
     }
 
-    date(args...) {
+    date(__NO_PROFILE__, args...) {
         assert-command gdate
         gdate "${args[@]}"
     }

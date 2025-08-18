@@ -5,24 +5,33 @@
 # preprocessed scripts should lie in the same directory tree as this script
 
 # the location of this script
-BOOTSTRAP_DIRECTORY=$(dirname "$0")
+PREPROCESSOR_DIRECTORY=$(dirname "$0")
 
 # a shortcut to recursively call this script
-BOOTSTRAP_SCRIPT=(/usr/bin/env bash "$BOOTSTRAP_DIRECTORY"/bootstrap.sh)
+PREPROCESSOR_SCRIPT=(/usr/bin/env bash "$PREPROCESSOR_DIRECTORY"/preprocessor.sh)
 
-# where to store the preprocessed scripts (should be below the bootstrap directory)
-GEN_DIRECTORY=$BOOTSTRAP_DIRECTORY/gen
+# where to store the preprocessed scripts (should be below the preprocessor directory)
+GEN_DIRECTORY=$PREPROCESSOR_DIRECTORY/gen
 
-# requires the GNU version of sed
+# requires the GNU version of sed and grep on macOS
+# these are later redefined in the platform helper, but we need them right away
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed() {
-        if ! command -v gsed > /dev/null; then
-            echo "Required command gsed is missing, please install manually." 1>&2
-            rm -rf "$GEN_DIRECTORY"
-            exit 1
-        fi
-        gsed "$@"
+    # helper function to create macOS command wrappers
+    create-macos-wrapper() {
+        local cmd=$1
+        local gnu_cmd=$2
+        eval "$cmd() {
+            if ! command -v $gnu_cmd > /dev/null; then
+                echo \"Required command $gnu_cmd is missing, please install manually.\" 1>&2
+                rm -rf \"\$GEN_DIRECTORY\"
+                exit 1
+            fi
+            $gnu_cmd \"\$@\"
+        }"
     }
+    
+    create-macos-wrapper sed gsed
+    create-macos-wrapper grep ggrep
 fi
 
 # compiles the given script
@@ -38,31 +47,31 @@ compile-script() {
     # compiled version (much faster, but also harder to understand)
     # #e is a GNU sed extension that allows executing the replacement as a command
     # we recursively call this script, which in turn calls parse-arguments, the results of which will be inserted by sed
-    sed -E "s#$regex#echo '\1() {' \$(${BOOTSTRAP_SCRIPT[*]} \"\1\" \2) '\3'#e" < "$script"
+    sed -E "s#$regex#echo '\1() {' \$(${PREPROCESSOR_SCRIPT[*]} \"\1\" \2) '\3'#e" < "$script"
 }
 
 # improves Bash's sourcing mechanism so scripts are compiled before inclusion
 source-script() {
     local script=$1
     # this code is specific to this project to improve logging
-    if declare -F log >/dev/null && [[ -z $INSIDE_DOCKER_CONTAINER ]]; then
+    if declare -F log >/dev/null && [[ -z $INSIDE_STAGE ]]; then
         log "${script#"$SRC_DIRECTORY"/}" "$(echo-progress load)"
     fi
     local generated_script_directory generated_script
     generated_script_directory=$(dirname "$script")
-    generated_script_directory=${generated_script_directory#"$BOOTSTRAP_DIRECTORY"/} # remove the bootstrap directory from a composite path
-    generated_script_directory=${generated_script_directory#"$BOOTSTRAP_DIRECTORY"} # remove the bootstrap directory from a root-level path
+    generated_script_directory=${generated_script_directory#"$PREPROCESSOR_DIRECTORY"/} # remove the preprocessor directory from a composite path
+    generated_script_directory=${generated_script_directory#"$PREPROCESSOR_DIRECTORY"} # remove the preprocessor directory from a root-level path
     generated_script_directory=$GEN_DIRECTORY/$generated_script_directory
     local generated_script
     generated_script=$generated_script_directory/$(basename "$script")
     mkdir -p "$generated_script_directory"
-    # inside of Docker containers, make may not be installed (but also not required, as the generated script it has already been copied into the container)
-    if command -v make > /dev/null; then
+    # inside of Docker containers, make may not be installed (but also not required, as the generated script has already been copied into the container)
+    if [[ -z $INSIDE_STAGE ]]; then
         # we want to use make to avoid recompiling the script if it has not changed
         # to do this, we pass make a temporary makefile created with <(...)
         # the makefile contains a rule that preprocesses each script into a corresponding script in the gen directory
         # the rule itself recursively calls this script with the original file ($<) and writes its output (>) to the generated script ($@)
-        make -f <(printf "%s\n\t%s\n" "$GEN_DIRECTORY"'/%.sh : '"$BOOTSTRAP_DIRECTORY"'/%.sh' "${BOOTSTRAP_SCRIPT[*]}"' $< > $@') "$generated_script" > /dev/null
+        make -f <(printf "%s\n\t%s\n" "$GEN_DIRECTORY"'/%.sh : '"$PREPROCESSOR_DIRECTORY"'/%.sh' "${PREPROCESSOR_SCRIPT[*]}"' $< > $@') "$generated_script" > /dev/null
     fi
     # shellcheck source=/dev/null
     source "$generated_script"
@@ -83,13 +92,24 @@ parse-arguments() {
     local variadic=""
     local param_spec
     local variable
+    local no_profile
 
     # shellcheck disable=SC2001
     preprocess() { echo "$1" | sed s/,$//; }
 
-    # assume default values
+    # filter out special annotations and detect them
+    local filtered_specs=()
     for param_spec in "${param_specs[@]}"; do
         param_spec=$(preprocess "$param_spec")
+        if [[ $param_spec =~ ^__NO_PROFILE__$ ]]; then
+            no_profile=y
+        else
+            filtered_specs+=("$param_spec")
+        fi
+    done
+    
+    # assume default values
+    for param_spec in "${filtered_specs[@]}"; do
         if [[ $variadic == y ]]; then
             code+="error \"Function $function_name can only have one variadic argument, which must be the last.\"; "
             break
@@ -111,7 +131,7 @@ parse-arguments() {
     
     # parse positional arguments
     code+="if [[ ! \$1 == \"--\"* ]]; then "
-    for param_spec in "${param_specs[@]}"; do
+    for param_spec in "${filtered_specs[@]}"; do
         param_spec=$(preprocess "$param_spec")
         ((i+=1))
         if [[ $param_spec =~ \.\.\.$ ]]; then
@@ -126,8 +146,8 @@ parse-arguments() {
         code+="$variable=\${$i:-\$$variable}; "
     done
     if [[ -z $variadic ]]; then
-        code+="if [[ \$# -gt ${#param_specs[@]} ]]; then "
-        code+="error \"Function $function_name expects ${#param_specs[@]} arguments, but got \$# arguments.\"; "
+        code+="if [[ \$# -gt ${#filtered_specs[@]} ]]; then "
+        code+="error \"Function $function_name expects ${#filtered_specs[@]} arguments, but got \$# arguments.\"; "
         code+="fi; "
     fi
 
@@ -136,7 +156,7 @@ parse-arguments() {
     code+="while [[ \$# -gt 0 ]]; do "
     code+="local argument=\${1/--/}; argument=\${argument//-/_}; "
     code+="if false; then :; "
-    for param_spec in "${param_specs[@]}"; do
+    for param_spec in "${filtered_specs[@]}"; do
         param_spec=$(preprocess "$param_spec")
         if [[ $param_spec =~ \.\.\.$ ]]; then
             variable=$(echo "$param_spec" | cut -d. -f1)
@@ -158,7 +178,7 @@ parse-arguments() {
     code+="fi; "
 
     # assert required parameters
-    for param_spec in "${param_specs[@]}"; do
+    for param_spec in "${filtered_specs[@]}"; do
         param_spec=$(preprocess "$param_spec")
         if [[ $param_spec =~ \.\.\.$ ]]; then
             continue
@@ -171,6 +191,23 @@ parse-arguments() {
             code+="fi; "
         fi
     done
+
+    # add profiling hooks
+    # this code is specific to this project and can be removed if no profiling is needed
+    if [[ -n $PROFILE ]] && [[ -z $no_profile ]]; then
+        code+="if [[ -n \$TOOL_INITIALIZED ]]; then "
+        code+="local __profile_start_time=\$(date +%s%6N); "
+        code+="local __profile_original_funcname=(\"\${FUNCNAME[@]}\"); "
+        code+="trap '"
+        code+="local __profile_end_time=\$(date +%s%6N); "
+        code+="local __profile_duration=\$((__profile_end_time - __profile_start_time)); "
+        code+="local __profile_stack=\"\$(IFS=\";\"; echo \"\${__profile_original_funcname[*]}\")\"; "
+        code+="if [[ -z \$__profile_stack ]]; then __profile_stack=\"$function_name\"; fi; "
+        code+="record-function-call \"$function_name\" \"\$__profile_stack\" \"\$__profile_duration\"; "
+        code+="trap - RETURN; "
+        code+="' RETURN; "
+        code+="fi; "
+    fi
 
     # decorate special functions that should only be run on the host (requires helper.sh to be in scope)
     # this code is specific to this project and can be removed if only simple argument preprocessing is needed
