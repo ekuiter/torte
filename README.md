@@ -2,12 +2,12 @@
 
 **torte is a declarative workbench for reproducible experiments in feature-model analysis research.**
 
-[<img src="meta/cli.png" width="23%">](meta/cli.png)
-[<img src="meta/tree.png" width="23%">](meta/tree.png)
-[<img src="meta/profile.png" width="23%">](meta/profile.png)
-[<img src="meta/satgraf.jpg" width="23%">](meta/satgraf.jpg)
+[<img src="meta/cli.png" width="24%">](meta/cli.png)
+[<img src="meta/tree.png" width="24%">](meta/tree.png)
+[<img src="meta/profile.png" width="24%">](meta/profile.png)
+[<img src="meta/satgraf.jpg" width="24%">](meta/satgraf.jpg)
 
-<img style="float: right;" width="23%" src="meta/torte.png">
+<img style="float: right;" align="right" width="23%" src="meta/torte.png">
 
 Why **torte**?
 Take your pick:
