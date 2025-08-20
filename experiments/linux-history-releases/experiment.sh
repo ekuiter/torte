@@ -29,6 +29,8 @@ SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and
 
 LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
 
+add-payload-file evaluation.ipynb
+
 experiment-systems() {
     # analyze all revisions and architectures of the Linux kernel
     add-linux-kconfig-history --from v2.5.45 --to v6.12 --architecture all
@@ -78,7 +80,7 @@ experiment-stages() {
     join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 
     # evaluate
-    run-notebook --file experiments/linux-history-releases.ipynb
+    run-jupyter-notebook --payload-file evaluation.ipynb
 }
 
 # additional useful statistics on the mainline kernel, takes a while to run

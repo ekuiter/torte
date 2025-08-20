@@ -42,5 +42,5 @@ experiment-stages() {
     log-output-field transform-model-to-dimacs dimacs_variables
     log-output-field solve-sat sat
     log-output-field solve-sharp-sat sharp_sat
-    run-notebook --file evaluation.ipynb # todo: fix this, rename to payload-file?
+    run-jupyter-notebook --input draw-community-structure-with-satgraf --payload-file evaluation.ipynb
 }

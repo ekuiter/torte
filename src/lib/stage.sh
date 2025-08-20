@@ -74,13 +74,15 @@ run(image=util, input=, output=, command...) {
             if [[ $output != clone-systems ]]; then
                 input=${input:-main=clone-systems}
             fi
-            if [[ -n $input ]] && [[ $input != *=* ]] && stage-done "$input"; then
+            if [[ -n $input ]] && [[ $input != *=* ]]; then
+                assert-stage-done "$input"
                 input="main=$input"
             fi
             input_directories=$(echo "$input" | tr "," "\n")
             for input_directory_pair in $input_directories; do
                 local key=${input_directory_pair%%=*}
                 local input_directory=${input_directory_pair##*=}
+                assert-stage-done "$input_directory"
                 input_directory=$(stage-directory "$input_directory")
                 local input_volume=$input_directory
                 if [[ $input_volume != /* ]]; then
@@ -672,15 +674,13 @@ define-stage-helpers() {
     }
 
     # runs a Jupyter notebook
-    # todo: revise this
-    run-notebook(input=, output=notebook, file) {
-        input=${input:-$PWD}
+    run-jupyter-notebook(input=, output=run-jupyter-notebook, payload_file) {
         run \
             --image jupyter \
             --input "$input" \
             --output "$output" \
-            --command run-notebook \
-            --file "$file"
+            --command run-jupyter-notebook \
+            --payload-file "$payload_file"
     }
 
     # build10 the given image, if necessary

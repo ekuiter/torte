@@ -109,10 +109,10 @@ parse-result-sharp-sat-mcc22(output_log) {
 }
 
 # runs a Jupyter notebook and stores its converts its results into an HTML file
-run-notebook(file) {
+run-jupyter-notebook(payload_file) {
     export PYDEVD_DISABLE_FILE_VALIDATION=1
     # currently, this creates the HTML file with another user's ID
-    jupyter nbconvert --to html --no-input --execute --output-dir "$(output-directory)" "$(input-directory)/$file"
+    jupyter nbconvert --to html --no-input --execute --output-dir "$(output-directory)" "$SRC_EXPERIMENT_DIRECTORY/$payload_file"
 }
 
 # computes differences for model files with clausy
