@@ -66,7 +66,11 @@ if is-continuous-integration; then
     update-log(arguments...) {
         echo -e "${arguments[*]}"
     }
+    echo "yes"
+else
+    echo "no"
 fi
+exit
 
 # define default memory limit (in GiB) for running Docker containers and other tools (should be at least 2 GiB)
 if [[ -z $MEMORY_LIMIT ]]; then
