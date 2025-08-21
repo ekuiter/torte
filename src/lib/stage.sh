@@ -103,6 +103,7 @@ run(image=util, input=, output=, command...) {
 
             cmd+=(-e INSIDE_STAGE="$output")
             cmd+=(-e PROFILE)
+            cmd+=(-e CI)
             cmd+=(-e PASS) # todo: possibly eliminate this?
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
