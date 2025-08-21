@@ -674,16 +674,18 @@ define-stage-helpers() {
     }
 
     # runs a Jupyter notebook
-    run-jupyter-notebook(input=, output=run-jupyter-notebook, payload_file) {
+    run-jupyter-notebook(input=, output=run-jupyter-notebook, payload_file, to=html, options=) {
         run \
             --image jupyter \
             --input "$input" \
             --output "$output" \
             --command run-jupyter-notebook \
-            --payload-file "$payload_file"
+            --payload-file "$payload_file" \
+            --to "$to" \
+            --options "$options"
     }
 
-    # build10 the given image, if necessary
+    # build the given image, if necessary
     build-image(image) {
         # shellcheck disable=SC2128
         run --image "$image" --output "" --command echo
