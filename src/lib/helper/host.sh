@@ -28,7 +28,7 @@ assert-host() {
     if ! is-docker-running; then
         error "Docker is not running. Depending on whether rootless mode is enabled, run $TOOL as a normal user or root (e.g., drop or add 'sudo')."
     fi
-    if is-macos; then
+    if is-macos || is-continuous-integration; then
         :
     elif [[ $(whoami) == root ]] && is-docker-rootless; then
         error "Docker is running in rootless mode (see https://docs.docker.com/engine/security/rootless/). Please do not run $TOOL as root (e.g., drop 'sudo')."

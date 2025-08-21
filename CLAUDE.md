@@ -96,7 +96,7 @@ torte automatically numbers stages in execution order for easier navigation:
 - torte is bash-based, so use bash features like `[[]]`, arrays, `readarray`, process substitution `< <()`
 - to run and test any given function, it can just be executed with `./torte.sh <function> <args>`
 - when committing with git, keep generated commit message rather short (at most 4 bullet points; if the commit does a rather small thing, maybe even no bullet points)
-- DO NOT refer to Claude in commit messages
+- IMPORTANT: DO NOT refer to Claude in Git commit messages, under any circumstances
 - DO NOT attempt to refactor Jupyter notebooks because Claude is not able to do it correctly
 
 ## Important Files to Understand

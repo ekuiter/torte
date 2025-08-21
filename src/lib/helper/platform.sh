@@ -49,6 +49,11 @@ if is-macos; then
     }
 fi
 
+# returns whether we are running in a CI environment
+is-continuous-integration() {
+    [[ -n "$CI" ]]
+}
+
 # define default memory limit (in GiB) for running Docker containers and other tools (should be at least 2 GiB)
 if [[ -z $MEMORY_LIMIT ]]; then
     if is-macos; then
