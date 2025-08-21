@@ -11,6 +11,20 @@ update-log(arguments...) {
     echo -e "[$TOOL] \r\033[1A\033[0K${arguments[*]}"
 }
 
+# detailed and readable logging in CI environments
+# we override this here once to avoid repeated checks for CI
+if [[ -n "$CI" ]]; then
+    VERBOSE=y
+    
+    new-log(arguments...) {
+        echo -e "${arguments[*]}"
+    }
+
+    update-log(arguments...) {
+        echo -e "${arguments[*]}"
+    }
+fi
+
 # logs a message that is always printed to the console output
 log(subject=, state=) {
     subject=${subject:-$CURRENT_SUBJECT}
