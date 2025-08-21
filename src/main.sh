@@ -18,6 +18,7 @@ TOOL_SCRIPT=$TOOL_DIRECTORY/$TOOL.sh # tool script
 STAGE_DIRECTORY=${STAGE_DIRECTORY:-stages} # path to resulting experiment output, created if necessary (should not include ., .., or /)
 PATH_SEPARATOR=${PATH_SEPARATOR:-/} # separator for building paths
 FORCE_RUN=${FORCE_RUN:-} # y if every stage should be forced to run regardless of whether is is already done
+FORCE_BUILD=${FORCE_BUILD:-} # y if Docker images should be built without cache
 VERBOSE=${VERBOSE:-} # y if console output should be verbose
 DEBUG=${DEBUG:-} # y for debugging stages interactively
 LINUX_CLONE_MODE=${LINUX_CLONE_MODE:-fork} # clone mode for Linux repository, can be either fork, original, or filter

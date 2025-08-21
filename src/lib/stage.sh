@@ -48,6 +48,9 @@ run(image=util, input=, output=, command...) {
             if [[ ! $VERBOSE == y ]]; then
                 cmd+=(-q)
             fi
+            if [[ $FORCE_BUILD == y ]]; then
+                cmd+=(--no-cache)
+            fi
             cmd+=(-f "$dockerfile")
             cmd+=(-t "${TOOL}_$image")
             cmd+=(--ulimit nofile=20000:20000)
@@ -245,6 +248,11 @@ join-into(first_stage, second_stage) {
 # forces all subsequent stages to be run
 force-run() {
     FORCE_RUN=y
+}
+
+# forces all subsequently run Docker images to be built without cache
+force-build() {
+    FORCE_BUILD=y
 }
 
 # debugs the next stage interactively
