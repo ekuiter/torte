@@ -111,6 +111,7 @@ parse-result-sharp-sat-mcc22(output_log) {
 # runs a Jupyter notebook and stores its converts its results into an HTML file
 run-jupyter-notebook(payload_file, to=html, options=) {
     export PYDEVD_DISABLE_FILE_VALIDATION=1
+    export DOCKER_SRC_DIRECTORY
     jupyter nbconvert --to "$to" ${options:+"$options"} --execute --output-dir "$(output-directory)" "$SRC_EXPERIMENT_DIRECTORY/$payload_file"
 }
 
