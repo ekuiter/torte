@@ -66,9 +66,9 @@ if is-continuous-integration; then
     update-log(arguments...) {
         echo -e "${arguments[*]}"
     }
-    echo "yes"
+    echo "$CI yes"
 else
-    echo "no"
+    echo "$CI no"
 fi
 exit
 
