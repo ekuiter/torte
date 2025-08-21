@@ -139,24 +139,24 @@ extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_fil
         if [[ -z "$kconfig_binding_file" || -f $kconfig_binding_file ]]; then
             set-environment "$environment"
             if [[ $extractor == kconfigreader ]]; then
-                evaluate "$timeout" /home/kconfigreader/run.sh $(memory-limit 1) de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf "$kconfig_binding_file" "$kconfig_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")" | tee "$output_log"
+                measure "$timeout" /home/kconfigreader/run.sh $(memory-limit 1) de.fosd.typechef.kconfig.KConfigReader --fast --dumpconf "$kconfig_binding_file" "$kconfig_file" "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision")" | tee "$output_log"
                 local time
-                time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
+                time=$(grep -oP "^measure_time=\K.*" < "$output_log")
             elif [[ $extractor == kclause ]]; then
-                evaluate "$timeout" /home/kextractor.sh \
+                measure "$timeout" /home/kextractor.sh \
                     "$kconfig_binding_file" \
                     "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")" \
                     "$features_file" "$kconfig_file" \
                     | tee "$output_log"
-                time=$(grep -oP "^evaluate_time=\K.*" < "$output_log")
+                time=$(grep -oP "^measure_time=\K.*" < "$output_log")
                 compile-hook kclause-post-binding-hook
                 kclause-post-binding-hook "$system" "$revision"
-                evaluate "$timeout" /home/kclause.sh \
+                measure "$timeout" /home/kclause.sh \
                     "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")" \
                     "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kclause")" \
                     "$kconfig_model" \
                     | tee "$output_log"
-                time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
+                time=$((time+$(grep -oP "^measure_time=\K.*" < "$output_log")))
             elif [[ $extractor == configfix ]]; then
                 linux_source="/home/linux/linux-6.10"
                 export KBUILD_KCONFIG=$(realpath "$kconfig_file")
@@ -216,8 +216,8 @@ extract-kconfig-model(extractor, kconfig_binding=, system, revision, kconfig_fil
                 fi
                 make -f "$linux_source/Makefile" mrproper
                 make -C "$linux_source" scripts/kconfig/cfoutconfig
-                evaluate "$timeout"  make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
-                time=$((time+$(grep -oP "^evaluate_time=\K.*" < "$output_log")))
+                measure "$timeout"  make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
+                time=$((time+$(grep -oP "^measure_time=\K.*" < "$output_log")))
                 if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.features" ]]; then
                     cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
                             cp "$linux_source/scripts/kconfig/cfout_constraints.features" "$features_file"

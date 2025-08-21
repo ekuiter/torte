@@ -16,7 +16,7 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
     output_log=$(mktemp)
     log "$transformer_name: $file" "$(echo-progress transform)"
     # shellcheck disable=SC2046
-    evaluate "$timeout" $(transformer "$input" "$output") | tee "$output_log"
+    measure "$timeout" $(transformer "$input" "$output") | tee "$output_log"
     if ! is-file-empty "$output"; then
         log "" "$(echo-done)"
     else
@@ -24,7 +24,7 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
         new_file=NA
     fi
     local csv_line=""
-    csv_line+="$file,${new_file#./},$transformer_name,$(grep -oP "^evaluate_time=\K.*" < "$output_log")"
+    csv_line+="$file,${new_file#./},$transformer_name,$(grep -oP "^measure_time=\K.*" < "$output_log")"
     if [[ -n $data_extractor ]]; then
         if ! is-file-empty "$output"; then
             compile-lambda data-extractor "$data_extractor"
@@ -139,7 +139,7 @@ draw-community-structure-with-satgraf(input_extension=dimacs, output_extension=j
         dimacs_to_jpg_satgraf \
         "$(lambda input,output 'echo ./satgraf.sh "$input" "$output"')" \
         satgraf_modularity \
-        "$(lambda output,output_log 'grep -v ^evaluate_ < "$output_log"')" \
+        "$(lambda output,output_log 'grep -v ^measure_ < "$output_log"')" \
         "$timeout" \
         "$jobs"
 }

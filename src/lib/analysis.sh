@@ -22,20 +22,20 @@ analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeo
     fi
     # shellcheck disable=SC2046
     if [[ -z $fail_fast ]]; then
-        evaluate "$timeout" $(analyzer "$input") | tee "$output_log"
+        measure "$timeout" $(analyzer "$input") | tee "$output_log"
     fi
-    if [[ -z $fail_fast ]] && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^evaluate_exit_code=\K.*" < "$output_log") -eq 0 ]]; }; then
+    if [[ -z $fail_fast ]] && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; }; then
         log "" "$(echo-done)"
     else
         log "" "$(echo-fail)"
     fi
-    if grep -q "^evaluate_timeout=y" < "$output_log"; then
+    if grep -q "^measure_timeout=y" < "$output_log"; then
         echo "$file" >> "$timeout_file"
     fi
     local csv_line=""
-    csv_line+="$file,$analyzer_name,$(grep -oP "^evaluate_time=\K.*" < "$output_log" || echo)"
+    csv_line+="$file,$analyzer_name,$(grep -oP "^measure_time=\K.*" < "$output_log" || echo)"
     if [[ -n $data_extractor ]]; then
-        if [[ -z $fail_fast ]] && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^evaluate_exit_code=\K.*" < "$output_log") -eq 0 ]]; }; then
+        if [[ -z $fail_fast ]] && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; }; then
             compile-lambda data-extractor "$data_extractor"
             csv_line+=",$(data-extractor "$output_log")"
         else

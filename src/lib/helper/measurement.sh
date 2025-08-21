@@ -3,20 +3,20 @@
 
 # measures the time needed to execute a command, setting an optional timeout
 # if the timeout is 0, no timeout is set
-evaluate(timeout=0, command...) {
+measure(timeout=0, command...) {
     assert-array command
-    echo "evaluate_command=${command[*]}"
+    echo "measure_command=${command[*]}"
     local start
     start=$(date +%s%N)
     local exit_code=0
     timeout "$timeout" "${command[@]}" || exit_code=$?
-    echo "evaluate_exit_code=$exit_code"
+    echo "measure_exit_code=$exit_code"
     if [[ $exit_code -eq 124 ]]; then
-        echo "evaluate_timeout=y"
+        echo "measure_timeout=y"
     fi
     local end
     end=$(date +%s%N)
-    echo "evaluate_time=$((end - start))"
+    echo "measure_time=$((end - start))"
 }
 
 # sets environment variables dynamically
