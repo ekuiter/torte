@@ -593,57 +593,57 @@ define-stage-helpers() {
     # many solvers are available, which are listed below, but only few are enabled by default
     solve-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
-            # sat-competition/02-zchaff,solver,sat
-            # sat-competition/03-Forklift,solver,sat
-            # sat-competition/04-zchaff,solver,sat
-            # sat-competition/05-SatELiteGTI.sh,solver,sat
+            sat-competition/02-zchaff,solver,sat
+            sat-competition/03-Forklift,solver,sat
+            sat-competition/04-zchaff,solver,sat
+            sat-competition/05-SatELiteGTI.sh,solver,sat
             sat-competition/06-MiniSat,solver,sat
-            # sat-competition/07-RSat.sh,solver,sat
-            # sat-competition/08-MiniSat,solver,sat
-            # sat-competition/09-precosat,solver,sat
-            # sat-competition/10-CryptoMiniSat,solver,sat
-            # sat-competition/11-glucose.sh,solver,sat
-            # sat-competition/12-glucose.sh,solver,sat
-            # sat-competition/13-lingeling-aqw,solver,sat
-            # sat-competition/14-lingeling-ayv,solver,sat
-            # sat-competition/15-abcdSAT,solver,sat
-            # sat-competition/16-MapleCOMSPS_DRUP,solver,sat
-            # sat-competition/17-Maple_LCM_Dist,solver,sat
-            # sat-competition/18-MapleLCMDistChronoBT,solver,sat
-            # sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,sat
-            # sat-competition/20-Kissat-sc2020-sat,solver,sat
-            # sat-competition/21-Kissat_MAB,solver,sat
+            sat-competition/07-RSat.sh,solver,sat
+            sat-competition/08-MiniSat,solver,sat
+            sat-competition/09-precosat,solver,sat
+            sat-competition/10-CryptoMiniSat,solver,sat
+            sat-competition/11-glucose.sh,solver,sat
+            sat-competition/12-glucose.sh,solver,sat
+            sat-competition/13-lingeling-aqw,solver,sat
+            sat-competition/14-lingeling-ayv,solver,sat
+            sat-competition/15-abcdSAT,solver,sat
+            sat-competition/16-MapleCOMSPS_DRUP,solver,sat
+            sat-competition/17-Maple_LCM_Dist,solver,sat
+            sat-competition/18-MapleLCMDistChronoBT,solver,sat
+            sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,sat
+            sat-competition/20-Kissat-sc2020-sat,solver,sat
+            sat-competition/21-Kissat_MAB,solver,sat
             sat-competition/22-kissat_MAB-HyWalk,solver,sat
-            # sat-competition/23-sbva_cadical.sh,solver,sat
-            # sat-competition/24-kissat-sc2024,solver,sat
-            # sat-museum/boehm1-1992,solver,sat
-            # sat-museum/grasp-1997,solver,sat
-            # sat-museum/chaff-2001,solver,sat
-            # sat-museum/limmat-2002,solver,sat
-            # sat-museum/berkmin-2003.sh,solver,sat
-            # sat-museum/zchaff-2004,solver,sat
-            # sat-museum/satelite-gti-2005.sh,solver,sat
-            # sat-museum/minisat-2006,solver,sat
-            # sat-museum/rsat-2007.sh,solver,sat
-            # sat-museum/minisat-2008,solver,sat
-            # sat-museum/precosat-2009,solver,sat
-            # sat-museum/cryptominisat-2010,solver,sat
-            # sat-museum/glucose-2011.sh,solver,sat
-            # sat-museum/glucose-2012.sh,solver,sat
-            # sat-museum/lingeling-2013,solver,sat
-            # sat-museum/lingeling-2014,solver,sat
-            # sat-museum/abcdsat-2015.sh,solver,sat
-            # sat-museum/maple-comsps-drup-2016,solver,sat
-            # sat-museum/maple-lcm-dist-2017,solver,sat
-            # sat-museum/maple-lcm-dist-cb-2018,solver,sat
-            # sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,sat
-            # sat-museum/kissat-2020,solver,sat
-            # sat-museum/kissat-mab-2021,solver,sat
-            # sat-museum/kissat-mab-hywalk-2022,solver,sat
-            # other/SAT4J.210.sh,solver,sat
-            # other/SAT4J.231.sh,solver,sat
-            # other/SAT4J.235.sh,solver,sat
-            # other/SAT4J.236.sh,solver,sat
+            sat-competition/23-sbva_cadical.sh,solver,sat
+            sat-competition/24-kissat-sc2024,solver,sat
+            sat-museum/boehm1-1992,solver,sat
+            sat-museum/grasp-1997,solver,sat
+            sat-museum/chaff-2001,solver,sat
+            sat-museum/limmat-2002,solver,sat
+            sat-museum/berkmin-2003.sh,solver,sat
+            sat-museum/zchaff-2004,solver,sat
+            sat-museum/satelite-gti-2005.sh,solver,sat
+            sat-museum/minisat-2006,solver,sat
+            sat-museum/rsat-2007.sh,solver,sat
+            sat-museum/minisat-2008,solver,sat
+            sat-museum/precosat-2009,solver,sat
+            sat-museum/cryptominisat-2010,solver,sat
+            sat-museum/glucose-2011.sh,solver,sat
+            sat-museum/glucose-2012.sh,solver,sat
+            sat-museum/lingeling-2013,solver,sat
+            sat-museum/lingeling-2014,solver,sat
+            sat-museum/abcdsat-2015.sh,solver,sat
+            sat-museum/maple-comsps-drup-2016,solver,sat
+            sat-museum/maple-lcm-dist-2017,solver,sat
+            sat-museum/maple-lcm-dist-cb-2018,solver,sat
+            sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,sat
+            sat-museum/kissat-2020,solver,sat
+            sat-museum/kissat-mab-2021,solver,sat
+            sat-museum/kissat-mab-hywalk-2022,solver,sat
+            other/SAT4J.210.sh,solver,sat
+            other/SAT4J.231.sh,solver,sat
+            other/SAT4J.235.sh,solver,sat
+            other/SAT4J.236.sh,solver,sat
             z3,z3,sat
         )
         solve --kind sat --input "$input" --timeout "$timeout" --jobs "$jobs" \
@@ -656,20 +656,20 @@ define-stage-helpers() {
     # many solvers are available, which are listed below, but only few are enabled by default
     solve-sharp-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
         local solver_specs=(
-            # emse-2023/countAntom,solver,sharp-sat
-            # emse-2023/d4,solver,sharp-sat
-            # emse-2023/dSharp,solver,sharp-sat
-            # emse-2023/ganak,solver,sharp-sat
-            # emse-2023/sharpSAT,solver,sharp-sat
-            # mcc-2022/c2d.sh,solver,sharp-sat-mcc22
-            # mcc-2022/d4.sh,solver,sharp-sat-mcc22
-            # mcc-2022/DPMC/DPMC.sh,solver,sharp-sat-mcc22
-            # mcc-2022/gpmc.sh,solver,sharp-sat-mcc22
-            # mcc-2022/TwG.sh,solver,sharp-sat-mcc22
+            emse-2023/countAntom,solver,sharp-sat
+            emse-2023/d4,solver,sharp-sat
+            emse-2023/dSharp,solver,sharp-sat
+            emse-2023/ganak,solver,sharp-sat
+            emse-2023/sharpSAT,solver,sharp-sat
+            mcc-2022/c2d.sh,solver,sharp-sat-mcc22
+            mcc-2022/d4.sh,solver,sharp-sat-mcc22
+            mcc-2022/DPMC/DPMC.sh,solver,sharp-sat-mcc22
+            mcc-2022/gpmc.sh,solver,sharp-sat-mcc22
+            mcc-2022/TwG.sh,solver,sharp-sat-mcc22
             mcc-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
-            # mcc-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,sharp-sat-mcc22
+            mcc-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,sharp-sat-mcc22
             other/d4v2.sh,solver,sharp-sat
-            # other/ApproxMC,solver,sharp-sat
+            other/ApproxMC,solver,sharp-sat
         )
         solve --kind sharp-sat --input "$input" --timeout "$timeout" --jobs "$jobs" \
             --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
