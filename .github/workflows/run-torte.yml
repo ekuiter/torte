@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Run torte
-      run: sudo ./torte.sh
+      run: sudo CI="$CI" ./torte.sh
       timeout-minutes: 30
     
     - name: Upload experiment results
