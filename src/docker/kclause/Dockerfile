@@ -1,12 +1,15 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
-# install (tested) dependencies of kmax
+# kmax and system (e.g., Linux) dependencies
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --allow-unauthenticated \
   git \
   python3-setuptools \
+  pipx \
   python3-dev \
   flex \
   bison \
+  bc \
   libssl-dev \
   libelf-dev \
   wget \
@@ -22,10 +25,6 @@ RUN git clone https://github.com/paulgazz/kmax.git \
   && git checkout bd3e73239c83ac04e4ea4e3ce12c872475490658 \
   && sed -i 's/z3-solver/z3-solver==4.11.2/' setup.py \
   && python3 setup.py install
-
-# install dependencies of analyzed projects
-RUN apt-get update && apt-get install -y --allow-unauthenticated \
-  build-essential
 
 # copy and set up
 # - kextractor (which is compiled against the projects' Kconfig implementations)
