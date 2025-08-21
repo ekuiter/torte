@@ -54,6 +54,20 @@ is-continuous-integration() {
     [[ -n "$CI" ]]
 }
 
+# detailed and readable logging in CI environments
+# we override this here once to avoid repeated checks for CI
+if is-continuous-integration; then
+    VERBOSE=y
+    
+    new-log(arguments...) {
+        echo -e "${arguments[*]}"
+    }
+
+    update-log(arguments...) {
+        echo -e "${arguments[*]}"
+    }
+fi
+
 # define default memory limit (in GiB) for running Docker containers and other tools (should be at least 2 GiB)
 if [[ -z $MEMORY_LIMIT ]]; then
     if is-macos; then
