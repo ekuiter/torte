@@ -66,7 +66,7 @@ Experiment files in torte are self-executing - so, you can just create or downlo
 
 The following instructions will get you started on a fresh system.
 By default, each of these instruction sets will install torte into the `torte` directory.
-All experiment data will then be stored in the directories `input` and `output` in your working directory.
+All experiment data will then be stored in the `stages` directory in your working directory.
 
 ### Ubuntu 22.04
 

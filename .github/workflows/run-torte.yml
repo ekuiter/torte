@@ -1,0 +1,27 @@
+name: Run torte
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  run-experiment:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Run torte
+      run: ./torte.sh
+      timeout-minutes: 30
+    
+    - name: Upload experiment results
+      uses: actions/upload-artifact@v4
+      with:
+        name: stages
+        path: |
+          stages/
+        retention-days: 7

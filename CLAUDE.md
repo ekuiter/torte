@@ -71,7 +71,7 @@ torte automatically numbers stages in execution order for easier navigation:
 ## Configuration
 
 ### Global Variables
-- `OUTPUT_DIRECTORY=output`: Where experiment results are stored
+- `STAGES_DIRECTORY=output`: Where experiment results are stored
 - `FORCE_RUN=`: Set to 'y' to force re-running completed stages
 - `VERBOSE=`: Set to 'y' for detailed console output
 - `TIMEOUT=`: Default timeout for operations
