@@ -69,8 +69,9 @@ if is-continuous-integration; then
     echo "$CI yes"
 else
     echo "$CI no"
+    env
 fi
-exit
+exit 1
 
 # define default memory limit (in GiB) for running Docker containers and other tools (should be at least 2 GiB)
 if [[ -z $MEMORY_LIMIT ]]; then
