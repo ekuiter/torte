@@ -144,6 +144,8 @@ You can also write your own experiments by adapting an existing experiment file.
   It can also be used to detect dead code with `./torte.sh detect-dead-code`.
   Note that profiling is enabled at compile time of torte. This means that successive or parallel calls of torte should be run with the same value of `PROFILE`.
   This can be ensured easily by running `export PROFILE=y` once before calling torte.
+- To remove all Docker artifacts created by torte, run `./torte.sh uninstall`.
+  Afterwards, remove the `torte` directory for full removal (as well as `stages` and the experiment file if the one-liner was used for setup).
 
 ## Supported Systems
 
@@ -206,7 +208,7 @@ For transparency, we document the changes we make to these tools and known limit
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | e27aea7 | 2023-04-11 | [^12] [^15] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
-| [paulgazz/kmax](https://github.com/paulgazz/kmax) (KClause) | 4.5.2 | 2023-12-20 | [^4] [^5] [^7] [^8] [^24] |
+| [paulgazz/kmax](https://github.com/paulgazz/kmax) (KClause) | 4.5.2 | 2025-08-21 | [^4] [^5] [^7] [^8] [^24] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 
 [^1]: Currently, non-Boolean variability (e.g., constraints on numerical features) is only partially supported (e.g., encoded naively into Boolean constraints).

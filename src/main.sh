@@ -43,7 +43,7 @@ command-help() {
     echo "  run                              runs the experiment"
     echo "  clean                            removes all output files for the experiment"
     echo "  stop                             stops the experiment"
-    echo "  reset                            removes all Docker containers and images"
+    echo "  uninstall                        removes all Docker containers and images"
     echo "  export                           prepares a reproduction package"
     echo "  run-remote [host]                runs the experiment on a remote server"
     echo "  copy-remote [host]               downloads results from the remote server"

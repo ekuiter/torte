@@ -13,7 +13,7 @@ torte is a declarative workbench for reproducible experiments in feature-model a
 - `./torte.sh <experiment>` - Run a specific experiment from the experiments/ directory
 - `./torte.sh clean` - Remove all output files for the experiment
 - `./torte.sh stop` - Stop the current experiment
-- `./torte.sh reset` - Remove all Docker containers and images
+- `./torte.sh uninstall` - Remove all Docker containers and images
 
 ### Remote Operations
 - `./torte.sh run-remote [host]` - Run experiment on remote server

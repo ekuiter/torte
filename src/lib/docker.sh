@@ -52,8 +52,14 @@ command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
     rm-safe "$EXPORT_DIRECTORY"
 }
 
-# removes all Docker containers and images, possibly run an additional "docker system prune" afterwards
-command-reset() {
+# removes all Docker containers and images
+command-uninstall() {
+    echo "This will remove ALL Docker containers and images related to $TOOL."
+    read -p "Are you sure? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        return
+    fi
     command-stop
     readarray -t containers < <(docker ps -a | tail -n+2 | awk '$2 ~ /^'"$TOOL"'_/ {print $1}')
     for container in $(containers); do
@@ -65,6 +71,7 @@ command-reset() {
     for image in $(dangling-images); do
         docker rmi -f "$image"
     done
+    echo "Success. Consider to run 'docker system prune' manually (which may remove artifacts unrelated to $TOOL)."
 }
 
 # start a web server for browsing output files
