@@ -28,6 +28,8 @@ torte can be used to
 all in a fully declarative and reproducible fashion backed by reusable Docker containers.
 This way, you can
 
+<img style="float: right;" align="right" width="20%" src="meta/reusable.png">
+
 - **draft experiments** for selected feature models first, then generalize them to a larger corpus later,
 - **execute experiments** on a remote machine without having to bother with technical setup,
 - **distribute fully-automated reproduction packages** when an experiment is ready for publication, and
