@@ -10,7 +10,6 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https:/
 SOLVE_TIMEOUT=1200 # timeout for SAT solvers in seconds (rarely needed)
 ITERATIONS=5 # number of iterations for extraction and transformation
 SOLVE_ITERATIONS=3 # number of iterations for SAT solving
-LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
 
 experiment-systems() {
     add-linux-system

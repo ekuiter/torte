@@ -58,6 +58,18 @@ load-experiment(experiment_file=default) {
         fi
     fi
     source-script "$SRC_EXPERIMENT_FILE"
+    
+    # override experiment-systems with experiment-test-systems if TEST is enabled
+    if [[ -n $TEST ]]; then
+        if declare -f experiment-test-systems > /dev/null; then
+            experiment-systems() {
+                experiment-test-systems
+            }
+        else
+            echo "Test mode is enabled, but no test systems are defined in $experiment_file. Skipping tests."
+            exit
+        fi
+    fi
 }
 
 # lists all stages with their numbers in a user-friendly table format

@@ -144,6 +144,8 @@ You can also write your own experiments by adapting an existing experiment file.
   It can also be used to detect dead code with `./torte.sh detect-dead-code`.
   Note that profiling is enabled at compile time of torte. This means that successive or parallel calls of torte should be run with the same value of `PROFILE`.
   This can be ensured easily by running `export PROFILE=y` once before calling torte.
+- Run `TEST=y ./torte.sh <experiment-file>` to execute experiments in test mode (i.e., with a smaller selection of systems).
+  This test mode reduces execution time while maintaining experiment structure and validating toolchain functionality.
 - To remove all Docker artifacts created by torte, run `./torte.sh uninstall`.
   Afterwards, remove the `torte` directory for full removal (as well as `stages` and the experiment file if the one-liner was used for setup).
 

@@ -27,8 +27,6 @@ SOLVE_TIMEOUT=3600 # timeout in seconds
 SOLVE_JOBS=4 # number of parallel jobs to run, should not exceed number of attempts
 SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and moving on
 
-LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
-
 add-payload-file evaluation.ipynb
 
 experiment-systems() {
