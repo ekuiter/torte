@@ -10,11 +10,6 @@ experiment-systems() {
     add-linux-kconfig-sample --interval "$(interval weekly)"
 }
 
-experiment-test-systems() {
-    # test with just the latest Linux version for speed
-    add-linux-kconfig-history --from v6.12 --to v6.12 --architecture x86_64
-}
-
 experiment-stages() {
     clone-systems
     read-statistics skip-sloc

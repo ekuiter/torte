@@ -103,7 +103,6 @@ run(image=util, input=, output=, command...) {
 
             cmd+=(-e INSIDE_STAGE="$output")
             cmd+=(-e PROFILE)
-            cmd+=(-e TEST)
             cmd+=(-e CI)
             cmd+=(-e PASS) # todo: possibly eliminate this?
             cmd+=(--rm)
@@ -291,6 +290,7 @@ plot(stage, type, fields, arguments...) {
 
 # convenience functions for defining commonly used stages
 # we do not define these directly here to not shadow functions defined elsewhere (as these stages are only needed in the host environment)
+# shellcheck disable=SC2329
 define-stage-helpers() {
     # clone the systems specified in the experiment file
     clone-systems() {

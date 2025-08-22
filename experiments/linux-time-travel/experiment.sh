@@ -10,6 +10,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https:/
 SOLVE_TIMEOUT=1200 # timeout for SAT solvers in seconds (rarely needed)
 ITERATIONS=5 # number of iterations for extraction and transformation
 SOLVE_ITERATIONS=3 # number of iterations for SAT solving
+LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
 
 experiment-systems() {
     add-linux-system
@@ -24,12 +25,6 @@ experiment-systems() {
         "$(echo "v2.5.53 v2.6.0 v2.6.10 v2.6.14 v2.6.19 v2.6.23 v2.6.28" \
                 "v2.6.32 v2.6.36 v3.1 v3.7 v3.12 v3.18 v4.3 v4.9 v4.14 v4.20" \
                 "v5.4 v5.10 v5.15 v6.1 v6.6 v6.12" | tr ' ' '\n')" --architecture arm
-}
-
-experiment-test-systems() {
-    # test with just the latest Linux version for speed
-    add-linux-system
-    add-linux-kconfig-revisions --revisions "$(echo "v6.12" | tr ' ' '\n')" --architecture x86_64
 }
 
 experiment-stages() {

@@ -76,7 +76,6 @@ torte automatically numbers stages in execution order for easier navigation:
 - `VERBOSE=`: Set to 'y' for detailed console output
 - `TIMEOUT=`: Default timeout for operations
 - `JOBS=`: Number of parallel jobs for analysis
-- `TEST=`: Set to 'y' to run lightweight test systems for fast CI execution
 
 ### Docker Configuration
 - `MEMORY_LIMIT=`: Automatically determined if unset

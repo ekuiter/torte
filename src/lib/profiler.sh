@@ -1,7 +1,7 @@
 #!/bin/bash
 # a small profiler for Bash functions, tracking call counts and execution times, which can be used to make flame graphs
 
-# record the stack trace and duration of a function call, called by preprocessor.sh
+# record the tech trace and duration of a function call, called by preprocessor.sh
 # __NO_PROFILE__ is a special flag to indicate that profiling is disabled to avoid the profiler recursively calling itself
 # some functions are inlined here for the same reason
 record-function-call(__NO_PROFILE__, function_name, stack_trace, duration_us) {

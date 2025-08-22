@@ -23,10 +23,7 @@ VERBOSE=${VERBOSE:-} # y if console output should be verbose
 DEBUG=${DEBUG:-} # y for debugging stages interactively
 LINUX_CLONE_MODE=${LINUX_CLONE_MODE:-fork} # clone mode for Linux repository, can be either fork, original, or filter
 MEMORY_LIMIT=${MEMORY_LIMIT:-} # if unset, this is automatically determined in helper/platform.sh
-
-# global configuration options that cannot be overridden in experiment files, but only with environment variables
 PROFILE=${PROFILE:-} # y to enable function profiling
-TEST=${TEST:-} # y to run experiment for test systems only
 
 # print banner image (if on host and not already done)
 if [[ -z $INSIDE_STAGE ]] && [[ -z $TORTE_BANNER_PRINTED ]]; then

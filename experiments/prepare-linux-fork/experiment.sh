@@ -10,6 +10,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # 1) When very recent revisions should be analyzed (which the repository may not include yet).
 # 2) When the original commit hashes are needed for a specific experiment (as they are rewritten). This restriction does not apply to tags, which are preserved.
 
+TIMEOUT=10
 LINUX_CLONE_MODE=filter
 
 experiment-systems() {
@@ -19,5 +20,4 @@ experiment-systems() {
 experiment-stages() {
     clone-systems
     tag-linux-revisions
-    # todo: push fork
 }
