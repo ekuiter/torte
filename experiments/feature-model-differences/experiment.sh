@@ -43,7 +43,7 @@ copy-models() {
         local original_revision
         revision=$(basename "$f" .model | cut -d'[' -f1)
         original_revision=$(basename "$f" .model | cut -d'[' -f2 | cut -d']' -f1)
-        cp "$f" "models/$(date -d "@$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$original_revision.model"
+        cp "$f" "models/$(date -d "@$(grep -E "^$revision," < read-statistics/"$OUTPUT_FILE_PREFIX".csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$original_revision.model"
     done
     # shellcheck disable=SC2207,SC2012
     f=($(ls models/*.model | sort -V | tr '\n' ' '))

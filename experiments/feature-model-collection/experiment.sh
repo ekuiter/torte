@@ -70,8 +70,8 @@ clean-up() {
     
     # Clean up output files from all numbered stage directories
     rm-safe \
-        "$STAGE_DIRECTORY"/*/*_output*.csv \
-        "$STAGE_DIRECTORY"/*/*output.*.csv \
+        "$STAGE_DIRECTORY"/*/*_"$OUTPUT_FILE_PREFIX"*.csv \
+        "$STAGE_DIRECTORY"/*/*"$OUTPUT_FILE_PREFIX".*.csv \
         "$STAGE_DIRECTORY"/*/*.log \
         "$STAGE_DIRECTORY"/*/*.err
     

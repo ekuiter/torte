@@ -23,6 +23,6 @@ copy-models() {
     for f in extract-kconfig-models-with-kclause/linux/*.model; do
         local revision
         revision=$(echo "$f" | cut -d/ -f3 | cut -d'[' -f1)
-        cp "$f" "models/$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f3).model"
+        cp "$f" "models/$(grep -E "^$revision," < read-statistics/"$OUTPUT_FILE_PREFIX".csv | cut -d, -f3).model"
     done
 }

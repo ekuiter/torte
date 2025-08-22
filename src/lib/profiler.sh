@@ -75,13 +75,14 @@ convert-to-speedscope() {
 }
 
 # save a speedscope-compatible collapsed stack format for inspection in the browser
-save-speedscope(file=output.prf) {
+save-speedscope(file=) {
+    file=${file:-$(stage-path "$EXPERIMENT_STAGE" "$OUTPUT_FILE_PREFIX.speedscope")}
     combine-stage-profiles | convert-to-speedscope > "$file"
 }
 
 # open the profiling data with speedscope in the browser
 # alternatively use https://www.speedscope.app/ manually
-open-speedscope(file=output.speedscope) {
+open-speedscope(file=) {
     assert-command npm
     npm install -g speedscope
     save-speedscope "$file"

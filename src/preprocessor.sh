@@ -1,7 +1,7 @@
 #!/bin/bash
 # a small magical preprocessor for Bash scripts that allows more succinct function definitions
 # e.g., the syntax fn(a, b, c=3) { echo $a $b $c; } does not usually work in Bash, but this preprocessor makes it work
-# depends some primitives defined in lib/helper (assert-host and log)
+# depends on some primitives defined in lib/helper (assert-host and log)
 # preprocessed scripts should lie in the same directory tree as this script
 
 # the location of this script

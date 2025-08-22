@@ -93,7 +93,7 @@ list-stages() {
                 else
                     size=""
                 fi
-                local csv_file="$numbered_stage/output.csv"
+                local csv_file="$numbered_stage/$OUTPUT_FILE_PREFIX.csv"
                 if [[ -f "$csv_file" ]]; then
                     csv_entries=$(( $(wc -l < "$csv_file" 2>/dev/null || echo "0") - 1 ))
                     [[ $csv_entries -lt 0 ]] && csv_entries=0

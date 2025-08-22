@@ -28,13 +28,13 @@ copy-models() {
         local revision
         local original_revision
         revision=$(basename "$f" .dimacs)
-        cp "$f" "dimacs_clean/releases/$(date -d "@$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$revision.dimacs"
+        cp "$f" "dimacs_clean/releases/$(date -d "@$(grep -E "^$revision," < read-statistics/"$OUTPUT_FILE_PREFIX".csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$revision.dimacs"
     done
     for f in transform-model-to-dimacs-with-featureide/busybox-models/*.dimacs; do
         local revision
         local original_revision
         revision=$(basename "$f" .dimacs | cut -d'[' -f1)
         original_revision=$(basename "$f" .dimacs | cut -d'[' -f2 | cut -d']' -f1)
-        cp "$f" "dimacs_clean/commits/$(date -d "@$(grep -E "^$revision," < read-statistics/output.csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$original_revision.dimacs"
+        cp "$f" "dimacs_clean/commits/$(date -d "@$(grep -E "^$revision," < read-statistics/"$OUTPUT_FILE_PREFIX".csv | cut -d, -f4)" +"%Y%m%d%H%M%S")-$original_revision.dimacs"
     done
 }
