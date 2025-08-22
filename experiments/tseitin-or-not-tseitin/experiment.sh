@@ -27,6 +27,11 @@ experiment-systems() {
     add-uclibc-ng-kconfig-history --from v1.0.40 --to v1.0.41
 }
 
+experiment-test-systems() {
+    # test with just BusyBox for speed
+    add-busybox-kconfig-history --from 1_35_1 --to 1_35_1
+}
+
 experiment-stages() {
     # extract
     clone-systems

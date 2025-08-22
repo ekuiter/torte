@@ -11,6 +11,10 @@ experiment-systems() {
     add-busybox-kconfig-history-full
 }
 
+experiment-test-systems() {
+    add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
+}
+
 experiment-stages() {
     clone-systems
     generate-busybox-models

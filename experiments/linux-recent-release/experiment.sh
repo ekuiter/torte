@@ -10,6 +10,11 @@ experiment-systems() {
     add-linux-kconfig-history --from v6.7 --to v6.8 --architecture x86
 }
 
+experiment-test-systems() {
+    # test with just the latest version and x86_64 architecture for speed
+    add-linux-kconfig-history --from v6.8 --to v6.8 --architecture x86_64
+}
+
 experiment-stages() {
     # extract
     clone-systems

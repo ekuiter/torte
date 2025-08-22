@@ -23,6 +23,11 @@ experiment-systems() {
     fi
 }
 
+experiment-test-systems() {
+    # test with just the latest BusyBox for speed
+    add-busybox-kconfig-history --from 1_36_1 --to 1_36_1
+}
+
 experiment-stages() {
     clone-systems
     if [[ $PASS -eq 2 ]]; then

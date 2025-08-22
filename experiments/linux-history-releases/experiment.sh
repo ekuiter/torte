@@ -27,13 +27,15 @@ SOLVE_TIMEOUT=3600 # timeout in seconds
 SOLVE_JOBS=4 # number of parallel jobs to run, should not exceed number of attempts
 SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and moving on
 
-LINUX_CLONE_MODE=original # uncomment to include revisions >= v6.11 (requires case-insensitive file system)
-
 add-payload-file evaluation.ipynb
 
 experiment-systems() {
     # analyze all revisions and architectures of the Linux kernel
     add-linux-kconfig-history --from v2.5.45 --to v6.12 --architecture all
+}
+
+experiment-test-systems() {
+    add-linux-kconfig-history --from v6.11 --to v6.12 --architecture x86
 }
 
 experiment-stages() {

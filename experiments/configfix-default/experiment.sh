@@ -21,6 +21,11 @@ experiment-systems() {
     #add-busybox-kconfig-history-full
 }
 
+experiment-test-systems() {
+    # test with just the latest version and x86_64 architecture for speed
+    add-linux-kconfig-history --from v6.8 --to v6.8 --architecture x86_64
+}
+
 experiment-stages() {
     clone-systems
     read-statistics

@@ -34,6 +34,11 @@ experiment-systems() {
     add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40
 }
 
+experiment-test-systems() {
+    # test with just the latest BusyBox for speed
+    add-busybox-kconfig-history --from 1_36_0 --to 1_36_0
+}
+
 experiment-stages() {
     # clone repositories and read committer dates
     clone-systems

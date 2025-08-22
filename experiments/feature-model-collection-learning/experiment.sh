@@ -14,6 +14,11 @@ experiment-systems() {
     add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.48
 }
 
+experiment-test-systems() {
+    # test with just the latest version of one system
+    add-axtls-kconfig-history --from release-2.0.1 --to release-2.0.1
+}
+
 experiment-stages() {
     clone-systems
     read-statistics skip-sloc

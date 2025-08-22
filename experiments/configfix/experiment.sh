@@ -22,6 +22,11 @@ experiment-systems() {
     add-uclibc-ng-kconfig-history
 }
 
+experiment-test-systems() {
+    # test with just one system for speed - BusyBox as reliable fallback
+    add-busybox-kconfig-history --from 1_36_1 --to 1_36_1
+}
+
 experiment-stages() {
     clone-systems
     read-toybox-configs
