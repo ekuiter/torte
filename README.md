@@ -7,7 +7,7 @@
 [<img src="meta/profile.png" width="24%">](meta/profile.png)
 [<img src="meta/satgraf.jpg" width="24%">](meta/satgraf.jpg)
 
-<img style="float: right;" align="right" width="23%" src="meta/torte.png">
+<img style="float: right;" align="right" width="20%" src="meta/torte.png">
 
 Why **torte**?
 Take your pick:
