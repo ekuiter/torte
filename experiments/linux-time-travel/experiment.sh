@@ -11,6 +11,12 @@ SOLVE_TIMEOUT=1200 # timeout for SAT solvers in seconds (rarely needed)
 ITERATIONS=5 # number of iterations for extraction and transformation
 SOLVE_ITERATIONS=3 # number of iterations for SAT solving
 
+if is-testing; then
+    SOLVE_TIMEOUT=10
+    ITERATIONS=2
+    SOLVE_ITERATIONS=2
+fi
+
 experiment-systems() {
     add-linux-system
     # choose the last revision of Linux for each year from 2002-2024,
@@ -24,6 +30,11 @@ experiment-systems() {
         "$(echo "v2.5.53 v2.6.0 v2.6.10 v2.6.14 v2.6.19 v2.6.23 v2.6.28" \
                 "v2.6.32 v2.6.36 v3.1 v3.7 v3.12 v3.18 v4.3 v4.9 v4.14 v4.20" \
                 "v5.4 v5.10 v5.15 v6.1 v6.6 v6.12" | tr ' ' '\n')" --architecture arm
+}
+
+experiment-test-systems() {
+    add-linux-system
+    add-linux-kconfig-revisions --revisions v6.12 --architecture x86
 }
 
 experiment-stages() {

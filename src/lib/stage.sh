@@ -127,7 +127,6 @@ run(image=util, input=, output=, command...) {
             mv "$(stage-directory "$output")/$CACHE_DIRECTORY" "$STAGE_DIRECTORY/$CACHE_DIRECTORY"
             rm-if-empty "$(stage-log "$output")"
             rm-if-empty "$(stage-err "$output")"
-            find "$(stage-directory "$output")" -mindepth 1 -type d -empty -delete
             touch "$(stage-done-file "$output")"
             if [[ $output == "$TRANSIENT_STAGE" ]]; then
                 clean "$output"
@@ -208,12 +207,12 @@ iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=,
         local stages=()
         local i
         for i in $(seq "$iterations"); do
-            local current_stage="${output}_$i"
+            local current_stage="${output}-$i"
             stages+=("$current_stage")
             run "$image" "$input" "$current_stage" "${command[@]}"
         done
-        if [[ ! -f "$(stage-csv "${output}_1")" ]]; then
-            error "Required output CSV for stage ${output}_1 is missing, please re-run stage ${output}_1."
+        if [[ ! -f "$(stage-csv "${output}-1")" ]]; then
+            error "Required output CSV for stage ${output}-1 is missing, please re-run stage ${output}-1."
         fi
         aggregate "$output" "$file_fields" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "" "${stages[@]}"
     fi

@@ -27,6 +27,10 @@ SOLVE_TIMEOUT=3600 # timeout in seconds
 SOLVE_JOBS=4 # number of parallel jobs to run, should not exceed number of attempts
 SOLVE_ATTEMPTS=4 # how many successive timeouts are allowed before giving up and moving on
 
+if is-testing; then
+    SOLVE_TIMEOUT=10
+fi
+
 add-payload-file evaluation.ipynb
 
 experiment-systems() {
