@@ -34,6 +34,10 @@ experiment-systems() {
     add-linux-kconfig-history --from v2.5.45 --to v6.12 --architecture all
 }
 
+experiment-test-systems() {
+    add-linux-kconfig-history --from v6.11 --to v6.12 --architecture x86
+}
+
 experiment-stages() {
     # extract
     clone-systems
@@ -77,8 +81,8 @@ experiment-stages() {
         mcc-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
     join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 
-    # evaluate
-    run-jupyter-notebook --payload-file evaluation.ipynb
+    # todo: evaluate
+    # run-jupyter-notebook --payload-file evaluation.ipynb
 }
 
 # additional useful statistics on the mainline kernel, takes a while to run

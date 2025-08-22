@@ -62,3 +62,8 @@ fi
 memory-limit(further_limit=0) {
     echo "$((MEMORY_LIMIT-further_limit))"
 }
+
+# returns whether we are in a testing environment
+is-testing() {
+    [[ -n $TEST ]]
+}
