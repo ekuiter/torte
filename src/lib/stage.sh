@@ -358,8 +358,8 @@ define-stage-helpers() {
     }
 
     # read basic statistics for each system
-    read-statistics(option=) {
-        run --output read-statistics --command read-statistics "$option"
+    read-statistics(input=, option=) {
+        run --input "$input" --output read-statistics --command read-statistics "$option"
     }
 
     # generate repository with full history of BusyBox feature model
@@ -368,27 +368,30 @@ define-stage-helpers() {
     }
 
     # extracts kconfig models with the given extractor
-    extract-kconfig-models-with(extractor, output=, iterations=1, iteration_field=iteration, file_fields=) {
+    extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=iteration, file_fields=) {
         output="${output:-extract-kconfig-models-with-$extractor}"
         iterate \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
             --image "$extractor" \
+            --input "$input" \
             --output "$output" \
             --command "extract-kconfig-models-with-$extractor"
     }
 
     # extracts kconfig models with kconfigreader and kclause
-    extract-kconfig-models(output=extract-kconfig-models, iterations=1, iteration_field=iteration, file_fields=) {
+    extract-kconfig-models(input=, output=extract-kconfig-models, iterations=1, iteration_field=iteration, file_fields=) {
         extract-kconfig-models-with \
             --extractor kconfigreader \
+            --input "$input" \
             --output extract-kconfig-models-with-kconfigreader \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields"
         extract-kconfig-models-with \
             --extractor kclause \
+            --input "$input" \
             --output extract-kconfig-models-with-kclause \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \

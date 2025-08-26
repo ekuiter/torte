@@ -7,18 +7,23 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # Extraction of all feature models of BusyBox (for every commit that touches the feature model)
 
 experiment-systems() {
-    add-busybox-kconfig-history --from 1_3_0 --to 1_36_1
+    # add-busybox-kconfig-history --from 1_00 --to 1_36_1
     add-busybox-kconfig-history-full
+}
+
+experiment-test-systems() {
+    add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
 }
 
 experiment-stages() {
     clone-systems
     generate-busybox-models
-    read-statistics
-    extract-kconfig-models-with --extractor kclause
-    join-into read-statistics kconfig
-    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl --timeout "$TIMEOUT"
-    transform-model-to-dimacs --timeout "$TIMEOUT"
+    # read-statistics --input generate-busybox-models
+    extract-kconfig-models-with --extractor kclause --input generate-busybox-models --output extract-kconfig-models
+    # extract-kconfig-models-with --extractor kclause
+    join-into read-statistics extract-kconfig-models
+    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl
+    transform-model-to-dimacs
 }
 
 # can be executed from output directory to copy and rename model files

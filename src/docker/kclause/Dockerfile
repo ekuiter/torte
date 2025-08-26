@@ -33,5 +33,5 @@ COPY *.sh *.py kextractor.c ./
 RUN git config --global --add safe.directory '*' \
     && git config --global user.email "anon@example.com" \
     && git config --global user.name "anon" \
-    && git config --global init.defaultBranch mean
+    && git config --global init.defaultBranch main
 RUN chmod +x *.sh

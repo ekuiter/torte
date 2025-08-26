@@ -9,6 +9,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # There are only two reasons to avoid using this repository:
 # 1) When very recent revisions should be analyzed (which the repository may not include yet).
 # 2) When the original commit hashes are needed for a specific experiment (as they are rewritten). This restriction does not apply to tags, which are preserved.
+# For successful execution, this experiment has to be run on a case-sensitive file system.
 
 LINUX_CLONE_MODE=filter
 
@@ -19,4 +20,10 @@ experiment-systems() {
 experiment-stages() {
     clone-systems
     tag-linux-revisions
+
+    # then execute manually:
+    # cd stages/1_clone_systems/linux
+    # git remote add origin git@github.com:ekuiter/linux.git
+    # git push origin master
+    # git push origin --tags
 }

@@ -4,7 +4,7 @@
 # remove (un-)staged changes and untracked files
 git-clean(directory=.) {
     rm-safe "$directory/.git/index.lock"
-    git -C "$directory" reset -q --hard >/dev/null
+    git -C "$directory" reset -q --hard > /dev/null
     git -C "$directory" clean -q -dfx > /dev/null
 }
 
@@ -12,7 +12,7 @@ git-clean(directory=.) {
 git-checkout(revision, directory=.) {
     echo "Checking out $revision in $directory"
     git-clean "$directory"
-    git -C "$directory" checkout -q -f "$revision" > /dev/null
+    git -C "$directory" checkout -f "$revision"
 }
 
 # list all tag revisions in version order

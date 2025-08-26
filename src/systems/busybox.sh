@@ -1,5 +1,21 @@
 #!/bin/bash
 
+find-busybox-kconfig-file(revision) {
+    if git -C "$(input-directory)/busybox" cat-file -e "$revision:Config.in" 2>/dev/null; then
+        echo Config.in
+    else
+        echo sysdeps/linux/Config.in
+    fi
+}
+
+find-busybox-kconfig-binding-files(revision) {
+    if git -C "$(input-directory)/busybox" cat-file -e "$revision:scripts/kconfig" 2>/dev/null; then
+        echo 'scripts/kconfig/*.o'
+    else
+        echo 'scripts/config/*.o'
+    fi
+}
+
 add-busybox-kconfig-history(from=, to=) {
     add-system --system busybox --url https://github.com/mirror/busybox
     for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision "$from" | stop-at-revision "$to"); do
@@ -7,8 +23,8 @@ add-busybox-kconfig-history(from=, to=) {
         add-kconfig \
             --system busybox \
             --revision "$revision" \
-            --kconfig_file Config.in \
-            --kconfig-binding-files scripts/kconfig/*.o
+            --kconfig-file "$(find-busybox-kconfig-file "$revision")" \
+            --kconfig-binding-files "$(find-busybox-kconfig-binding-files "$revision")"
     done
 }
 
@@ -22,8 +38,8 @@ add-busybox-kconfig-history-full() {
             add-kconfig \
                 --system busybox \
                 --revision "${revision}[$original_revision]" \
-                --kconfig_file Config.in \
-                --kconfig-binding-files scripts/kconfig/*.o
+                --kconfig-file "$(find-busybox-kconfig-file "$revision")" \
+                --kconfig-binding-files "$(find-busybox-kconfig-binding-files "$revision")"
         done
     fi
 }
@@ -41,7 +57,7 @@ generate-busybox-models() {
         local output_directory
         output_directory="$(output-directory)/busybox"
         mkdir -p "$output_directory"
-        git -C "$output_directory" init -q
+        git -C "$output_directory" init -b master -q
         echo "*.log" >> "$output_directory/.gitignore"
         echo "*.err" >> "$output_directory/.gitignore"
         touch "$output_directory/.generate_busybox_models"

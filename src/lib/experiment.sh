@@ -216,3 +216,9 @@ command-install-remote(host, image, directory=.) {
     docker save "${TOOL}_$image" | gzip -c | ssh "$host" "cat > $directory/$image.tar.gz"
     ssh "$host" docker load -i "$directory/$image.tar.gz"
 }
+
+# tests all experiments that can be tested
+# to make sure each experiment is run in a new context, we explicitly run torte in a subprocess
+command-test() {
+    :
+}

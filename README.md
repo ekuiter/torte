@@ -165,7 +165,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | - | - | - |
 | [axtls](scripts/systems/axtls.sh) | 1.0.0 - 2.0.0 | |
 | [buildroot](scripts/systems/buildroot.sh) | 2009.02 - 2024.05 | |
-| [busybox](scripts/systems/busybox.sh) | 1.3.0 - 1.36.0 | [^27] |
+| [busybox](scripts/systems/busybox.sh) | 1.0 - 1.36.0 | [^27] [^34] |
 | [embtoolkit](scripts/systems/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
 | [fiasco](scripts/systems/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
 | [freetz-ng](scripts/systems/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
@@ -192,6 +192,8 @@ This does not affect typical use cases that involve tag and branch identifiers.
 [^23]: This system does not regularly release tagged revisions, so only a single revision has been tested.
 
 [^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we use Git to detect changes in any KConfig files to identify relevant commits). We solve this problem by iterating over all commits to generate all KConfig files, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model. (This is only relevant for experiments that operate on the entire history of BusyBox instead of specific revisions.)
+
+[^34]: Feature-model extraction for BusyBox should only be attempted starting with version 1.0, where the root KConfig file is named `sysdeps/linux/Config.in`. In older versions this file is named `sysdeps/linux/config.in` (and written in CML1 instead of KConfig). If torte is run for earlier versions than 1.0, it will crash on macOS due to the different casing in both filenames and macOS having a case-insensitive file system by default. Fixing this would require a Git history rewrite, which comes with its own issues. As extraction of earlier versions is not supported anyway (due to CML1 being used), it should not be attempted to avoid this crash cause.
 
 ## Bundled Tools
 

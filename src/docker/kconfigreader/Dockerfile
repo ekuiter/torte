@@ -55,7 +55,7 @@ COPY dumpconf.c ./
 RUN git config --global --add safe.directory '*' \
     && git config --global user.email "anon@example.com" \
     && git config --global user.name "anon" \
-    && git config --global init.defaultBranch mean
+    && git config --global init.defaultBranch main
 
 # increase memory limit and disable assertions
 RUN sed -i 's/java/mem=$1; shift; java/' kconfigreader/run.sh
