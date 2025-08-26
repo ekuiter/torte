@@ -14,51 +14,68 @@ add-busybox-kconfig-history(from=, to=) {
 
 add-busybox-kconfig-history-full() {
     add-system --system busybox --url https://github.com/mirror/busybox
-    for revision in $(git -C "$(input-directory)/busybox-models" log master --format="%h" | tac); do
-        local original_revision
-        original_revision=$(git -C "$(input-directory)/busybox-models" rev-list --max-count=1 --format=%B "$revision" | sed '/^commit [0-9a-f]\{40\}$/d')
-        add-revision --system busybox-models --revision "${revision}[$original_revision]"
-        add-kconfig \
-            --system busybox-models \
-            --revision "${revision}[$original_revision]" \
-            --kconfig_file Config.in \
-            --kconfig-binding-files scripts/kconfig/*.o
-    done
+    if [[ -f "$(input-directory)/busybox/.generate_busybox_models" ]]; then
+        for revision in $(git -C "$(input-directory)/busybox" log master --format="%h" --reverse); do
+            local original_revision
+            original_revision=$(git -C "$(input-directory)/busybox" rev-list --max-count=1 --format=%B "$revision" | sed '/^commit [0-9a-f]\{40\}$/d')
+            add-revision --system busybox --revision "${revision}[$original_revision]"
+            add-kconfig \
+                --system busybox \
+                --revision "${revision}[$original_revision]" \
+                --kconfig_file Config.in \
+                --kconfig-binding-files scripts/kconfig/*.o
+        done
+    fi
 }
 
+# in BusyBox, the feature model is encoded with C comments in the source code, for which KConfig files have to be generated explicitly
+# this command creates a new Git repository with these KConfig files
+# each revision of the generated repository corresponds to an original revision that changed the feature model
+# if you need the original commit hashes, please use add-busybox-kconfig-history (which it does not allow analyzing the full history, though)
 generate-busybox-models() {
-    git-checkout master "$(input-directory)/busybox" > /dev/null
-    git -C "$(output-directory)" init -q
-    echo "*.log" >> "$(output-directory)/.gitignore"
-    echo "*.err" >> "$(output-directory)/.gitignore"
-    local i n
-    i=0
-    n=$(git -C "$(input-directory)/busybox" log --format="%h" | wc -l)
-    git -C "$(input-directory)/busybox" log --format="%h" | tac | while read -r revision; do
-        ((i+=1))
-        local timestamp
-        timestamp=$(git-timestamp busybox "$revision")
-        local dir
-        dir=$(output-directory)
-        rm -rf "${dir:?}/*"
-        git-checkout "$revision" "$(input-directory)/busybox" > /dev/null
-        if [[ -f "$(input-directory)/busybox/scripts/gen_build_files.sh" ]]; then
-            chmod +x "$(input-directory)/busybox/scripts/gen_build_files.sh"
-            make -C "$(input-directory)/busybox" gen_build_files >/dev/null 2>&1 || true
-        fi
-        (cd "$(input-directory)/busybox" || exit; find . -type f -name "*Config.in" -exec cp --parents {} "$(output-directory)" \;)
-        mkdir -p "$(output-directory)/scripts/"
-        cp -R "$(input-directory)/busybox/scripts/"* "$(output-directory)/scripts/" 2>/dev/null || true
-        cp "$(input-directory)/busybox/Makefile"* "$(output-directory)" 2>/dev/null || true
-        cp "$(input-directory)/busybox/Rules.mak" "$(output-directory)" 2>/dev/null || true
-        git -C "$(output-directory)" add -A
-        if [[ $i -eq 1 ]] || ! git -C "$(output-directory)" diff --staged --exit-code '*Config.in' >/dev/null 2>&1; then
-            log "[$i/$n] $revision"
-            log "" "$(echo-progress gen)"
-            GIT_COMMITTER_DATE=$timestamp git -C "$(output-directory)" commit -q -m "$revision" --date "$timestamp" >/dev/null || true
-            log "" "$(echo-done)"
-        fi
-    done
+    if [[ $BUSYBOX_GENERATE_MODE == fork ]]; then
+        local url=https://github.com/ekuiter/busybox
+        git clone "$url" "$(output-directory)/busybox"
+    elif [[ $BUSYBOX_GENERATE_MODE == generate ]]; then
+        git-checkout master "$(input-directory)/busybox" > /dev/null
+        local output_directory
+        output_directory="$(output-directory)/busybox"
+        mkdir -p "$output_directory"
+        git -C "$output_directory" init -q
+        echo "*.log" >> "$output_directory/.gitignore"
+        echo "*.err" >> "$output_directory/.gitignore"
+        touch "$output_directory/.generate_busybox_models"
+        local i n
+        i=0
+        n=$(git -C "$(input-directory)/busybox" log --format="%h" | wc -l)
+        git -C "$(input-directory)/busybox" log --format="%h" | tac | while read -r revision; do
+            ((i+=1))
+            local timestamp
+            timestamp=$(git-timestamp busybox "$revision")
+            local dir
+            dir="$output_directory"
+            rm -rf "${dir:?}/*"
+            git-checkout "$revision" "$(input-directory)/busybox" > /dev/null
+            if [[ -f "$(input-directory)/busybox/scripts/gen_build_files.sh" ]]; then
+                chmod +x "$(input-directory)/busybox/scripts/gen_build_files.sh"
+                make -C "$(input-directory)/busybox" gen_build_files >/dev/null 2>&1 || true
+            fi
+            (cd "$(input-directory)/busybox" || exit; find . -type f -name "*Config.in" -exec cp --parents {} "$output_directory" \;)
+            mkdir -p "$output_directory/scripts/"
+            cp -R "$(input-directory)/busybox/scripts/"* "$output_directory/scripts/" 2>/dev/null || true
+            cp "$(input-directory)/busybox/Makefile"* "$output_directory" 2>/dev/null || true
+            cp "$(input-directory)/busybox/Rules.mak" "$output_directory" 2>/dev/null || true
+            git -C "$output_directory" add -A
+            if [[ $i -eq 1 ]] || ! git -C "$output_directory" diff --staged --exit-code '*Config.in' >/dev/null 2>&1; then
+                log "[$i/$n] $revision"
+                log "" "$(echo-progress gen)"
+                GIT_COMMITTER_DATE=$timestamp git -C "$output_directory" commit -q -m "$revision" --date "$timestamp" >/dev/null || true
+                log "" "$(echo-done)"
+            fi
+        done
+    else
+        error "Unknown BusyBox generate mode: $BUSYBOX_GENERATE_MODE"
+    fi
 }
 
 read-busybox-configs() {

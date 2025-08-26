@@ -8,6 +8,7 @@ set -e # exit on error
 # global constants, should not be overridden
 TOOL=torte # tool name, used as prefix for naming Docker images and containers
 EXPERIMENT_STAGE=experiment # name for the stage directory containing the experiment and logs
+ROOT_STAGE=clone-systems # name for the root stage directory that has itself as input
 SRC_DIRECTORY=$(dirname "$0") # scripts directory
 TOOL_DIRECTORY=$SRC_DIRECTORY/.. # tool directory
 DOCKER_DIRECTORY=$SRC_DIRECTORY/docker # path to Docker files
@@ -22,6 +23,7 @@ FORCE_BUILD=${FORCE_BUILD:-} # y if Docker images should be built without cache
 VERBOSE=${VERBOSE:-} # y if console output should be verbose
 DEBUG=${DEBUG:-} # y for debugging stages interactively
 LINUX_CLONE_MODE=${LINUX_CLONE_MODE:-fork} # clone mode for Linux repository, can be either fork, original, or filter
+BUSYBOX_GENERATE_MODE=${BUSYBOX_GENERATE_MODE:-fork} # mode for BusyBox full history generation, can be either fork or generate
 MEMORY_LIMIT=${MEMORY_LIMIT:-} # if unset, this is automatically determined in helper/platform.sh
 
 # global configuration options that cannot be overridden in experiment files, but only with environment variables

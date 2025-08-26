@@ -20,7 +20,7 @@ post-clone-hook-linux(system, revision) {
     if [[ $system == linux ]]; then
         # we need to purge a few files from the git history, which cannot be checked out on case-insensitive file systems. this changes all commit hashes.
         # if you need the original commit hashes, please use LINUX_CLONE_MODE=original
-        git -C "$(output-directory)/linux" filter-repo --force --invert-paths \
+        git -C "$(input-directory)/linux" filter-repo --force --invert-paths \
             --path include/uapi/linux/netfilter/xt_CONNMARK.h \
             --path include/uapi/linux/netfilter/xt_connmark.h \
             --path include/uapi/linux/netfilter/xt_DSCP.h \

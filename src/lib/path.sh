@@ -98,7 +98,12 @@ stage-directory(stage) {
 input-directory(key=) {
     key=${key:-$MAIN_INPUT_KEY}
     assert-container
-    echo "$DOCKER_INPUT_DIRECTORY/$key"
+    # for the very first stage, the input and output directory are the same
+    if [[ $INSIDE_STAGE == "$ROOT_STAGE" ]]; then
+        echo "$DOCKER_OUTPUT_DIRECTORY"
+        else
+        echo "$DOCKER_INPUT_DIRECTORY/$key"
+    fi
 }
 
 # in a Docker container, returns the directory for the current stage's output

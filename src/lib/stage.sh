@@ -74,8 +74,8 @@ run(image=util, input=, output=, command...) {
                 cmd+=(-it)
             fi
 
-            if [[ $output != clone-systems ]]; then
-                input=${input:-main=clone-systems}
+            if [[ $output != "$ROOT_STAGE" ]]; then
+                input=${input:-main=$ROOT_STAGE}
             fi
             if [[ -n $input ]] && [[ $input != *=* ]]; then
                 assert-stage-done "$input"
@@ -362,13 +362,9 @@ define-stage-helpers() {
         run --output read-statistics --command read-statistics "$option"
     }
 
-    # generate repository with full history of BusyBox
-    # todo: this currently probably does not work with a new stage input architecture
+    # generate repository with full history of BusyBox feature model
     generate-busybox-models() {
-        if [[ ! -d "$(input-directory)/busybox-models" ]]; then
-            run --output busybox-models --command generate-busybox-models
-            mv "$(stage-directory busybox-models)" "$(input-directory)/busybox-models" # todo: does output/input directory work here?
-        fi
+        run --output generate-busybox-models
     }
 
     # extracts kconfig models with the given extractor
