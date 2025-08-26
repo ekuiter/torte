@@ -8,7 +8,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # The resulting repository has been pushed as a fork to https://github.com/ekuiter/busybox and is used as a default to improved performance.
 # This repository should only be avoided when very recent revisions should be analyzed (which the repository may not include yet).
 
-BUSYBOX_CLONE_MODE=generate
+BUSYBOX_GENERATE_MODE=generate
 
 experiment-systems() {
     add-busybox-kconfig-history-full
