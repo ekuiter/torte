@@ -25,7 +25,7 @@ if (return 0 2>/dev/null); then
         echo
         echo "NOTE: torte is not installed yet."
         echo "torte (revision $TORTE_REVISION) will now be installed into the directory '$PWD/torte'."
-        echo "By default, all experiment data will be stored in the directory '$PWD/output'."
+        echo "By default, all experiment data will be stored in the directory '$PWD/stages'."
         echo
         git clone --recursive -q "$TORTE_REPOSITORY" 1>/dev/null
         TORTE_BANNER_PRINTED=y # prevent printing the banner again in torte.sh
