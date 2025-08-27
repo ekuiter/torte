@@ -8,7 +8,7 @@
 [<img src="meta/satgraf.jpg" width="24%">](meta/satgraf.jpg)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/ekuiter/torte/run-tests.yml?style=for-the-badge&label=tests)](https://github.com/ekuiter/torte/actions/workflows/run-tests.yml)
-[![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version&color=blue&color=blue)](https://github.com/ekuiter/torte/tags)
+[![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/tags)
 [![License](https://img.shields.io/github/license/ekuiter/torte?style=for-the-badge&color=blue)](https://github.com/ekuiter/torte/blob/main/LICENSE.txt)
 
 <img style="float: right;" align="right" width="23%" src="meta/torte.png">
@@ -153,9 +153,12 @@ You can also write your own experiments by adapting an existing experiment file.
   This can be ensured easily by running `export PROFILE=y` once before calling torte.
 - Run `TEST=y ./torte.sh <experiment-file>` to execute an experiment in test mode (i.e., with a smaller selection of systems).
   This test mode reduces execution time while maintaining experiment structure and validating toolchain functionality.
-  To run all testable experiments in test mode, run `./torte.sh test` (this is also done regularly by GitHub CI).
+  To run all testable experiments in test mode, run `./torte.sh test` (this is also done regularly by GitHub CI).[^35]
 - To remove all Docker artifacts created by torte, run `./torte.sh uninstall`.
   Afterwards, remove the `torte` directory for full removal (as well as `stages` and the experiment file if the one-liner was used for setup).
+
+[^35]: Unfortunately, GitHub CI only guarantees 14 GiB of free disk space, which limits the number of experiments we can execute you to the large size of the Linux kernel repository.
+Thus, we exclude some experiments from the CI pipeline with `__NO_CI__`. However, when running `./torte.sh test` locally, these experiments are not omitted.
 
 ## Supported Systems
 

@@ -10,7 +10,6 @@ experiment-systems() {
     add-linux-kconfig-sample --interval "$(interval weekly)"
 }
 
-# skip this experiment in CI because the Linux repository is too large for GitHub actions
 experiment-test-systems(__NO_CI__) {
     add-linux-kconfig-sample --interval "$(interval per-decade)"
 }
