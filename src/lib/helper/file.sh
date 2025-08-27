@@ -35,6 +35,8 @@ pop() {
 collect-files(from, to, extension, statistics_input=read-statistics, date_format=%Y%m%d%H%M%S_) {
     mkdir -p "$to"
     for f in $from; do
+        # skip if the glob pattern didn't match any files
+        [[ -f "$f" ]] || continue
         local revision
         local original_revision
         revision=$(basename "$f" ".$extension" | cut -d'[' -f1)
