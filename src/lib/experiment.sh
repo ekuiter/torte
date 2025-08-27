@@ -169,7 +169,7 @@ command-run() {
         mkdir -p "$(stage-directory "$EXPERIMENT_STAGE")"
         cp -R "$SRC_EXPERIMENT_DIRECTORY/" "$(stage-directory "$EXPERIMENT_STAGE")"
         touch "$(stage-done-file "$EXPERIMENT_STAGE")"
-        define-stage-helpers
+        define-stages
         if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE"; then
             experiment-stages
         else

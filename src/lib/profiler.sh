@@ -97,7 +97,7 @@ open-speedscope(file=) {
 # find all functions defined by the tool
 # as a side effect, loads all stage helpers, so this should be used sparingly
 list-functions() {
-    define-stage-helpers
+    define-stages
     declare -F | grep "declare -f " | cut -d' ' -f3 | grep -E '^[a-z][a-z0-9-]*$' | sed 's/^command-//' | sort | uniq
 }
 
