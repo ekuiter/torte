@@ -1,8 +1,6 @@
 #!/bin/bash
 # functions for working with Bash functions
 
-CACHE_DIRECTORY=.cache # path for cached data in output directory
-
 # returns whether a function is defined, useful for providing fallback implementations
 has-function(function) {
     declare -F "$function" >/dev/null
@@ -66,12 +64,13 @@ define-stub(function) {
     eval "! has-function $function && $function() { :; } || true"
 }
 
-# memoizes a command by storing its output in the cache
+# inside a stage, memoizes a command by storing its output in the shared directory
 memoize(command...) {
+    assert-container
     local hash file
     hash=$(md5sum <<<"${command[*]}" | awk NF=1)
-    file=$(output-directory)/$CACHE_DIRECTORY/$hash
-    mkdir -p "$(output-directory)/$CACHE_DIRECTORY" # todo: this might break, now that output directory is only available inside of containers. use mktmp instead?
+    file=$(output-directory)/$SHARED_DIRECTORY/memoize/$hash
+    mkdir -p "$(output-directory)/$SHARED_DIRECTORY/memoize"
     if [[ ! -f $file ]]; then
         "${command[@]}" | tee "$file"
     else

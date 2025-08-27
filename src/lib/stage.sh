@@ -1,8 +1,9 @@
 #!/bin/bash
 # runs stages
 
-# name for transient stages
-TRANSIENT_STAGE=transient
+
+TRANSIENT_STAGE=transient # name for transient stages
+SHARED_DIRECTORY=.shared # path for data shared by all stages (use with care, as stages are intentionally separated)
 
 # removes all output for the given experiment stage
 clean(stages...) {
@@ -64,8 +65,8 @@ run(image=util, input=, output=, command...) {
             mkdir -p "$(stage-directory "$output")"
             chmod 0777 "$(stage-directory "$output")"
             log "" "$(echo-progress run)"
-            mkdir -p "$(stages-directory)/$CACHE_DIRECTORY" # todo: possibly eliminate this?
-            mv "$(stages-directory)/$CACHE_DIRECTORY" "$(stage-directory "$output")/$CACHE_DIRECTORY"
+            mkdir -p "$(stages-directory)/$SHARED_DIRECTORY"
+            mv "$(stages-directory)/$SHARED_DIRECTORY" "$(stage-directory "$output")/$SHARED_DIRECTORY"
             local cmd=(docker run)
             if [[ $DEBUG == y ]]; then
                 command=(/bin/bash)
@@ -124,7 +125,7 @@ run(image=util, input=, output=, command...) {
                     2> >(write-all "$(stage-err "$output")" >&2)
                 FORCE_NEW_LOG=y
             fi
-            mv "$(stage-directory "$output")/$CACHE_DIRECTORY" "$(stages-directory)/$CACHE_DIRECTORY"
+            mv "$(stage-directory "$output")/$SHARED_DIRECTORY" "$(stages-directory)/$SHARED_DIRECTORY"
             rm-if-empty "$(stage-log "$output")"
             rm-if-empty "$(stage-err "$output")"
             touch "$(stage-done-file "$output")"

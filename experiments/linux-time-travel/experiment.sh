@@ -40,7 +40,7 @@ experiment-test-systems() {
 experiment-stages() {
     clone-systems
     tag-linux-revisions
-    read-statistics skip-sloc
+    read-statistics --option skip-sloc
 
     # extract (with two KConfig extractors)
     extract-kconfig-models \

@@ -16,7 +16,7 @@ experiment-systems() {
 
 experiment-stages() {
     clone-systems
-    read-statistics skip-sloc
+    read-statistics --option skip-sloc
     extract-kconfig-models-with --extractor kclause
     join-into read-statistics extract-kconfig-models-with-kclause
     transform-model-to-dimacs --timeout "$TIMEOUT"

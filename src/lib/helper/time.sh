@@ -31,5 +31,7 @@ interval(name) {
         echo $(($(interval yearly)/12))
     elif [[ "$name" == yearly ]]; then
         echo $(($(interval daily)*365+$(interval daily)/4))
+    elif [[ "$name" == per-decade ]]; then
+        echo $(($(interval yearly)*10))
     fi
 }

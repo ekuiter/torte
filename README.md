@@ -47,6 +47,7 @@ git clone --recursive https://github.com/ekuiter/torte.git
 cd torte
 ./torte.sh
 ```
+By default, results will be stored in `stages`.
 Read on if you want to know more details.
 
 ## Getting Started: In Detail
@@ -146,8 +147,9 @@ You can also write your own experiments by adapting an existing experiment file.
   It can also be used to detect dead code with `./torte.sh detect-dead-code`.
   Note that profiling is enabled at compile time of torte. This means that successive or parallel calls of torte should be run with the same value of `PROFILE`.
   This can be ensured easily by running `export PROFILE=y` once before calling torte.
-- Run `TEST=y ./torte.sh <experiment-file>` to execute experiments in test mode (i.e., with a smaller selection of systems).
+- Run `TEST=y ./torte.sh <experiment-file>` to execute an experiment in test mode (i.e., with a smaller selection of systems).
   This test mode reduces execution time while maintaining experiment structure and validating toolchain functionality.
+  To run all testable experiments in test mode, run `./torte.sh test` (this is also done regularly by GitHub CI).
 - To remove all Docker artifacts created by torte, run `./torte.sh uninstall`.
   Afterwards, remove the `torte` directory for full removal (as well as `stages` and the experiment file if the one-liner was used for setup).
 
@@ -169,7 +171,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [embtoolkit](scripts/systems/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
 | [fiasco](scripts/systems/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
 | [freetz-ng](scripts/systems/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
-| [linux](scripts/systems/linux.sh) | 2.5.45 - 6.11 | [^21] [^25] [^26] [^29] | |
+| [linux](scripts/systems/linux.sh) | 2.5.45 - 6.12 | [^21] [^25] [^26] [^29] | |
 | [toybox](scripts/systems/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
 | [uclibc-ng](scripts/systems/uclibc-ng.sh) | 1.0.2 - 1.0.47 | |
 

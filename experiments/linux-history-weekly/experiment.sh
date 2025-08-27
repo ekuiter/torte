@@ -10,9 +10,13 @@ experiment-systems() {
     add-linux-kconfig-sample --interval "$(interval weekly)"
 }
 
+experiment-test-systems() {
+    add-linux-kconfig-sample --interval "$(interval per-decade)"
+}
+
 experiment-stages() {
     clone-systems
-    read-statistics skip-sloc
+    read-statistics --option skip-sloc
     extract-kconfig-models-with --extractor kclause
     join-into read-statistics extract-kconfig-models-with-kclause
 }
