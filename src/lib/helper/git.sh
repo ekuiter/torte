@@ -12,7 +12,7 @@ git-clean(directory=.) {
 git-checkout(revision, directory=.) {
     echo "Checking out $revision in $directory"
     git-clean "$directory"
-    git -C "$directory" checkout -f "$revision"
+    git -C "$directory" checkout -q -f "$revision" > /dev/null
 }
 
 # list all tag revisions in version order

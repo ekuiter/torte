@@ -4,23 +4,32 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
-# Extraction of all feature models of BusyBox (for every commit that touches the feature model)
+# Extraction of all feature models of BusyBox; in the first pass for all tagged releases, in the second pass, for every commit that touches the feature model.
+PASSES=(releases full)
 
 experiment-systems() {
-    # add-busybox-kconfig-history --from 1_00 --to 1_36_1
-    add-busybox-kconfig-history-full
+    case "$PASS" in
+        releases) add-busybox-kconfig-history --from 1_00 --to 1_36_1 ;;
+        full) add-busybox-kconfig-history-full ;;
+    esac
 }
 
 experiment-test-systems() {
-    add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
+    case "$PASS" in
+        releases) add-busybox-kconfig-history --from 1_36_0 --to 1_36_1 ;;
+        full) ;;
+    esac
 }
 
 experiment-stages() {
     clone-systems
-    generate-busybox-models
-    # read-statistics --input generate-busybox-models
-    extract-kconfig-models-with --extractor kclause --input generate-busybox-models --output extract-kconfig-models
-    # extract-kconfig-models-with --extractor kclause
+    local input=
+    if [[ "$PASS" == "full" ]]; then
+        generate-busybox-models
+        input=generate-busybox-models
+    fi
+    read-statistics --input "$input"
+    extract-kconfig-models-with --extractor kclause --input "$input" --output extract-kconfig-models
     join-into read-statistics extract-kconfig-models
     transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl
     transform-model-to-dimacs

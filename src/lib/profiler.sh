@@ -11,8 +11,13 @@ record-function-call(__NO_PROFILE__, function_name, stack_trace, duration_us) {
     local profile_file
     # inline is-host
     if [[ -z $INSIDE_STAGE ]]; then
-        # inline stage-directory
-        local stage_dir="$STAGE_DIRECTORY/0_$EXPERIMENT_STAGE"
+        # inline stages-directory + stage-directory
+        local stage_dir
+        if [[ -z $PASS ]]; then
+            stage_dir="$STAGES_DIRECTORY/0_$EXPERIMENT_STAGE"
+        else
+            stage_dir="$STAGES_DIRECTORY/$PASS/0_$EXPERIMENT_STAGE"
+        fi
         mkdir -p "$stage_dir"
         # inline stage-prf
         profile_file="$stage_dir/$OUTPUT_FILE_PREFIX.prf"
@@ -40,7 +45,7 @@ combine-profiles(input_files...) {
 # combine profiling data from all stages recursively
 combine-stage-profiles() {
     local profile_files=()
-    readarray -t profile_files < <(find "$STAGE_DIRECTORY" -name "$OUTPUT_FILE_PREFIX.prf" -type f 2>/dev/null | sort -t'/' -k2 -n)
+    readarray -t profile_files < <(find "$(stages-directory)" -name "$OUTPUT_FILE_PREFIX.prf" -type f 2>/dev/null | sort -t'/' -k2 -n)
     if [[ ${#profile_files[@]} -gt 0 ]]; then
         combine-profiles "${profile_files[@]}"
     else

@@ -64,8 +64,8 @@ run(image=util, input=, output=, command...) {
             mkdir -p "$(stage-directory "$output")"
             chmod 0777 "$(stage-directory "$output")"
             log "" "$(echo-progress run)"
-            mkdir -p "$STAGE_DIRECTORY/$CACHE_DIRECTORY" # todo: possibly eliminate this?
-            mv "$STAGE_DIRECTORY/$CACHE_DIRECTORY" "$(stage-directory "$output")/$CACHE_DIRECTORY"
+            mkdir -p "$(stages-directory)/$CACHE_DIRECTORY" # todo: possibly eliminate this?
+            mv "$(stages-directory)/$CACHE_DIRECTORY" "$(stage-directory "$output")/$CACHE_DIRECTORY"
             local cmd=(docker run)
             if [[ $DEBUG == y ]]; then
                 command=(/bin/bash)
@@ -124,7 +124,7 @@ run(image=util, input=, output=, command...) {
                     2> >(write-all "$(stage-err "$output")" >&2)
                 FORCE_NEW_LOG=y
             fi
-            mv "$(stage-directory "$output")/$CACHE_DIRECTORY" "$STAGE_DIRECTORY/$CACHE_DIRECTORY"
+            mv "$(stage-directory "$output")/$CACHE_DIRECTORY" "$(stages-directory)/$CACHE_DIRECTORY"
             rm-if-empty "$(stage-log "$output")"
             rm-if-empty "$(stage-err "$output")"
             touch "$(stage-done-file "$output")"
@@ -222,7 +222,7 @@ iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=,
 # only run if the specified file does not exist yet
 # should be run before the existing stage is moved (e.g., by an aggregation)
 run-transient-unless(file=, input=, command...) {
-    local file_path="$STAGE_DIRECTORY/$file"
+    local file_path="$(stages-directory)/$file"
     if [[ "$file" == */* ]]; then
         local stage_part="${file%%/*}"
         local file_part="${file#*/}"
@@ -285,7 +285,7 @@ plot(stage, type, fields, arguments...) {
     else
         file=$stage
     fi
-    run-transient-unless "" "plot-helper \"${file#"$STAGE_DIRECTORY/"}\" \"$type\" \"$fields\" ${arguments[*]}"
+    run-transient-unless "" "plot-helper \"${file#"$(stages-directory)/"}\" \"$type\" \"$fields\" ${arguments[*]}"
 }
 
 # convenience functions for defining commonly used stages

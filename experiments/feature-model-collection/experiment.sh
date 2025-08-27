@@ -70,11 +70,11 @@ clean-up() {
     
     # Clean up output files from all numbered stage directories
     rm-safe \
-        "$STAGE_DIRECTORY"/*/*_"$OUTPUT_FILE_PREFIX"*.csv \
-        "$STAGE_DIRECTORY"/*/*"$OUTPUT_FILE_PREFIX".*.csv \
-        "$STAGE_DIRECTORY"/*/*.log \
-        "$STAGE_DIRECTORY"/*/*.err
-    
+        "(stages-directory)"/*/*_"$OUTPUT_FILE_PREFIX"*.csv \
+        "(stages-directory)"/*/*"$OUTPUT_FILE_PREFIX".*.csv \
+        "(stages-directory)"/*/*.log \
+        "(stages-directory)"/*/*.err
+
     # Move the UVL stage to a more convenient name
     local uvl_source_dir uvl_target_dir
     uvl_source_dir=$(stage-directory transform-model-to-uvl-with-featureide)

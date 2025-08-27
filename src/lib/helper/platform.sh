@@ -67,3 +67,11 @@ memory-limit(further_limit=0) {
 is-testing() {
     [[ -n $TEST ]]
 }
+
+# returns whether the experiment has multiple passes
+# passes are basically sub-experiments, which allow for more fine-grained control over the experiment
+# to use this feature, an experiment must define an array PASSES with the pass names
+# passes cannot interact with each other, as they run in separated tool instances
+is-multi-pass() {
+    [[ ${#PASSES[@]} -gt 0 ]]
+}

@@ -9,6 +9,14 @@ OUTPUT_FILE_PREFIX=output # prefix for output files
 STAGE_DONE_FILE=".stage_done" # file indicating stage completion
 STAGE_MOVED_FILE=".stage_moved" # file indicating stage has been moved
 
+stages-directory() {
+    if [[ -z $PASS ]]; then
+        echo "$STAGES_DIRECTORY"
+    else
+        echo "$STAGES_DIRECTORY/$PASS"
+    fi
+}
+
 # extracts the stage number from a numbered stage name
 get-stage-number(numbered_stage) {
     basename "$numbered_stage" | sed 's/_.*$//'
@@ -16,15 +24,15 @@ get-stage-number(numbered_stage) {
 
 # extracts the base stage name from a numbered stage name
 get-stage-name(numbered_stage) {
-    basename "$numbered_stage" | sed 's/^[0-9]*_//' | sed 's/_/-/g'
+    basename "$numbered_stage" | sed 's/^[0-9]\+_//' | sed 's/_/-/g'
 }
 
 # lists all numbered stages in order
 list-numbered-stages() {
     assert-host
-    if [[ -d "$STAGE_DIRECTORY" ]]; then
+    if [[ -d "$(stages-directory)" ]]; then
         local stages=()
-        for dir in "$STAGE_DIRECTORY"/[0-9]*_*; do
+        for dir in "$(stages-directory)"/[0-9]*_*; do
             if [[ -d "$dir" ]]; then
                 stages+=("$dir")
             fi
@@ -55,8 +63,8 @@ get-next-stage-number() {
 # finds existing numbered directory for a stage, returns empty if not found
 lookup-stage-directory(stage) {
     assert-host
-    if [[ -d "$STAGE_DIRECTORY" ]]; then
-        for dir in "$STAGE_DIRECTORY"/[0-9]*_"${stage//-/_}"; do
+    if [[ -d "$(stages-directory)" ]]; then
+        for dir in "$(stages-directory)"/[0-9]*_"${stage//-/_}"; do
             if [[ -d "$dir" ]] && [[ "$(get-stage-name "$dir")" == "$stage" ]]; then
                 echo "$dir"
                 return
@@ -80,7 +88,7 @@ lookup-stage-number(stage) {
 stage-directory(stage) {
     assert-host
     if [[ "$stage" == "$EXPERIMENT_STAGE" ]]; then
-        echo "$STAGE_DIRECTORY/0_$EXPERIMENT_STAGE"
+        echo "$(stages-directory)/0_$EXPERIMENT_STAGE"
         return
     fi
     local existing_dir
@@ -90,7 +98,7 @@ stage-directory(stage) {
     else
         local stage_number
         stage_number=$(get-next-stage-number)
-        echo "$STAGE_DIRECTORY/${stage_number}_${stage//-/_}"
+        echo "$(stages-directory)/${stage_number}_${stage//-/_}"
     fi
 }
 

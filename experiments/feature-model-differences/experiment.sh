@@ -6,28 +6,26 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 # Extraction and comparison of all feature models of several feature-model histories
 
+PASSES=(busybox busybox-full axtls uclibc-ng toybox embtoolkit)
+
 experiment-systems() {
-    # todo: this past thing is a hack - can we fix this somehow?
-    if [[ $PASS -eq 1 ]]; then
-        add-busybox-kconfig-history --from 1_3_0 --to 1_36_1
-    elif [[ $PASS -eq 2 ]]; then
-        add-busybox-kconfig-history-full
-    elif [[ $PASS -eq 3 ]]; then
-        add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0
-    elif [[ $PASS -eq 4 ]]; then
-        add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40
-    elif [[ $PASS -eq 5 ]]; then
-        add-toybox-kconfig-history --from 0.4.5 --to 0.8.9
-    elif [[ $PASS -eq 6 ]]; then
-        add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0
-    fi
+    case "$PASS" in
+        busybox) add-busybox-kconfig-history --from 1_3_0 --to 1_36_1 ;;
+        busybox-full) add-busybox-kconfig-history-full ;;
+        axtls) add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0 ;;
+        uclibc-ng) add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40 ;;
+        toybox) add-toybox-kconfig-history --from 0.4.5 --to 0.8.9 ;;
+        embtoolkit) add-embtoolkit-kconfig-history --from embtoolkit-1.0.0 --to embtoolkit-1.8.0 ;;
+    esac
+}
+
+experiment-test-systems() {
+    add-busybox-kconfig-history --from 1_36_1 --to 1_36_1
 }
 
 experiment-stages() {
     clone-systems
-    if [[ $PASS -eq 2 ]]; then
-        generate-busybox-models
-    fi
+    [[ "$PASS" == "busybox-full" ]] && generate-busybox-models
     read-statistics
     extract-kconfig-models-with --extractor kclause
     join-into read-statistics kconfig

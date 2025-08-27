@@ -122,8 +122,8 @@ list-stages() {
         fi
     done
     local total_size=""
-    if [[ -d "$STAGE_DIRECTORY" ]]; then
-        total_size=$(du -sh "$STAGE_DIRECTORY" 2>/dev/null | cut -f1 || echo "")
+    if [[ -d "$(stages-directory)" ]]; then
+        total_size=$(du -sh "$(stages-directory)" 2>/dev/null | cut -f1 || echo "")
     fi
     printf "├────┼─────────────────────────────┼────────────┼────────┼──────┤\n"
     printf "│ %2s │ %-27s │ %-10s │ %6s │ %4s │\n" \
@@ -135,7 +135,7 @@ list-stages() {
 # does not touch Docker images
 command-clean(stage_number=) {
     if [[ -z "$stage_number" ]]; then
-        rm-safe "$STAGE_DIRECTORY"
+        rm-safe "$(stages-directory)"
     else
         local stages
         readarray -t numbered_stages < <(list-numbered-stages)
@@ -153,19 +153,30 @@ command-clean(stage_number=) {
 
 # runs the experiment
 command-run() {
-    list-stages
-    mkdir -p "$STAGE_DIRECTORY"
-    clean "$EXPERIMENT_STAGE"
-    mkdir -p "$(stage-directory "$EXPERIMENT_STAGE")"
-    cp -R "$SRC_EXPERIMENT_DIRECTORY/" "$(stage-directory "$EXPERIMENT_STAGE")"
-    touch "$(stage-done-file "$EXPERIMENT_STAGE")"
-    define-stage-helpers
-    if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE"; then
-        experiment-stages
+    if is-multi-pass && [[ -z $PASS ]]; then
+        # if we are just starting out with a multi-pass experiment, run all its passes recursively
+        for pass in "${PASSES[@]}"; do
+            log "$pass" "$(echo-progress run)"
+            PASS="$pass" TORTE_BANNER_PRINTED=y "$TOOL_SCRIPT" "$SRC_EXPERIMENT_FILE"
+            FORCE_NEW_LOG=y
+            log "" "$(echo-done)"
+        done
     else
-        experiment-stages \
-            > >(write-log "$(stage-log "$EXPERIMENT_STAGE")") \
-            2> >(write-all "$(stage-err "$EXPERIMENT_STAGE")" >&2)
+        # run a single-pass experiment, or a given pass of a multi-pass experiment
+        list-stages
+        mkdir -p "$(stages-directory)"
+        clean "$EXPERIMENT_STAGE"
+        mkdir -p "$(stage-directory "$EXPERIMENT_STAGE")"
+        cp -R "$SRC_EXPERIMENT_DIRECTORY/" "$(stage-directory "$EXPERIMENT_STAGE")"
+        touch "$(stage-done-file "$EXPERIMENT_STAGE")"
+        define-stage-helpers
+        if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE"; then
+            experiment-stages
+        else
+            experiment-stages \
+                > >(write-log "$(stage-log "$EXPERIMENT_STAGE")") \
+                2> >(write-all "$(stage-err "$EXPERIMENT_STAGE")" >&2)
+        fi
     fi
 }
 
@@ -206,7 +217,7 @@ command-run-remote(host, file=experiment.tar.gz, directory=., sudo=) {
 # downloads results from the remote server
 command-copy-remote(host, directory=.) {
     assert-command rsync
-    rsync -av "$host:$directory/$STAGE_DIRECTORY/" "$STAGE_DIRECTORY-$host-$(date "+%Y-%m-%d")"
+    rsync -av "$host:$directory/$(basename "$(stages-directory)")/" "$(stages-directory)-$host-$(date "+%Y-%m-%d")"
 }
 
 # installs a Docker image on a remote server

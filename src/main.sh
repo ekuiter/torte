@@ -16,7 +16,7 @@ EXPORT_DIRECTORY=$TOOL_DIRECTORY/export # path for exporting experiments
 TOOL_SCRIPT=$TOOL_DIRECTORY/$TOOL.sh # tool script
 
 # global configuration options, can optionally be overridden with environment variables or in experiment files
-STAGE_DIRECTORY=${STAGE_DIRECTORY:-stages} # path to resulting experiment output, created if necessary (should not include ., .., or /)
+STAGES_DIRECTORY=${STAGES_DIRECTORY:-stages} # path to resulting experiment stages, created if necessary (should not include ., .., or /)
 PATH_SEPARATOR=${PATH_SEPARATOR:-/} # separator for building paths
 FORCE_RUN=${FORCE_RUN:-} # y if every stage should be forced to run regardless of whether is is already done
 FORCE_BUILD=${FORCE_BUILD:-} # y if Docker images should be built without cache
