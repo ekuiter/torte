@@ -41,18 +41,26 @@ This way, you can
 
 ## Getting Started: The Quick Way
 
-This one-liner will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required).
-```
-curl -sL https://elias-kuiter.de/torte/ | sh
-```
-If piping into a shell is no option for you, you can also clone this repository and run torte directly.
-```
-git clone --recursive https://github.com/ekuiter/torte.git
-cd torte
-./torte.sh
-```
-By default, results will be stored in `stages`.
-Read on if you want to know more details.
+torte provides three major setup options:
+
+1. This one-liner will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required).
+    ```
+    curl -sL https://elias-kuiter.de/torte/ | sh
+    ```
+    Choose this option if you do not intend to customize torte.
+2. You can also clone this repository and run torte directly.
+    ```
+    git clone --recursive https://github.com/ekuiter/torte.git
+    cd torte
+    ./torte.sh
+    ```
+    Choose this option if piping into a shell is no option for you, or if you want to contribute to torte.
+3. A third option is to manually download and set up a [release](https://github.com/ekuiter/torte/releases) of torte.
+    This increases the total download size, but it also allows you to skip building any Docker images.
+    Choose this option if reproducibility matters a lot, or images fail to build with the other options above.
+
+By default, any of these options will store results in the `stages` directory.
+Read on if you want to know more details (e.g., how to execute other experiments).
 
 ## Getting Started: In Detail
 
@@ -132,29 +140,31 @@ sudo apt-get install -y curl git make
 curl -sL https://elias-kuiter.de/torte/ | sh
 ```
 
-Above, we run the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
-To execute another experiment, run `curl -sL https://elias-kuiter.de/torte/ | sh -s - <experiment>` (information about predefined experiments is available [here](#predefined-experiments)).
+**Executing Experiments**
+
+- Above, we run the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
+To execute another experiment with the one-liner, run `curl -sL https://elias-kuiter.de/torte/ | sh -s - <experiment>` (information about predefined experiments is available [here](#predefined-experiments)).
 You can also write your own experiments by adapting an existing experiment file.
-
-**Further Tips**
-
-- As an alternative to the self-extracting installer shown above, you can clone this repository and run experiments with `./torte.sh <experiment-file>`.
+- As an alternative to the self-extracting one-line installer shown above, you can clone this repository and run experiments with `./torte.sh <experiment>` (e.g., `./torte.sh busybox-history`).
 - Yet another alternative is to download a [release](https://github.com/ekuiter/torte/releases), which is useful to get a specific version of torte.
   To ensure reproducibility, each release includes all Docker images as `.tar.gz` files.
   These can simply be placed in the root directory of this repository and are then loaded automatically by torte, which sidesteps the image build process.
 - A running experiment can be stopped with `Ctrl+C`.
   If this does not respond, try `Ctrl+Z`, then `./torte.sh stop`.
+
+**Further Tips**
+
 - Run `./torte.sh help` to get further usage information (e.g., running an experiment over SSH and im-/export of Docker containers).
 - Developers are recommended to use [ShellCheck](https://www.shellcheck.net/) to improve code quality.
 - If Docker is running in rootless mode, experiments must not be run as `sudo`. Otherwise, experiments must be run as `sudo`.
 - The first execution of torte can take a while (~30 minutes), as several complex Docker containers need to be built.
-  This can be avoided by loading a reproduction package that includes Docker images (built by `./torte.sh export`).
-- Run `PROFILE=y ./torte.sh <experiment-file>` to profile all function calls.
+  This can be avoided by loading a reproduction package that includes Docker images (built by `./torte.sh export`) or by setting up torte with a [release](https://github.com/ekuiter/torte/releases) (see above).
+- Run `PROFILE=y ./torte.sh <experiment>` to profile all function calls.
   This data can be used to draw a [flame graph](https://www.speedscope.app/) with `./torte.sh (save|open)-speedscope`.
   It can also be used to detect dead code with `./torte.sh detect-dead-code`.
   Note that profiling is enabled at compile time of torte. This means that successive or parallel calls of torte should be run with the same value of `PROFILE`.
   This can be ensured easily by running `export PROFILE=y` once before calling torte.
-- Run `TEST=y ./torte.sh <experiment-file>` to execute an experiment in test mode (i.e., with a smaller selection of systems).
+- Run `TEST=y ./torte.sh <experiment>` to execute an experiment in test mode (i.e., with a smaller selection of systems).
   This test mode reduces execution time while maintaining experiment structure and validating toolchain functionality.
   To run all testable experiments in test mode, run `./torte.sh test` (this is also done regularly by GitHub CI).[^35]
 - To remove all Docker artifacts created by torte, run `./torte.sh uninstall`.
