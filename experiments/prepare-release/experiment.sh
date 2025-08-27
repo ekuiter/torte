@@ -27,11 +27,11 @@ experiment-stages(__NO_SILENT__) {
     # - check if CI passes
     # - git tag and git push -t
     # - run this experiment on a Linux machine
-    # - create a release on git up and upload all the files in 'release'
+    # - create a release on git up and upload the images in 'release'
 
     # make sure we are running in export mode
     if [[ -z $DOCKER_EXPORT ]]; then
-        TORTE_BANNER_PRINTED=y "$TOOL_SCRIPT" "$SRC_EXPERIMENT_FILE" export --images y --tool "$TOOL.tar.gz"
+        TORTE_BANNER_PRINTED=y "$TOOL_SCRIPT" "$SRC_EXPERIMENT_FILE" export --images y
         exit
     fi
 
