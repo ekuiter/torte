@@ -23,33 +23,44 @@ dangling-images() {
 
 # prepares a reproduction package
 # exporting all data makes the reproduction package bigger, but has no network dependencies
-command-export(file=experiment.tar.gz, images=, scripts=, input=, output=) {
+command-export(experiment=, images=, tool=, stages=, archive=) {
     assert-command tar git
-    rm-safe "$EXPORT_DIRECTORY" "$file"
+    rm-safe "$EXPORT_DIRECTORY"
     mkdir -p "$EXPORT_DIRECTORY"
-    cp -R "$SRC_EXPERIMENT_DIRECTORY" "$EXPORT_DIRECTORY"
+    if [[ -n $experiment ]]; then
+        cp -R "$SRC_EXPERIMENT_DIRECTORY/" "$EXPORT_DIRECTORY"
+    fi
     # shellcheck disable=SC2128
-    if [[ $images == y ]]; then
+    if [[ -n $images ]]; then
         DOCKER_EXPORT=y
         command-clean
         command-run
         command-clean
     fi
-    if [[ $scripts == y ]]; then
+    if [[ -n $tool ]]; then
         git clone --recursive "$TOOL_DIRECTORY" "$EXPORT_DIRECTORY/$TOOL"
+        if [[ $tool == *.tar.gz ]]; then
+            push "$EXPORT_DIRECTORY"
+            tool=$PWD/$tool
+            push "$TOOL"
+            # shellcheck disable=2035
+            tar czvf "$tool" *
+            pop
+            rm-safe "$TOOL"
+            pop
+        fi
     fi
-    if [[ $input == y ]]; then
-        cp -R "$(input-directory)" "$EXPORT_DIRECTORY"
-    fi
-    if [[ $output == y ]]; then
+    if [[ -n $stages ]]; then
         cp -R "$(stages-directory)" "$EXPORT_DIRECTORY"
     fi
-    file=$PWD/$file
-    push "$EXPORT_DIRECTORY"
-    # shellcheck disable=2035
-    tar czvf "$file" *
-    pop
-    rm-safe "$EXPORT_DIRECTORY"
+    if [[ -n $archive ]]; then
+        archive=$PWD/$archive
+        push "$EXPORT_DIRECTORY"
+        # shellcheck disable=2035
+        tar czvf "$archive" *
+        pop
+        rm-safe "$EXPORT_DIRECTORY"
+    fi
 }
 
 # removes all Docker containers and images

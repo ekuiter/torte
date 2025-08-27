@@ -105,6 +105,8 @@ parse-arguments() {
             no_profile=y # do not profile this function
         elif [[ $param_spec =~ ^__NO_CI__$ ]]; then
             : # no-op here, do not run tests for this experiment in a CI environment
+        elif [[ $param_spec =~ ^__NO_SILENT__$ ]]; then
+            : # no-op here, do not silence output for this experiment
         else
             filtered_specs+=("$param_spec")
         fi

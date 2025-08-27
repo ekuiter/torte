@@ -3,6 +3,7 @@
 /output*
 /stages*
 /export*
+/release*
 /src/gen
 /src/experiment
 /*.tar.gz

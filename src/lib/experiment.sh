@@ -170,7 +170,8 @@ command-run() {
         cp -R "$SRC_EXPERIMENT_DIRECTORY/" "$(stage-directory "$EXPERIMENT_STAGE")"
         touch "$(stage-done-file "$EXPERIMENT_STAGE")"
         define-stages
-        if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE"; then
+        if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE" \
+            || grep -q "^\s*experiment-stages\s*(\s*__NO_SILENT__" "$SRC_EXPERIMENT_FILE"; then
             experiment-stages
         else
             experiment-stages \
