@@ -19,10 +19,6 @@ experiment-systems() {
     esac
 }
 
-experiment-test-systems() {
-    add-busybox-kconfig-history --from 1_36_1 --to 1_36_1
-}
-
 experiment-stages() {
     clone-systems
     [[ "$PASS" == "busybox-full" ]] && generate-busybox-models

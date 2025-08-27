@@ -88,6 +88,7 @@ save-speedscope(file=) {
 # open the profiling data with speedscope in the browser
 # alternatively use https://www.speedscope.app/ manually
 open-speedscope(file=) {
+    file=${file:-$(stage-path "$EXPERIMENT_STAGE" "$OUTPUT_FILE_PREFIX.speedscope")}
     assert-command npm
     npm install -g speedscope
     save-speedscope "$file"

@@ -231,5 +231,29 @@ command-install-remote(host, image, directory=.) {
 # tests all experiments that can be tested
 # to make sure each experiment is run in a new context, we explicitly run torte in a subprocess
 command-test() {
-    :
+    local testable_experiments=()
+    # find all experiments that define experiment-test-systems
+    for experiment_dir in "$TOOL_DIRECTORY"/experiments/*/; do
+        local experiment_name
+        experiment_name=$(basename "$experiment_dir")
+        local experiment_file
+        experiment_file=$(experiment-file "$experiment_name")
+        if [[ -f "$experiment_file" ]] && grep -q "^\s*experiment-test-systems\s*(" "$experiment_file"; then
+            testable_experiments+=("$experiment_name")
+        fi
+    done
+    if [[ ${#testable_experiments[@]} -eq 0 ]]; then
+        error "No testable experiments found (experiments must define experiment-test-systems)"
+    fi
+    # run each testable experiment with TEST=y
+    for experiment in "${testable_experiments[@]}"; do
+        log "$experiment" "$(echo-progress test)"
+        # run the experiment with TEST=y in experiment-specific output directory
+        STAGES_DIRECTORY="$STAGES_DIRECTORY/$experiment" TEST=y TORTE_BANNER_PRINTED=y "$TOOL_SCRIPT" "$experiment"
+        FORCE_NEW_LOG=y
+        log "" "$(echo-done)"
+    done
+    if [[ -n "$PROFILE" ]]; then
+        save-speedscope
+    fi
 }

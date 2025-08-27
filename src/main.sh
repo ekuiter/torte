@@ -47,6 +47,7 @@ command-help() {
     echo
     echo "command (default: run)"
     echo "  run                              runs the experiment"
+    echo "  test                             runs tests for all testable experiments"
     echo "  clean                            removes all output files for the experiment"
     echo "  stop                             stops the experiment"
     echo "  uninstall                        removes all Docker containers and images"
