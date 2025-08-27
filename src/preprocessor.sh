@@ -102,7 +102,9 @@ parse-arguments() {
     for param_spec in "${param_specs[@]}"; do
         param_spec=$(preprocess "$param_spec")
         if [[ $param_spec =~ ^__NO_PROFILE__$ ]]; then
-            no_profile=y
+            no_profile=y # do not profile this function
+        elif [[ $param_spec =~ ^__NO_CI__$ ]]; then
+            : # no-op here, do not run tests for this experiment in a CI environment
         else
             filtered_specs+=("$param_spec")
         fi

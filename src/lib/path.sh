@@ -102,6 +102,27 @@ stage-directory(stage) {
     fi
 }
 
+# follows stage moved files recursively and returns the final directory
+follow-stage-directory(stage) {
+    assert-host
+    local current_stage="$stage"
+    local path_components=()
+    # follow the chain of moves, collecting path components
+    while stage-moved "$current_stage"; do
+        path_components+=("$current_stage")
+        current_stage=$(stage-moved-to "$current_stage")
+    done
+    # start with the final destination directory
+    local final_dir
+    final_dir=$(stage-directory "$current_stage")
+    # append each moved stage as a subdirectory
+    for ((i=${#path_components[@]}-1; i>=0; i--)); do
+        final_dir="$final_dir/${path_components[i]}"
+    done
+    
+    echo "$final_dir"
+}
+
 # in a Docker container, returns the input directory for the given key
 input-directory(key=) {
     key=${key:-$MAIN_INPUT_KEY}

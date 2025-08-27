@@ -91,7 +91,7 @@ list-stages() {
             if [[ -n $stage_name ]]; then
                 if stage-moved "$stage_name"; then
                     local moved_to
-                    moved_to=$(cat "$(stage-moved-file "$stage_name")")
+                    moved_to=$(stage-moved-to "$stage_name")
                     status="moved: #$(lookup-stage-number "$moved_to")"
                     total_complete=$((total_complete + 1))
                 elif stage-done "$stage_name"; then
@@ -238,7 +238,9 @@ command-test() {
         experiment_name=$(basename "$experiment_dir")
         local experiment_file
         experiment_file=$(experiment-file "$experiment_name")
-        if [[ -f "$experiment_file" ]] && grep -q "^\s*experiment-test-systems\s*(" "$experiment_file"; then
+        if [[ -f "$experiment_file" ]] \
+            && grep -q "^\s*experiment-test-systems\s*(" "$experiment_file" \
+            && ([[ -z "$CI" ]] || ! grep -q "^\s*experiment-test-systems\s*(\s*__NO_CI__" "$experiment_file"); then
             testable_experiments+=("$experiment_name")
         fi
     done

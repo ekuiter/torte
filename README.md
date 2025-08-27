@@ -7,6 +7,10 @@
 [<img src="meta/profile.png" width="24%">](meta/profile.png)
 [<img src="meta/satgraf.jpg" width="24%">](meta/satgraf.jpg)
 
+![Tests](https://img.shields.io/github/actions/workflow/status/ekuiter/torte/run-tests.yml?style=for-the-badge&label=tests)
+![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version&color=blue&color=blue)
+![License](https://img.shields.io/github/license/ekuiter/torte?style=for-the-badge&color=blue)
+
 <img style="float: right;" align="right" width="23%" src="meta/torte.png">
 
 Why **torte**?

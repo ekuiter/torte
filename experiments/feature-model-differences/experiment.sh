@@ -6,12 +6,12 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 # Extraction and comparison of all feature models of several feature-model histories
 
-PASSES=(busybox busybox-full axtls uclibc-ng toybox embtoolkit)
+PASSES=(busybox-releases busybox-commits axtls uclibc-ng toybox embtoolkit)
 
 experiment-systems() {
     case "$PASS" in
-        busybox) add-busybox-kconfig-history --from 1_3_0 --to 1_36_1 ;;
-        busybox-full) add-busybox-kconfig-history-full ;;
+        busybox-releases) add-busybox-kconfig-history --from 1_3_0 --to 1_36_1 ;;
+        busybox-commits) add-busybox-kconfig-history-commits ;;
         axtls) add-axtls-kconfig-history --from release-1.0.0 --to release-2.0.0 ;;
         uclibc-ng) add-uclibc-ng-kconfig-history --from v1.0.2 --to v1.0.40 ;;
         toybox) add-toybox-kconfig-history --from 0.4.5 --to 0.8.9 ;;
@@ -21,7 +21,7 @@ experiment-systems() {
 
 experiment-stages() {
     clone-systems
-    [[ "$PASS" == "busybox-full" ]] && generate-busybox-models
+    [[ "$PASS" == "busybox-commits" ]] && generate-busybox-models
     read-statistics
     extract-kconfig-models-with --extractor kclause
     join-into read-statistics kconfig
@@ -29,6 +29,7 @@ experiment-stages() {
 }
 
 # can be executed from output directory to copy and rename model files
+# todo: remove
 copy-models() {
     shopt -s globstar
     mkdir -p models

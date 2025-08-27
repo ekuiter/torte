@@ -32,7 +32,8 @@ experiment-systems() {
                 "v5.4 v5.10 v5.15 v6.1 v6.6 v6.12" | tr ' ' '\n')" --architecture arm
 }
 
-experiment-test-systems() {
+# skip this experiment in CI because the Linux repository is too large for GitHub actions
+experiment-test-systems(__NO_CI__) {
     add-linux-system
     add-linux-kconfig-revisions --revisions v6.12 --architecture x86
 }

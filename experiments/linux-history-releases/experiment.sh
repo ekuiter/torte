@@ -38,7 +38,8 @@ experiment-systems() {
     add-linux-kconfig-history --from v2.5.45 --to v6.12 --architecture all
 }
 
-experiment-test-systems() {
+# skip this experiment in CI because the Linux repository is too large for GitHub actions
+experiment-test-systems(__NO_CI__) {
     add-linux-kconfig-history --from v6.11 --to v6.12 --architecture x86
 }
 

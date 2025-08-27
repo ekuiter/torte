@@ -28,7 +28,7 @@ add-busybox-kconfig-history(from=, to=) {
     done
 }
 
-add-busybox-kconfig-history-full() {
+add-busybox-kconfig-history-commits() {
     add-system --system busybox --url https://github.com/mirror/busybox
     if [[ -f "$(input-directory)/busybox/.generate_busybox_models" ]]; then
         for revision in $(git -C "$(input-directory)/busybox" log master --format="%h" --reverse); do

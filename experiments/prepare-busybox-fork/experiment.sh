@@ -12,7 +12,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 BUSYBOX_GENERATE_MODE=generate
 
 experiment-systems() {
-    add-busybox-kconfig-history-full
+    add-busybox-kconfig-history-commits
 }
 
 experiment-stages() {

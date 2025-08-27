@@ -18,7 +18,7 @@ experiment-systems() {
     
     #Nicht für alle Architekturen
     #add-linux-kconfig-history --from v2.5.45 --to v2.5.46 --architecture all 
-    #add-busybox-kconfig-history-full
+    #add-busybox-kconfig-history-commits
 }
 
 experiment-stages() {
