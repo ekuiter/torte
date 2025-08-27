@@ -139,6 +139,9 @@ You can also write your own experiments by adapting an existing experiment file.
 **Further Tips**
 
 - As an alternative to the self-extracting installer shown above, you can clone this repository and run experiments with `./torte.sh <experiment-file>`.
+- Yet another alternative is to download a [release](https://github.com/ekuiter/torte/releases), which is useful to get a specific version of torte.
+  To ensure reproducibility, each release includes all Docker images as `.tar.gz` files.
+  These can simply be placed in the root directory of this repository and are then loaded automatically by torte, which sidesteps the image build process.
 - A running experiment can be stopped with `Ctrl+C`.
   If this does not respond, try `Ctrl+Z`, then `./torte.sh stop`.
 - Run `./torte.sh help` to get further usage information (e.g., running an experiment over SSH and im-/export of Docker containers).
