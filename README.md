@@ -8,7 +8,7 @@
 [<img src="meta/satgraf.jpg" width="24%">](meta/satgraf.jpg)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/ekuiter/torte/run-tests.yml?style=for-the-badge&label=tests)](https://github.com/ekuiter/torte/actions/workflows/run-tests.yml)
-[![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/tags)
+[![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/releases)
 [![License](https://img.shields.io/github/license/ekuiter/torte?style=for-the-badge&color=blue)](https://github.com/ekuiter/torte/blob/main/LICENSE.txt)
 
 <img style="float: right;" align="right" width="23%" src="meta/torte.png">
