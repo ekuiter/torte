@@ -464,7 +464,7 @@ torte has been used in several research publications:
 
 - Tim Bächle, Erik Hofmayer, Christoph König, Tobias Pett, and Ina Schaefer. [Investigating the Effects of T-Wise Interaction Sampling for Vulnerability Discovery in Highly-Configurable Software Systems](https://doi.org/10.1145/3744915.3748462). In Proc. Int'l Systems and Software Product Line Conf. (SPLC). ACM, September 2025.
 
-- Elias Kuiter, Chico Sundermann, Thomas Thüm, Tobias Heß, Sebastian Krieter, and Gunter Saake. [How Configurable is the Linux Kernel? Analyzing Two Decades of Feature-Model History](https://doi.org/10.1145/3729423). Trans. on Software Engineering and Methodology (TOSEM), April 2025. To appear.
+- Elias Kuiter, Chico Sundermann, Thomas Thüm, Tobias Heß, Sebastian Krieter, and Gunter Saake. [How Configurable is the Linux Kernel? Analyzing Two Decades of Feature-Model History](https://doi.org/10.1145/3729423). In Trans. on Software Engineering and Methodology (TOSEM), ACM, April 2025.
   
   [**TOSEM'25 Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2025/2025-TOSEM-Kuiter.pdf) | [**FOSD'24 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2024/2024-04-10-FOSD-Linux.pdf)
 
