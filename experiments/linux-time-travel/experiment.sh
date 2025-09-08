@@ -89,7 +89,7 @@ experiment-stages() {
         --inputs transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
     join-into extract-kconfig-models transform-model-to-dimacs
 
-    # analyze (not parallelized so as not to disturb time measurements)
+    # solve (not parallelized so as not to disturb time measurements)
     solve \
         --kind sat \
         --iterations "$SOLVE_ITERATIONS" \

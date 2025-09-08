@@ -27,7 +27,7 @@ torte can be used to
 
 - **extract feature models** from KConfig-based configurable software systems (e.g., the [Linux kernel](https://github.com/torvalds/linux)),
 - **transform feature models** between various formats (e.g., [FeatureIDE](https://featureide.github.io), [UVL](https://github.com/Universal-Variability-Language), and [DIMACS](https://www.domagoj-babic.com/uploads/ResearchProjects/Spear/dimacs-cnf.pdf)), and
-- **analyze feature models** with solvers to evaluate the extraction and transformation impact,
+- **solve feature models** with automated reasoners to evaluate the extraction and transformation impact,
 
 all in a fully declarative and reproducible fashion backed by reusable Docker containers.
 This way, you can
@@ -142,7 +142,7 @@ curl -sL https://elias-kuiter.de/torte/ | sh
 
 **Executing Experiments**
 
-- Above, we run the [default experiment](experiments/default.sh), which extracts, transforms, and analyzes the feature model of BusyBox 1.36.0 as a demonstration.
+- Above, we run the [default experiment](experiments/default.sh), which extracts, transforms, and solves the feature model of BusyBox 1.36.0 as a demonstration.
 To execute another experiment with the one-liner, run `curl -sL https://elias-kuiter.de/torte/ | sh -s - <experiment>` (information about predefined experiments is available [here](#predefined-experiments)).
 You can also write your own experiments by adapting an existing experiment file.
 - As an alternative to the self-extracting one-line installer shown above, you can clone this repository and run experiments with `./torte.sh <experiment>` (e.g., `./torte.sh busybox-history`).
@@ -219,9 +219,9 @@ This does not affect typical use cases that involve tag and branch identifiers.
 
 ## Bundled Tools
 
-### Extraction, Transformation, and Analysis
+### Extraction, Transformation, and Solving
 
-The following tools are bundled with torte and can be used in experiments for extracting, transforming, and analyzing feature models.
+The following tools are bundled with torte and can be used in experiments for extracting, transforming, and solving feature models.
 Most tools are not included in this repository, but cloned and built with tool-specific Docker files in the `docker` directory.
 The bundled solvers are listed in a separate table [below](#solvers).
 
@@ -485,7 +485,7 @@ This project has evolved through several stages and intends to replace them all:
 - [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) extended [kmax-vm](https://github.com/ekuiter/kmax-vm) and could be used to extract feature models from Kconfig-based software systems with KConfigReader and KClause.
   The results were stored in the [feature-model-repository](https://github.com/ekuiter/feature-model-repository).
   Its functionality is completely subsumed by torte and more efficient and reliable due to our Docker integration.
-- [tseitin-or-not-tseitin](https://github.com/ekuiter/tseitin-or-not-tseitin) extended the [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) to allow for transformation and analysis of feature models.
+- [tseitin-or-not-tseitin](https://github.com/ekuiter/tseitin-or-not-tseitin) extended the [feature-model-repository-pipeline](https://github.com/ekuiter/feature-model-repository-pipeline) to allow for transformation and solving of feature models.
   It was mostly intended as a reproduction package for a single academic paper.
   Its functionality is almost completely subsumed by torte, which can be used to create reproduction packages for many different experiments.
 

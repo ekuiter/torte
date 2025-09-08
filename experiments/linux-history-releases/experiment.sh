@@ -68,7 +68,7 @@ experiment-stages() {
     join-into transform-model-to-smt-with-z3 transform-model-to-dimacs
     join-into extract-kconfig-models transform-model-to-dimacs
 
-    # analyze
+    # solve
     transform-dimacs-to-backbone-dimacs-with-cadiback --jobs 16
     join-into transform-model-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs 16

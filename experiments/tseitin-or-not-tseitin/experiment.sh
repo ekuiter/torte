@@ -67,7 +67,7 @@ experiment-stages() {
         --inputs transform-model-to-dimacs-with-featureide transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
     join-into extract-kconfig-models transform-model-to-dimacs
 
-    # analyze
+    # solve
     transform-dimacs-to-backbone-dimacs-with-cadiback
     join-into transform-model-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs 16

@@ -4,7 +4,7 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
-# This experiment extracts, transforms, and analyzes a single feature model.
+# This experiment extracts, transforms, and solves a single feature model.
 # It serves as a demo and integration test for torte and also returns some common statistics of the model.
 
 TIMEOUT=10

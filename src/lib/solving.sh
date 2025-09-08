@@ -1,19 +1,19 @@
 #!/bin/bash
-# analyzes files
+# solves (and applies analyses to) files
 
-# analyzes a file
-# measures the analysis time
-analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=) {
+# solves a file
+# measures the solve time
+solve-file(file, solver_name, solver, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=) {
     attempt_grouper=${attempt_grouper:-$(lambda file echo default)}
     local input
     input="$(input-directory)/$file"
-    compile-lambda analyzer "$analyzer"
+    compile-lambda solver "$solver"
     compile-lambda attempt-grouper "$attempt_grouper"
     local output_log
     output_log=$(mktemp)
     local timeout_file
     timeout_file=$(output-file "$(attempt-grouper "$file").timeout")
-    log "$analyzer_name: $file" "$(echo-progress analyze)"
+    log "$solver_name: $file" "$(echo-progress solve)"
     local timeouts
     timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
     local fail_fast=
@@ -22,7 +22,7 @@ analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeo
     fi
     # shellcheck disable=SC2046
     if [[ -z $fail_fast ]]; then
-        measure "$timeout" $(analyzer "$input") | tee "$output_log"
+        measure "$timeout" $(solver "$input") | tee "$output_log"
     fi
     if [[ -z $fail_fast ]] && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; }; then
         log "" "$(echo-done)"
@@ -33,7 +33,7 @@ analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeo
         echo "$file" >> "$timeout_file"
     fi
     local csv_line=""
-    csv_line+="$file,$analyzer_name,$(grep -oP "^measure_time=\K.*" < "$output_log" || echo)"
+    csv_line+="$file,$solver_name,$(grep -oP "^measure_time=\K.*" < "$output_log" || echo)"
     if [[ -n $data_extractor ]]; then
         if [[ -z $fail_fast ]] && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; }; then
             compile-lambda data-extractor "$data_extractor"
@@ -51,9 +51,9 @@ analyze-file(file, analyzer_name, analyzer, data_fields=, data_extractor=, timeo
     rm-safe "$output_log"
 }
 
-# analyzes a list of files
-analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=) {
-    echo -n "${input_extension}_file,${input_extension}_analyzer,${input_extension}_analyzer_time" > "$(output-csv)"
+# solves a list of files
+solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=) {
+    echo -n "${input_extension}_file,${input_extension}_solver,${input_extension}_solver_time" > "$(output-csv)"
     if [[ -n $data_fields ]]; then
         echo ",${data_fields//-/_}" >> "$(output-csv)"
     else
@@ -61,13 +61,13 @@ analyze-files(csv_file, input_extension, analyzer_name, analyzer, data_fields=, 
     fi
     table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V \
         | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
-        analyze-file "{}" "$analyzer_name" "$analyzer" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"
+        solve-file "{}" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"
 }
 
 # runs a solver on a file
 solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
     parser=${parser:-$kind}
-    analyze-files \
+    solve-files \
         "$(input-csv)" \
         "$input_extension" \
         "$solver" \

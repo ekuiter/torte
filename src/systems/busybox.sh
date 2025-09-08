@@ -47,7 +47,7 @@ add-busybox-kconfig-history-commits() {
 # in BusyBox, the feature model is encoded with C comments in the source code, for which KConfig files have to be generated explicitly
 # this command creates a new Git repository with these KConfig files
 # each revision of the generated repository corresponds to an original revision that changed the feature model
-# if you need the original commit hashes, please use add-busybox-kconfig-history (which it does not allow analyzing the full history, though)
+# if you need the original commit hashes, please use add-busybox-kconfig-history (which does not allow analyzing the full history, though)
 generate-busybox-models() {
     if [[ $BUSYBOX_GENERATE_MODE == fork ]]; then
         local url=https://github.com/ekuiter/busybox
