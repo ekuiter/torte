@@ -29,7 +29,7 @@ torte can be used to
 - **transform feature models** between various formats (e.g., [FeatureIDE](https://featureide.github.io), [UVL](https://github.com/Universal-Variability-Language), and [DIMACS](https://www.domagoj-babic.com/uploads/ResearchProjects/Spear/dimacs-cnf.pdf)), and
 - **solve feature models** with automated reasoners to evaluate the extraction and transformation impact,
 
-all in a fully declarative and reproducible fashion backed by reusable Docker containers.
+all in a fully declarative and reproducible fashion backed by reusable containers.
 This way, you can
 
 <img style="float: right;" align="right" width="15%" src="meta/reusable.png">
@@ -43,7 +43,7 @@ This way, you can
 
 torte provides three major setup options:
 
-1. This one-liner will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) required).
+1. This one-liner will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) or [Podman](https://podman.io/get-started) required).
     ```
     curl -sL https://elias-kuiter.de/torte/ | sh
     ```
@@ -68,7 +68,7 @@ To run torte, you need:
 
 - an `x86_64` or `arm64` system [^28] with Linux, macOS, or Windows with [WSL](https://learn.microsoft.com/windows/wsl/install)
 - [Git](https://git-scm.com/), [curl](https://curl.se/), GNU tools ([bash](https://www.gnu.org/software/bash/), [coreutils](https://www.gnu.org/software/coreutils/), [make](https://www.gnu.org/software/make/), [grep](https://www.gnu.org/software/grep/), and [sed](https://www.gnu.org/software/sed/))
-- [Docker](https://docs.docker.com/get-docker/) (preferably in [rootless mode](https://docs.docker.com/engine/security/rootless/) on Linux)
+- [Docker](https://docs.docker.com/get-docker/) (preferably in [rootless mode](https://docs.docker.com/engine/security/rootless/) on Linux) or [Podman](https://podman.io/get-started)
 
 [^28]: On `arm64` systems (e.g., Windows tablets and Apple Silicon Macs), torte cross-compiles some Docker images to ensure that precompiled binaries (e.g., JavaSMT, Z3, and all solvers) function correctly.
 This may negatively impact performance on some systems (e.g., ARM-based Windows tablets), although recent Macs should not be affected due to [Rosetta](https://en.wikipedia.org/wiki/Rosetta_(software)).
@@ -167,6 +167,8 @@ You can also write your own experiments by adapting an existing experiment file.
 - Run `TEST=y ./torte.sh <experiment>` to execute an experiment in test mode (i.e., with a smaller selection of systems).
   This test mode reduces execution time while maintaining experiment structure and validating toolchain functionality.
   To run all testable experiments in test mode, run `./torte.sh test` (this is also done regularly by GitHub CI).[^35]
+- If you prefer [Podman](https://podman.io/get-started) over Docker, but both are installed, run `FORCE_PODMAN=y ./torte.sh <experiment>`.
+  Otherwise, torte will choose whatever is installed (preferring Docker over Podman).
 - To remove all Docker artifacts created by torte, run `./torte.sh uninstall`.
   Afterwards, remove the `torte` directory for full removal (as well as `stages` and the experiment file if the one-liner was used for setup).
 

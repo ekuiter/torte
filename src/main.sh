@@ -29,6 +29,7 @@ MEMORY_LIMIT=${MEMORY_LIMIT:-} # if unset, this is automatically determined in h
 # global configuration options that cannot be overridden in experiment files, but only with environment variables
 PROFILE=${PROFILE:-} # y to enable function profiling
 TEST=${TEST:-} # y to run experiment for test systems only
+FORCE_PODMAN=${FORCE_PODMAN:-} # y to use Podman instead of Docker if both are installed
 
 # print banner image (if on host and not already done)
 if [[ -z $INSIDE_STAGE ]] && [[ -z $TORTE_BANNER_PRINTED ]]; then

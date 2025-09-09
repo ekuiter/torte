@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Added podman support
+
 ### Changed
 
 - Revised export of Docker images, allowing to easily create GitHub releases with all images
