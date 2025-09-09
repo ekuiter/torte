@@ -187,15 +187,15 @@ To extract a single revision, you can specify an excerpt with only one commit.
 
 | System | Revisions | Notes |
 | - | - | - |
-| [axtls](scripts/systems/axtls.sh) | 1.0.0 - 2.0.0 | |
-| [buildroot](scripts/systems/buildroot.sh) | 2009.02 - 2024.05 | |
-| [busybox](scripts/systems/busybox.sh) | 1.0 - 1.36.0 | [^27] [^34] |
-| [embtoolkit](scripts/systems/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
-| [fiasco](scripts/systems/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
-| [freetz-ng](scripts/systems/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
-| [linux](scripts/systems/linux.sh) | 2.5.45 - 6.12 | [^21] [^25] [^26] [^29] | |
-| [toybox](scripts/systems/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
-| [uclibc-ng](scripts/systems/uclibc-ng.sh) | 1.0.2 - 1.0.47 | |
+| [axtls](src/systems/axtls.sh) | 1.0.0 - 2.0.0 | |
+| [buildroot](src/systems/buildroot.sh) | 2009.02 - 2024.05 | |
+| [busybox](src/systems/busybox.sh) | 1.0 - 1.36.0 | [^27] [^34] |
+| [embtoolkit](src/systems/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
+| [fiasco](src/systems/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
+| [freetz-ng](src/systems/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
+| [linux](src/systems/linux.sh) | 2.5.45 - 6.12 | [^21] [^25] [^26] [^29] | |
+| [toybox](src/systems/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
+| [uclibc-ng](src/systems/uclibc-ng.sh) | 1.0.2 - 1.0.47 | |
 
 [^21]: Most revisions and architectures of Linux (since the introduction of KConfig) can be extracted successfully.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
