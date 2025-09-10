@@ -221,9 +221,9 @@ This does not affect typical use cases that involve tag and branch identifiers.
 
 ## Bundled Tools
 
-### Extraction, Transformation, and Solving
+### Extraction and Transformation
 
-The following tools are bundled with torte and can be used in experiments for extracting, transforming, and solving feature models.
+The following tools are bundled with torte and can be used in experiments for extracting and transforming feature models.
 Most tools are not included in this repository, but cloned and built with tool-specific Docker files in the `docker` directory.
 The bundled solvers are listed in a separate table [below](#solvers).
 
