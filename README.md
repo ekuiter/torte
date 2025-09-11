@@ -1,4 +1,4 @@
-# torte: feature-model experiments à la carte 🍰
+# torte: reproducible feature-model experiments à la carte 🍰
 
 **torte is a declarative experimentation platform for reproducible feature-model analysis research.**
 
