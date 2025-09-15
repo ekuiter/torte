@@ -450,7 +450,7 @@ Core contributors:
 
 - [Elias Kuiter](https://www.dbse.ovgu.de/Mitarbeiter/Elias+Kuiter.html) (University of Magdeburg, Germany)
 
-Further contributors and former project members with their main contributions  (all from University of Magdeburg, Germany):
+Further contributors with secondary contributions (all from University of Magdeburg, Germany):
 
 - Eric Ketzler: `src/docker/hierarchy`
 - Urs-Benedict Braun: `experiments/linux-time-travel`
