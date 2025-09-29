@@ -128,7 +128,6 @@ run(image=util, input=, output=, command...) {
             mv "$(stage-directory "$output")/$SHARED_DIRECTORY" "$(stages-directory)/$SHARED_DIRECTORY"
             rm-if-empty "$(stage-log "$output")"
             rm-if-empty "$(stage-err "$output")"
-            touch "$(stage-done-file "$output")"
             if [[ $output == "$TRANSIENT_STAGE" ]]; then
                 clean "$output"
             fi
@@ -143,6 +142,7 @@ run(image=util, input=, output=, command...) {
                 docker save "${TOOL}_$image" | gzip > "$image_archive"
             fi
         fi
+        touch "$(stage-done-file "$output")"
         log "" "$(echo-done)"
     else
         log "" "$(echo-skip)"

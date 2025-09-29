@@ -50,7 +50,7 @@ command-export(experiment=, images=, tool=, stages=, archive=) {
             pop
         fi
     fi
-    if [[ -n $stages ]]; then
+    if [[ -n $stages ]] && [[ -d "$(stages-directory)" ]]; then
         cp -R "$(stages-directory)" "$EXPORT_DIRECTORY"
     fi
     if [[ -n $archive ]]; then
