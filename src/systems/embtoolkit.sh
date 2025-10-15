@@ -9,7 +9,8 @@ add-embtoolkit-kconfig-history(from=, to=) {
             --system embtoolkit \
             --revision "$revision" \
             --kconfig-file Kconfig \
-            --kconfig-binding-files scripts/kconfig/*.o
+            --lkc-directory scripts/kconfig \
+            --lkc-target olddefconfig
     done
 }
 

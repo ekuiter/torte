@@ -114,52 +114,52 @@ static int _expr_compare_type(enum expr_type t1, enum expr_type t2)
 	if (t1 == t2)
 		return 0;
 	switch (t1) {
-#ifdef ENUM_E_LEQ
+#if ENUM_E_LEQ
 	case E_LEQ:
     if (t2 == E_EQUAL || t2 == E_UNEQUAL)
 			return 1;
 #endif
-#ifdef ENUM_E_LTH
+#if ENUM_E_LTH
 	case E_LTH:
     if (t2 == E_EQUAL || t2 == E_UNEQUAL)
 			return 1;
 #endif
-#ifdef ENUM_E_GEQ
+#if ENUM_E_GEQ
 	case E_GEQ:
     if (t2 == E_EQUAL || t2 == E_UNEQUAL)
 			return 1;
 #endif
-#ifdef ENUM_E_GTH
+#if ENUM_E_GTH
 	case E_GTH:
 		if (t2 == E_EQUAL || t2 == E_UNEQUAL)
 			return 1;
 #endif
-#ifdef ENUM_E_EQUAL
+#if ENUM_E_EQUAL
 	case E_EQUAL:
     if (t2 == E_NOT)
 			return 1;
 #endif
-#if defined(ENUM_E_UNEQUAL) && defined(ENUM_E_NOT)
+#if ENUM_E_UNEQUAL && ENUM_E_NOT
 	case E_UNEQUAL:
 		if (t2 == E_NOT)
 			return 1;
 #endif
-#if defined(ENUM_E_NOT) && defined(ENUM_E_AND)
+#if ENUM_E_NOT && ENUM_E_AND
 	case E_NOT:
 		if (t2 == E_AND)
 			return 1;
 #endif
-#if defined(ENUM_E_AND) && defined(ENUM_E_OR)
+#if ENUM_E_AND && ENUM_E_OR
 	case E_AND:
 		if (t2 == E_OR)
 			return 1;
 #endif
-#if defined(ENUM_E_OR) && defined(ENUM_E_LIST)
+#if ENUM_E_OR && ENUM_E_LIST
 	case E_OR:
 		if (t2 == E_LIST)
 			return 1;
 #endif
-#ifdef ENUM_E_LIST // removed in Linux 6.11 (https://github.com/torvalds/linux/commit/7c9bb07a6e9439fb7bdeee15eb188fe127a0d0e0)
+#if ENUM_E_LIST // removed in Linux 6.11 (https://github.com/torvalds/linux/commit/7c9bb07a6e9439fb7bdeee15eb188fe127a0d0e0)
 	case E_LIST:
 		if (t2 == 0)
 			return 1;
@@ -208,22 +208,22 @@ static void print_symbol(FILE *out, struct symbol *sym) {
 	if (_expr_compare_type(prevtoken, e->type) > 0)
 		fprintf(out, "(");
 	switch (e->type) {
-#ifdef ENUM_E_NONE
+#if ENUM_E_NONE
   case E_NONE:
     break;
 #endif
-#ifdef ENUM_E_SYMBOL
+#if ENUM_E_SYMBOL
   case E_SYMBOL:
     print_symbol(out, e->left.sym);
 		break;
 #endif
-#ifdef ENUM_E_NOT
+#if ENUM_E_NOT
 	case E_NOT:
     fprintf(out, "!");
     my_print_expr(e->left.expr, out, E_NOT);
 		break;
 #endif
-#ifdef ENUM_E_EQUAL
+#if ENUM_E_EQUAL
 	case E_EQUAL:
     if (strcmp(e->right.sym->name, "y") == 0 ||
         strcmp(e->right.sym->name, "m") == 0) {
@@ -239,7 +239,7 @@ static void print_symbol(FILE *out, struct symbol *sym) {
     }
 		break;
 #endif
-#ifdef ENUM_E_UNEQUAL
+#if ENUM_E_UNEQUAL
 	case E_UNEQUAL:
     if (strcmp(e->right.sym->name, "y") == 0 ||
         strcmp(e->right.sym->name, "m") == 0) {
@@ -255,21 +255,21 @@ static void print_symbol(FILE *out, struct symbol *sym) {
     }
 		break;
 #endif
-#ifdef ENUM_E_OR
+#if ENUM_E_OR
 	case E_OR:
     my_print_expr(e->left.expr, out, E_OR);
     fprintf(out, " || ");
     my_print_expr(e->right.expr, out, E_OR);
 		break;
 #endif
-#ifdef ENUM_E_AND
+#if ENUM_E_AND
 	case E_AND:
     my_print_expr(e->left.expr, out, E_AND);
     fprintf(out, " && ");
     my_print_expr(e->right.expr, out, E_AND);
 		break;
 #endif
-#ifdef ENUM_E_LIST
+#if ENUM_E_LIST
 	case E_LIST:
     //E_LIST is created in menu_finalize and is related to <choice>
     print_symbol(out, e->right.sym);
@@ -280,7 +280,7 @@ static void print_symbol(FILE *out, struct symbol *sym) {
 		}
 		break;
 #endif
-#ifdef ENUM_E_CHOICE
+#if ENUM_E_CHOICE
 	case E_CHOICE:
     //E_LIST is created in menu_finalize and is related to <choice>
     print_symbol(out, e->right.sym);
@@ -291,7 +291,7 @@ static void print_symbol(FILE *out, struct symbol *sym) {
 		}
 		break;
 #endif
-#ifdef ENUM_E_RANGE
+#if ENUM_E_RANGE
 	case E_RANGE:
     fprintf(out, "[");
     print_symbol(out, e->left.sym);
@@ -338,22 +338,22 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 	if (_expr_compare_type(prevtoken, e->type) > 0)
 		fprintf(out, "(");
 	switch (e->type) {
-#ifdef ENUM_E_NONE
+#if ENUM_E_NONE
   case E_NONE:
     break;
 #endif
-#ifdef ENUM_E_SYMBOL
+#if ENUM_E_SYMBOL
 	case E_SYMBOL:
     print_python_symbol(out, e->left.sym);
 		break;
 #endif
-#ifdef ENUM_E_NOT
+#if ENUM_E_NOT
 	case E_NOT:
     fprintf(out, " not ");
     print_python_expr(e->left.expr, out, E_NOT);
 		break;
 #endif
-#ifdef ENUM_E_EQUAL
+#if ENUM_E_EQUAL
 	case E_EQUAL:
     if (strcmp(e->right.sym->name, "y") == 0 ||
         strcmp(e->right.sym->name, "m") == 0) {
@@ -369,7 +369,7 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
     }
 		break;
 #endif
-#ifdef ENUM_E_UNEQUAL
+#if ENUM_E_UNEQUAL
 	case E_UNEQUAL:
     if (strcmp(e->right.sym->name, "y") == 0 ||
         strcmp(e->right.sym->name, "m") == 0) {
@@ -385,49 +385,49 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
     }
 		break;
 #endif
-#ifdef ENUM_E_OR
+#if ENUM_E_OR
 	case E_OR:
     print_python_expr(e->left.expr, out, E_OR);
     fprintf(out, " or ");
     print_python_expr(e->right.expr, out, E_OR);
 		break;
 #endif
-#ifdef ENUM_E_AND
+#if ENUM_E_AND
 	case E_AND:
     print_python_expr(e->left.expr, out, E_AND);
     fprintf(out, " and ");
     print_python_expr(e->right.expr, out, E_AND);
 		break;
 #endif
-#ifdef ENUM_E_LTH
+#if ENUM_E_LTH
 	case E_LTH:
     print_python_symbol(out, e->left.sym);
     fprintf(out, " < ");
     print_python_symbol(out, e->right.sym);
 		break;
 #endif
-#ifdef ENUM_E_LEQ
+#if ENUM_E_LEQ
 	case E_LEQ:
     print_python_symbol(out, e->left.sym);
     fprintf(out, " <= ");
     print_python_symbol(out, e->right.sym);
 		break;
 #endif
-#ifdef ENUM_E_GTH
+#if ENUM_E_GTH
 	case E_GTH:
     print_python_symbol(out, e->left.sym);
     fprintf(out, " > ");
     print_python_symbol(out, e->right.sym);
 		break;
 #endif
-#ifdef ENUM_E_GEQ
+#if ENUM_E_GEQ
 	case E_GEQ:
     print_python_symbol(out, e->left.sym);
     fprintf(out, " >= ");
     print_python_symbol(out, e->right.sym);
 		break;
 #endif
-#ifdef ENUM_E_LIST
+#if ENUM_E_LIST
 	case E_LIST:
     //E_LIST is created in menu_finalize and is related to <choice>
     print_python_symbol(out, e->right.sym);
@@ -438,7 +438,7 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 		}
 		break;
 #endif
-#ifdef ENUM_E_CHOICE
+#if ENUM_E_CHOICE
 	case E_CHOICE:
     //E_LIST is created in menu_finalize and is related to <choice>
     print_python_symbol(out, e->right.sym);
@@ -449,7 +449,7 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 		}
 		break;
 #endif
-#ifdef ENUM_E_RANGE
+#if ENUM_E_RANGE
 	case E_RANGE:
     fprintf(out, "[");
     print_python_symbol(out, e->left.sym);
@@ -539,7 +539,7 @@ void everyno(void)
 
 bool is_symbol(struct symbol *sym)
 {
-#ifdef ENUM_P_SYMBOL // removed in Linux 6.11 (https://github.com/torvalds/linux/commit/96490176f1e11947be2bdd2700075275e2c27310)
+#if ENUM_P_SYMBOL // removed in Linux 6.11 (https://github.com/torvalds/linux/commit/96490176f1e11947be2bdd2700075275e2c27310)
   struct property *st;
   for_all_properties(sym, st, P_SYMBOL)
     return true;
@@ -973,7 +973,7 @@ int main(int argc, char **argv)
           sym->type == S_HEX ||
           sym->type == S_STRING) {
         bool no_dependencies = true;
-#ifdef ENUM_dir_dep
+#if ENUM_dir_dep
         if (sym->dir_dep.expr) {
           no_dependencies = false;
           fprintf(output_fp, "dep %s%s (", config_prefix, sym->name);

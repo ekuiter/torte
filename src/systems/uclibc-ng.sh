@@ -9,7 +9,7 @@ add-uclibc-ng-kconfig-history(from=, to=) {
             --system uclibc-ng \
             --revision "$revision" \
             --kconfig-file extra/Configs/Config.in \
-            --kconfig-binding-files extra/config/zconf.tab.o
+            --lkc-directory extra/config
     done
 }
 

@@ -4,21 +4,22 @@ add-toybox-kconfig-history(from=, to=) {
     # do not use this toybox model, it is probably incorrect
     add-system --system toybox --url https://github.com/landley/toybox
     add-hook-step kconfig-post-checkout-hook toybox "$(to-lambda kconfig-post-checkout-hook-toybox)"
-    add-linux-kconfig-binding --revision v6.7
     for revision in $(git-tag-revisions toybox | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system toybox --revision "$revision"
-        add-kconfig-model \
+        add-kconfig \
             --system toybox \
             --revision "$revision" \
             --kconfig-file Config.in \
-            --kconfig-binding-file "$(linux-kconfig-binding-file v6.7)"
+            --lkc-directory kconfig
     done
 }
 
 kconfig-post-checkout-hook-toybox(system, revision) {
     if [[ $system == toybox ]]; then
-        mkdir -p generated
-        touch generated/Config.in generated/Config.probed
+        # here we remove the inline attribute for kconf_id_lookup
+        # without this hack, we cannot compile the LKC binding (undefined reference to `kconf_id_lookup')
+        # this may be due to outdated gcc in the KConfigReader image
+        sed -i 's/^__inline$//' "$(input-directory)/toybox/kconfig/zconf.hash.c_shipped"
     fi
 }
 

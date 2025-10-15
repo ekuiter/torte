@@ -8,11 +8,11 @@ find-busybox-kconfig-file(revision) {
     fi
 }
 
-find-busybox-kconfig-binding-files(revision) {
+find-busybox-lkc-directory(revision) {
     if git -C "$(input-directory)/busybox" cat-file -e "$revision:scripts/kconfig" 2>/dev/null; then
-        echo 'scripts/kconfig/*.o'
+        echo scripts/kconfig
     else
-        echo 'scripts/config/*.o'
+        echo scripts/config
     fi
 }
 
@@ -24,7 +24,7 @@ add-busybox-kconfig-history(from=, to=) {
             --system busybox \
             --revision "$revision" \
             --kconfig-file "$(find-busybox-kconfig-file "$revision")" \
-            --kconfig-binding-files "$(find-busybox-kconfig-binding-files "$revision")"
+            --lkc-directory "$(find-busybox-lkc-directory "$revision")"
     done
 }
 
@@ -39,7 +39,7 @@ add-busybox-kconfig-history-commits() {
                 --system busybox \
                 --revision "${revision}[$original_revision]" \
                 --kconfig-file "$(find-busybox-kconfig-file "$revision")" \
-                --kconfig-binding-files "$(find-busybox-kconfig-binding-files "$revision")"
+                --lkc-directory "$(find-busybox-lkc-directory "$revision")"
         done
     fi
 }

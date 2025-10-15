@@ -9,7 +9,7 @@ add-axtls-kconfig-history(from=, to=) {
             --system axtls \
             --revision "$revision" \
             --kconfig-file config/Config.in \
-            --kconfig-binding-files config/scripts/config/*.o
+            --lkc-directory config/scripts/config
     done
 }
 

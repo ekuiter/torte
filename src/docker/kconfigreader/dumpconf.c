@@ -26,27 +26,27 @@
 
 char* getSymType(enum symbol_type t) {
 	switch (t) {
-#ifdef ENUM_S_UNKNOWN
+#if ENUM_S_UNKNOWN
 		case S_UNKNOWN:
 		fprintf(stderr, "Treating S_UNKNOWN symbol as integer\n");
 		return "integer";
 #endif
-#ifdef ENUM_S_BOOLEAN
+#if ENUM_S_BOOLEAN
 		case S_BOOLEAN: return "boolean";
 #endif
-#ifdef ENUM_S_TRISTATE
+#if ENUM_S_TRISTATE
 		case S_TRISTATE: return "tristate";
 #endif
-#ifdef ENUM_S_INT
+#if ENUM_S_INT
 		case S_INT: return "integer";
 #endif
-#ifdef ENUM_S_HEX
+#if ENUM_S_HEX
 		case S_HEX: return "hex";
 #endif
-#ifdef ENUM_S_STRING
+#if ENUM_S_STRING
 		case S_STRING: return "string";
 #endif
-#ifdef ENUM_S_OTHER
+#if ENUM_S_OTHER
 		case S_OTHER: return "other";
 #endif
 	}
@@ -55,37 +55,37 @@ char* getSymType(enum symbol_type t) {
 
 char* getPropType(enum prop_type t) {
 	switch (t) {
-#ifdef ENUM_P_UNKNOWN
+#if ENUM_P_UNKNOWN
 		case P_UNKNOWN: return "unknown";
 #endif
-#ifdef ENUM_P_PROMPT
+#if ENUM_P_PROMPT
    		case P_PROMPT: return "prompt";
 #endif
-#ifdef ENUM_P_COMMENT
+#if ENUM_P_COMMENT
         case P_COMMENT: return "comment";
 #endif
-#ifdef ENUM_P_MENU
+#if ENUM_P_MENU
         case P_MENU: return "menu";
 #endif
-#ifdef ENUM_P_DEFAULT
+#if ENUM_P_DEFAULT
         case P_DEFAULT: return "default";
 #endif
-#ifdef ENUM_P_CHOICE
+#if ENUM_P_CHOICE
         case P_CHOICE: return "choice";
 #endif
-#ifdef ENUM_P_SELECT
+#if ENUM_P_SELECT
         case P_SELECT: return "select";
 #endif
-#ifdef ENUM_P_RANGE
+#if ENUM_P_RANGE
         case P_RANGE: return "range";
 #endif
-#ifdef ENUM_P_ENV
+#if ENUM_P_ENV
         case P_ENV: return "env";
 #endif
-#ifdef ENUM_P_SYMBOL
+#if ENUM_P_SYMBOL
         case P_SYMBOL: return "symbol";
 #endif
-#ifdef ENUM_P_IMPLY
+#if ENUM_P_IMPLY
         case P_IMPLY: return "select";
 #endif
 	}
@@ -127,18 +127,18 @@ void dumpexpr(FILE *out, struct expr *e) {
 	if (!e) {fprintf(out, "ERROR"); return;}
 	enum expr_type t = e->type;
 	switch (t) {
-#ifdef ENUM_E_SYMBOL
+#if ENUM_E_SYMBOL
 	case E_SYMBOL:
 		dumpsymref(out, e->left.sym);
 		break;
 #endif
-#ifdef ENUM_E_NOT
+#if ENUM_E_NOT
 	case E_NOT:
 		fprintf(out, "!");
 		dumpexpr(out, e->left.expr);
 		break;
 #endif
-#ifdef ENUM_E_EQUAL
+#if ENUM_E_EQUAL
 	case E_EQUAL:
 		fprintf(out, "(");
 		dumpsymref(out, e->left.sym);
@@ -147,7 +147,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#ifdef ENUM_E_UNEQUAL
+#if ENUM_E_UNEQUAL
 	case E_UNEQUAL:
 		fprintf(out, "(");
 		dumpsymref(out, e->left.sym);
@@ -156,7 +156,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#ifdef ENUM_E_OR
+#if ENUM_E_OR
 	case E_OR:
 		fprintf(out, "(");
 		dumpexpr(out, e->left.expr);
@@ -165,7 +165,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#ifdef ENUM_E_AND
+#if ENUM_E_AND
 	case E_AND:
 		fprintf(out, "(");
 		dumpexpr(out, e->left.expr);
@@ -174,7 +174,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#ifdef ENUM_E_LIST
+#if ENUM_E_LIST
 	case E_LIST:
 		fprintf(out, "(");
 		dumpsymref(out, e->right.sym);
@@ -185,7 +185,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#ifdef ENUM_E_RANGE
+#if ENUM_E_RANGE
 	case E_RANGE:
 		fprintf(out, "[");
 		dumpsymref(out, e->left.sym);
@@ -194,7 +194,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, "]");
 		break;
 #endif
-#ifdef ENUM_E_CHOICE
+#if ENUM_E_CHOICE
 	case E_CHOICE:
 		fprintf(out, "(");
 		dumpsymref(out, e->right.sym);
@@ -205,31 +205,31 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#ifdef ENUM_E_NONE
+#if ENUM_E_NONE
 	case E_NONE:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_NONE expression\n");
 		break;
 #endif
-#ifdef ENUM_E_LTH
+#if ENUM_E_LTH
 	case E_LTH:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_LTH expression\n");
 		break;
 #endif
-#ifdef ENUM_E_LEQ
+#if ENUM_E_LEQ
 	case E_LEQ:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_LEQ expression\n");
 		break;
 #endif
-#ifdef ENUM_E_GTH
+#if ENUM_E_GTH
 	case E_GTH:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_GTH expression\n");
 		break;
 #endif
-#ifdef ENUM_E_GEQ
+#if ENUM_E_GEQ
 	case E_GEQ:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_GEQ expression\n");
@@ -268,7 +268,7 @@ void dumpsymbol(FILE *out, struct symbol *sym) {
        		fprintf(out, "<name>%s</name>\n", sym->name);
 
        	for (prop = sym->prop; prop; prop = prop->next) {
-#ifdef ENUM_P_SYMBOL
+#if ENUM_P_SYMBOL
 			if (prop->type == P_SYMBOL)
 				symbol_prop = prop;
 #endif
