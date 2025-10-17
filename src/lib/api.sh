@@ -27,7 +27,7 @@ add-revision(system, revision) {
 
 # adds an LKC binding
 # implemented by library scripts (e.g., to compile dumpconf or kextractor)
-add-lkc-binding(system, revision, lkc_directory, lkc_target=, environment=) {
+add-lkc-binding(system, revision, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
     :
 }
 
@@ -38,6 +38,6 @@ add-kconfig-model(system, revision, kconfig_file, lkc_binding_file=, environment
 }
 
 # adds a kconfig model together with its LKC binding
-add-kconfig(system, revision, kconfig_file, lkc_directory, lkc_target=, environment=) {
+add-kconfig(system, revision, kconfig_file, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
     :
 }

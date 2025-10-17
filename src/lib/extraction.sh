@@ -20,7 +20,7 @@ kconfig-checkout(system, revision) {
 # compiles a C program that extracts Kconfig constraints from Kconfig files
 # for kconfigreader and kclause, this compiles dumpconf and kextractor against LKC's Kconfig parser, respectively
 # lkc_directory must contain an implementation of LKC with a conf.c file, which we replace with the custom implementation given by the binding name
-compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=config, environment=) {
+compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=config, lkc_output_directory=, environment=) {
     local kconfig_constructs=(S_UNKNOWN S_BOOLEAN S_TRISTATE S_INT S_HEX S_STRING S_OTHER P_UNKNOWN \
         P_PROMPT P_COMMENT P_MENU P_DEFAULT P_CHOICE P_SELECT P_RANGE P_ENV P_SYMBOL E_SYMBOL E_NOT \
         E_EQUAL E_UNEQUAL E_OR E_AND E_LIST E_RANGE E_CHOICE P_IMPLY E_NONE E_LTH E_LEQ E_GTH E_GEQ \
@@ -28,6 +28,7 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
     revision=$(clean-revision "$revision")
     local lkc_binding_output_file
     lkc_binding_output_file="$(output-path "$LKC_BINDINGS_DIRECTORY" "$system" "$revision.$lkc_binding")"
+    lkc_output_directory=${lkc_output_directory:-$lkc_directory}
     log "$lkc_binding: $system@$revision"
     if [[ -f $lkc_binding_output_file ]]; then
         log "" "$(echo-skip)"
@@ -58,18 +59,23 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
     # this differs from system to system, but most systems have a target like config, allyesconfig, ... which we can hijack
     # the trick is that we're not interested in running any of these tools - we just want their dependency "conf.c" to be compiled
     # this way we avoid building up a complex gcc build command, which is not flexible enough to account for all systems
-    yes "" | make "$lkc_target" >/dev/null 2>&1 || true
+    if true; then # false for debugging
+        yes "" | make "$lkc_target" >/dev/null 2>&1 || true
+    else
+        yes "" | make VERBOSE=1 "$lkc_target"
+        error
+    fi
 
     # compilation done, we now have a binary file that can dump configuration options and their dependencies
-    if [[ -f $lkc_directory/conf ]]; then
-        cp "$lkc_directory/conf" "$lkc_binding_output_file"
+    if [[ -f $lkc_output_directory/conf ]]; then
+        cp "$lkc_output_directory/conf" "$lkc_binding_output_file"
         log "" "$(echo-done)"
     else
         log "" "$(echo-fail)"
         lkc_binding_output_file=NA
     fi
     pop
-    echo "$system,$revision,$lkc_binding_output_file" >> "$(output-path kconfig-bindings.csv)"
+    echo "$system,$revision,$lkc_binding_output_file" >> "$(output-path lkc-bindings.csv)"
 }
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
@@ -250,10 +256,10 @@ register-kconfig-extractor(extractor, lkc_binding=, timeout=0) {
         echo "Using LKC_BINDING: $LKC_BINDING"
     fi
 
-    add-lkc-binding(system, revision, lkc_directory, lkc_target=, environment=) {
+    add-lkc-binding(system, revision, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
         kconfig-checkout "$system" "$revision"
         if [ -n "$LKC_BINDING" ]; then
-            compile-lkc-binding "$LKC_BINDING" "$system" "$revision" "$lkc_directory" "$lkc_target" "$environment"
+            compile-lkc-binding "$LKC_BINDING" "$system" "$revision" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment"
         fi
         git-clean "$(input-directory)/$system"
     }
@@ -265,17 +271,17 @@ register-kconfig-extractor(extractor, lkc_binding=, timeout=0) {
         git-clean "$(input-directory)/$system"
     }
 
-    add-kconfig(system, revision, kconfig_file, lkc_directory, lkc_target=, environment=) {
+    add-kconfig(system, revision, kconfig_file, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
         kconfig-checkout "$system" "$revision"
         if [ -n "$LKC_BINDING" ]; then
-            compile-lkc-binding "$LKC_BINDING" "$system" "$revision" "$lkc_directory" "$lkc_target" "$environment"
+            compile-lkc-binding "$LKC_BINDING" "$system" "$revision" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment"
         fi
         extract-kconfig-model "$EXTRACTOR" "$LKC_BINDING" \
             "$system" "$revision" "$kconfig_file" "" "$environment" "$TIMEOUT"
         git-clean "$(input-directory)/$system"
     }
 
-    echo system,revision,binding_file > "$(output-path kconfig-bindings.csv)"
+    echo system,revision,binding_file > "$(output-path lkc-bindings.csv)"
     echo system,revision,architecture,binding_file,kconfig_file,environment,model_file,model_features,model_variables,model_literals,model_time > "$(output-csv)"
 }
 

@@ -188,7 +188,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | System | Revisions | Notes |
 | - | - | - |
 | [axtls](src/systems/axtls.sh) | 1.0.0 (2006) - 2.1.5 (2019) | |
-| [buildroot](src/systems/buildroot.sh) | 2009.02 - 2024.05 | todo |
+| [buildroot](src/systems/buildroot.sh) | 2009.02 (2009) - 2025.08 (2025) | |
 | [busybox](src/systems/busybox.sh) | 1.0 (2004) - 1.36.1 (2023) | [^27] [^34] |
 | [embtoolkit](src/systems/embtoolkit.sh) | 0.1.0 (2012) - 1.9.0 (2017) | |
 | [fiasco](src/systems/fiasco.sh) | 5eed420 (2023) | [^23] todo |
