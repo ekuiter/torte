@@ -23,50 +23,10 @@ define-stages() {
         run --output read-linux-architectures
     }
 
-    # to do: remove/unify these
+    # todo: generalize this
     # extracts configuration options of linux revisions
     read-linux-configs() {
         run --output read-linux-configs
-    }
-
-    # extracts configuration options of toybox revisions
-    read-toybox-configs() {
-        run --output read-toybox-configs
-    }
-    
-    # extracts configuration options of axtls revisions
-    read-axtls-configs() {
-        run --output read-axtls-configs
-    }
-
-    # extracts configuration options of busybox revisions
-    read-busybox-configs() {
-        run --output read-busybox-configs
-    }
-    
-    # extracts configuration options of embtoolkit revisions
-    read-embtoolkit-configs() {
-        run --output read-embtoolkit-configs
-    }
-    
-    # extracts configuration options of buildroot revisions
-    read-buildroot-configs() {
-        run --output read-buildroot-configs
-    }
-
-    # extracts configuration options of fiasco revisions
-    read-fiasco-configs() {
-        run --output read-fiasco-configs
-    }
-    
-    # extracts configuration options of freetz-ng revisions 
-    read-freetz-ng-configs() {
-        run --output read-freetz-ng-configs
-    }
-    
-    # extracts configuration options of uclibc-ng revisions 
-    read-uclibc-ng-configs() {
-        run --output read-uclibc-ng-configs
     }
 
     # read basic statistics for each system
