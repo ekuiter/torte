@@ -5,6 +5,7 @@ LKC_BINDINGS_DIRECTORY=lkc-bindings # output directory for storing LKC bindings
 
 # checks out a system and prepares it for further processing
 kconfig-checkout(system, revision) {
+    log "git: $system@$revision" "$(echo-progress checkout)"
     local revision_clean err
     revision_clean=$(clean-revision "$revision")
     push "$(input-directory)/$system"
@@ -13,6 +14,7 @@ kconfig-checkout(system, revision) {
     compile-hook kconfig-post-checkout-hook
     kconfig-post-checkout-hook "$system" "$revision"
     pop
+    log "" "$(echo-done)"
 }
 
 # compiles a C program that extracts Kconfig constraints from Kconfig files
@@ -35,14 +37,21 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
     push "$(input-directory)/$system"
 
     # override the default configurator with our own implementation, which just dumps all the configuration options and their dependencies for the extractor
+    mkdir -p "$lkc_directory"
     cp "/home/$lkc_binding.c" "$lkc_directory/conf.c"
 
     # determine which Kconfig constructs this system uses and enable them in our implementation
-    local construct
-    for construct in "${kconfig_constructs[@]}"; do
-        if grep -qrnw "$lkc_directory" --exclude=conf.c -e "$construct" 2>/dev/null; then
-            sed -i "s/ENUM_$construct/1/" "$lkc_directory/conf.c"
+    local kconfig_construct
+    for kconfig_construct in "${kconfig_constructs[@]}"; do
+        if grep -qrnw "$lkc_directory" --exclude=conf.c -e "$kconfig_construct" 2>/dev/null; then
+            sed -i "s/HAS_$kconfig_construct/1/" "$lkc_directory/conf.c"
         fi
+    done
+
+    # run system-specific code for influencing the binding compilation, if needed
+    compile-hook kconfig-pre-binding-hook
+    for macro in $(kconfig-pre-binding-hook "$system" "$revision" "$lkc_directory"); do
+        sed -i "s/$macro/1/" "$lkc_directory/conf.c"
     done
 
     # this is the tricky part where we compile the binding

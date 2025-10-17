@@ -1,5 +1,9 @@
 #!/bin/bash
 
+BUSYBOX_URL=https://github.com/mirror/busybox
+BUSYBOX_URL_FORK=https://github.com/ekuiter/busybox
+
+# determine the correct KConfig file for BusyBox at the given revision
 find-busybox-kconfig-file(revision) {
     if git -C "$(input-directory)/busybox" cat-file -e "$revision:Config.in" 2>/dev/null; then
         echo Config.in
@@ -8,6 +12,7 @@ find-busybox-kconfig-file(revision) {
     fi
 }
 
+# determine the correct LKC directory for BusyBox at the given revision
 find-busybox-lkc-directory(revision) {
     if git -C "$(input-directory)/busybox" cat-file -e "$revision:scripts/kconfig" 2>/dev/null; then
         echo scripts/kconfig
@@ -16,8 +21,9 @@ find-busybox-lkc-directory(revision) {
     fi
 }
 
-add-busybox-kconfig-history(from=, to=) {
-    add-system --system busybox --url https://github.com/mirror/busybox
+# all versions before 1.00 use CML1 instead of KConfig, which we currently cannot extract, so we start at 1.00
+add-busybox-kconfig-history(from=1_00, to=) {
+    add-system --system busybox --url "$BUSYBOX_URL"
     for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system busybox --revision "$revision"
         add-kconfig \
@@ -28,8 +34,9 @@ add-busybox-kconfig-history(from=, to=) {
     done
 }
 
+# consider all commits that changed the BusyBox feature model (this is a bit convoluted due to the reasons listed in generate-busybox-models)
 add-busybox-kconfig-history-commits() {
-    add-system --system busybox --url https://github.com/mirror/busybox
+    add-system --system busybox --url "$BUSYBOX_URL"
     if [[ -f "$(input-directory)/busybox/.generate_busybox_models" ]]; then
         for revision in $(git -C "$(input-directory)/busybox" log master --format="%h" --reverse); do
             local original_revision
@@ -50,8 +57,7 @@ add-busybox-kconfig-history-commits() {
 # if you need the original commit hashes, please use add-busybox-kconfig-history (which does not allow analyzing the full history, though)
 generate-busybox-models() {
     if [[ $BUSYBOX_GENERATE_MODE == fork ]]; then
-        local url=https://github.com/ekuiter/busybox
-        git clone "$url" "$(output-directory)/busybox"
+        git clone "$BUSYBOX_URL_FORK" "$(output-directory)/busybox"
     elif [[ $BUSYBOX_GENERATE_MODE == generate ]]; then
         git-checkout master "$(input-directory)/busybox" > /dev/null
         local output_directory
@@ -93,66 +99,3 @@ generate-busybox-models() {
         error "Unknown BusyBox generate mode: $BUSYBOX_GENERATE_MODE"
     fi
 }
-
-read-busybox-configs() {
-    add-revision(system, revision) {
-        if [[ $system == busybox ]]; then
-            log "read-busybox-configs: $system@$revision" "$(echo-progress read)"
-            if grep -q "^$system,$revision," "$(output-csv)"; then
-                log "" "$(echo-skip)"
-                return
-            fi
-            if [[ ! -d $(input-directory)/busybox ]]; then
-                error "BusyBox has not been cloned yet. Please prepend a stage that clones BusyBox."
-            fi
-            
-            local configs config_types
-            configs=$(mktemp)
-            config_types=$(mktemp)
-
-            echo system,revision,kconfig_file,config >> "$configs"
-            echo system,revision,kconfig_file,config,type >> "$config_types"
-
-            busybox-configs "$revision" >> "$configs"
-            tail -n+2 < "$configs" >> "$(output-csv)"
-
-            busybox-config-types "$revision" >> "$config_types"
-            if [[ ! -f $(output-file types.csv) ]]; then
-                join-tables "$configs" "$config_types" | head -n1 > "$(output-file types.csv)"
-            fi
-            join-tables "$configs" "$config_types" | tail -n+2 >> "$(output-file types.csv)"
-
-            log "" "$(echo-done)"
-            rm-safe "$configs" "$config_types"
-        fi
-    }
-
-    echo system,revision,kconfig_file,config > "$(output-csv)"
-    experiment-systems
-}
-
-busybox-configs(revision) {
-    git -C "$(input-directory)/busybox" grep -E $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Config*' \
-        | awk -F: $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print "busybox", $1, $2, $3}' \
-        | grep -E ',.*,.*,[0-9a-zA-Z_]+$' \
-        | sort | uniq
-}
-
-
-
-busybox-config-types(revision) {
-    # similar to linux-configs, reads all configuration options, but also tries to read their types from the succeeding line
-    # note that this is less accurate than linux-configs due to the complexity of the regular expressions
-    # also, this does not exclude the architecture um as done in other functions
-    git -C "$(input-directory)/busybox" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Config*' \
-        | perl -pe 's/[ \t]*(menu)?config[ \t]+([0-9a-zA-Z_]+).*/$2/' \
-        | perl -pe 's/\n/&&&/g' \
-        | perl -pe 's/&&&--&&&/\n/g' \
-        | perl -pe 's/&&&[^:&]*?:[^:&]*?Config[^:&]*?-/&&&/g' \
-        | perl -pe 's/&&&([^:&]*?:[^:&]*?Config[^:&]*?:)/&&&\n$1/g' \
-        | perl -pe 's/&&&/:/g' \
-        | awk -F: $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print "busybox", $1, $2, $3, $4}' \
-        | grep -E ',(bool|tristate|string|int|hex)$' \
-        | sort | uniq
-}
-

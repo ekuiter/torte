@@ -187,15 +187,16 @@ To extract a single revision, you can specify an excerpt with only one commit.
 
 | System | Revisions | Notes |
 | - | - | - |
-| [axtls](src/systems/axtls.sh) | 1.0.0 - 2.0.0 | |
-| [buildroot](src/systems/buildroot.sh) | 2009.02 - 2024.05 | |
-| [busybox](src/systems/busybox.sh) | 1.0 - 1.36.0 | [^27] [^34] |
-| [embtoolkit](src/systems/embtoolkit.sh) | 1.0.0 - 1.8.0 | |
-| [fiasco](src/systems/fiasco.sh) | 5eed420 (2023-04-18) | [^23] |
-| [freetz-ng](src/systems/freetz-ng.sh) | d57a38e (2023-04-18) | [^23] |
-| [linux](src/systems/linux.sh) | 2.5.45 - 6.12 | [^21] [^25] [^26] [^29] | |
-| [toybox](src/systems/toybox.sh) | 0.4.5 - 0.8.9 | [^22] | |
-| [uclibc-ng](src/systems/uclibc-ng.sh) | 1.0.2 - 1.0.47 | |
+| [axtls](src/systems/axtls.sh) | 1.0.0 (2006) - 2.1.5 (2019) | |
+| [buildroot](src/systems/buildroot.sh) | 2009.02 - 2024.05 | todo |
+| [busybox](src/systems/busybox.sh) | 1.0 (2004) - 1.36.1 (2023) | [^27] [^34] |
+| [embtoolkit](src/systems/embtoolkit.sh) | 1.0.0 - 1.8.0 | todo |
+| [fiasco](src/systems/fiasco.sh) | 5eed420 (2023) | [^23] todo |
+| [freetz-ng](src/systems/freetz-ng.sh) | d57a38e (2023) | [^23] todo |
+| [linux](src/systems/linux.sh) | 2.5.45 - 6.16 (2025) | [^21] [^25] [^26] [^29] | todo: document why not earlier |
+| [toybox](src/systems/toybox.sh) | 0.0.3 (2007) - 0.8.13 (2025) | | |
+| [uclibc](src/systems/uclibc.sh) | 0.9.21 (2003) - 0.9.33 (2012) | [^36] |
+| [uclibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 (2015) - 1.0.47 (2024) | |
 
 [^21]: Most revisions and architectures of Linux (since the introduction of KConfig) can be extracted successfully.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
@@ -211,13 +212,13 @@ However, our experiments showed that the chosen parser version typically does no
 To specify arbitrary and up-to-date commit hashes, use `LINUX_CLONE_MODE=original|filter` (see `scripts/systems/linux.sh#post-clone-hook-linux`: `original` only works on case-sensitive file systems, while `filter` is cross-platform, but takes several hours to run).
 This does not affect typical use cases that involve tag and branch identifiers.
 
-[^22]: Feature models for this system are currently likely to be incomplete due to an inaccurate extraction.
-
 [^23]: This system does not regularly release tagged revisions, so only a single revision has been tested.
 
-[^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we use Git to detect changes in any KConfig files to identify relevant commits). We solve this problem by iterating over all commits to generate all KConfig files, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model. (This is only relevant for experiments that operate on the entire history of BusyBox instead of specific revisions.)
+[^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we use Git to detect changes in any KConfig files to identify relevant commits). We solve this problem by iterating over all commits to generate all KConfig files, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model. (This is only relevant for experiments that operate on the entire (i.e., all commits) history of BusyBox instead of specific revision ranges.)
 
 [^34]: Feature-model extraction for BusyBox should only be attempted starting with version 1.0, where the root KConfig file is named `sysdeps/linux/Config.in`. In older versions this file is named `sysdeps/linux/config.in` (and written in CML1 instead of KConfig). If torte is run for earlier versions than 1.0, it will crash on macOS due to the different casing in both filenames and macOS having a case-insensitive file system by default. Fixing this would require a Git history rewrite, which comes with its own issues. As extraction of earlier versions is not supported anyway (due to CML1 being used), it should not be attempted to avoid this crash cause.
+
+[^36]: Feature-model extraction for uClibc only succeeds starting with version 0.9.21, as up to version 0.9.15, CML1 was used instead of KConfig. The in-between versions are in the process of migration and cannot be successfully extracted with our approach due to malformed KConfig files.
 
 ## Bundled Tools
 

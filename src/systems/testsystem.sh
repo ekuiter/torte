@@ -1,9 +1,11 @@
 #!/bin/bash
 
+TESTSYSTEM_URL=https://github.com/rami-alfish/testsystem.git
+
 add-testsystem-kconfig(revision) {
     #local revision="v0.0"  # oder "v0.0" wenn du getaggt hast
     add-linux-kconfig-binding --revision v6.7
-    add-system --system testsystem --url https://github.com/rami-alfish/testsystem.git
+    add-system --system testsystem --url "$TESTSYSTEM_URL"
     add-revision --system testsystem --revision "$revision"
     add-kconfig-model \
         --system testsystem \

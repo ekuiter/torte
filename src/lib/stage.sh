@@ -106,7 +106,7 @@ run(image=util, input=, output=, command...) {
             cmd+=(-e PROFILE)
             cmd+=(-e TEST)
             cmd+=(-e CI)
-            cmd+=(-e PASS) # todo: possibly eliminate this?
+            cmd+=(-e PASS)
             cmd+=(--rm)
             cmd+=(-m "$(memory-limit)G")
             if [[ -n $platform ]]; then

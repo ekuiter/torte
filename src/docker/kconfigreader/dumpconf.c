@@ -26,27 +26,27 @@
 
 char* getSymType(enum symbol_type t) {
 	switch (t) {
-#if ENUM_S_UNKNOWN
+#if HAS_S_UNKNOWN
 		case S_UNKNOWN:
 		fprintf(stderr, "Treating S_UNKNOWN symbol as integer\n");
 		return "integer";
 #endif
-#if ENUM_S_BOOLEAN
+#if HAS_S_BOOLEAN
 		case S_BOOLEAN: return "boolean";
 #endif
-#if ENUM_S_TRISTATE
+#if HAS_S_TRISTATE
 		case S_TRISTATE: return "tristate";
 #endif
-#if ENUM_S_INT
+#if HAS_S_INT
 		case S_INT: return "integer";
 #endif
-#if ENUM_S_HEX
+#if HAS_S_HEX
 		case S_HEX: return "hex";
 #endif
-#if ENUM_S_STRING
+#if HAS_S_STRING
 		case S_STRING: return "string";
 #endif
-#if ENUM_S_OTHER
+#if HAS_S_OTHER
 		case S_OTHER: return "other";
 #endif
 	}
@@ -55,37 +55,37 @@ char* getSymType(enum symbol_type t) {
 
 char* getPropType(enum prop_type t) {
 	switch (t) {
-#if ENUM_P_UNKNOWN
+#if HAS_P_UNKNOWN
 		case P_UNKNOWN: return "unknown";
 #endif
-#if ENUM_P_PROMPT
+#if HAS_P_PROMPT
    		case P_PROMPT: return "prompt";
 #endif
-#if ENUM_P_COMMENT
+#if HAS_P_COMMENT
         case P_COMMENT: return "comment";
 #endif
-#if ENUM_P_MENU
+#if HAS_P_MENU
         case P_MENU: return "menu";
 #endif
-#if ENUM_P_DEFAULT
+#if HAS_P_DEFAULT
         case P_DEFAULT: return "default";
 #endif
-#if ENUM_P_CHOICE
+#if HAS_P_CHOICE
         case P_CHOICE: return "choice";
 #endif
-#if ENUM_P_SELECT
+#if HAS_P_SELECT
         case P_SELECT: return "select";
 #endif
-#if ENUM_P_RANGE
+#if HAS_P_RANGE
         case P_RANGE: return "range";
 #endif
-#if ENUM_P_ENV
+#if HAS_P_ENV
         case P_ENV: return "env";
 #endif
-#if ENUM_P_SYMBOL
+#if HAS_P_SYMBOL
         case P_SYMBOL: return "symbol";
 #endif
-#if ENUM_P_IMPLY
+#if HAS_P_IMPLY
         case P_IMPLY: return "select";
 #endif
 	}
@@ -127,18 +127,18 @@ void dumpexpr(FILE *out, struct expr *e) {
 	if (!e) {fprintf(out, "ERROR"); return;}
 	enum expr_type t = e->type;
 	switch (t) {
-#if ENUM_E_SYMBOL
+#if HAS_E_SYMBOL
 	case E_SYMBOL:
 		dumpsymref(out, e->left.sym);
 		break;
 #endif
-#if ENUM_E_NOT
+#if HAS_E_NOT
 	case E_NOT:
 		fprintf(out, "!");
 		dumpexpr(out, e->left.expr);
 		break;
 #endif
-#if ENUM_E_EQUAL
+#if HAS_E_EQUAL
 	case E_EQUAL:
 		fprintf(out, "(");
 		dumpsymref(out, e->left.sym);
@@ -147,7 +147,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#if ENUM_E_UNEQUAL
+#if HAS_E_UNEQUAL
 	case E_UNEQUAL:
 		fprintf(out, "(");
 		dumpsymref(out, e->left.sym);
@@ -156,7 +156,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#if ENUM_E_OR
+#if HAS_E_OR
 	case E_OR:
 		fprintf(out, "(");
 		dumpexpr(out, e->left.expr);
@@ -165,7 +165,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#if ENUM_E_AND
+#if HAS_E_AND
 	case E_AND:
 		fprintf(out, "(");
 		dumpexpr(out, e->left.expr);
@@ -174,7 +174,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#if ENUM_E_LIST
+#if HAS_E_LIST
 	case E_LIST:
 		fprintf(out, "(");
 		dumpsymref(out, e->right.sym);
@@ -185,7 +185,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#if ENUM_E_RANGE
+#if HAS_E_RANGE
 	case E_RANGE:
 		fprintf(out, "[");
 		dumpsymref(out, e->left.sym);
@@ -194,7 +194,7 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, "]");
 		break;
 #endif
-#if ENUM_E_CHOICE
+#if HAS_E_CHOICE
 	case E_CHOICE:
 		fprintf(out, "(");
 		dumpsymref(out, e->right.sym);
@@ -205,31 +205,31 @@ void dumpexpr(FILE *out, struct expr *e) {
 		fprintf(out, ")");
 		break;
 #endif
-#if ENUM_E_NONE
+#if HAS_E_NONE
 	case E_NONE:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_NONE expression\n");
 		break;
 #endif
-#if ENUM_E_LTH
+#if HAS_E_LTH
 	case E_LTH:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_LTH expression\n");
 		break;
 #endif
-#if ENUM_E_LEQ
+#if HAS_E_LEQ
 	case E_LEQ:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_LEQ expression\n");
 		break;
 #endif
-#if ENUM_E_GTH
+#if HAS_E_GTH
 	case E_GTH:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_GTH expression\n");
 		break;
 #endif
-#if ENUM_E_GEQ
+#if HAS_E_GEQ
 	case E_GEQ:
 		fprintf(out, "y");
 		fprintf(stderr, "Ignoring E_GEQ expression\n");
@@ -268,7 +268,7 @@ void dumpsymbol(FILE *out, struct symbol *sym) {
        		fprintf(out, "<name>%s</name>\n", sym->name);
 
        	for (prop = sym->prop; prop; prop = prop->next) {
-#if ENUM_P_SYMBOL
+#if HAS_P_SYMBOL
 			if (prop->type == P_SYMBOL)
 				symbol_prop = prop;
 #endif
@@ -278,7 +278,7 @@ void dumpsymbol(FILE *out, struct symbol *sym) {
 // sym_get_choice_prop was removed in Linux 6.11:
 // https://elixir.bootlin.com/linux/v6.10/C/ident/sym_get_choice_prop
 // https://github.com/torvalds/linux/commit/ca4c74ba306e28cebf53908e69b773dcbb700cbc
-#if defined(SYSTEM_IS_LINUX) && !defined(SYM_GET_CHOICE_PROP)
+#if SYSTEM_IS_LINUX && !SYM_GET_CHOICE_PROP
 		if (sym_is_choice(sym)) {
 			struct menu *choice;
 			struct symbol *def_sym;

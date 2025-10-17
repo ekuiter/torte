@@ -1,5 +1,8 @@
 #!/bin/bash
 
+LINUX_URL_FORK=https://github.com/ekuiter/linux
+LINUX_URL_ORIGINAL=https://github.com/torvalds/linux
+
 add-linux-system() {
     if [[ $LINUX_CLONE_MODE == filter ]]; then
         add-hook-step post-clone-hook linux "$(to-lambda post-clone-hook-linux)"
@@ -7,9 +10,9 @@ add-linux-system() {
     add-hook-step kconfig-post-checkout-hook linux "$(to-lambda kconfig-post-checkout-hook-linux)"
     add-hook-step kconfig-pre-binding-hook linux "$(to-lambda kconfig-pre-binding-hook-linux)"
     if [[ $LINUX_CLONE_MODE == fork ]]; then
-        local url=https://github.com/ekuiter/linux
+        local url="$LINUX_URL_FORK"
     elif [[ $LINUX_CLONE_MODE == original ]] || [[ $LINUX_CLONE_MODE == filter ]]; then
-        local url=https://github.com/torvalds/linux
+        local url="$LINUX_URL_ORIGINAL"
     else
         error "Unknown Linux clone mode: $LINUX_CLONE_MODE"
     fi
@@ -64,19 +67,17 @@ kconfig-post-checkout-hook-linux(system, revision) {
     fi
 }
 
-kconfig-pre-binding-hook-linux(system, revision, kconfig_binding_directory=) {
+kconfig-pre-binding-hook-linux(system, revision, lkc_directory=) {
     if [[ $system == linux ]]; then
-        echo -n '-DSYSTEM_IS_LINUX'
+        echo -n 'SYSTEM_IS_LINUX'
         # sym_is_optional was removed in Linux 6.10
-        if grep -qrnw "$kconfig_binding_directory" -e sym_is_optional 2>/dev/null; then
-            echo -n ' -DSYM_IS_OPTIONAL'
+        if grep -qrnw "$lkc_directory" --exclude=conf.c -e sym_is_optional 2>/dev/null; then
+            echo -n ' SYM_IS_OPTIONAL'
         fi
         # sym_get_choice_prop was removed in Linux 6.11
-        if grep -qrnw "$kconfig_binding_directory" -e sym_get_choice_prop 2>/dev/null; then
-            echo -n ' -DSYM_GET_CHOICE_PROP'
+        if grep -qrnw "$lkc_directory" --exclude=conf.c -e sym_get_choice_prop 2>/dev/null; then
+            echo -n ' SYM_GET_CHOICE_PROP'
         fi
-        # in Linux 6.11, some helpers have been moved (https://github.com/torvalds/linux/commit/fbaf242c956aff6a07d9e97eaa3a0a48d947de33)
-        echo -n ' -Iscripts/include'
     fi
 }
 
@@ -124,7 +125,7 @@ linux-attempt-grouper(file) {
     echo "$file" | sed 's#\(.*\)/linux/.*\[\(.*\)\]\..*#\1.\2#'
 }
 
-add-linux-kconfig(revision, architecture=x86, kconfig_binding_file=) {
+add-linux-kconfig(revision, architecture=x86, lkc_binding_file=) {
     if [[ $architecture == x86 ]] && linux-architectures "$revision" | grep -q '^i386$'; then
         architecture=i386 # in old revisions, x86 is called i386
     fi
@@ -134,7 +135,7 @@ add-linux-kconfig(revision, architecture=x86, kconfig_binding_file=) {
     if [[ $architecture == all ]]; then
         mapfile -t architectures < <(linux-architectures "$revision")
         for architecture in "${architectures[@]}"; do
-            add-linux-kconfig "$revision" "$architecture" "$kconfig_binding_file"
+            add-linux-kconfig "$revision" "$architecture" "$lkc_binding_file"
         done
         return
     fi
@@ -152,30 +153,30 @@ add-linux-kconfig(revision, architecture=x86, kconfig_binding_file=) {
     kconfig_file=${kconfig_file//\$(SRCARCH)/$architecture}
     add-linux-system
     add-revision --system linux --revision "$revision"
-    if [[ -n $kconfig_binding_file ]]; then
+    if [[ -n $lkc_binding_file ]]; then
         add-kconfig-model \
             --system linux \
             --revision "${revision}[$architecture]" \
             --kconfig-file "$kconfig_file" \
-            --kconfig-binding-file "$kconfig_binding_file" \
+            --lkc-binding-file "$lkc_binding_file" \
             --environment "$environment"
     else
         add-kconfig \
             --system linux \
             --revision "${revision}[$architecture]" \
             --kconfig-file "$kconfig_file" \
-            --kconfig-binding-files scripts/kconfig/*.o \
+            --lkc-directory scripts/kconfig \
             --environment "$environment"
     fi
 }
 
-add-linux-kconfig-binding(revision) {
+add-linux-lkc-binding(revision) {
     add-linux-system
-    add-kconfig-binding --system linux --revision "$revision" --kconfig_binding_files scripts/kconfig/*.o
+    add-lkc-binding --system linux --revision "$revision" --lkc-directory scripts/kconfig
 }
 
-linux-kconfig-binding-file(revision) {
-    output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$revision"
+linux-lkc-binding-file(revision) {
+    output-path "$LKC_BINDINGS_DIRECTORY" linux "$revision"
 }
 
 add-linux-kconfig-revisions(revisions=, architecture=x86) {
@@ -194,7 +195,7 @@ add-linux-kconfig-revisions(revisions=, architecture=x86) {
             add-linux-kconfig \
                 --revision "$revision" \
                 --architecture "$architecture" \
-                --kconfig-binding-file "$(output-path "$KCONFIG_BINDINGS_OUTPUT_DIRECTORY" linux "$first_binding_revision")"
+                --lkc-binding-file "$(output-path "$LKC_BINDINGS_DIRECTORY" linux "$first_binding_revision")"
         else
             add-linux-kconfig --revision "$revision" --architecture "$architecture"
         fi
