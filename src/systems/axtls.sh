@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # use a frozen Git copy of the original SVN repository, including newer versions up to 2.1.5
-AXTLS_URL=https://github.com/ekuiter/axTLS
+AXTLS_URL=https://github.com/ekuiter/torte-axTLS
 
 add-axtls-kconfig-history(from=, to=) {
     add-system --system axtls --url "$AXTLS_URL"

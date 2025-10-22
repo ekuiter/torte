@@ -185,40 +185,45 @@ The files in this directory include templates and convenience functions for work
 Most functions extract (an excerpt of) the tagged history of a KConfig feature model.
 To extract a single revision, you can specify an excerpt with only one commit.
 
-| System | Revisions | Notes |
-| - | - | - |
-| [axtls](src/systems/axtls.sh) | 1.0.0 (2006) - 2.1.5 (2019) | |
-| [buildroot](src/systems/buildroot.sh) | 2009.02 (2009) - 2025.08 (2025) | |
-| [busybox](src/systems/busybox.sh) | 1.0 (2004) - 1.36.1 (2023) | [^27] [^34] |
-| [embtoolkit](src/systems/embtoolkit.sh) | 0.1.0 (2012) - 1.9.0 (2017) | |
-| [fiasco](src/systems/fiasco.sh) | 5eed420 (2023) | [^23] todo |
-| [freetz-ng](src/systems/freetz-ng.sh) | d57a38e (2023) | [^23] todo |
-| [linux](src/systems/linux.sh) | 2.5.45 - 6.16 (2025) | [^21] [^25] [^26] [^29] | todo: document why not earlier |
-| [toybox](src/systems/toybox.sh) | 0.0.3 (2007) - 0.8.13 (2025) | | |
-| [uclibc](src/systems/uclibc.sh) | 0.9.21 (2003) - 0.9.33 (2012) | [^36] |
-| [uclibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 (2015) - 1.0.47 (2024) | |
+| System | Releases | Years | Notes |
+| - | - | - | - |
+| [axTLS](src/systems/axtls.sh) | 1.0.0 - 2.1.5 | 2006 - 2019 | |
+| [Buildroot](src/systems/buildroot.sh) | 2009.02 - 2025.08 | 2009 - 2025 | |
+| [BusyBox](src/systems/busybox.sh) | 1.0 - 1.36.1 | 2004 - 2023 | [^27] [^34] |
+| [EmbToolkit](src/systems/embtoolkit.sh) | 0.1.0 - 1.9.0 | 2012 - 2017 | |
+| [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] |
+| [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] |
+| [Linux](src/systems/linux.sh) | 2.5.45 - 6.17 | 2002 - 2025 | [^21] [^25] [^26] [^29] |
+| [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | |
+| [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
+| [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |
 
-[^21]: Most revisions and architectures of Linux (since the introduction of KConfig) can be extracted successfully.
+[^21]: Most revisions and architectures of Linux (since the introduction of KConfig in Linux 2.5.45) can be extracted successfully.
+Before Linux 2.5.45, a predecessor of KConfig known as CML1 was used, which is incompatible with KConfig.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
 
 [^25]: Due to extractor limitations, we ignore the more recently introduced KConfig constructs defined in Linux' `scripts/Kconfig.include`.
 Most of these only add machine specific-default values or dependencies (affecting about 100 features in the kernel's history up to `v6.3`).
 However, these constructs do not affect our feature-model extraction, as we want to ignore machine-dependent restrictions.
 
-[^26]: Currently, we use the KConfig parser of Linux 2.6.9 for all revisions of Linux up to Linux 2.6.9, as older versions of the parser cannot be compiled.
-However, our experiments showed that the chosen parser version typically does not seem to affect the extracted formula, should it succeed in extracting a formula.
+[^26]: Currently, we use the KConfig parser (LKC) of Linux 2.5.71 for all revisions of Linux up to Linux 2.5.71, as older versions of LKC cannot be easily compiled (see [`add-linux-kconfig-revisions`](src/systems/linux.sh)).
 
-[^29]: For Linux, specifying arbitrary commit hashes is not enabled by default, because we must perform a complete Git history rewrite (resetting the commit hashes in the process) in order to ensure that checking out the repository also succeeds cross-platform on case-insensitive file systems (e.g., APFS).
-To specify arbitrary and up-to-date commit hashes, use `LINUX_CLONE_MODE=original|filter` (see `scripts/systems/linux.sh#post-clone-hook-linux`: `original` only works on case-sensitive file systems, while `filter` is cross-platform, but takes several hours to run).
+[^29]: For Linux, specifying arbitrary commit hashes is not enabled by default, because we must perform a complete Git history rewrite (resetting the commit hashes in the process) in order to ensure that checking out the repository also succeeds cross-platform on case-insensitive file systems (e.g., APFS on macOS, by default).
+To specify up-to-date commit hashes, use `LINUX_CLONE_MODE=original|filter` (see `scripts/systems/linux.sh#post-clone-hook-linux`: `original` only works on case-sensitive file systems, while `filter` is cross-platform, but takes several hours to run).
+To specify arbitrary commit hashes identical to the original repository, use `LINUX_CLONE_MODE=original`.
 This does not affect typical use cases that involve tag and branch identifiers.
+Note that our history rewrite removes several `.c|h` files that cause filename collisions, which does not affect feature-model extraction, but may lead to a very slight underestimation of source code statistics like SLOC.
 
-[^23]: This system does not regularly release tagged revisions, so only a single revision has been tested.
+[^23]: This system does not regularly release tagged revisions, so only a yearly sample has been tested.
 
 [^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we use Git to detect changes in any KConfig files to identify relevant commits). We solve this problem by iterating over all commits to generate all KConfig files, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model. (This is only relevant for experiments that operate on the entire (i.e., all commits) history of BusyBox instead of specific revision ranges.)
 
 [^34]: Feature-model extraction for BusyBox should only be attempted starting with version 1.0, where the root KConfig file is named `sysdeps/linux/Config.in`. In older versions this file is named `sysdeps/linux/config.in` (and written in CML1 instead of KConfig). If torte is run for earlier versions than 1.0, it will crash on macOS due to the different casing in both filenames and macOS having a case-insensitive file system by default. Fixing this would require a Git history rewrite, which comes with its own issues. As extraction of earlier versions is not supported anyway (due to CML1 being used), it should not be attempted to avoid this crash cause.
 
 [^36]: Feature-model extraction for uClibc only succeeds starting with version 0.9.21, as up to version 0.9.15, CML1 was used instead of KConfig. The in-between versions are in the process of migration and cannot be successfully extracted with our approach due to malformed KConfig files.
+
+[^37]: Freetz-NG has a very large and complex feature model in recent versions, which may cause a `java.lang.OutOfMemoryError` exception when using KConfigReader.
+To avoid this, use KClause instead or run on a machine with more RAM.
 
 ## Bundled Tools
 

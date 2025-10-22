@@ -24,11 +24,10 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
     local kconfig_constructs=(S_UNKNOWN S_BOOLEAN S_TRISTATE S_INT S_HEX S_STRING S_OTHER P_UNKNOWN \
         P_PROMPT P_COMMENT P_MENU P_DEFAULT P_CHOICE P_SELECT P_RANGE P_ENV P_SYMBOL E_SYMBOL E_NOT \
         E_EQUAL E_UNEQUAL E_OR E_AND E_LIST E_RANGE E_CHOICE P_IMPLY E_NONE E_LTH E_LEQ E_GTH E_GEQ \
-        dir_dep)
+        dir_dep sym_is_optional sym_get_choice_prop)
     revision=$(clean-revision "$revision")
     local lkc_binding_output_file
     lkc_binding_output_file="$(output-path "$LKC_BINDINGS_DIRECTORY" "$system" "$revision.$lkc_binding")"
-    lkc_output_directory=${lkc_output_directory:-$lkc_directory}
     log "$lkc_binding: $system@$revision"
     if [[ -f $lkc_binding_output_file ]]; then
         log "" "$(echo-skip)"
@@ -36,6 +35,11 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
     fi
     log "" "$(echo-progress compile)"
     push "$(input-directory)/$system"
+
+    # explicitly expand possible wildcards in lkc_directory, which is necessary for systems that have a dynamic LKC path
+    # shellcheck disable=SC2116 disable=SC2086
+    lkc_directory=$(echo $lkc_directory)
+    lkc_output_directory=${lkc_output_directory:-$lkc_directory}
 
     # override the default configurator with our own implementation, which just dumps all the configuration options and their dependencies for the extractor
     mkdir -p "$lkc_directory"
@@ -59,12 +63,14 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
     # this differs from system to system, but most systems have a target like config, allyesconfig, ... which we can hijack
     # the trick is that we're not interested in running any of these tools - we just want their dependency "conf.c" to be compiled
     # this way we avoid building up a complex gcc build command, which is not flexible enough to account for all systems
+    set-environment "$environment"
     if true; then # false for debugging
         yes "" | make "$lkc_target" >/dev/null 2>&1 || true
     else
-        yes "" | make VERBOSE=1 "$lkc_target"
+        yes "" | make "$lkc_target" 1>&2
         error
     fi
+    unset-environment "$environment"
 
     # compilation done, we now have a binary file that can dump configuration options and their dependencies
     if [[ -f $lkc_output_directory/conf ]]; then

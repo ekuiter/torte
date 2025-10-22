@@ -4,11 +4,11 @@
 # actually, the root KConfig file is called Kconfig, not Config.in
 # but to avoid case sensitivity issues on macOS, we rewrite the Git history with:
 # git filter-repo --path-rename Kconfig:Config.in
-EMBTOOLKIT_URL=https://github.com/ekuiter/embtoolkit
+EMBTOOLKIT_URL=https://github.com/ekuiter/torte-embtoolkit
 
 add-embtoolkit-kconfig-history(from=, to=) {
     add-system --system embtoolkit --url "$EMBTOOLKIT_URL"
-    add-hook-step kconfig-post-checkout-hook embtoolkit "$(to-lambda kconfig-post-checkout-hook-embtoolkit)"
+    add-hook-step kconfig-pre-binding-hook embtoolkit "$(to-lambda kconfig-pre-binding-hook-embtoolkit)"
     add-hook-step kclause-post-binding-hook embtoolkit "$(to-lambda kclause-post-binding-hook-embtoolkit)"
     for revision in $(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e '-.*-' | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system embtoolkit --revision "$revision"
@@ -20,7 +20,7 @@ add-embtoolkit-kconfig-history(from=, to=) {
     done
 }
 
-kconfig-post-checkout-hook-embtoolkit(system, revision) {
+kconfig-pre-binding-hook-embtoolkit(system, revision, lkc_directory=) {
     if [[ $system == embtoolkit ]]; then
         # "config" is not enabled as target in the top-level makefile by default, which we fix here by adding it as a target
         if [[ -f mk/buildsystem.mk ]]; then

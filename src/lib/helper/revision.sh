@@ -39,7 +39,6 @@ max-revision(r1, r2) {
 }
 
 # remove architecture from revision
-# todo: possibly rename architecture to context to make it less Linux-specific?
 clean-revision(revision) {
     echo "$revision" | cut -d\[ -f1
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LINUX_URL_FORK=https://github.com/ekuiter/linux
+LINUX_URL_FORK=https://github.com/ekuiter/torte-linux
 LINUX_URL_ORIGINAL=https://github.com/torvalds/linux
 
 add-linux-system() {
@@ -22,34 +22,20 @@ add-linux-system() {
 post-clone-hook-linux(system, revision) {
     if [[ $system == linux ]]; then
         # we need to purge a few files from the git history, which cannot be checked out on case-insensitive file systems. this changes all commit hashes.
+        # we don't need these files anyway for feature-model extraction
+        # see https://github.com/torvalds/linux/tree/v3.0/include/linux/netfilter_ipv4
+        # and https://github.com/ekuiter/torte/blob/637bdaf85d8558ccb491abe725e312488d101fc9/src/systems/linux.sh
         # if you need the original commit hashes, please use LINUX_CLONE_MODE=original
         git -C "$(input-directory)/linux" filter-repo --force --invert-paths \
-            --path include/uapi/linux/netfilter/xt_CONNMARK.h \
-            --path include/uapi/linux/netfilter/xt_connmark.h \
-            --path include/uapi/linux/netfilter/xt_DSCP.h \
-            --path include/uapi/linux/netfilter/xt_dscp.h \
-            --path include/uapi/linux/netfilter/xt_MARK.h \
-            --path include/uapi/linux/netfilter/xt_mark.h \
-            --path include/uapi/linux/netfilter/xt_RATEEST.h \
-            --path include/uapi/linux/netfilter/xt_rateest.h \
-            --path include/uapi/linux/netfilter/xt_TCPMSS.h \
-            --path include/uapi/linux/netfilter/xt_tcpmss.h \
-            --path include/uapi/linux/netfilter_ipv4/ipt_ECN.h \
-            --path include/uapi/linux/netfilter_ipv4/ipt_ecn.h \
-            --path include/uapi/linux/netfilter_ipv4/ipt_TTL.h \
-            --path include/uapi/linux/netfilter_ipv4/ipt_ttl.h \
-            --path include/uapi/linux/netfilter_ipv6/ip6t_HL.h \
-            --path include/uapi/linux/netfilter_ipv6/ip6t_hl.h \
-            --path net/netfilter/xt_DSCP.c \
-            --path net/netfilter/xt_dscp.c \
-            --path net/netfilter/xt_HL.c \
-            --path net/netfilter/xt_hl.c \
-            --path net/netfilter/xt_RATEEST.c \
-            --path net/netfilter/xt_rateest.c \
-            --path net/netfilter/xt_TCPMSS.c \
-            --path net/netfilter/xt_tcpmss.c \
-            --path tools/memory-model/litmus-tests/Z6.0+pooncelock+poonceLock+pombonce.litmus \
-            --path tools/memory-model/litmus-tests/Z6.0+pooncelock+pooncelock+pombonce.litmus
+            --path-glob 'include/*/xt_*' \
+            --path-glob 'include/*/ipt_*' \
+            --path-glob 'include/*/ip6t_*' \
+            --path-glob 'net/*/xt_*' \
+            --path-glob 'net/*/ipt_*' \
+            --path-glob 'net/*/ip6t_*' \
+            --path-glob '*/Z6.0+pooncelock+poonceLock+pombonce*' \
+            --path-glob '*/Z6.0+pooncelock+pooncelock+pombonce*' \
+            --path-glob 'Documentation/io-mapping.txt'
     fi
 }
 
@@ -69,14 +55,22 @@ kconfig-post-checkout-hook-linux(system, revision) {
 
 kconfig-pre-binding-hook-linux(system, revision, lkc_directory=) {
     if [[ $system == linux ]]; then
-        echo -n 'SYSTEM_IS_LINUX'
-        # sym_is_optional was removed in Linux 6.10
-        if grep -qrnw "$lkc_directory" --exclude=conf.c -e sym_is_optional 2>/dev/null; then
-            echo -n ' SYM_IS_OPTIONAL'
+        if [[ -f scripts/kconfig/Makefile ]]; then
+            # until v2.6.9, LKC builds the shared library libkconfig.so and expects it to be present during extraction
+            # the following change enforces static compilation instead, as it is also done in v2.6.10 and later
+            sed -i 's/libkconfig.so/zconf.tab.o/g' scripts/kconfig/Makefile
+            # also in some versions until v2.6.9, compiling mconf fails
+            # as we don't need it anyway, we disable it here
+            sed -i 's/^host-progs	:=.*$/host-progs	:= conf/g' scripts/kconfig/Makefile
         fi
-        # sym_get_choice_prop was removed in Linux 6.11
-        if grep -qrnw "$lkc_directory" --exclude=conf.c -e sym_get_choice_prop 2>/dev/null; then
-            echo -n ' SYM_GET_CHOICE_PROP'
+        if [[ -f scripts/Makefile ]]; then
+            # until v2.5.75, the Makefile tries to build modpost during kconfig extraction, which fails
+            # as we don't need it anyway, we disable it here
+            sed -i 's/^\(host-progs	:= .*\) modpost/\1/' scripts/Makefile
+        fi
+        if [[ -f Makefile ]]; then
+            # until v2.5.70, ARCH is set using ':=', which prevents overriding it with an environment variable
+            sed -i 's/ARCH := $(SUBARCH)/ARCH ?= $(SUBARCH)/' Makefile
         fi
     fi
 }
@@ -172,7 +166,15 @@ add-linux-kconfig(revision, architecture=x86, lkc_binding_file=) {
 
 add-linux-lkc-binding(revision) {
     add-linux-system
-    add-lkc-binding --system linux --revision "$revision" --lkc-directory scripts/kconfig
+    # explicitly set the architecture to an arbitrary valid one, which is not used to compile the binding
+    # older Linux versions otherwise default to the host machine architecture, which may not be available (e.g., aarch64)
+    # we use x86/i386 here as it is available in every revision
+    local architecture=x86
+    if linux-architectures "$revision" | grep -q '^i386$'; then
+        architecture=i386
+    fi
+    local environment=SUBARCH=$architecture,ARCH=$architecture,SRCARCH=$architecture
+    add-lkc-binding --system linux --revision "$revision" --lkc-directory scripts/kconfig --environment "$environment"
 }
 
 linux-lkc-binding-file(revision) {
@@ -180,9 +182,12 @@ linux-lkc-binding-file(revision) {
 }
 
 add-linux-kconfig-revisions(revisions=, architecture=x86) {
-    # for up to linux 2.6.9, use the kconfig parser of linux 2.6.9 for extraction, as previous versions cannot be compiled
-    # this requires that old revisions are tagged (tag-linux-revisions)
-    local first_binding_revision=v2.6.9
+    add-linux-system
+    # for up to linux 2.5.70, use LKC of linux 2.5.71 for extraction, as previous versions cannot be easily compiled
+    # this is because LKC was very much under development in between October 2002 and June 2003 (for example, property->expr does not even exist until 2.5.71)
+    # in theory, we could try to guess how to adapt our bindings, but this might easily introduce mistakes and would be a lot of effort due to the many changes
+    # to work with LKC 2.5.71, we require that old revisions are tagged (tag-linux-revisions)
+    local first_binding_revision=v2.5.71
     if [[ -z $revisions ]] || ! git -C "$(input-directory)/linux" tag | grep -q "^$first_binding_revision$"; then
         return
     fi
@@ -191,7 +196,7 @@ add-linux-kconfig-revisions(revisions=, architecture=x86) {
     while read -r revision; do
         current_timestamp=$(git-timestamp linux "$revision")
         if [[ $current_timestamp -lt $first_binding_timestamp ]]; then
-            add-linux-kconfig-binding --revision "$first_binding_revision"
+            add-linux-lkc-binding --revision "$first_binding_revision"
             add-linux-kconfig \
                 --revision "$revision" \
                 --architecture "$architecture" \
@@ -202,8 +207,7 @@ add-linux-kconfig-revisions(revisions=, architecture=x86) {
     done < <(printf '%s\n' "$revisions")
 }
 
-add-linux-kconfig-history(from, to, architecture=x86) {
-    add-linux-system
+add-linux-kconfig-history(from=, to=, architecture=x86) {
     add-linux-kconfig-revisions "$(linux-tag-revisions \
         | start-at-revision "$from" \
         | stop-at-revision "$to")" \
@@ -211,7 +215,6 @@ add-linux-kconfig-history(from, to, architecture=x86) {
 }
 
 add-linux-kconfig-sample(interval, architecture=x86) {
-    add-linux-system
     add-linux-kconfig-revisions "$(memoize git-sample-revisions linux "$interval" master)" "$architecture"
 }
 

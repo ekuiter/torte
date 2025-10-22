@@ -30,6 +30,8 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
   && apt-get update && apt-get install -y --allow-unauthenticated \
   gcc-9 \
   g++-9 \
+  # freetz-ng
+  realpath \
   && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-9
 
 # install GNU make 4.4.1 and binutils 2.40, which is needed for newer Linux versions

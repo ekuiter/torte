@@ -130,7 +130,7 @@ input-directory(key=) {
     # for the very first stage, the input and output directory are the same
     if [[ $INSIDE_STAGE == "$ROOT_STAGE" ]]; then
         echo "$DOCKER_OUTPUT_DIRECTORY"
-        else
+    else
         echo "$DOCKER_INPUT_DIRECTORY/$key"
     fi
 }

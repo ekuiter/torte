@@ -21,6 +21,6 @@ experiment-stages() {
 
     # then execute manually:
     # cd stages/2_generate_busybox_models/busybox
-    # git remote add origin git@github.com:ekuiter/busybox.git
+    # git remote add origin git@github.com:ekuiter/torte-busybox.git
     # git push origin master
 }

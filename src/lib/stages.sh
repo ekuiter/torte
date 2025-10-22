@@ -40,7 +40,7 @@ define-stages() {
     }
 
     # extracts kconfig models with the given extractor
-    extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=iteration, file_fields=) {
+    extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=iteration, file_fields=, timeout=0) {
         output="${output:-extract-kconfig-models-with-$extractor}"
         iterate \
             --iterations "$iterations" \
@@ -49,31 +49,35 @@ define-stages() {
             --image "$extractor" \
             --input "$input" \
             --output "$output" \
-            --command "extract-kconfig-models-with-$extractor"
+            --command "extract-kconfig-models-with-$extractor" \
+            --timeout "$timeout"
     }
 
     # extracts kconfig models with kconfigreader and kclause
-    extract-kconfig-models(input=, output=extract-kconfig-models, iterations=1, iteration_field=iteration, file_fields=) {
+    extract-kconfig-models(input=, output=extract-kconfig-models, iterations=1, iteration_field=iteration, file_fields=, timeout=0) {
         extract-kconfig-models-with \
             --extractor kconfigreader \
             --input "$input" \
             --output extract-kconfig-models-with-kconfigreader \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
-            --file-fields "$file_fields"
+            --file-fields "$file_fields" \
+            --timeout "$timeout"
         extract-kconfig-models-with \
             --extractor kclause \
             --input "$input" \
             --output extract-kconfig-models-with-kclause \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
-            --file-fields "$file_fields"
+            --file-fields "$file_fields" \
+            --timeout "$timeout"
         # extract-kconfig-models-with \
         # --extractor configfix \
         # --output configfix \
         # --iterations "$iterations" \
         # --iteration-field "$iteration_field" \
-        # --file-fields "$file_fields"
+        # --file-fields "$file_fields" \
+        # --timeout "$timeout"
         # todo ConfigFix: the idea was that not every extractor needs a binding file, which is not correctly realized here, I think
         # file_fields="binding_file"
         # if [ -z "$binding_file" ]; then

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 BUSYBOX_URL=https://github.com/mirror/busybox
-BUSYBOX_URL_FORK=https://github.com/ekuiter/busybox
+BUSYBOX_URL_FORK=https://github.com/ekuiter/torte-busybox
 
 # determine the correct KConfig file for BusyBox at the given revision
 find-busybox-kconfig-file(revision) {

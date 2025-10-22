@@ -1,79 +1,89 @@
 #!/bin/bash
 
+FREETZ_NG_URL=https://github.com/Freetz-NG/freetz-ng
+
+# like BusyBox, Freetz-NG generates parts of its feature model (with https://github.com/Freetz-NG/freetz-ng/blob/master/tools/genin)
+# this is no issue as long as we don't aim to analyze every single commit that touches the feature model
+# (for BusyBox, we enable this with generate-busybox-models, and a similar approach could probably be used here)
+
+# determine the correct KConfig file for Freetz-NG at the given revision
+find-freetz-ng-kconfig-file(revision) {
+    if git -C "$(input-directory)/freetz-ng" cat-file -e "$revision:Config.in" 2>/dev/null; then
+        echo Config.in
+    else
+        echo config/Config.in
+    fi
+}
+
+# determine the correct LKC directory for Freetz-NG at the given revision
+find-freetz-ng-lkc-directory(revision) {
+    if git -C "$(input-directory)/freetz-ng" cat-file -e "$revision:tools/config/conf.c" 2>/dev/null; then
+        echo tools/config
+    else
+        echo source/host-tools/kconfig*/scripts/kconfig
+    fi
+}
+
+add-freetz-ng-system() {
+    add-system --system freetz-ng --url "$FREETZ_NG_URL"
+}
+
 add-freetz-ng-kconfig(revision) {
-    add-linux-kconfig-binding --revision v6.7
-    add-system --system freetz-ng --url https://github.com/Freetz-NG/freetz-ng
-    add-hook-step kconfig-post-checkout-hook freetz-ng "$(to-lambda kconfig-post-checkout-hook-freetz-ng)"
+    add-freetz-ng-system
     add-revision --system freetz-ng --revision "$revision"
-    add-kconfig-model \
+    add-hook-step kconfig-post-checkout-hook freetz-ng "$(to-lambda kconfig-post-checkout-hook-freetz-ng)"
+    add-kconfig \
         --system freetz-ng \
         --revision "$revision" \
-        --kconfig-file config/Config.in \
-        --kconfig-binding-file "$(linux-kconfig-binding-file v6.7)"
+        --kconfig-file "$(find-freetz-ng-kconfig-file "$revision")" \
+        --lkc-directory "$(find-freetz-ng-lkc-directory "$revision")"
 }
 
 kconfig-post-checkout-hook-freetz-ng(system, revision) {
     if [[ $system == freetz-ng ]]; then
-        # ugly hack because freetz-ng is weird
-        mkdir -p make/pkgs
-        touch make/Config.in.generated make/external.in.generated make/pkgs/external.in.generated make/pkgs/Config.in.generated config/custom.in
+        if [[ -f Makefile ]]; then
+            # we don't care about permissions or missing dependencies, we just want to compile our binding
+            sed -i 's/.*Running makefile as root is prohibited!.*//g' Makefile
+            sed -i 's/.*prerequisites are missing!.*//g' Makefile
+            sed -i 's/.*error Please re-run.*//g' Makefile
+            sed -i 's/.*empty directory root\/sys is missing!.*//g' Makefile
+            sed -i 's/.*File permissions or links are wrong!.*//g' Makefile
+            # in revision dd5227ed5, this dependency on deps_config_cache leads to an infinite loop in the makefile
+            # as it does not affect the extraction, we remove it here
+            sed -i 's/\$(deps_config_cache)$//g' Makefile
+        fi
+        if [[ -f tools/make/kconfig.mk ]]; then
+            # in revision 0b9a5803e, the URL to download LKC is outdated and placed in the wrong directory
+            sed -i 's#http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git.*$#https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/snapshot/linux-\$(KCONFIG_VERSION).tar.gz#g' tools/make/kconfig.mk
+            sed -i 's#/scripts##g' tools/make/kconfig.mk
+        fi
+        # since 2012, freetz-ng has a rather advanced mechanism that downloads LKC during the first call to "make config" and automatically patches it afterwards
+        # to be able to correctly locate the LKC implementation in the source tree, we need to run "make config" once here before compiling the binding
+        # it is important that this is not a pre-binding hook, because that hook already assumes that the location of LKC is known
+        # see https://github.com/Freetz-NG/freetz-ng/tree/master/make/host-tools/kconfig-host
+        # should the LKC download fail for some reason in the future, a mirror for several versions is available here: https://github.com/Freetz-NG/dl-mirror
+        yes "" | make config 2>&1 || true
+        # force recompilation of the binding later on in compile-lkc-binding for recent versions of freetz-ng ...
+        make clean 2>&1 || true
+        # ... and for older versions
+        make -C tools/config clean 2>&1 || true
     fi
 }
 
-read-freetz-ng-configs() {
-    add-revision(system, revision) {
-        if [[ $system == freetz-ng ]]; then
-            log "read-freetz-ng-configs: $system@$revision" "$(echo-progress read)"
-            if grep -q "^$system,$revision," "$(output-csv)"; then
-                log "" "$(echo-skip)"
-                return
-            fi
-            if [[ ! -d $(input-directory)/freetz-ng ]]; then
-                error "Freetz-NG has not been cloned yet. Please prepend a stage that clones Freetz-NG."
-            fi
-            
-            local configs config_types
-            configs=$(mktemp)
-            config_types=$(mktemp)
-
-            echo system,revision,kconfig_file,config >> "$configs"
-            echo system,revision,kconfig_file,config,type >> "$config_types"
-
-            freetz-ng-configs "$revision" >> "$configs"
-            tail -n+2 < "$configs" >> "$(output-csv)"
-
-            freetz-ng-config-types "$revision" >> "$config_types"
-            if [[ ! -f $(output-file types.csv) ]]; then
-                join-tables "$configs" "$config_types" | head -n1 > "$(output-file types.csv)"
-            fi
-            join-tables "$configs" "$config_types" | tail -n+2 >> "$(output-file types.csv)"
-
-            log "" "$(echo-done)"
-            rm-safe "$configs" "$config_types"
-        fi
-    }
-
-    echo system,revision,kconfig_file,config > "$(output-csv)"
-    experiment-systems
+add-freetz-ng-kconfig-revisions(revisions=) {
+    add-freetz-ng-system
+    if [[ -z $revisions ]]; then
+        return
+    fi
+    while read -r revision; do
+        add-freetz-ng-kconfig --revision "$revision"
+    done < <(printf '%s\n' "$revisions")
 }
 
-freetz-ng-configs(revision) {
-    git -C "$(input-directory)/freetz-ng" grep -E $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Config.in' \
-        | awk -F: $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print "freetz-ng", $1, $2, $3}' \
-        | grep -E ',.*,.*,[0-9a-zA-Z_]+$' \
-        | sort | uniq
+add-freetz-ng-kconfig-sample(interval) {
+    add-freetz-ng-kconfig-revisions "$(memoize git-sample-revisions freetz-ng "$interval" master)"
 }
 
-freetz-ng-config-types(revision) {
-    git -C "$(input-directory)/freetz-ng" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Config.in' \
-        | perl -pe 's/[ \t]*(menu)?config[ \t]+([0-9a-zA-Z_]+).*/$2/' \
-        | perl -pe 's/\n/&&&/g' \
-        | perl -pe 's/&&&--&&&/\n/g' \
-        | perl -pe 's/&&&[^:&]*?:[^:&]*?Config[^:&]*?-/&&&/g' \
-        | perl -pe 's/&&&([^:&]*?:[^:&]*?Config[^:&]*?:)/&&&\n$1/g' \
-        | perl -pe 's/&&&/:/g' \
-        | awk -F: $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print "freetz-ng", $1, $2, $3, $4}' \
-        | grep -E ',(bool|tristate|string|int|hex)$' \
-        | sort | uniq
+add-freetz-ng-kconfig-history(interval_name=yearly) {
+    add-freetz-ng-kconfig-sample --interval "$(interval "$interval_name")"
 }
-

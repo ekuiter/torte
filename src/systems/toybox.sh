@@ -2,10 +2,13 @@
 
 TOYBOX_URL=https://github.com/landley/toybox
 
+# like BusyBox, toybox generates parts of its feature model (with https://github.com/landley/toybox/blob/master/scripts/genconfig.sh)
+# this is no issue as long as we don't aim to analyze every single commit that touches the feature model
+# (for BusyBox, we enable this with generate-busybox-models, and a similar approach could probably be used here)
+
 add-toybox-kconfig-history(from=, to=) {
-    # do not use this toybox model, it is probably incorrect
     add-system --system toybox --url "$TOYBOX_URL"
-    add-hook-step kconfig-post-checkout-hook toybox "$(to-lambda kconfig-post-checkout-hook-toybox)"
+    add-hook-step kconfig-pre-binding-hook toybox "$(to-lambda kconfig-pre-binding-hook-toybox)"
     for revision in $(git-tag-revisions toybox | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system toybox --revision "$revision"
         add-kconfig \
@@ -16,7 +19,7 @@ add-toybox-kconfig-history(from=, to=) {
     done
 }
 
-kconfig-post-checkout-hook-toybox(system, revision) {
+kconfig-pre-binding-hook-toybox(system, revision, lkc_directory=) {
     if [[ $system == toybox ]]; then
         # here we remove the inline attribute for kconf_id_lookup
         # without this hack, we cannot compile the LKC binding (undefined reference to `kconf_id_lookup')
