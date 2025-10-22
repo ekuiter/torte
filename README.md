@@ -216,11 +216,20 @@ Note that our history rewrite removes several `.c|h` files that cause filename c
 
 [^23]: This system does not regularly release tagged revisions, so only a yearly sample has been tested.
 
-[^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we use Git to detect changes in any KConfig files to identify relevant commits). We solve this problem by iterating over all commits to generate all KConfig files, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model. (This is only relevant for experiments that operate on the entire (i.e., all commits) history of BusyBox instead of specific revision ranges.)
+[^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we use Git to detect changes in any KConfig files to identify relevant commits).
+We solve this problem by iterating over all commits to generate all KConfig files, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model.
+(This is only relevant for experiments that operate on the entire (i.e., all commits) history of BusyBox instead of specific revision ranges.)
 
-[^34]: Feature-model extraction for BusyBox should only be attempted starting with version 1.0, where the root KConfig file is named `sysdeps/linux/Config.in`. In older versions this file is named `sysdeps/linux/config.in` (and written in CML1 instead of KConfig). If torte is run for earlier versions than 1.0, it will crash on macOS due to the different casing in both filenames and macOS having a case-insensitive file system by default. Fixing this would require a Git history rewrite, which comes with its own issues. As extraction of earlier versions is not supported anyway (due to CML1 being used), it should not be attempted to avoid this crash cause.
+[^34]: Feature-model extraction for BusyBox should only be attempted starting with version 1.0, where the root KConfig file is named `sysdeps/linux/Config.in`.
+In older versions this file is named `sysdeps/linux/config.in` (and written in CML1 instead of KConfig).
+If torte is run for earlier versions than 1.0, it will crash on macOS due to the different casing in both filenames and macOS having a case-insensitive file system by default.
+Fixing this would require a Git history rewrite, which comes with its own issues.
+As extraction of earlier versions is not supported anyway (due to CML1 being used), it should not be attempted to avoid this crash cause.
+The versions 1.0.1 - 1.1.3 can also not be extracted due to malformed KConfig files.
 
-[^36]: Feature-model extraction for uClibc only succeeds starting with version 0.9.21, as up to version 0.9.15, CML1 was used instead of KConfig. The in-between versions are in the process of migration and cannot be successfully extracted with our approach due to malformed KConfig files.
+
+[^36]: Feature-model extraction for uClibc only succeeds starting with version 0.9.21, as up to version 0.9.15, CML1 was used instead of KConfig.
+The in-between versions are in the process of migration and cannot be successfully extracted with our approach due to malformed KConfig files.
 
 [^37]: Freetz-NG has a very large and complex feature model in recent versions, which may cause a `java.lang.OutOfMemoryError` exception when using KConfigReader.
 To avoid this, use KClause instead or run on a machine with more RAM.

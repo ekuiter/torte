@@ -22,12 +22,15 @@ find-buildroot-lkc-output-directory(revision) {
 
 add-buildroot-kconfig-history(from=, to=) {
     local environment
-    # setting these correctly is needed for some versions that refer to these variables in their KConfig files
-    environment="BASE_DIR=$(input-directory)/buildroot/output,BUILD_DIR=$(input-directory)/buildroot/output/build,BR2_EXTERNAL=support/dummy-external"
     add-system --system buildroot --url "$BUILDROOT_URL"
     add-hook-step kconfig-pre-binding-hook buildroot "$(to-lambda kconfig-pre-binding-hook-buildroot)"
     add-hook-step kclause-post-binding-hook buildroot "$(to-lambda kclause-post-binding-hook-buildroot)"
     for revision in $(git-tag-revisions buildroot | exclude-revision rc _ 'settings-.*' '\..*\.' | start-at-revision "$from" | stop-at-revision "$to"); do
+        # setting these correctly is needed for some versions that refer to these variables in their KConfig files
+        environment="BASE_DIR=$(input-directory)/buildroot/output,BUILD_DIR=$(input-directory)/buildroot/output/build"
+        if git -C "$(input-directory)/buildroot" cat-file -e "$revision:support/dummy-external" 2>/dev/null; then
+            environment="$environment,BR2_EXTERNAL=support/dummy-external"
+        fi
         add-revision --system buildroot --revision "$revision"
         add-kconfig \
             --system buildroot \

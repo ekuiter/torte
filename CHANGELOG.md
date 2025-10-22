@@ -6,16 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+This release significantly revises the extraction mechanism, which means we can now extract almost fully complete feature-model histories not only for Linux, but every supported system.
+
 ### Added
 
 - Added podman support
+- Added system: uClibc
 
 ### Changed
 
 - Revised export of Docker images, allowing to easily create GitHub releases with all images
 - Renamed analysis to solving
+- Significantly improved extraction by replacing and compiling LKC's `conf.c` in place
+- Revisited, checked, and improved feature-model extraction of every existing system
+- Revised terminology (LKC to denote the KConfig parser implementation of the Linux kernel)
 
 ### Removed
+
+- System-specific code clones, which are to be reintegrated into the shared codebase
 
 ### Fixed
 
