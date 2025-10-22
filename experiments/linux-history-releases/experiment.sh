@@ -38,7 +38,7 @@ experiment-systems() {
     add-linux-kconfig-history --from v2.5.45 --to v6.12 --architecture all
 }
 
-experiment-test-systems() {
+experiment-test-systems(__NO_CI__) {
     add-linux-kconfig-history --from v6.11 --to v6.12 --architecture x86
 }
 
