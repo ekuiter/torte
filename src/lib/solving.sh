@@ -1,6 +1,11 @@
 #!/bin/bash
 # solves (and applies analyses to) files
 
+# contains additional solvers archived by SAT heritage, which are optional due to increased size
+SAT_HERITAGE_URL=https://github.com/ekuiter/torte-sat-heritage
+SAT_HERITAGE_SYSTEM_NAME=sat-heritage # the directory name under which SAT heritage is cloned
+SAT_HERITAGE_INPUT_KEY=sat_heritage # the name of the input key to access SAT heritage solvers
+
 # solves a file
 # measures the solve time
 solve-file(file, solver_name, solver, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=) {
@@ -119,4 +124,27 @@ run-jupyter-notebook(payload_file, to=html, options=) {
 run-clausy-batch-diff(input_directory=, timeout=0) {
     input_directory=${input_directory:-$(input-directory)}
     scripts/batch_diff.sh "$input_directory" "$timeout" > "$(output-csv)"
+}
+
+# denote the intent to clone SAT heritage solvers in the experiment
+add-sat-heritage() {
+    add-hook-step post-experiment-systems-hook sat-heritage "$(to-lambda post-experiment-systems-hook-sat-heritage)"
+}
+
+# clone additional SAT heritage solvers, so they can be used in solving stages
+post-experiment-systems-hook-sat-heritage() {
+    add-system --system "$SAT_HERITAGE_SYSTEM_NAME" --url "$SAT_HERITAGE_URL"
+}
+
+# expresses the intent to mount additional SAT heritage solvers in solving stages
+# can be passed as --input to solve(...)
+# assumes that SAT heritage was cloned before using add-sat-heritage
+mount-sat-heritage(input=transform-model-to-dimacs, sat_heritage=clone-systems) {
+    echo "$MAIN_INPUT_KEY=$input,$SAT_HERITAGE_INPUT_KEY=$sat_heritage"
+}
+
+# selects a solver from SAT heritage to be run inside a solving stage
+# can be used inside the --solver_specs of solve(...)
+solve-sat-heritage(solver) {
+    echo "$DOCKER_INPUT_DIRECTORY/$SAT_HERITAGE_INPUT_KEY/$SAT_HERITAGE_SYSTEM_NAME/run.sh $solver"
 }

@@ -17,6 +17,8 @@ clone-systems() {
     }
 
     experiment-systems
+    compile-hook post-experiment-systems-hook
+    post-experiment-systems-hook
 }
 
 # counts number of source lines of codes using cloc

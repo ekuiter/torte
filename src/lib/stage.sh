@@ -76,11 +76,11 @@ run(image=util, input=, output=, command...) {
             fi
 
             if [[ $output != "$ROOT_STAGE" ]]; then
-                input=${input:-main=$ROOT_STAGE}
+                input=${input:-$MAIN_INPUT_KEY=$ROOT_STAGE}
             fi
             if [[ -n $input ]] && [[ $input != *=* ]]; then
                 assert-stage-done "$input"
-                input="main=$input"
+                input="$MAIN_INPUT_KEY=$input"
             fi
             input_directories=$(echo "$input" | tr "," "\n")
             for input_directory_pair in $input_directories; do

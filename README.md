@@ -446,6 +446,24 @@ The `sat-competition` solver set does not include such restoration efforts and c
 | 2021 | kissat-mab | |
 | 2022 | kissat-mab-hywalk | |
 
+#### Collection: sat-heritage
+
+We also provide access to all solvers distributed by the [SAT heritage](https://github.com/sat-heritage/docker-images) initiative.
+Due to the large size of this solver dataset (~2 GiB), we store it externally at [ekuiter/torte-sat-heritage](https://github.com/ekuiter/torte-sat-heritage), which also includes a full list of all 600+ solvers.
+
+The SAT heritage solvers can be used in experiments as follows:
+
+```
+add-sat-heritage
+
+experiment-stages() {
+    solve \
+        --kind sat \
+        --input "$(mount-sat-heritage)" \
+        --solver_specs "$(solve-sat-heritage 2clseq-2002)"
+}
+```
+
 ## Predefined Experiments
 
 The `experiments` directory contains a number of predefined experiments.

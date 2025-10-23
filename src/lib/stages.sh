@@ -238,7 +238,9 @@ define-stages() {
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
             solver=$(echo "$solver_spec" | cut -d, -f1)
-            stage=${solver//[\/_.+]/-}
+            stage=${solver/$DOCKER_INPUT_DIRECTORY\/$SAT_HERITAGE_INPUT_KEY/}
+            stage=${stage/run.sh/}
+            stage=$(echo "$stage" | sed -E 's#[/_.+ ]+#-#g; s/^-+//; s/-+$//')
             stage=solve-${stage,,}
             image=$(echo "$solver_spec" | cut -d, -f2)
             parser=$(echo "$solver_spec" | cut -d, -f3)
