@@ -65,6 +65,7 @@ define-stub(function) {
 }
 
 # inside a stage, memoizes a command by storing its output in the shared directory
+# only memoizes if command returns a result, accounting for non-idempotent functions that start out with "Nothing" and return "Just x" later
 memoize(command...) {
     assert-container
     local hash file
@@ -73,6 +74,7 @@ memoize(command...) {
     mkdir -p "$(output-directory)/$SHARED_DIRECTORY/memoize"
     if [[ ! -f $file ]]; then
         "${command[@]}" | tee "$file"
+        rm-if-empty "$file"
     else
         cat "$file"
     fi
