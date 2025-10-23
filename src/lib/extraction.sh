@@ -221,7 +221,7 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
     pop
     trap - EXIT
     lkc_binding_file=${lkc_binding_file#"$(output-directory)/"}
-    if is-file-empty "$kconfig_model"; then
+    if is-file-empty "$kconfig_model" || is-file-empty "$features_file"; then
         log "" "$(echo-fail)"
         kconfig_model=NA
     else
