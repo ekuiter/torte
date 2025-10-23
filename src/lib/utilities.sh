@@ -17,6 +17,8 @@ clone-systems() {
     }
 
     experiment-systems
+
+    # allow adding additional dependencies outside of experiment-systemsh
     compile-hook post-experiment-systems-hook
     post-experiment-systems-hook
 }
