@@ -196,26 +196,34 @@ define-stages() {
             --jobs "$jobs"
     }
 
-    # compute DIMACS files with explicit backbone using kissat
-    transform-dimacs-to-backbone-dimacs-with-kissat(input=transform-model-to-dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
+    # compute DIMACS files with explicit backbone using kissat or cadiback
+    transform-dimacs-to-backbone-dimacs-with(transformer, input=transform-model-to-dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
+        if [[ $transformer == cadiback ]]; then
+            local image=cadiback
+        elif [[ $transformer == kissat ]]; then
+            local image=solver
+        else
+            error "Unknown backbone transformer: $transformer"
+        fi
         run \
-            --image solver \
+            --image "$image" \
             --input "$input" \
             --output "$output" \
             --resumable y \
-            --command transform-dimacs-to-backbone-dimacs-with-kissat \
+            --command transform-dimacs-to-backbone-dimacs-with \
+            --transformer "$transformer" \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
 
-    # compute DIMACS files with explicit backbone using cadiback
-    transform-dimacs-to-backbone-dimacs-with-cadiback(input=transform-model-to-dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
+    # compute model features that mentioned in a feature model
+    compute-model-features(input=extract-kconfig-models, output=compute-model-features, timeout=0, jobs=1) {
         run \
-            --image cadiback \
             --input "$input" \
             --output "$output" \
             --resumable y \
-            --command transform-dimacs-to-backbone-dimacs-with-cadiback \
+            --command compute-features \
+            --kind model \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
@@ -226,7 +234,8 @@ define-stages() {
             --input "$input" \
             --output "$output" \
             --resumable y \
-            --command compute-unconstrained-features \
+            --command compute-features \
+            --kind unconstrained \
             --timeout "$timeout" \
             --jobs "$jobs"
     }
@@ -237,7 +246,8 @@ define-stages() {
             --input "$input" \
             --output "$output" \
             --resumable y \
-            --command compute-backbone-features \
+            --command compute-features \
+            --kind backbone \
             --timeout "$timeout" \
             --jobs "$jobs"
     }

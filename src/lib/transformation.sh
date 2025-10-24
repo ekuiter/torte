@@ -18,9 +18,11 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
     log "" "$(echo-progress transform)"
     mkdir -p "$(dirname "$output")"
     compile-lambda transformer "$transformer"
-    # shellcheck disable=SC2046
-    measure "$timeout" $(transformer "$input" "$output") | tee "$output_log"
-    if ! is-file-empty "$output"; then
+    if ! is-file-empty "$input"; then
+        # shellcheck disable=SC2046
+        measure "$timeout" $(transformer "$input" "$output") | tee "$output_log"
+    fi
+    if ! is-file-empty "$input" && ! is-file-empty "$output"; then
         log "" "$(echo-done)"
     else
         log "" "$(echo-fail)"
@@ -156,67 +158,55 @@ draw-community-structure-with-satgraf(input_extension=dimacs, output_extension=j
         "$jobs"
 }
 
-# computes backbone of a DIMACS file using kissat
-transform-dimacs-to-backbone-dimacs-with-kissat(input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
+# computes backbone of a DIMACS file using kissat or cadiback
+transform-dimacs-to-backbone-dimacs-with(transformer, input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
-        dimacs_to_backbone_dimacs_kissat \
-        "$(lambda input,output 'echo python3 other/backbone_kissat.py --input "$input" --backbone "$(dirname "$output")/$(basename "$output" .dimacs).backbone" --output "$output"')" \
+        "dimacs_to_backbone_dimacs_$transformer" \
+        "$(lambda input,output 'echo python3 backbone_'"$transformer"'.py --input "$input" --backbone "$(dirname "$output")/$(basename "$output" .dimacs).backbone" --output "$output"')" \
         "" \
         "" \
         "$timeout" \
         "$jobs"
 }
 
-# computes backbone of a DIMACS file using cadiback
-transform-dimacs-to-backbone-dimacs-with-cadiback(input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
-    transform-files \
-        "$(input-csv)" \
-        "$input_extension" \
-        "$output_extension" \
-        dimacs_to_backbone_dimacs_cadiback \
-        "$(lambda input,output 'echo python3 backbone_cadiback.py --input "$input" --backbone "$(dirname "$output")/$(basename "$output" .dimacs).backbone" --output "$output"')" \
-        "" \
-        "" \
-        "$timeout" \
-        "$jobs"
+# computes all features mentioned in an extractor's intermediate files
+# outputs a .model.features file, which has one feature per line, stripped of the CONFIG_ prefix
+# unfortunately, this is not necessarily identical to the .features file created during extraction by the extractor
+# the creation of such a .features file is extractor-dependent, and some extractors do not create it at all
+# thus, we recreate it here from the intermediate files, which creates a more reliable and standardized list of features
+compute-model-features-helper(input, output) {
+    local kextractor_file
+    kextractor_file="$(dirname "$input")/$(basename "$input" .model).kextractor"
+    if [[ -f $kextractor_file ]]; then
+        # this formula was extracted with KClause
+        grep -E "^config " "$kextractor_file" | cut -d' ' -f2 | sed 's/^CONFIG_//' | sort | uniq
+    else
+        # this formula was extracted with KConfigReader and already mentions all variables in the model file
+        grep -E "^#item " "$input" | cut -d' ' -f2 | sort | uniq
+    fi > "$output"
 }
 
-# for model files, computes all features that are unconstrained and not mentioned in the formula
+# for model files, computes all features that are unconstrained (i.e., not mentioned in the formula)
+# outputs a .unconstrained.features file, which is a subset of the features in the .model.features file
 compute-unconstrained-features-helper(input, output) {
-    if [[ -f "$input" ]]; then
-        local tmp
-        tmp=$(mktemp)
-        if grep -q "def(" "$input"; then
-            sed "s/)/)\n/g" < "$input" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq > "$tmp"
-        elif grep -q "definedEx(" "$input"; then
-            sed "s/)/)\n/g" < "$input" | grep "definedEx(" | sed "s/.*definedEx(\(.*\)).*/\1/g" | sort | uniq > "$tmp"
-        fi
-        local kextractor_file
-        kextractor_file="$(dirname "$input")/$(basename "$input" .model).kextractor"
-        if [[ -f $kextractor_file ]]; then
-            diff "$tmp" <(grep -E "^config " "$kextractor_file" | cut -d' ' -f2 | sed 's/^CONFIG_//' | sort | uniq) | grep '>' | cut -d' ' -f2 > "$output"
-        else
-            diff "$tmp" <(grep -E "^#item " "$input" | cut -d' ' -f2 | sort | uniq) | grep '>' | cut -d' ' -f2 > "$output"
-        fi
-        rm-safe "$tmp"
-    fi
-}
+    local tmp_formula tmp_model
+    tmp_formula=$(mktemp)
+    tmp_model=$(mktemp)
 
-# computes unconstrained features from models
-compute-unconstrained-features(input_extension=model, output_extension=unconstrained.features, timeout=0, jobs=1) {
-    transform-files \
-        "$(input-csv)" \
-        "$input_extension" \
-        "$output_extension" \
-        compute-unconstrained-features \
-        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-unconstrained-features-helper "$input" "$output"')" \
-        "" \
-        "" \
-        "$timeout" \
-        "$jobs"
+    # extract features mentioned in the model file (i.e., the formula)
+    if grep -q "def(" "$input"; then
+        sed "s/)/)\n/g" < "$input" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq > "$tmp_formula"
+    elif grep -q "definedEx(" "$input"; then # todo: handle ConfigFix, more gracefully, and unify both cases?
+        sed "s/)/)\n/g" < "$input" | grep "definedEx(" | sed "s/.*definedEx(\(.*\)).*/\1/g" | sort | uniq > "$tmp_formula"
+    fi
+
+    # subtract those from all features the extractor has found
+    compute-model-features-helper "$input" "$tmp_model"
+    diff "$tmp_formula" "$tmp_model" | grep '>' | cut -d' ' -f2 > "$output"
+    rm-safe "$tmp_formula" "$tmp_model"
 }
 
 # extracts core or dead features from a backbone dimacs file (excludes Tseitin variables for efficiency)
@@ -252,19 +242,29 @@ compute-core-or-dead-features(input, output, prefix=) {
 }
 
 # extracts all backbone features from a backbone dimacs file
-compute-backbone-features-helper(input, output, prefix=) {
+# outputs a .backbone.features file, which is a subset of the features mentioned in the formula
+# only core and dead features are included, with + and - prefixes, respectively
+compute-backbone-features-helper(input, output) {
     compute-core-or-dead-features "$input" "$output" '' | awk '{print "+" $0}' > "$output"
     compute-core-or-dead-features "$input" "$output" '-' | awk '{print "-" $0}' >> "$output"
 }
 
-# computes backbone features from backbone DIMACS
-compute-backbone-features(input_extension=backbone.dimacs, output_extension=backbone.features, timeout=0, jobs=1) {
+# computes different kinds of feature sets from a given .model file
+compute-features(kind=model, output_extension=, timeout=0, jobs=1) {
+    if [[ $kind == backbone ]]; then
+        local input_extension=backbone.dimacs
+    elif [[ $kind == model ]]  || [[ $kind == unconstrained ]]; then
+        local input_extension=model
+    else
+        error "Unknown feature set kind: $kind"
+    fi
+    output_extension=${output_extension:-${kind}.features}
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
-        dimacs_to_backbone_features \
-        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-backbone-features-helper "$input" "$output"')" \
+        "compute_${kind}_features" \
+        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-'"$kind"'-features-helper "$input" "$output"')" \
         "" \
         "" \
         "$timeout" \

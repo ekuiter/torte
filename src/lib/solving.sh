@@ -27,11 +27,14 @@ solve-file(file, solver_name, solver, data_fields=, data_extractor=, timeout=0, 
     if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
         fail_fast=y
     fi
-    # shellcheck disable=SC2046
-    if [[ -z $fail_fast ]]; then
+    if ! is-file-empty "$input" && [[ -z $fail_fast ]]; then
+        # shellcheck disable=SC2046
         measure "$timeout" $(solver "$input") | tee "$output_log"
     fi
-    if [[ -z $fail_fast ]] && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; }; then
+    if ! is-file-empty "$input" \
+        && [[ -z $fail_fast ]] \
+        && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; } \
+        && ! grep -q "^measure_timeout=y"; then
         log "" "$(echo-done)"
     else
         log "" "$(echo-fail)"
