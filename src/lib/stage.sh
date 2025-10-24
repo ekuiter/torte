@@ -1,7 +1,6 @@
 #!/bin/bash
 # runs stages
 
-
 TRANSIENT_STAGE=transient # name for transient stages
 SHARED_DIRECTORY=.shared # path for data shared by all stages (use with care, as stages are intentionally separated)
 
@@ -15,7 +14,7 @@ clean(stages...) {
 }
 
 # runs a stage of some experiment in a Docker container
-run(image=util, input=, output=, command...) {
+run(image=util, input=, output=, resumable=, command...) {
     output=${output:-$TRANSIENT_STAGE}
     assert-host
     local readable_stage=$output
@@ -24,32 +23,42 @@ run(image=util, input=, output=, command...) {
         clean "$output"
     fi
     log "$readable_stage"
+
+    # run stage if not done or forced
     if [[ $FORCE_RUN == y ]] || ! stage-done "$output"; then
+        # to prepare the Docker image, identify the correct dockerfile
         local dockerfile=$DOCKER_DIRECTORY/$image/Dockerfile
         if [[ ! -f $dockerfile ]]; then
             error "Could not find Dockerfile for image $image."
         fi
-        local build_flags=
-        if is-array-empty command; then
-            command=("$output")
-        fi
+
+        # build and run on the platform specified in the dockerfile
+        # this is useful to execute binaries built for a different architecture than the host
         local platform
         if grep -q platform-override= "$dockerfile"; then
             platform=$(grep platform-override= "$dockerfile" | cut -d= -f2)
         fi
-        clean "$output"
+
+        # by default, completely rerun the stage if it was not fully completed before
+        # certain stages are able to continue from where they left off, so allow that if requested
+        if [[ -z $resumable ]]; then
+            clean "$output"
+        fi
+
         if [[ -f $image.tar.gz ]]; then
+            # load prebuilt Docker image if available
             if ! docker image inspect "${TOOL}_$image" > /dev/null 2>&1; then
                 log "" "$(echo-progress load)"
                 docker load -i "$image.tar.gz"
             fi
         else
+            # (re-)build Docker image
             log "" "$(echo-progress build)"
             local cmd=(docker build)
-            if [[ ! $VERBOSE == y ]]; then
+            if [[ -z $VERBOSE ]]; then
                 cmd+=(-q)
             fi
-            if [[ $FORCE_BUILD == y ]]; then
+            if [[ -n $FORCE_BUILD ]]; then
                 cmd+=(--no-cache)
             fi
             cmd+=(-f "$dockerfile")
@@ -61,28 +70,47 @@ run(image=util, input=, output=, command...) {
             cmd+=("$(dirname "$dockerfile")")
             "${cmd[@]}" >/dev/null
         fi
+
         if [[ -z $DOCKER_EXPORT ]]; then
+            # to run the stage's Docker container, first prepare the stage directory
+            log "" "$(echo-progress run)"
             mkdir -p "$(stage-directory "$output")"
             chmod 0777 "$(stage-directory "$output")"
-            log "" "$(echo-progress run)"
+
+            # prepare shared context used for passing data between stages for caching purposes
+            # first, move any existing shared directory from an unfinished stage to the global shared directory
+            shared_directories=("$(stages-directory)"/*/"$SHARED_DIRECTORY")
+            [ -e "${shared_directories[0]}" ] && mv "${shared_directories[@]}" "$(stages-directory)/$SHARED_DIRECTORY" || true
+            # if there was no unfinished stage, either the shared directory was already prepared by the last stage,
+            # or it does not exist yet, so create it
             mkdir -p "$(stages-directory)/$SHARED_DIRECTORY"
+            # preparation done, make shared context available to this stage
             mv "$(stages-directory)/$SHARED_DIRECTORY" "$(stage-directory "$output")/$SHARED_DIRECTORY"
+
+            # prepare "docker run" command
             local cmd=(docker run)
+            if is-array-empty command; then
+                command=("$output") # for convenience, we can omit the command to run if it is the same as the stage name
+            fi
             if [[ $DEBUG == y ]]; then
-                command=(/bin/bash)
+                command=(/bin/bash) # run shell if in debug mode
             fi
             if [[ ${command[*]} == /bin/bash ]]; then
-                cmd+=(-it)
+                cmd+=(-it) # attach interactive terminal when debugging
             fi
 
+            # mount input directories
             if [[ $output != "$ROOT_STAGE" ]]; then
+                # for convenience, mount root stage by default, as we use it often
                 input=${input:-$MAIN_INPUT_KEY=$ROOT_STAGE}
             fi
+            # if only one input is given, it is mounted as the main input
             if [[ -n $input ]] && [[ $input != *=* ]]; then
                 assert-stage-done "$input"
                 input="$MAIN_INPUT_KEY=$input"
             fi
             input_directories=$(echo "$input" | tr "," "\n")
+            # if several inputs are given, mount them under their respective keys
             for input_directory_pair in $input_directories; do
                 local key=${input_directory_pair%%=*}
                 local input_directory=${input_directory_pair##*=}
@@ -94,44 +122,55 @@ run(image=util, input=, output=, command...) {
                 fi
                 cmd+=(-v "$input_volume:$DOCKER_INPUT_DIRECTORY/$key")
             done
+
+            # mount output directory
             local output_volume
             output_volume=$(stage-directory "$output")
             if [[ $output_volume != /* ]]; then
                 output_volume=$PWD/$output_volume
             fi
             cmd+=(-v "$output_volume:$DOCKER_OUTPUT_DIRECTORY")
-            cmd+=(-v "$(realpath "$SRC_DIRECTORY"):$DOCKER_SRC_DIRECTORY")
 
-            cmd+=(-e INSIDE_STAGE="$output")
-            cmd+=(-e PROFILE)
-            cmd+=(-e TEST)
-            cmd+=(-e CI)
-            cmd+=(-e PASS)
-            cmd+=(--rm)
-            cmd+=(-m "$(memory-limit)G")
+            cmd+=(-v "$(realpath "$SRC_DIRECTORY"):$DOCKER_SRC_DIRECTORY") # mount source code of the tool
+            cmd+=(-e INSIDE_STAGE="$output") # tell the stage about itself
+            cmd+=(-e PROFILE) # tell the stage if profiling is enabled ...
+            cmd+=(-e TEST) # ... if testing is enabled ...
+            cmd+=(-e CI) # ... and if running in CI environment
+            cmd+=(-e PASS) # also tell it about which pass of a multi-pass experiment is supposed to be run
+            cmd+=(--rm) # run as one-off container, which is removed afterwards
+            cmd+=(-m "$(memory-limit)G") # set memory limit
             if [[ -n $platform ]]; then
-                cmd+=(--platform "$platform")
+                cmd+=(--platform "$platform") # set platform to match build platform
             fi
-            cmd+=(--entrypoint /bin/bash)
-            cmd+=("${TOOL}_$image")
+            cmd+=(--entrypoint /bin/bash) # whatever command is given, run it through bash
+            cmd+=("${TOOL}_$image") # specify Docker image to run
+
+            # run the command inside the Docker container
             if [[ ${command[*]} == /bin/bash ]]; then
+                # in debug mode, drop into an interactive shell and exit afterwards
                 log "" "${cmd[*]}"
                 "${cmd[@]}"
                 exit
             else
+                # in production, run the given command in the context of the tool, and log errors and output
                 cmd+=("$DOCKER_SRC_DIRECTORY/main.sh")
                 "${cmd[@]}" "${command[@]}" \
                     > >(write-all "$(stage-log "$output")") \
                     2> >(write-all "$(stage-err "$output")" >&2)
-                FORCE_NEW_LOG=y
+                FORCE_NEW_LOG=y # flush log buffer after stage is done
             fi
+
+            # move shared context back so the next stage can use it
             mv "$(stage-directory "$output")/$SHARED_DIRECTORY" "$(stages-directory)/$SHARED_DIRECTORY"
+
+            # clean up empty log files and transient stages
             rm-if-empty "$(stage-log "$output")"
             rm-if-empty "$(stage-err "$output")"
             if [[ $output == "$TRANSIENT_STAGE" ]]; then
                 clean "$output"
             fi
         else
+            # in export mode, save the Docker image for later use
             assert-command gzip
             local image_archive
             image_archive="$EXPORT_DIRECTORY/$image.tar.gz"
@@ -142,7 +181,10 @@ run(image=util, input=, output=, command...) {
                 docker save "${TOOL}_$image" | gzip > "$image_archive"
             fi
         fi
-        touch "$(stage-done-file "$output")"
+        # mark stage as completed, so it won't be rerun unless forced or cleaned
+        if [[ $output != "$TRANSIENT_STAGE" ]]; then
+            touch "$(stage-done-file "$output")"
+        fi
         log "" "$(echo-done)"
     else
         log "" "$(echo-skip)"
@@ -150,7 +192,7 @@ run(image=util, input=, output=, command...) {
 }
 
 # skips a stage, useful to comment out a stage temporarily
-skip(image=util, input=, output=, command...) {
+skip(image=util, input=, output=, resumable=, command...) {
     echo "Skipping stage $output"
 }
 
@@ -191,26 +233,45 @@ aggregate(output, file_fields=, stage_field=, stage_transformer=, directory_fiel
         input=$input,$current_stage=$current_stage
     done
     input=${input#,}
-    run util "$input" "$output" aggregate-helper "$file_fields" "$stage_field" "$stage_transformer" "$directory_field" "${inputs[@]}"
+    run \
+        --image util \
+        --input "$input" \
+        --output "$output" \
+        --command aggregate-helper \
+            --file-fields "$file_fields" \
+            --stage-field "$stage_field" \
+            --stage-transformer "$stage_transformer" \
+            --directory-field "$directory_field" \
+            --inputs "${inputs[@]}"
     for current_stage in "${inputs[@]}"; do
         echo "$output" > "$(stage-moved-file "$current_stage")"
     done
 }
 
 # runs a stage a given number of time and merges the output files in a new stage
-iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=, output=, command...) {
+iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=, output=, resumable=, command...) {
     if [[ $iterations -lt 1 ]]; then
         error "At least one iteration is required for stage $output."
     fi
     if [[ $iterations -eq 1 ]]; then
-        run "$image" "$input" "$output" "${command[@]}"
+        run \
+            --image "$image" \
+            --input "$input" \
+            --output "$output" \
+            --resumable "$resumable" \
+            --command "${command[@]}"
     else
         local stages=()
         local i
         for i in $(seq "$iterations"); do
             local current_stage="${output}-$i"
             stages+=("$current_stage")
-            run "$image" "$input" "$current_stage" "${command[@]}"
+            run \
+                --image "$image" \
+                --input "$input" \
+                --output "$current_stage" \
+                --resumable "$resumable" \
+                --command "${command[@]}"
         done
         if [[ ! -f "$(stage-csv "${output}-1")" ]]; then
             error "Required output CSV for stage ${output}-1 is missing, please re-run stage ${output}-1."
@@ -223,7 +284,8 @@ iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=,
 # only run if the specified file does not exist yet
 # should be run before the existing stage is moved (e.g., by an aggregation)
 run-transient-unless(file=, input=, command...) {
-    local file_path="$(stages-directory)/$file"
+    local file_path
+    file_path="$(stages-directory)/$file"
     if [[ "$file" == */* ]]; then
         local stage_part="${file%%/*}"
         local file_part="${file#*/}"
@@ -235,7 +297,11 @@ run-transient-unless(file=, input=, command...) {
         fi
     fi
     if ([[ -z $file ]] || is-file-empty "$file_path") && [[ -z $DOCKER_EXPORT ]]; then
-        run util "$input" "" bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; $(to-list command "; ")"
+        run \
+            --image util \
+            --input "$input" \
+            --output "" \
+            --command bash -c "cd $DOCKER_SRC_DIRECTORY; source main.sh true; $(to-list command "; ")"
     fi
 }
 

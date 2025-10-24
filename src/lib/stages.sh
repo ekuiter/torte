@@ -49,6 +49,7 @@ define-stages() {
             --image "$extractor" \
             --input "$input" \
             --output "$output" \
+            --resumable y \
             --command "extract-kconfig-models-with-$extractor" \
             --timeout "$timeout"
     }

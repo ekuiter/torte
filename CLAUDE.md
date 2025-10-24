@@ -91,6 +91,10 @@ torte automatically numbers stages in execution order for easier navigation:
 - is written fully in bash to leverage the composition effects of pipes and bash's ease of use
 - uses a bash dialect specified in `src/preprocessor.sh` to allow for python-like passing of arguments (either just positional with `<value>`, or named with `--<arg> <value>`)
 - the definition of function arguments in this dialect always uses underscores in the function header (e.g., `<my_arg>`), while calling named arguments with dashes (e.g., `<my-arg>`)
+- **IMPORTANT**: When calling functions with named arguments, ALWAYS use the `--` syntax:
+  - Named arguments: `--arg-name value` (e.g., `--image util`, `--input "$input"`)
+  - Variadic arguments: `--arg-name "${array[@]}"` (e.g., `--inputs "${inputs[@]}"`, `--command "${command[@]}"`)
+  - Format calls with backslashes for multi-line readability when there are multiple arguments
 - make sure to, whenever you update a signature of a function, also update all occurrences of that change in that function's body
 - DO NOT attempt to run any file directly, because they need the bash dialect preprocessor
 - DO NOT consider any files in the `src/gen` directory, which are only generated from the source files
