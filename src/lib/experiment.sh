@@ -182,6 +182,7 @@ command-run() {
 }
 
 # stops the experiment
+# this assumes that only one instance of the tool is running at a time, as it will stop all container instances
 command-stop() {
     readarray -t containers < <(docker ps | tail -n+2 | awk '$2 ~ /^'"$TOOL"'_/ {print $1}')
     if [[ ${#containers[@]} -gt 0 ]]; then

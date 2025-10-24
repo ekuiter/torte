@@ -150,7 +150,7 @@ You can also write your own experiments by adapting an existing experiment file.
   To ensure reproducibility, each release includes all Docker images as `.tar.gz` files.
   These can simply be placed in the root directory of this repository and are then loaded automatically by torte, which sidesteps the image build process.
 - A running experiment can be stopped with `Ctrl+C`.
-  If this does not respond, try `Ctrl+Z`, then `./torte.sh stop`.
+  Currently, only one experiment can be run at a time.
 
 **Further Tips**
 
@@ -404,7 +404,8 @@ As only the second configuration actually runs SharpSAT-td, we chose `conf2` (`c
 [^30]: `zchaff` won as a complete solver on industrial instances (SAT+UNSAT), while the SAT museum lists `limmat`, which only won on satisfiable industrial instances. According to [satmuseum-pos23.tar.xz](https://cca.informatik.uni-freiburg.de/satmuseum/satmuseum-pos23.tar.xz)'s `selection/README`, this is because:
 "Note that the 2002 version of 'zchaff' available from the authors webpage, which apparently took also part in the competition, shows discrepancies even after porting some of the fixes from the 2004 and 2007 version.
 The 2002 version we were running produced two discrepancies, all claimed by 'zchaff' to be 'satisfiable', while two of them are provably 'unsatisfiable'.
-All 9 models produced by that 'zchaff' version are incorrect.  Therefore we do not include that version for the offical plot but use 'Limmat' instead."
+All 9 models produced by that 'zchaff' version are incorrect.
+Therefore we do not include that version for the offical plot but use 'Limmat' instead."
 
 [^31]: `Forklift` won as a complete solver on industrial instances (SAT+UNSAT), while the SAT museum lists `berkmin` 5.61, which only came in second place. According to [satmuseum-pos23.tar.xz](https://cca.informatik.uni-freiburg.de/satmuseum/satmuseum-pos23.tar.xz)'s `selection/README`, this is because:
 "Already in 2003 (see Fig.1 on page 8 of the competition paper) 'Forklift' dominated, followed by 'Berkmin561' (banner says dated to October 2002) and 'siege' (version v1 according to the authors siege home page).
