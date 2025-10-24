@@ -2,9 +2,6 @@
 # initializes and runs the tool
 
 entrypoint(arguments...) {
-    # stop all containers when Ctrl-C is pressed
-    trap 'command-stop' INT
-
     # load experiment file
     if [[ ${#arguments[@]} -ge 1 ]] && [[ -n "$(experiment-file "${arguments[0]}")" ]]; then
         load-experiment "${arguments[0]}"

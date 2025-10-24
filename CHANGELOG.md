@@ -23,6 +23,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Significantly improved extraction by replacing and compiling LKC's `conf.c` in place
 - Revisited, checked, and improved feature-model extraction of every existing system
 - Revised terminology (LKC to denote the KConfig parser implementation of the Linux kernel)
+- Guaranteed exit on Ctrl+C
 
 ### Removed
 

@@ -150,7 +150,6 @@ You can also write your own experiments by adapting an existing experiment file.
   To ensure reproducibility, each release includes all Docker images as `.tar.gz` files.
   These can simply be placed in the root directory of this repository and are then loaded automatically by torte, which sidesteps the image build process.
 - A running experiment can be stopped with `Ctrl+C`.
-  Currently, only one experiment can be run at a time.
 
 **Further Tips**
 

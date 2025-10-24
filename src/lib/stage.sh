@@ -95,9 +95,6 @@ run(image=util, input=, output=, resumable=, command...) {
             if [[ $DEBUG == y ]]; then
                 command=(/bin/bash) # run shell if in debug mode
             fi
-            if [[ ${command[*]} == /bin/bash ]]; then
-                cmd+=(-it) # attach interactive terminal when debugging
-            fi
 
             # mount input directories
             if [[ $output != "$ROOT_STAGE" ]]; then
@@ -137,6 +134,8 @@ run(image=util, input=, output=, resumable=, command...) {
             cmd+=(-e TEST) # ... if testing is enabled ...
             cmd+=(-e CI) # ... and if running in CI environment
             cmd+=(-e PASS) # also tell it about which pass of a multi-pass experiment is supposed to be run
+            cmd+=(--init) # proper signal and exit handling
+            cmd+=(-it) # needed for debugging terminal and proper signal handling
             cmd+=(--rm) # run as one-off container, which is removed afterwards
             cmd+=(-m "$(memory-limit)G") # set memory limit
             if [[ -n $platform ]]; then
