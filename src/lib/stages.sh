@@ -262,6 +262,7 @@ define-stages() {
                 --image "$image" \
                 --input "$input" \
                 --output "$stage" \
+                --resumable y \
                 --command solve \
                 --solver "$solver" \
                 --kind "$kind" \
