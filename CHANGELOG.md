@@ -10,10 +10,11 @@ This release significantly revises the extraction mechanism, which means we can 
 
 ### Added
 
-- Added podman support
-- Added system uClibc
-- Added solver collection SAT heritage
-- Added solver IsaSAT
+- Podman support
+- System: uClibc
+- Solver collection: SAT heritage
+- Solver: IsaSAT
+- Resumable stages for extraction, transformation, and solving
 
 ### Changed
 

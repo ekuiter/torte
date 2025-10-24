@@ -4,17 +4,20 @@
 # transforms a file from one file format to another
 # measures the transformation time
 transform-file(file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0) {
-    local input
-    input="$(input-directory)/$file"
-    local new_file
+    local new_file input output output_log csv_line
     new_file=$(dirname "$file")/$(basename "$file" ".$input_extension").$output_extension
-    local output
+    input="$(input-directory)/$file"
     output="$(output-directory)/$new_file"
+    output_log=$(mktemp)
+    csv_line="$file,"
+    log "$transformer_name: $file"
+    if [[ -f $(output-csv) ]] && grep -qP "^\Q$csv_line\E" "$(output-csv)"; then
+        log "" "$(echo-skip)"
+        return
+    fi
+    log "" "$(echo-progress transform)"
     mkdir -p "$(dirname "$output")"
     compile-lambda transformer "$transformer"
-    local output_log
-    output_log=$(mktemp)
-    log "$transformer_name: $file" "$(echo-progress transform)"
     # shellcheck disable=SC2046
     measure "$timeout" $(transformer "$input" "$output") | tee "$output_log"
     if ! is-file-empty "$output"; then
@@ -23,8 +26,7 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
         log "" "$(echo-fail)"
         new_file=NA
     fi
-    local csv_line=""
-    csv_line+="$file,${new_file#./},$transformer_name,$(grep -oP "^measure_time=\K.*" < "$output_log")"
+    csv_line+="${new_file#./},$transformer_name,$(grep -oP "^measure_time=\K.*" < "$output_log")"
     if [[ -n $data_extractor ]]; then
         if ! is-file-empty "$output"; then
             compile-lambda data-extractor "$data_extractor"
@@ -35,25 +37,34 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
             done
         fi
     fi
-    # technically, this write is unsafe when using parallel jobs.
-    # however, as long as the line is not too long, the write buffer saves us.
+    rm-safe "$output_log"
+    # technically, this write is unsafe when using parallel jobs
+    # however, as long as the line is not too long, the write buffer saves us
     # see https://unix.stackexchange.com/q/42544/
     echo "$csv_line" >> "$(output-csv)"
-    rm-safe "$output_log"
 }
 
 # transforms a list of files from one file format to another
 transform-files(csv_file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0, jobs=1) {
     assert-command parallel
-    echo -n "${input_extension}_file,${output_extension}_file,${output_extension}_transformer,${output_extension}_time" > "$(output-csv)"
-    if [[ -n $data_fields ]]; then
-        echo ",${data_fields//-/_}" >> "$(output-csv)"
-    else
-        echo >> "$(output-csv)"
+    if [[ ! -f $(output-csv) ]]; then
+        echo -n "${input_extension}_file,${output_extension}_file,${output_extension}_transformer,${output_extension}_time" > "$(output-csv)"
+        if [[ -n $data_fields ]]; then
+            echo ",${data_fields//-/_}" >> "$(output-csv)"
+        else
+            echo >> "$(output-csv)"
+        fi
     fi
-    table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V \
-        | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
-        transform-file "{}" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_fields" "$data_extractor" "$timeout"
+    # to avoid the constant overhead from parallelization due to reloading torte, run sequentially if only one job is requested
+    if [[ $jobs -eq 1 ]]; then
+        while IFS= read -r file; do
+            transform-file "$file" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_fields" "$data_extractor" "$timeout"
+        done < <(table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V)
+    else
+        table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V \
+            | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
+            transform-file "{}" "$input_extension" "$output_extension" "$transformer_name" "$transformer" "$data_fields" "$data_extractor" "$timeout"
+    fi
 }
 
 # returns additional data fields for DIMACS files

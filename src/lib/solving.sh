@@ -49,11 +49,11 @@ solve-file(file, solver_name, solver, data_fields=, data_extractor=, timeout=0, 
             done
         fi
     fi
+    rm-safe "$output_log"
     # technically, this write is unsafe when using parallel jobs.
     # however, as long as the line is not too long, the write buffer saves us.
     # see https://unix.stackexchange.com/q/42544/
     echo "$csv_line" >> "$(output-csv)"
-    rm-safe "$output_log"
 }
 
 # solves a list of files

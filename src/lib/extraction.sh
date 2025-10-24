@@ -22,7 +22,7 @@ kconfig-checkout(system, revision) {
 lkc-binding-done(system, revision) { # todo: how to handle revisions with context?
     local file
     file=$(output-path "$LKC_BINDINGS_OUTPUT_CSV")
-    [[ -f $file ]] && grep -q "^$system,$revision," "$file"
+    [[ -f $file ]] && grep -qP "^\Q$system,$revision,\E" "$file"
 }
 
 # checks whether a feature model has already been extracted for the given system and revision
@@ -31,7 +31,7 @@ kconfig-model-done(system, revision) {
     file=$(output-csv)
     revision_clean=$(clean-revision "$revision")
     architecture=$(get-architecture "$revision") # todo: rename this to context, switch revision and context
-    [[ -f $file ]] && grep -q "^$system,$revision_clean,$architecture," "$file"
+    [[ -f $file ]] && grep -qP "^\Q$system,$revision_clean,$architecture,\E" "$file"
 }
 
 # compiles a C program that extracts Kconfig constraints from Kconfig files
@@ -230,6 +230,7 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
     else
         echo "kconfig file $kconfig_file does not exist"
     fi
+    rm-safe "$output_log"
     pop
     trap - EXIT
     lkc_binding_file=${lkc_binding_file#"$(output-directory)/"}

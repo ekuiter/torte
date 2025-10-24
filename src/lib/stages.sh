@@ -102,6 +102,7 @@ define-stages() {
             --image featjar \
             --input "$input" \
             --output "$transformer" \
+            --resumable y \
             --command "$command" \
             --input-extension model \
             --output-extension "$output_extension" \
@@ -153,10 +154,12 @@ define-stages() {
             --jobs "$jobs"
 
         # Plaisted-Greenbaum CNF tranformation
+        # todo: extract primitives and reuse in experiments
         run \
             --image kconfigreader \
             --input transform-model-to-model-with-featureide \
             --output transform-model-to-dimacs-with-kconfigreader \
+            --resumable y \
             --command transform-model-to-dimacs-with-kconfigreader \
             --input-extension featureide.model \
             --timeout "$timeout" \
@@ -168,6 +171,7 @@ define-stages() {
             --image z3 \
             --input transform-model-to-smt-with-z3 \
             --output transform-smt-to-dimacs-with-z3 \
+            --resumable y \
             --command transform-smt-to-dimacs-with-z3 \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -186,6 +190,7 @@ define-stages() {
             --image satgraf \
             --input "$input" \
             --output "$output" \
+            --resumable y \
             --command draw-community-structure-with-satgraf \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -197,6 +202,7 @@ define-stages() {
             --image solver \
             --input "$input" \
             --output "$output" \
+            --resumable y \
             --command transform-dimacs-to-backbone-dimacs-with-kissat \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -208,6 +214,7 @@ define-stages() {
             --image cadiback \
             --input "$input" \
             --output "$output" \
+            --resumable y \
             --command transform-dimacs-to-backbone-dimacs-with-cadiback \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -218,6 +225,7 @@ define-stages() {
         run \
             --input "$input" \
             --output "$output" \
+            --resumable y \
             --command compute-unconstrained-features \
             --timeout "$timeout" \
             --jobs "$jobs"
@@ -228,6 +236,7 @@ define-stages() {
         run \
             --input "$input" \
             --output "$output" \
+            --resumable y \
             --command compute-backbone-features \
             --timeout "$timeout" \
             --jobs "$jobs"
