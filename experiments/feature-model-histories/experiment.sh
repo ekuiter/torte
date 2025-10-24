@@ -12,7 +12,8 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # However,  usually very old versions won't work (because Kconfig might have only been introduced later).
 # Very recent versions might also not work (because they use new/esoteric Kconfig features).
 
-TIMEOUT=600 # timeout for extraction and transformation in seconds
+EXTRACT_TIMEOUT=600 # timeout for extraction in seconds
+TRANSFORM_TIMEOUT=60 # timeout for transformation in seconds
 
 experiment-systems() {
     add-axtls-kconfig-history
@@ -33,49 +34,12 @@ experiment-stages() {
     read-statistics
     
     # extract feature models
-    extract-kconfig-models --timeout "$TIMEOUT"
+    extract-kconfig-models --timeout "$EXTRACT_TIMEOUT"
     join-into read-statistics extract-kconfig-models
 
     # transform into UVL
-    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl --timeout "$TIMEOUT"
-    
+    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl --timeout "$TRANSFORM_TIMEOUT"
+
     # CNF transformation
-    transform-model-to-dimacs --timeout "$TIMEOUT"
-
-    # collect-stage-files --input transform-model-to-dimacs-with-featureide --extension dimacs
-    # collect-stage-files --input transform-model-to-uvl-with-featureide --extension uvl
+    transform-model-to-dimacs --timeout "$TRANSFORM_TIMEOUT"
 }
-
-# clean-up() {
-#     # clean up intermediate stages and rearrange output files
-#     clean clone-systems tag-linux-revisions read-statistics kconfigreader kclause \
-#         transform-model-to-model-with-featureide transform-model-to-smt-with-z3 transform-model-to-dimacs-with-kconfigreader \
-#         transform-model-to-dimacs-with-featjar transform-model-to-dimacs-with-featureide transform-smt-to-dimacs-with-z3 torte
-    
-#     # Clean up files from the model stage (now numbered)
-#     local model_dir
-#     model_dir=$(stage-directory model)
-#     if [[ -d "$model_dir" ]]; then
-#         rm-safe \
-#             "$model_dir"/*binding* \
-#             "$model_dir"/*.features \
-#             "$model_dir"/*.rsf \
-#             "$model_dir"/*.kclause \
-#             "$model_dir"/*.kextractor
-#     fi
-    
-#     # Clean up output files from all numbered stage directories
-#     rm-safe \
-#         "(stages-directory)"/*/*_"$OUTPUT_FILE_PREFIX"*.csv \
-#         "(stages-directory)"/*/*"$OUTPUT_FILE_PREFIX".*.csv \
-#         "(stages-directory)"/*/*.log \
-#         "(stages-directory)"/*/*.err
-
-#     # Move the UVL stage to a more convenient name
-#     local uvl_source_dir uvl_target_dir
-#     uvl_source_dir=$(stage-directory transform-model-to-uvl-with-featureide)
-#     uvl_target_dir=$(stage-directory uvl)
-#     if [[ -d "$uvl_source_dir" ]] && [[ ! -d "$uvl_target_dir" ]]; then
-#         mv "$uvl_source_dir" "$uvl_target_dir"
-#     fi
-# }

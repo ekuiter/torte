@@ -461,7 +461,7 @@ experiment-stages() {
     solve \
         --kind sat \
         --input "$(mount-sat-heritage)" \
-        --solver_specs "$(solve-sat-heritage 2clseq-2002)"
+        --solver_specs "$(solve-sat-heritage 2clseq-2002),solver,sat"
 }
 ```
 

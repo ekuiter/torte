@@ -11,7 +11,9 @@ This release significantly revises the extraction mechanism, which means we can 
 ### Added
 
 - Added podman support
-- Added system: uClibc
+- Added system uClibc
+- Added solver collection SAT heritage
+- Added solver IsaSAT
 
 ### Changed
 
@@ -26,6 +28,8 @@ This release significantly revises the extraction mechanism, which means we can 
 - System-specific code clones, which are to be reintegrated into the shared codebase
 
 ### Fixed
+
+- Several bugs
 
 ## [1.0.0] - 2025-08-27
 
