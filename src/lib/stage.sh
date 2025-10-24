@@ -135,7 +135,9 @@ run(image=util, input=, output=, resumable=, command...) {
             cmd+=(-e CI) # ... and if running in CI environment
             cmd+=(-e PASS) # also tell it about which pass of a multi-pass experiment is supposed to be run
             cmd+=(--init) # proper signal and exit handling
-            cmd+=(-it) # needed for debugging terminal and proper signal handling
+            if [[ -z "$CI" ]]; then
+                cmd+=(-it) # needed for debugging in a terminal and proper signal handling
+            fi
             cmd+=(--rm) # run as one-off container, which is removed afterwards
             cmd+=(-m "$(memory-limit)G") # set memory limit
             if [[ -n $platform ]]; then
