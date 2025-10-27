@@ -81,7 +81,7 @@ source-script() {
     fi
 }
 
-# generates code that parses function arguments in a flexible way, which is pretended to the function body
+# generates code that parses function arguments in a flexible way, which is prepended to the function body
 # e.g., fn(a, b, c=3) can be called with positional arguments as "fn 1 2 3" or with named arguments as "fn --a 1 --b 2"
 # allows default values and variadic arguments
 parse-arguments() {
