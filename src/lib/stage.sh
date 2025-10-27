@@ -111,6 +111,9 @@ run(image=util, input=, output=, resumable=, command...) {
             for input_directory_pair in $input_directories; do
                 local key=${input_directory_pair%%=*}
                 local input_directory=${input_directory_pair##*=}
+                if [[ -z $key ]] || [[ -z $input_directory ]]; then
+                    continue
+                fi
                 assert-stage-done "$input_directory"
                 input_directory=$(stage-directory "$input_directory")
                 local input_volume=$input_directory

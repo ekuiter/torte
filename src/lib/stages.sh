@@ -281,7 +281,7 @@ define-stages() {
     }
 
     # solve DIMACS files
-    solve(kind, input=transform-model-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
+    solve(kind, query=, input=transform-model-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
@@ -289,7 +289,7 @@ define-stages() {
             stage=${solver/$DOCKER_INPUT_DIRECTORY\/$SAT_HERITAGE_INPUT_KEY/}
             stage=${stage/run.sh/}
             stage=$(echo "$stage" | sed -E 's#[/_.+ ]+#-#g; s/^-+//; s/-+$//')
-            stage=solve-${stage,,}
+            stage=solve-${query:+$query-}${stage,,}
             image=$(echo "$solver_spec" | cut -d, -f2)
             parser=$(echo "$solver_spec" | cut -d, -f3)
             stages+=("$stage")
@@ -312,7 +312,10 @@ define-stages() {
                 --attempt-grouper "$attempt_grouper" \
                 --query-iterator "$query_iterator"
         done
-        aggregate --output "solve-$kind" --inputs "${stages[@]}"
+        if [[ -n $query ]]; then
+            stage=$query-${stage,,}
+        fi
+        aggregate --output "solve-${query:+$query-}$kind" --inputs "${stages[@]}"
     }
 
     # solve DIMACS files for satisfiability

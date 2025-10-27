@@ -15,6 +15,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Solver collection: SAT heritage
 - Solver: IsaSAT
 - Resumable stages for extraction, transformation, and solving
+- Flexible solver queries for void, backbone, and partial configuration analysis
 
 ### Changed
 

@@ -5,6 +5,7 @@
 SAT_HERITAGE_URL=https://github.com/ekuiter/torte-sat-heritage
 SAT_HERITAGE_SYSTEM_NAME=sat-heritage # the directory name under which SAT heritage is cloned
 SAT_HERITAGE_INPUT_KEY=sat_heritage # the name of the input key to access SAT heritage solvers
+QUERY_SAMPLE_INPUT_KEY=query_sample # the name of the input key to access which feature sample to query
 
 # solves a file
 # measures the solve time
@@ -16,34 +17,50 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
     state="$(output-directory)/$(dirname "$file")/$(basename "$file" ".$input_extension").iterator" # the query iterator state
     mkdir -p "$(dirname "$state")"
     output_log=$(mktemp)
-    csv_line="$file,"
-    log "$solver_name: $file"
     
     # skip if already solved
-    if [[ -f $(output-csv) ]] && grep -qP "^\Q$csv_line\E" "$(output-csv)"; then
-        log "" "$(echo-skip)"
+    if [[ -f $(output-csv) ]] && grep -qP "^\Q$file,\E" "$(output-csv)"; then
+        log "$solver_name: $file" "$(echo-skip)"
         return
     fi
-    log "" "$(echo-progress solve)"
+    compile-lambda solver "$solver"
+    if [[ -n $data_extractor ]]; then
+        compile-lambda data-extractor "$data_extractor"
+    fi
+    if [[ -n $attempt_grouper ]]; then
+        compile-lambda attempt-grouper "$attempt_grouper"
+    fi
 
     # can only solve if the input file is present
     if is-file-empty "$input"; then
         fail_fast=y
     fi
 
-    # determine the first solver query and prepare the first file to be solved
-    query_iterator=${query_iterator:-$(to-lambda query-void)}
-    compile-lambda query-iterator "$query_iterator"
-    next_query=$(query-iterator "$input" "$output" "$state")
+    if [[ -n $query_iterator ]]; then
+        # determine the first solver query and prepare the first file to be solved
+        compile-lambda query-iterator "$query_iterator"
+        next_query=$(query-iterator "$file" "$input" "$input_extension" "$output" "$state")
+    else
+        # by default, just perform a single solver call on the given input file
+        # this corresponds to void analysis for SAT solvers, and feature-model cardinality for #SAT solvers
+        next_query=void
+        output="$input"
+    fi
 
     # iterate over all queries to be solved for the given file
     while [[ -n $next_query ]]; do
+        log "$solver_name $next_query: $file"
+        log "" "$(echo-progress solve)"
+        csv_line="$file,"
+
         # in case of a certain number of successive timeouts, skip any further attempts
         # this is useful if files are executed in order of increasingly complexity, as later files will likely not be solvable either
         # if files naturally cluster into several groups of increasing complexity (like Linux's architectures), we can optionally group them accordingly
-        attempt_grouper=${attempt_grouper:-$(lambda file echo default)}
-        compile-lambda attempt-grouper "$attempt_grouper"
-        timeout_file=$(output-file "$(attempt-grouper "$file" "$next_query").timeout")
+        if [[ -n $attempt_grouper ]]; then
+            timeout_file=$(output-file "$(attempt-grouper "$file" "$next_query").timeout")
+        else
+            timeout_file=$(output-file "default.timeout")
+        fi
         timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
         if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
             fail_fast=y
@@ -51,23 +68,16 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
 
         # attempt to solve the file with the solver
         if [[ -z $fail_fast ]]; then
-            compile-lambda solver "$solver"
             # shellcheck disable=SC2046
             measure "$timeout" $(solver "$output") | tee "$output_log"
         fi
 
-        # check and log whether the solving attempt was successful
+        # check whether the solving attempt was successful
         local success
         if [[ -z $fail_fast ]] \
             && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; } \
             && ! grep -q "^measure_timeout=y" < "$output_log"; then
             success=y
-        fi
-        if [[ -n $success ]]; then
-            log "" "$(echo-done)"
-            rm-safe "$timeout_file"
-        else
-            log "" "$(echo-fail)"
         fi
 
         # in case of timeout, append this attempt to the timeout file, so further attempts can potentially be skipped
@@ -81,7 +91,6 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
         # collect additional data fields (e.g., satisfiability or model count) if requested and if solving succeeded
         if [[ -n $data_extractor ]]; then
             if [[ -n $success ]]; then
-                compile-lambda data-extractor "$data_extractor"
                 csv_line+=",$(data-extractor "$output_log")"
             else
                 for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
@@ -94,12 +103,26 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
         rm-safe "$output_log"
         append-atomically "$(output-csv)" "$csv_line"
 
-        # advance iterator to next query
-        next_query=$(query-iterator "$input" "$output" "$state")
+        # report success or failure
+        if [[ -n $success ]]; then
+            log "" "$(echo-done)"
+            rm-safe "$timeout_file"
+        else
+            log "" "$(echo-fail)"
+        fi
+
+        # possibly advance iterator to next query
+        if [[ -z $query_iterator ]]; then
+            break
+        fi
+        next_query=$(query-iterator "$file" "$input" "$input_extension" "$output" "$state")
     done
 
     # clean up redundant state files
-    rm-safe "$output" "$state"
+    if [[ $output != "$input" ]]; then
+        rm-safe "$output"
+    fi
+    rm-safe "$state"
 }
 
 # solves a list of files
@@ -146,14 +169,28 @@ solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempt
 }
 
 # performs a single solver call on the given input file
-# corresponds to void analysis for SAT solvers
-# and feature-model cardinality for #SAT solvers
-query-void(input, output, state) {
+# it is recommended to not use --query_iterator "$(to-lambda query-void)", as the lambda incurs performance penalties
+# thus, this function is not meant to be used in practice, it just demonstrates how to define a query
+query-void(file, input, input_extension, output, state) {
     if [[ ! -f "$state" ]]; then
+        touch "$state"
         cp "$input" "$output"
         echo void
     fi
-    touch "$state"
+}
+
+query-backbone(core_or_dead, features_extension, file, input, input_extension, output, state) {
+    local feature
+    if [[ ! -f "$state" ]]; then
+        cp "$DOCKER_INPUT_DIRECTORY/$QUERY_SAMPLE_INPUT_KEY/$(dirname "$file")/$(basename "$file" ".$input_extension").$features_extension" "$state"
+    fi
+    feature=$(head -n1 "$state")
+    if [[ -z $feature ]]; then
+        return
+    fi
+    sed -i '1d' "$state"
+    cp "$input" "$output" # todo: manipulate .dimacs
+    echo "$core_or_dead $feature"
 }
 
 # parses results of typical satisfiability solvers
@@ -196,6 +233,18 @@ run-clausy-batch-diff(input_directory=, timeout=0) {
     scripts/batch_diff.sh "$input_directory" "$timeout" > "$(output-csv)"
 }
 
+# expresses the intent to mount the default input in solving stages
+# can be passed as --input to solve(...)
+mount-input(input=transform-model-to-dimacs) {
+    echo "$MAIN_INPUT_KEY=$input"
+}
+
+# expresses the intent to mount a query sample in solving stages
+# can be passed as --input to solve(...)
+mount-query-sample(input) {
+    echo "$QUERY_SAMPLE_INPUT_KEY=$input"
+}
+
 # denote the intent to clone SAT heritage solvers in the experiment
 add-sat-heritage() {
     add-hook-step post-experiment-systems-hook sat-heritage "$(to-lambda post-experiment-systems-hook-sat-heritage)"
@@ -206,11 +255,11 @@ post-experiment-systems-hook-sat-heritage() {
     add-system --system "$SAT_HERITAGE_SYSTEM_NAME" --url "$SAT_HERITAGE_URL"
 }
 
-# expresses the intent to mount additional SAT heritage solvers in solving stages
+# expresses the intent to mount SAT heritage solvers in solving stages
 # can be passed as --input to solve(...)
 # assumes that SAT heritage was cloned before using add-sat-heritage
-mount-sat-heritage(input=transform-model-to-dimacs, sat_heritage=clone-systems) {
-    echo "$MAIN_INPUT_KEY=$input,$SAT_HERITAGE_INPUT_KEY=$sat_heritage"
+mount-sat-heritage(input=clone-systems) {
+    echo "$SAT_HERITAGE_INPUT_KEY=$input"
 }
 
 # selects a solver from SAT heritage to be run inside a solving stage

@@ -18,8 +18,9 @@ lambda-identity() {
 }
 
 # allows to pass an existing function as a lambda
-to-lambda(name) {
-    lambda arguments... "$name" '"${arguments[@]}"'
+# can optionally pass arguments for partial application
+to-lambda(name, curried_arguments...) {
+    lambda arguments... "$name" "${curried_arguments[@]}" '"${arguments[@]}"'
 }
 
 # stores a lambda function as a function in the global namespace
