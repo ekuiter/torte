@@ -228,7 +228,19 @@ define-stages() {
             --jobs "$jobs"
     }
 
-    # compute unconstrained features that are not mentioned in a DIMACS file
+    # compute constrained features that are mentioned in a .model file
+    compute-constrained-features(input=extract-kconfig-models, output=compute-constrained-features, timeout=0, jobs=1) {
+        run \
+            --input "$input" \
+            --output "$output" \
+            --resumable y \
+            --command compute-features \
+            --kind constrained \
+            --timeout "$timeout" \
+            --jobs "$jobs"
+    }
+
+    # compute unconstrained features that are not mentioned in a .model file
     compute-unconstrained-features(input=extract-kconfig-models, output=compute-unconstrained-features, timeout=0, jobs=1) {
         run \
             --input "$input" \
@@ -248,6 +260,22 @@ define-stages() {
             --resumable y \
             --command compute-features \
             --kind backbone \
+            --timeout "$timeout" \
+            --jobs "$jobs"
+    }
+
+    # compute a random sample of some input stage with line-delimited output (e.g., feature lists)
+    compute-random-sample(input, output=compute-random-sample, extension, size=1, t_wise=1, separator=, seed=, timeout=0, jobs=1) {
+        run \
+            --input "$input" \
+            --output "$output" \
+            --resumable y \
+            --command compute-random-sample \
+            --extension "$extension" \
+            --size "$size" \
+            --t-wise "$t_wise" \
+            --separator "$separator" \
+            --seed "$seed" \
             --timeout "$timeout" \
             --jobs "$jobs"
     }

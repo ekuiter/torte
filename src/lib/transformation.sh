@@ -182,11 +182,22 @@ compute-model-features-helper(input, output) {
     kextractor_file="$(dirname "$input")/$(basename "$input" .model).kextractor"
     if [[ -f $kextractor_file ]]; then
         # this formula was extracted with KClause
-        grep -E "^config " "$kextractor_file" | cut -d' ' -f2 | sed 's/^CONFIG_//' | sort | uniq
+        grep -E "^config " "$kextractor_file" | cut -d' ' -f2 | sed 's/^CONFIG_//'
     else
         # this formula was extracted with KConfigReader and already mentions all variables in the model file
-        grep -E "^#item " "$input" | cut -d' ' -f2 | sort | uniq
-    fi > "$output"
+        grep -E "^#item " "$input" | cut -d' ' -f2
+    fi | sort | uniq > "$output"
+}
+
+# for model files, computes all features that are constrained (i.e., mentioned in the formula)
+# outputs a .constrained.features file, which is a subset of the features in the .model.features file
+compute-constrained-features-helper(input, output) {
+    # extract features mentioned in the model file (i.e., the formula)
+    if grep -q "def(" "$input"; then
+        sed "s/)/)\n/g" < "$input" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g"
+    elif grep -q "definedEx(" "$input"; then # todo: handle ConfigFix, more gracefully, and unify both cases?
+        sed "s/)/)\n/g" < "$input" | grep "definedEx(" | sed "s/.*definedEx(\(.*\)).*/\1/g"
+    fi | sort | uniq > "$output"
 }
 
 # for model files, computes all features that are unconstrained (i.e., not mentioned in the formula)
@@ -195,16 +206,11 @@ compute-unconstrained-features-helper(input, output) {
     local tmp_formula tmp_model
     tmp_formula=$(mktemp)
     tmp_model=$(mktemp)
-
-    # extract features mentioned in the model file (i.e., the formula)
-    if grep -q "def(" "$input"; then
-        sed "s/)/)\n/g" < "$input" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq > "$tmp_formula"
-    elif grep -q "definedEx(" "$input"; then # todo: handle ConfigFix, more gracefully, and unify both cases?
-        sed "s/)/)\n/g" < "$input" | grep "definedEx(" | sed "s/.*definedEx(\(.*\)).*/\1/g" | sort | uniq > "$tmp_formula"
-    fi
-
-    # subtract those from all features the extractor has found
+    # features mentioned in the formula
+    compute-constrained-features-helper "$input" "$tmp_formula"
+    # all features the extractor has found
     compute-model-features-helper "$input" "$tmp_model"
+    # subtract the latter from the former
     diff "$tmp_formula" "$tmp_model" | grep '>' | cut -d' ' -f2 > "$output"
     rm-safe "$tmp_formula" "$tmp_model"
 }
@@ -253,7 +259,7 @@ compute-backbone-features-helper(input, output) {
 compute-features(kind=model, output_extension=, timeout=0, jobs=1) {
     if [[ $kind == backbone ]]; then
         local input_extension=backbone.dimacs
-    elif [[ $kind == model ]]  || [[ $kind == unconstrained ]]; then
+    elif [[ $kind == model ]] || [[ $kind == constrained ]] || [[ $kind == unconstrained ]]; then
         local input_extension=model
     else
         error "Unknown feature set kind: $kind"
@@ -263,8 +269,46 @@ compute-features(kind=model, output_extension=, timeout=0, jobs=1) {
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
-        "compute_${kind}_features" \
-        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-'"$kind"'-features-helper "$input" "$output"')" \
+        "compute-${kind}-features" \
+        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' "compute-'"$kind"'-features-helper" "$input" "$output"')" \
+        "" \
+        "" \
+        "$timeout" \
+        "$jobs"
+}
+
+# provides a pseudo-random source based on a seed, which is much less predictable than passing --random-source=<(yes "$seed")
+pseudo-random-source(seed) {
+    openssl enc -aes-256-ctr -pass pass:"$seed" -nosalt -out /dev/stdout </dev/zero 2>/dev/null
+}
+
+# helper function to compute a random t-wise sample of lines from a file of a given size
+compute-random-sample-helper(input, output, size=1, t_wise=1, separator=, seed=) {
+    separator=${separator:-,}
+    tmp_samples=()
+    for ((i=0; i<t_wise; i++)); do
+        tmp_sample=$(mktemp)
+        tmp_samples+=("$tmp_sample")
+        cmd=shuf
+        if [[ -n "$seed" ]]; then
+            cmd+=" --random-source=<(pseudo-random-source \"${seed}${i}\")"
+        fi
+        eval "$cmd" -n "$size" "$input" > "$tmp_sample"
+    done
+    paste -d "$separator" "${tmp_samples[@]}" > "$output"
+    rm -f "${tmp_samples[@]}"
+}
+
+# compute a random sample of lines of the given line-delimited files
+# has the slight technical limitation that the separator cannot be empty or whitespace
+compute-random-sample(extension, size=1, t_wise=1, separator=, seed=, timeout=0, jobs=1) {
+    separator=${separator:-,}
+    transform-files \
+        "$(input-csv)" \
+        "$extension" \
+        "$extension" \
+        "compute-random-sample" \
+        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-random-sample-helper "$input" "$output" "'"$size"'" "'"$t_wise"'" "'"$separator"'h" "'"$seed"'"')" \
         "" \
         "" \
         "$timeout" \
