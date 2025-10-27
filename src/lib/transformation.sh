@@ -40,11 +40,7 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
         fi
     fi
     rm-safe "$output_log"
-    # ensure atomic writes when using parallel jobs by locking an arbitrary constant file descriptor (200)
-    {
-        flock 200
-        echo "$csv_line" >&200
-    } 200>>"$(output-csv)"
+    append-atomically "$(output-csv)" "$csv_line"
 }
 
 # transforms a list of files from one file format to another

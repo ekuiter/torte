@@ -8,43 +8,68 @@ SAT_HERITAGE_INPUT_KEY=sat_heritage # the name of the input key to access SAT he
 
 # solves a file
 # measures the solve time
-solve-file(file, solver_name, solver, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=) {
+solve-file(file, solver_name, solver, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=) { #, query_iterator=
     local input output_log timeout_file csv_line timeouts fail_fast
-    attempt_grouper=${attempt_grouper:-$(lambda file echo default)}
     input="$(input-directory)/$file"
     output_log=$(mktemp)
     csv_line="$file,"
     log "$solver_name: $file"
+    
+    # skip if already solved
     if [[ -f $(output-csv) ]] && grep -qP "^\Q$csv_line\E" "$(output-csv)"; then
         log "" "$(echo-skip)"
         return
     fi
     log "" "$(echo-progress solve)"
-    compile-lambda solver "$solver"
+
+    # can only solve if the input file is present
+    if is-file-empty "$input"; then
+        fail_fast=y
+    fi
+
+    # in case of a certain number of successive timeouts, skip any further attempts
+    # this is useful if files are executed in order of increasingly complexity, as later files will likely not be solvable either
+    # if files naturally cluster into several groups of increasing complexity (like Linux's architectures), we can optionally group them accordingly
+    attempt_grouper=${attempt_grouper:-$(lambda file echo default)}
     compile-lambda attempt-grouper "$attempt_grouper"
     timeout_file=$(output-file "$(attempt-grouper "$file").timeout")
     timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
     if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
         fail_fast=y
     fi
-    if ! is-file-empty "$input" && [[ -z $fail_fast ]]; then
+
+    # attempt to solve the file with the solver
+    if [[ -z $fail_fast ]]; then
+        compile-lambda solver "$solver"
         # shellcheck disable=SC2046
         measure "$timeout" $(solver "$input") | tee "$output_log"
     fi
-    if ! is-file-empty "$input" \
-        && [[ -z $fail_fast ]] \
+
+    # check and log whether the solving attempt was successful
+    local success
+    if [[ -z $fail_fast ]] \
         && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; } \
-        && ! grep -q "^measure_timeout=y"; then
+        && ! grep -q "^measure_timeout=y" < "$output_log"; then
+        success=y
+    fi
+    if [[ -n $success ]]; then
         log "" "$(echo-done)"
+        rm-safe "$timeout_file"
     else
         log "" "$(echo-fail)"
     fi
+
+    # in case of timeout, append this attempt to the timeout file, so further attempts can potentially be skipped
     if grep -q "^measure_timeout=y" < "$output_log"; then
-        echo "$file" >> "$timeout_file"
+        append-atomically "$timeout_file" "$file"
     fi
+    
+    # collect results into CSV line
     csv_line+="$solver_name,$(grep -oP "^measure_time=\K.*" < "$output_log" || echo)"
+
+    # collect additional data fields (e.g., satisfiability or model count) if requested and if solving succeeded
     if [[ -n $data_extractor ]]; then
-        if [[ -z $fail_fast ]] && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; }; then
+        if [[ -n $success ]]; then
             compile-lambda data-extractor "$data_extractor"
             csv_line+=",$(data-extractor "$output_log")"
         else
@@ -53,12 +78,10 @@ solve-file(file, solver_name, solver, data_fields=, data_extractor=, timeout=0, 
             done
         fi
     fi
+
+    # clean up and append results to CSV file
     rm-safe "$output_log"
-    # ensure atomic writes when using parallel jobs by locking an arbitrary constant file descriptor (200)
-    {
-        flock 200
-        echo "$csv_line" >&200
-    } 200>>"$(output-csv)"
+    append-atomically "$(output-csv)" "$csv_line"
 }
 
 # solves a list of files
@@ -76,7 +99,7 @@ solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_e
         while IFS= read -r file; do
             solve-file "$file" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"
         done < <(table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V)
-    else
+    else  
         table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V \
             | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
             solve-file "{}" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"

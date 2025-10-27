@@ -57,3 +57,12 @@ collect-stage-files(input, extension, statistics_input=read-statistics, date_for
             --statistics-input "$statistics_input" \
             --date-format "$date_format"
 }
+
+# atomically write a line to a file by locking an arbitrary constant file descriptor (200)
+# useful when using parallel jobs to avoid garbled output
+append-atomically(file, line) {
+    {
+        flock 200
+        echo "$line" >&200
+    } 200>>"$file"
+}
