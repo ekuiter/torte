@@ -69,7 +69,7 @@ experiment-stages() {
     join-into extract-kconfig-models transform-model-to-dimacs
 
     # solve
-    transform-dimacs-to-backbone-dimacs-with-cadiback --jobs 16
+    transform-dimacs-to-backbone-dimacs-with --transformer cadiback --jobs 16
     join-into transform-model-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs 16
     solve \

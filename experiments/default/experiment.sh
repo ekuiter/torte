@@ -30,7 +30,7 @@ experiment-stages() {
     transform-model-to-dimacs --timeout "$TIMEOUT"
     
     draw-community-structure-with-satgraf --timeout "$TIMEOUT"
-    transform-dimacs-to-backbone-dimacs-with-cadiback --timeout "$TIMEOUT"
+    transform-dimacs-to-backbone-dimacs-with --transformer cadiback --timeout "$TIMEOUT"
     compute-unconstrained-features --timeout "$TIMEOUT"
     compute-backbone-features --timeout "$TIMEOUT"
     solve-sat --jobs "$JOBS" --timeout "$TIMEOUT"

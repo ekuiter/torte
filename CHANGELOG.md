@@ -23,6 +23,8 @@ This release significantly revises the extraction mechanism, which means we can 
 - Significantly improved extraction by replacing and compiling LKC's `conf.c` in place
 - Revisited, checked, and improved feature-model extraction of every existing system
 - Revised terminology (LKC to denote the KConfig parser implementation of the Linux kernel)
+- Improved solver error handling
+- Unified feature set computation
 
 ### Removed
 
@@ -31,7 +33,7 @@ This release significantly revises the extraction mechanism, which means we can 
 ### Fixed
 
 - Several bugs
-- Guaranteed exit on Ctrl+C
+- Improved exit on Ctrl+C
 - Proper locking of CSV files during parallelized jobs
 
 ## [1.0.0] - 2025-08-27
