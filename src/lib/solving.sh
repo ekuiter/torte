@@ -8,9 +8,13 @@ SAT_HERITAGE_INPUT_KEY=sat_heritage # the name of the input key to access SAT he
 
 # solves a file
 # measures the solve time
-solve-file(file, solver_name, solver, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=) { #, query_iterator=
+# optionally applies multiple solver queries
+solve-file(file, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=, query_iterator=) {
     local input output_log timeout_file csv_line timeouts fail_fast
-    input="$(input-directory)/$file"
+    input="$(input-directory)/$file" # the file we are going to solve (before applying the query)
+    output="$(output-directory)/$(dirname "$file")/$(basename "$file")" # the input file for the solver (after applying the query)
+    state="$(output-directory)/$(dirname "$file")/$(basename "$file" ".$input_extension").iterator" # the query iterator state
+    mkdir -p "$(dirname "$state")"
     output_log=$(mktemp)
     csv_line="$file,"
     log "$solver_name: $file"
@@ -27,67 +31,84 @@ solve-file(file, solver_name, solver, data_fields=, data_extractor=, timeout=0, 
         fail_fast=y
     fi
 
-    # in case of a certain number of successive timeouts, skip any further attempts
-    # this is useful if files are executed in order of increasingly complexity, as later files will likely not be solvable either
-    # if files naturally cluster into several groups of increasing complexity (like Linux's architectures), we can optionally group them accordingly
-    attempt_grouper=${attempt_grouper:-$(lambda file echo default)}
-    compile-lambda attempt-grouper "$attempt_grouper"
-    timeout_file=$(output-file "$(attempt-grouper "$file").timeout")
-    timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
-    if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
-        fail_fast=y
-    fi
+    # determine the first solver query and prepare the first file to be solved
+    query_iterator=${query_iterator:-$(to-lambda query-void)}
+    compile-lambda query-iterator "$query_iterator"
+    next_query=$(query-iterator "$input" "$output" "$state")
 
-    # attempt to solve the file with the solver
-    if [[ -z $fail_fast ]]; then
-        compile-lambda solver "$solver"
-        # shellcheck disable=SC2046
-        measure "$timeout" $(solver "$input") | tee "$output_log"
-    fi
-
-    # check and log whether the solving attempt was successful
-    local success
-    if [[ -z $fail_fast ]] \
-        && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; } \
-        && ! grep -q "^measure_timeout=y" < "$output_log"; then
-        success=y
-    fi
-    if [[ -n $success ]]; then
-        log "" "$(echo-done)"
-        rm-safe "$timeout_file"
-    else
-        log "" "$(echo-fail)"
-    fi
-
-    # in case of timeout, append this attempt to the timeout file, so further attempts can potentially be skipped
-    if grep -q "^measure_timeout=y" < "$output_log"; then
-        append-atomically "$timeout_file" "$file"
-    fi
-    
-    # collect results into CSV line
-    csv_line+="$solver_name,$(grep -oP "^measure_time=\K.*" < "$output_log" || echo)"
-
-    # collect additional data fields (e.g., satisfiability or model count) if requested and if solving succeeded
-    if [[ -n $data_extractor ]]; then
-        if [[ -n $success ]]; then
-            compile-lambda data-extractor "$data_extractor"
-            csv_line+=",$(data-extractor "$output_log")"
-        else
-            for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
-                csv_line+=",NA"
-            done
+    # iterate over all queries to be solved for the given file
+    while [[ -n $next_query ]]; do
+        # in case of a certain number of successive timeouts, skip any further attempts
+        # this is useful if files are executed in order of increasingly complexity, as later files will likely not be solvable either
+        # if files naturally cluster into several groups of increasing complexity (like Linux's architectures), we can optionally group them accordingly
+        attempt_grouper=${attempt_grouper:-$(lambda file echo default)}
+        compile-lambda attempt-grouper "$attempt_grouper"
+        timeout_file=$(output-file "$(attempt-grouper "$file" "$next_query").timeout")
+        timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
+        if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
+            fail_fast=y
         fi
-    fi
 
-    # clean up and append results to CSV file
-    rm-safe "$output_log"
-    append-atomically "$(output-csv)" "$csv_line"
+        # attempt to solve the file with the solver
+        if [[ -z $fail_fast ]]; then
+            compile-lambda solver "$solver"
+            # shellcheck disable=SC2046
+            measure "$timeout" $(solver "$output") | tee "$output_log"
+        fi
+
+        # check and log whether the solving attempt was successful
+        local success
+        if [[ -z $fail_fast ]] \
+            && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; } \
+            && ! grep -q "^measure_timeout=y" < "$output_log"; then
+            success=y
+        fi
+        if [[ -n $success ]]; then
+            log "" "$(echo-done)"
+            rm-safe "$timeout_file"
+        else
+            log "" "$(echo-fail)"
+        fi
+
+        # in case of timeout, append this attempt to the timeout file, so further attempts can potentially be skipped
+        if grep -q "^measure_timeout=y" < "$output_log"; then
+            append-atomically "$timeout_file" "$file"
+        fi
+        
+        # collect results into CSV line
+        csv_line+="$solver_name,$next_query,$(grep -oP "^measure_time=\K.*" < "$output_log" || echo)"
+
+        # collect additional data fields (e.g., satisfiability or model count) if requested and if solving succeeded
+        if [[ -n $data_extractor ]]; then
+            if [[ -n $success ]]; then
+                compile-lambda data-extractor "$data_extractor"
+                csv_line+=",$(data-extractor "$output_log")"
+            else
+                for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
+                    csv_line+=",NA"
+                done
+            fi
+        fi
+
+        # clean up and append results to CSV file
+        rm-safe "$output_log"
+        append-atomically "$(output-csv)" "$csv_line"
+
+        # advance iterator to next query
+        next_query=$(query-iterator "$input" "$output" "$state")
+    done
+
+    # clean up redundant state files
+    rm-safe "$output" "$state"
 }
 
 # solves a list of files
-solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=) {
+solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=, query_iterator=) {
+    if [[ -n $attempts ]] && [[ $jobs -gt 1 ]]; then
+        error "Cannot use parallel jobs when detecting consecutive timeouts, as this requires sequential timeout tracking."
+    fi
     if [[ ! -f $(output-csv) ]]; then
-        echo -n "${input_extension}_file,${input_extension}_solver,${input_extension}_solver_time" > "$(output-csv)"
+        echo -n "${input_extension}_file,${input_extension}_solver,${input_extension}_query,${input_extension}_solver_time" > "$(output-csv)"
         if [[ -n $data_fields ]]; then
             echo ",${data_fields//-/_}" >> "$(output-csv)"
         else
@@ -97,17 +118,17 @@ solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_e
     # to avoid the constant overhead from parallelization due to reloading torte, run sequentially if only one job is requested
     if [[ $jobs -eq 1 ]]; then
         while IFS= read -r file; do
-            solve-file "$file" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"
+            solve-file "$file" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
         done < <(table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V)
     else  
         table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V \
             | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
-            solve-file "{}" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper"
+            solve-file "{}" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
     fi
 }
 
 # runs a solver on a file
-solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
+solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=) {
     parser=${parser:-$kind}
     solve-files \
         "$(input-csv)" \
@@ -120,7 +141,19 @@ solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempt
         "$jobs" \
         y \
         "$attempts" \
-        "$attempt_grouper"
+        "$attempt_grouper" \
+        "$query_iterator"
+}
+
+# performs a single solver call on the given input file
+# corresponds to void analysis for SAT solvers
+# and feature-model cardinality for #SAT solvers
+query-void(input, output, state) {
+    if [[ ! -f "$state" ]]; then
+        cp "$input" "$output"
+        echo void
+    fi
+    touch "$state"
 }
 
 # parses results of typical satisfiability solvers
@@ -134,7 +167,7 @@ parse-result-sat(output_log) {
     fi
 }
 
-# parses results of various model counters
+# parses results of various #SAT solvers
 parse-result-sharp-sat(output_log) {
     local model_count
     model_count=$(sed -z 's/\n# solutions \n/SHARPSAT/g' < "$output_log" \
@@ -142,7 +175,7 @@ parse-result-sharp-sat(output_log) {
     echo "${model_count:-NA}"
 }
 
-# parses results of model counters that use the format of the model-counting competition 2022
+# parses results of #SAT solvers that use the format of the model-counting competition 2022
 parse-result-sharp-sat-mcc22(output_log) {
     model_count_int=$(grep "^c s exact .* int" < "$output_log" | cut -d' ' -f6)
     model_count_double=$(grep "^c s exact double prec-sci" < "$output_log" | cut -d' ' -f6)

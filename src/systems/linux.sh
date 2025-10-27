@@ -113,7 +113,7 @@ linux-config-types(revision) {
         | sort | uniq
 }
 
-linux-attempt-grouper(file) {
+linux-attempt-grouper(file, query) {
     # group solving attempts by architecture (so skipping after a certain number of attempts is scoped to a given architecture)
     # shellcheck disable=SC2001
     echo "$file" | sed 's#\(.*\)linux/.*\[\(.*\)\]\..*#\1\2#' | tr '/' '.'

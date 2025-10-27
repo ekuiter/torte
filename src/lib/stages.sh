@@ -281,7 +281,7 @@ define-stages() {
     }
 
     # solve DIMACS files
-    solve(kind, input=transform-model-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
+    solve(kind, input=transform-model-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
@@ -309,14 +309,15 @@ define-stages() {
                 --timeout "$timeout" \
                 --jobs "$jobs" \
                 --attempts "$attempts" \
-                --attempt-grouper "$attempt_grouper"
+                --attempt-grouper "$attempt_grouper" \
+                --query-iterator "$query_iterator"
         done
         aggregate --output "solve-$kind" --inputs "${stages[@]}"
     }
 
     # solve DIMACS files for satisfiability
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, iterations=1, iteration_field=iteration, file_fields=) {
+    solve-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
             sat-competition/02-zchaff,solver,sat
             sat-competition/03-Forklift,solver,sat
@@ -373,13 +374,14 @@ define-stages() {
         )
         solve --kind sat --input "$input" --timeout "$timeout" --jobs "$jobs" \
             --attempts "$attempts" --attempt-grouper "$attempt_grouper" \
+            --query-iterator "$query_iterator" \
             --iterations "$iterations" --iteration_field "$iteration_field" --file_fields "$file_fields" \
             --solver_specs "${solver_specs[@]}"
     }
 
     # solve DIMACS files for model count
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-sharp-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=) {
+    solve-sharp-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
             emse-2023/countAntom,solver,sharp-sat
             emse-2023/d4,solver,sharp-sat
@@ -397,7 +399,10 @@ define-stages() {
             other/ApproxMC,solver,sharp-sat
         )
         solve --kind sharp-sat --input "$input" --timeout "$timeout" --jobs "$jobs" \
-            --attempts "$attempts" --attempt-grouper "$attempt_grouper" --solver_specs "${solver_specs[@]}"
+            --attempts "$attempts" --attempt-grouper "$attempt_grouper" \
+            --query-iterator "$query_iterator" \
+            --iterations "$iterations" --iteration_field "$iteration_field" --file_fields "$file_fields" \
+            --solver_specs "${solver_specs[@]}"
     }
 
     # logs a specific field of a given stage's output file
