@@ -1,6 +1,7 @@
 ## torte: reproducible feature-model experiments à la carte 🍰
 
-**torte is a declarative experimentation platform for reproducible feature-model analysis research.**
+**torte is a declarative experimentation platform for reproducible feature-model analysis research.
+It integrates 10+ configurable software systems, various extractors and transformers, and 700+ automated solvers.**
 
 [<img src="meta/cli.png" width="24%">](meta/cli.png)
 [<img src="meta/tree.png" width="24%">](meta/tree.png)
