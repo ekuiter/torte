@@ -11,6 +11,8 @@
 [![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/releases)
 [![License](https://img.shields.io/github/license/ekuiter/torte?style=for-the-badge&color=blue)](https://github.com/ekuiter/torte/blob/main/LICENSE.txt)
 
+Jump to: [**Publications**](#publications-and-artifacts) | [**Demo Video**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/)
+
 <img style="float: right;" align="right" width="23%" src="meta/torte.png">
 
 Why **torte**?
@@ -494,9 +496,9 @@ Further contributors:
 If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).
 New issues, pull requests, or any other kinds of feedback are always welcome.
 
-### Publications
+### Publications and Artifacts
 
-torte has been used in several research publications:
+torte has been used in several research publications and artifacts (also listed on our [Zenodo community](https://zenodo.org/communities/torte/)):
 
 - Tim Bächle, Erik Hofmayer, Christoph König, Tobias Pett, and Ina Schaefer. [Investigating the Effects of T-Wise Interaction Sampling for Vulnerability Discovery in Highly-Configurable Software Systems](https://doi.org/10.1145/3744915.3748462). In Proc. Int'l Systems and Software Product Line Conf. (SPLC). ACM, September 2025.
 
@@ -513,6 +515,20 @@ torte has been used in several research publications:
   [**ASE'22 Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) | [**FOSD'22 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2022/2022-03-31-FOSD-Tseitin.pdf) | [**ASE'22 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2022/2022-10-13-ASE-Tseitin.pdf) | [**SE'23 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2023/2023-02-22-SE-Tseitin.pdf) | [**SAT'23 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2023/2023-07-04-SAT-Tseitin.pdf)
   
   Badge: *Artifacts Evaluated – Reusable v1.1*
+
+### Availability and Reproducibility
+
+We take the following measures to increase availability and reproducibility:
+
+- We provide a [CI pipeline](https://github.com/ekuiter/torte/actions) that periodically rebuilds torte and checks its basic functionality.
+- We periodically [release](https://github.com/ekuiter/torte/releases) new versions of torte, including all Docker images.
+  Once installed, this distribution does not depend on any external web resources apart from cloning the Git repositories of the analyzed systems.[^38]
+- Should these Git repositories be removed at some point in the future, we provide frozen mirrors on [GitHub](https://github.com/ekuiter?tab=repositories&q=torte), which can be used instead.
+- We publish our evaluation results on [Zenodo](https://zenodo.org/communities/torte/) (a long-term archival storage), including the distribution of torte we used.
+- We also publish [feature-model histories](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) for quick evaluation needs, which completely avoids setting up and executing torte (which trades flexibility for convenience).
+
+[^38]: A small exception is Freetz-NG, which downloads an LKC distribution as [part of](https://github.com/ekuiter/torte/blob/main/src/systems/freetz-ng.sh#L60) its feature-model extraction process.
+Should this fail at some point in the future, [mirrors](https://github.com/ekuiter/torte-freetz-ng) [are](https://github.com/Freetz-NG/dl-mirror) available.
 
 ### History
 
