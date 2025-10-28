@@ -73,10 +73,6 @@ source-script() {
         # the rule itself recursively calls this script with the original file ($<) and writes its output (>) to the generated script ($@)
         make -f <(printf "%s\n\t%s\n" "$GEN_DIRECTORY"'/%.sh : '"$PREPROCESSOR_DIRECTORY"'/%.sh' "${PREPROCESSOR_SCRIPT[*]}"' $< > $@') "$generated_script" > /dev/null
     fi
-    if [[ ! -f $generated_script ]]; then
-        # fallback: compile the script directly if make is not available
-        compile-script "$script" > "$generated_script"
-    fi
     # shellcheck source=/dev/null
     source "$generated_script"
     # this code is specific to this project to improve logging
