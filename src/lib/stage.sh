@@ -206,8 +206,8 @@ aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field
     directory_field=${directory_field:-$stage_field}
     stage_transformer=${stage_transformer:-$(lambda-identity)}
     assert-array inputs
-    compile-lambda stage-transformer "$stage_transformer"
-    source_transformer="$(lambda value "stage-transformer \$(basename \$(dirname \$value))")"
+    source-lambda "$stage_transformer"
+    source_transformer="$(lambda value "\"\$stage_transformer\" \$(basename \$(dirname \$value))")"
     csv_files=()
     for stage in "${inputs[@]}"; do
         csv_files+=("$(input-directory "$stage")/$OUTPUT_FILE_PREFIX.csv")
@@ -215,7 +215,7 @@ aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field
     aggregate-tables "$stage_field" "$source_transformer" "${csv_files[@]}" > "$(output-csv)"
     for stage in "${inputs[@]}"; do
         while IFS= read -r -d $'\0' file; do
-            mv "$file" "$(output-path "$(stage-transformer "$stage")" "${file#"$(input-directory "$stage")/"}")"
+            mv "$file" "$(output-path "$("$stage_transformer" "$stage")" "${file#"$(input-directory "$stage")/"}")"
         done < <(find "$(input-directory "$stage")" -type f -print0)
         find "$(input-directory "$stage")" -type d -empty -delete 2>/dev/null || true
     done

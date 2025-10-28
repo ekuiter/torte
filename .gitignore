@@ -5,6 +5,7 @@
 /export*
 /release*
 /src/gen
+/src/lambda
 /src/experiment
 /*.tar.gz
 .ipynb_checkpoints

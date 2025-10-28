@@ -39,7 +39,7 @@ compile-script() {
     local script=$1
     # match all Bash function definitions, which consists of the following:
     # whitespace, a function name, whitespace, (, parameter specification, ), whitespace, {, anything
-    local regex='^\s*([a-z0-9-]+)\s*\((.*)\)\s*\{(.*)'
+    local regex='^\s*([a-z0-9_-]+)\s*\((.*)\)\s*\{(.*)'
 
     # interpreted version (very slow due to eval and it requires parse-arguments to be in scope)
     # sed -E 's/'"$regex"'/\1() { eval "$(parse-arguments \1 \2)"; \3/' < "$script"
@@ -72,6 +72,10 @@ source-script() {
         # the makefile contains a rule that preprocesses each script into a corresponding script in the gen directory
         # the rule itself recursively calls this script with the original file ($<) and writes its output (>) to the generated script ($@)
         make -f <(printf "%s\n\t%s\n" "$GEN_DIRECTORY"'/%.sh : '"$PREPROCESSOR_DIRECTORY"'/%.sh' "${PREPROCESSOR_SCRIPT[*]}"' $< > $@') "$generated_script" > /dev/null
+    fi
+    if [[ ! -f $generated_script ]]; then
+        # fallback: compile the script directly if make is not available
+        compile-script "$script" > "$generated_script"
     fi
     # shellcheck source=/dev/null
     source "$generated_script"

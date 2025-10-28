@@ -91,7 +91,7 @@ aggregate-tables(source_field=, source_transformer=, files...) {
     source_transformer=${source_transformer:-$(lambda-identity)}
     assert-array files
     local common_fields
-    compile-lambda source-transformer "$source_transformer"
+    source-lambda "$source_transformer"
     readarray -t common_fields < <(common-fields "${files[@]}")
     if [[ -z "${common_fields[*]}" ]]; then
         error "Expected at least one common field."
@@ -114,7 +114,7 @@ aggregate-tables(source_field=, source_transformer=, files...) {
             done
             if [[ -n "$source_field" ]]; then
                 echo -n ,
-                source-transformer "$file"
+                "$source_transformer" "$file"
             else
                 echo
             fi
@@ -129,7 +129,7 @@ mutate-table-field(file, mutated_fields=, context_field=, field_transformer=) {
     local fields
     fields=$(head -n1 "$file")
     to-array fields
-    compile-lambda field-transformer "$field_transformer"
+    source-lambda "$field_transformer"
     to-list fields
     while read -r line; do
         new_line=""
@@ -142,7 +142,7 @@ mutate-table-field(file, mutated_fields=, context_field=, field_transformer=) {
                 if [[ -n $context_field ]]; then
                     context_value=$(echo "$line" | cut -d, -f"$(table-field-index "$file" "$context_field")")
                 fi
-                new_line+="$(field-transformer "$value" "$context_value"),"
+                new_line+="$("$field_transformer" "$value" "$context_value"),"
             else
                 new_line+="$value,"
             fi

@@ -15,6 +15,7 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
     input="$(input-directory)/$file" # the file we are going to solve (before applying the query)
     output="$(output-directory)/$(dirname "$file")/$(basename "$file")" # the input file for the solver (after applying the query)
     state="$(output-directory)/$(dirname "$file")/$(basename "$file" ".$input_extension").iterator" # the query iterator state
+    query_iterator=${query_iterator:-$(to-lambda query-void)} # by default, just perform a single solver call on the given input file
     mkdir -p "$(dirname "$state")"
     output_log=$(mktemp)
     
@@ -23,29 +24,18 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
         log "$solver_name: $file" "$(echo-skip)"
         return
     fi
-    compile-lambda solver "$solver"
-    if [[ -n $data_extractor ]]; then
-        compile-lambda data-extractor "$data_extractor"
-    fi
-    if [[ -n $attempt_grouper ]]; then
-        compile-lambda attempt-grouper "$attempt_grouper"
-    fi
+    source-lambda "$solver"
+    source-lambda "$data_extractor"
+    source-lambda "$attempt_grouper"
+    source-lambda "$query_iterator"
 
     # can only solve if the input file is present
     if is-file-empty "$input"; then
         fail_fast=y
     fi
 
-    if [[ -n $query_iterator ]]; then
-        # determine the first solver query and prepare the first file to be solved
-        compile-lambda query-iterator "$query_iterator"
-        next_query=$(query-iterator "$file" "$input" "$input_extension" "$output" "$state")
-    else
-        # by default, just perform a single solver call on the given input file
-        # this corresponds to void analysis for SAT solvers, and feature-model cardinality for #SAT solvers
-        next_query=void
-        output="$input"
-    fi
+    # determine the first solver query and prepare the first file to be solved
+    next_query=$("$query_iterator" "$file" "$input" "$input_extension" "$output" "$state")
 
     # iterate over all queries to be solved for the given file
     while [[ -n $next_query ]]; do
@@ -57,7 +47,7 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
         # this is useful if files are executed in order of increasingly complexity, as later files will likely not be solvable either
         # if files naturally cluster into several groups of increasing complexity (like Linux's architectures), we can optionally group them accordingly
         if [[ -n $attempt_grouper ]]; then
-            timeout_file=$(output-file "$(attempt-grouper "$file" "$next_query").timeout")
+            timeout_file=$(output-file "$("$attempt_grouper" "$file" "$next_query").timeout")
         else
             timeout_file=$(output-file "default.timeout")
         fi
@@ -69,7 +59,7 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
         # attempt to solve the file with the solver
         if [[ -z $fail_fast ]]; then
             # shellcheck disable=SC2046
-            measure "$timeout" $(solver "$output") | tee "$output_log"
+            measure "$timeout" $("$solver" "$output") | tee "$output_log"
         fi
 
         # check whether the solving attempt was successful
@@ -91,7 +81,7 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
         # collect additional data fields (e.g., satisfiability or model count) if requested and if solving succeeded
         if [[ -n $data_extractor ]]; then
             if [[ -n $success ]]; then
-                csv_line+=",$(data-extractor "$output_log")"
+                csv_line+=",$("$data_extractor" "$output_log")"
             else
                 for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
                     csv_line+=",NA"
@@ -111,18 +101,12 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
             log "" "$(echo-fail)"
         fi
 
-        # possibly advance iterator to next query
-        if [[ -z $query_iterator ]]; then
-            break
-        fi
-        next_query=$(query-iterator "$file" "$input" "$input_extension" "$output" "$state")
+        # advance iterator to next query
+        next_query=$("$query_iterator" "$file" "$input" "$input_extension" "$output" "$state")
     done
 
     # clean up redundant state files
-    if [[ $output != "$input" ]]; then
-        rm-safe "$output"
-    fi
-    rm-safe "$state"
+    rm-safe "$output" "$state"
 }
 
 # solves a list of files
@@ -169,8 +153,7 @@ solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempt
 }
 
 # performs a single solver call on the given input file
-# it is recommended to not use --query_iterator "$(to-lambda query-void)", as the lambda incurs performance penalties
-# thus, this function is not meant to be used in practice, it just demonstrates how to define a query
+# this corresponds to void analysis for SAT solvers, and feature-model cardinality for #SAT solvers
 query-void(file, input, input_extension, output, state) {
     if [[ ! -f "$state" ]]; then
         touch "$state"
@@ -274,7 +257,7 @@ mount-query-sample(input) {
 
 # denote the intent to clone SAT heritage solvers in the experiment
 add-sat-heritage() {
-    add-hook-step post-experiment-systems-hook sat-heritage "$(to-lambda post-experiment-systems-hook-sat-heritage)"
+    add-hook-step post-experiment-systems-hook post-experiment-systems-hook-sat-heritage
 }
 
 # clone additional SAT heritage solvers, so they can be used in solving stages

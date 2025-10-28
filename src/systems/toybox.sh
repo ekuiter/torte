@@ -8,7 +8,7 @@ TOYBOX_URL=https://github.com/landley/toybox
 
 add-toybox-kconfig-history(from=, to=) {
     add-system --system toybox --url "$TOYBOX_URL"
-    add-hook-step kconfig-pre-binding-hook toybox "$(to-lambda kconfig-pre-binding-hook-toybox)"
+    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-toybox
     for revision in $(git-tag-revisions toybox | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system toybox --revision "$revision"
         add-kconfig \

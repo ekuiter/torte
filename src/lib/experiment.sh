@@ -163,6 +163,7 @@ command-run() {
         done
     else
         # run a single-pass experiment, or a given pass of a multi-pass experiment
+        clear-lambdas
         list-stages
         mkdir -p "$(stages-directory)"
         clean "$EXPERIMENT_STAGE"

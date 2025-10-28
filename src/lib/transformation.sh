@@ -17,10 +17,11 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
     fi
     log "" "$(echo-progress transform)"
     mkdir -p "$(dirname "$output")"
-    compile-lambda transformer "$transformer"
+    source-lambda "$transformer"
+    source-lambda "$data_extractor"
     if ! is-file-empty "$input"; then
         # shellcheck disable=SC2046
-        measure "$timeout" $(transformer "$input" "$output") | tee "$output_log"
+        measure "$timeout" $("$transformer" "$input" "$output") | tee "$output_log"
     fi
     if ! is-file-empty "$input" && ! is-file-empty "$output"; then
         log "" "$(echo-done)"
@@ -31,8 +32,7 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
     csv_line+="${new_file#./},$transformer_name,$(grep -oP "^measure_time=\K.*" < "$output_log")"
     if [[ -n $data_extractor ]]; then
         if ! is-file-empty "$output"; then
-            compile-lambda data-extractor "$data_extractor"
-            csv_line+=",$(data-extractor "$output" "$output_log")"
+            csv_line+=",$("$data_extractor" "$output" "$output_log")"
         else
             for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
                 csv_line+=",NA"
@@ -304,7 +304,7 @@ compute-random-sample(extension, size=1, t_wise=1, separator=, seed=, timeout=0,
         "$extension" \
         "$extension" \
         "compute-random-sample" \
-        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-random-sample-helper "$input" "$output" "'"$size"'" "'"$t_wise"'" "'"$separator"'h" "'"$seed"'"')" \
+        "$(lambda input,output 'echo '"$SRC_DIRECTORY/main.sh"' compute-random-sample-helper "$input" "$output" "'"$size"'" "'"$t_wise"'" "'"$separator"'" "'"$seed"'"')" \
         "" \
         "" \
         "$timeout" \

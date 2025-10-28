@@ -5,10 +5,10 @@ LINUX_URL_ORIGINAL=https://github.com/torvalds/linux
 
 add-linux-system() {
     if [[ $LINUX_CLONE_MODE == filter ]]; then
-        add-hook-step post-clone-hook linux "$(to-lambda post-clone-hook-linux)"
+        add-hook-step post-clone-hook post-clone-hook-linux
     fi
-    add-hook-step kconfig-post-checkout-hook linux "$(to-lambda kconfig-post-checkout-hook-linux)"
-    add-hook-step kconfig-pre-binding-hook linux "$(to-lambda kconfig-pre-binding-hook-linux)"
+    add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-linux
+    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-linux
     if [[ $LINUX_CLONE_MODE == fork ]]; then
         local url="$LINUX_URL_FORK"
     elif [[ $LINUX_CLONE_MODE == original ]] || [[ $LINUX_CLONE_MODE == filter ]]; then

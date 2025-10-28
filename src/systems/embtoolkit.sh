@@ -8,8 +8,8 @@ EMBTOOLKIT_URL=https://github.com/ekuiter/torte-embtoolkit
 
 add-embtoolkit-kconfig-history(from=, to=) {
     add-system --system embtoolkit --url "$EMBTOOLKIT_URL"
-    add-hook-step kconfig-pre-binding-hook embtoolkit "$(to-lambda kconfig-pre-binding-hook-embtoolkit)"
-    add-hook-step kclause-post-binding-hook embtoolkit "$(to-lambda kclause-post-binding-hook-embtoolkit)"
+    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-embtoolkit
+    add-hook-step kclause-post-binding-hook kclause-post-binding-hook-embtoolkit
     for revision in $(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e '-.*-' | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system embtoolkit --revision "$revision"
         add-kconfig \

@@ -1,15 +1,33 @@
 #!/bin/bash
 # functions for working with Bash functions
 
+SRC_LAMBDA_DIRECTORY=$SRC_DIRECTORY/lambda # directory to store lambda functions
+GEN_LAMBDA_DIRECTORY=$GEN_DIRECTORY/lambda # directory to store preprocessed lambda functions
+
 # returns whether a function is defined, useful for providing fallback implementations
 has-function(function) {
     declare -F "$function" >/dev/null
 }
 
 # creates a lambda function that can be passed around
+# before calling, the lambda must be sourced with source-lambda
 lambda(arguments, body...) {
-    to-array arguments
-    echo "() { eval \"\$(parse-arguments lambda ${arguments[*]//,/ })\"; ${body[*]}; }"
+    local hash lambda file
+    hash=$(md5sum <<<"$*" | cut -d' ' -f1)
+    lambda="__lambda_$hash"
+    file="$SRC_LAMBDA_DIRECTORY/$lambda.sh"
+    if [[ ! -f $file ]]; then
+        mkdir -p "$SRC_LAMBDA_DIRECTORY"
+        to-array arguments
+        echo "$lambda(${arguments[*]//,/, }) { ${body[*]}; }" > "$file"
+    fi
+    echo "$lambda"
+}
+
+# removes all stored lambda functions
+# should be called at tool startup
+clear-lambdas() {
+    rm-safe "$SRC_LAMBDA_DIRECTORY" "$GEN_LAMBDA_DIRECTORY"
 }
 
 # a lambda for the identity function
@@ -18,19 +36,23 @@ lambda-identity() {
 }
 
 # allows to pass an existing function as a lambda
-# can optionally pass arguments for partial application
+# can optionally pass arguments for partial application (use this with care, as it does not mixes well with named arguments)
 to-lambda(name, curried_arguments...) {
     lambda arguments... "$name" "${curried_arguments[@]}" '"${arguments[@]}"'
 }
 
 # stores a lambda function as a function in the global namespace
-compile-lambda(name, lambda) {
-    eval "$name$lambda"
+# must be called before using the lambda the first time
+# while this is inelegant (it gives lambdas special treatment), it avoids performance overhead due to frequent resourcing
+source-lambda(lambda=) {
+    if [[ -n $lambda ]]; then
+        source-script "$SRC_LAMBDA_DIRECTORY/$lambda.sh"
+    fi
 }
 
 # returns all steps of a given hook
 get-hook-steps(name) {
-    declare -F | cut -d' ' -f3 | grep "^${name}_hook_step_"
+    declare -F | cut -d' ' -f3 | grep "^__hook_${name}_step_"
 }
 
 # returns the most recent identifier of a given hook
@@ -39,25 +61,17 @@ get-latest-hook-step-identifier(name) {
 }
 
 # stores a new step of a hook function as a function in the global namespace
-add-hook-step(name, identifier=, lambda) {
-    if [[ -z $identifier ]]; then
-        identifier=$(get-latest-hook-step-identifier "$name")
-        if [[ -z $identifier ]]; then
-            identifier=0
-        fi
-        identifier=$((identifier+1))
-    fi
-    compile-lambda "${name}_hook_step_$identifier" "$lambda"
+add-hook-step(name, function) {
+    eval "__hook_${name}_step_$function() { $function \"\$@\"; }"
 }
 
 # stores a hook function as a function in the global namespace
 compile-hook(name) {
     local body=""
     for hook_step in $(get-hook-steps "$name"); do
-        body+="\"$hook_step\" \"\${arguments[@]}\";"
+        body+="\"$hook_step\" \"\$@\";"
     done
-    body+=":"
-    compile-lambda "$name" "$(lambda arguments... "$body")"
+    eval "${name}() { $body :; }"
 }
 
 # if not defined, defines a function with a given name doing nothing
