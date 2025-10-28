@@ -215,7 +215,7 @@ add-linux-kconfig-history(from=, to=, architecture=x86) {
 }
 
 add-linux-kconfig-sample(interval, architecture=x86) {
-    add-linux-kconfig-revisions "$(memoize git-sample-revisions linux "$interval" master)" "$architecture"
+    add-linux-kconfig-revisions "$(memoize-global git-sample-revisions linux "$interval" master)" "$architecture"
 }
 
 # adds Linux revisions to the Linux Git repository

@@ -65,16 +65,33 @@ define-stub(function) {
     eval "! has-function $function && $function() { :; } || true"
 }
 
-# inside a stage, memoizes a command by storing its output in the shared directory
+# inside a stage, memoizes a command by storing its output locally
 # only memoizes if command returns a result, accounting for non-idempotent functions that start out with "Nothing" and return "Just x" later
-memoize(command...) {
-    assert-container
+# we implement this as a classic bash function instead of memoize(command...)
+# this is because this function does not need argument validation anyway, and it improves performance
+function memoize-local {
     local hash file
-    hash=$(md5sum <<<"${command[*]}" | awk NF=1)
-    file=$(output-directory)/$SHARED_DIRECTORY/memoize/$hash
-    mkdir -p "$(output-directory)/$SHARED_DIRECTORY/memoize"
+    hash=$(md5sum <<<"$*" | cut -d' ' -f1)
+    file=/memoize/$hash
+    mkdir -p "/memoize"
     if [[ ! -f $file ]]; then
-        "${command[@]}" | tee "$file"
+        "$@" | tee "$file"
+        rm-if-empty "$file"
+    else
+        cat "$file"
+    fi
+}
+
+# inside a stage, memoizes a command by storing its output in the shared directory (otherwise identical to memoize)
+# this is useful to reuse memoized data across different stages
+# we have some code duplication here, but it avoids some performance overhead
+function memoize-global {
+    local hash file
+    hash=$(md5sum <<<"$*" | cut -d' ' -f1)
+    file=$(output-directory)/$SHARED_DIRECTORY/memoize/$hash
+    mkdir -p "$(dirname "$file")"
+    if [[ ! -f $file ]]; then
+        "$@" | tee "$file"
         rm-if-empty "$file"
     else
         cat "$file"

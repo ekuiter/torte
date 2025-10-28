@@ -33,7 +33,7 @@ add-l4re-kconfig-revisions(revisions=) {
 }
 
 add-l4re-kconfig-sample(interval) {
-    add-l4re-kconfig-revisions "$(memoize git-sample-revisions l4re "$interval" master)"
+    add-l4re-kconfig-revisions "$(memoize-global git-sample-revisions l4re "$interval" master)"
 }
 
 add-l4re-kconfig-history(interval_name=yearly) {

@@ -81,7 +81,7 @@ add-freetz-ng-kconfig-revisions(revisions=) {
 }
 
 add-freetz-ng-kconfig-sample(interval) {
-    add-freetz-ng-kconfig-revisions "$(memoize git-sample-revisions freetz-ng "$interval" master)"
+    add-freetz-ng-kconfig-revisions "$(memoize-global git-sample-revisions freetz-ng "$interval" master)"
 }
 
 add-freetz-ng-kconfig-history(interval_name=yearly) {
