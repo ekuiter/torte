@@ -7,7 +7,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https:/
 # A secondary experiment that evaluates non-winning SAT competition solvers on the Linux kernel.
 # We query randomly for core and dead features, as well as partial configurations.
 
-SOLVE_TIMEOUT=1200
+SOLVE_TIMEOUT=120 # use same internal timeout as sbva_cadical in main evaluation
 
 add-sat-heritage
 
@@ -46,12 +46,10 @@ experiment-stages() {
     compute-constrained-features
     for query in backbone partial; do
         if [[ $query == backbone ]]; then
-            size=1
-            # size=50
+            size=50
             t_wise=1
         elif [[ $query == partial ]]; then
-            size=1
-            # size=25
+            size=25
             t_wise=2
         fi
         compute-random-sample \
@@ -64,14 +62,23 @@ experiment-stages() {
     done
 
     # run non-winning SAT solvers using various queries
+    local solver_specs=(
+        "$(solve-sat-heritage 2clseq-2002),solver,sat"
+        "$(solve-sat-heritage compsat-2005),solver,sat"
+        "$(solve-sat-heritage barcelogic-2007),solver,sat"
+        "$(solve-sat-heritage black_hole_sat-2011),solver,sat"
+        "$(solve-sat-heritage penelope-2014),solver,sat"
+        "$(solve-sat-heritage yalsat-2017),solver,sat"
+        "$(solve-sat-heritage parafrost-2020),solver,sat"
+        other/IsaSAT,solver,sat
+    )
+
     solve \
         --kind sat \
         --query void \
         --input "$(mount-input),$(mount-sat-heritage)" \
-        --timeout 1 \
-        --attempts 1 \
-        --solver_specs \
-        "$(solve-sat-heritage yalsat-2017),solver,sat"
+        --timeout "$SOLVE_TIMEOUT"  \
+        --solver_specs "${solver_specs[@]}"
     solve_stages=("solve-void-sat")
 
     for query_spec in \
@@ -89,27 +96,11 @@ experiment-stages() {
             --kind sat \
             --query "$query_name" \
             --input "$(mount-input),$(mount-sat-heritage),$(mount-query-sample $query_input-sample)" \
-            --timeout 1 \
-            --attempts 1 \
+            --timeout "$SOLVE_TIMEOUT"  \
             --query-iterator "$(to-lambda query-$query_iterator constrained.features)" \
-            --solver_specs \
-            "$(solve-sat-heritage yalsat-2017),solver,sat"
+            --solver_specs "${solver_specs[@]}"
         solve_stages+=("solve-$query_name-sat")
     done
 
     aggregate --output solve-sat --inputs "${solve_stages[@]}"
-
-    # solve \
-    #     --kind sat \
-    #     --input "$(mount-sat-heritage)" \
-    #     --timeout "$SOLVE_TIMEOUT"  \
-    #     --solver_specs \
-    #     "$(solve-sat-heritage 2clseq-2002),solver,sat" \
-    #     "$(solve-sat-heritage compsat-2005),solver,sat" \
-    #     "$(solve-sat-heritage barcelogic-2007),solver,sat" \
-    #     "$(solve-sat-heritage black_hole_sat-2011),solver,sat" \
-    #     "$(solve-sat-heritage penelope-2014),solver,sat" \
-    #     "$(solve-sat-heritage yalsat-2017),solver,sat" \
-    #     "$(solve-sat-heritage parafrost-2020),solver,sat" \
-    #     other/IsaSAT,solver,sat
 }

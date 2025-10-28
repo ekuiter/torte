@@ -26,6 +26,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Revised terminology (LKC to denote the KConfig parser implementation of the Linux kernel)
 - Improved solver error handling
 - Unified feature set computation
+- Significantly increased performance of lambda and hook functions
 
 ### Removed
 
