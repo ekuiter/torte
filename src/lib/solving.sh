@@ -49,7 +49,7 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
 
     # iterate over all queries to be solved for the given file
     while [[ -n $next_query ]]; do
-        log "$solver_name $next_query: $file"
+        log "$solver_name: $file [$next_query]"
         log "" "$(echo-progress solve)"
         csv_line="$file,"
 
@@ -179,18 +179,45 @@ query-void(file, input, input_extension, output, state) {
     fi
 }
 
-query-backbone(core_or_dead, features_extension, file, input, input_extension, output, state) {
+# performs a complex solver query, where arbitrary unit-clause assumptions are allowed
+# polarities is a comma-separated string of '+' and '-' characters indicating the state of the corresponding feature
+query-complex(kind, polarities, features_extension, file, input, input_extension, output, state) {
     local feature
     if [[ ! -f "$state" ]]; then
         cp "$DOCKER_INPUT_DIRECTORY/$QUERY_SAMPLE_INPUT_KEY/$(dirname "$file")/$(basename "$file" ".$input_extension").$features_extension" "$state"
     fi
-    feature=$(head -n1 "$state")
-    if [[ -z $feature ]]; then
+    features=$(head -n1 "$state")
+    if [[ -z $features ]]; then
         return
     fi
     sed -i '1d' "$state"
-    cp "$input" "$output" # todo: manipulate .dimacs
-    echo "$core_or_dead $feature"
+    cp "$input" "$output"
+    to-array features
+    to-array polarities
+    echo -n "$kind"
+    for i in "${!features[@]}"; do
+        feature="${features[$i]}"
+        polarity="${polarities[$i]}"
+        echo -n " $polarity$feature"
+        dimacs-assume "$output" "$feature" "${polarity/+/}"
+    done
+    echo
+}
+
+# queries the solver regarding whether the given partial configuration is valid
+# this is meant to be used together with compute-random-sample(...) and --t-wise > 1
+query-partial(polarities, features_extension, file, input, input_extension, output, state) {
+    query-complex partial "$polarities" "$features_extension" "$file" "$input" "$input_extension" "$output" "$state"
+}
+
+# queries the solver regarding whether the given features are core
+query-core(features_extension, file, input, input_extension, output, state) {
+    query-complex core - "$features_extension" "$file" "$input" "$input_extension" "$output" "$state"
+}
+
+# queries the solver regarding whether the given features are dead
+query-dead(features_extension, file, input, input_extension, output, state) {
+    query-complex dead + "$features_extension" "$file" "$input" "$input_extension" "$output" "$state"
 }
 
 # parses results of typical satisfiability solvers

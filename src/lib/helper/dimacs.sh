@@ -18,6 +18,15 @@ dimacs-set-clause-number(file, clause_number) {
 
 # looks up the variable index for a given feature in a DIMACS file
 dimacs-lookup-variable-index(file, feature) {
+    # see src/docker/featjar/transform/src/main/java/KConfigReaderFormat.java
+    feature=${feature//=/_}
+    feature=${feature//:/_}
+    feature=${feature//./_}
+    feature=${feature//,/_}
+    feature=${feature//\//_}
+    feature=${feature//\\/ _}
+    feature=${feature// /_}
+    feature=${feature//-/_}
     grep -E '^c [0-9]+ '"$feature"'$' "$file" | cut -d' ' -f2
 }
 
