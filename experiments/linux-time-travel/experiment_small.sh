@@ -62,15 +62,25 @@ experiment-stages() {
     done
 
     # run non-winning SAT solvers using various queries
+    # local solver_specs=(
+    #     "$(solve-sat-heritage 2clseq-2002),solver,sat"
+    #     "$(solve-sat-heritage compsat-2005),solver,sat"
+    #     "$(solve-sat-heritage barcelogic-2007),solver,sat"
+    #     "$(solve-sat-heritage black_hole_sat-2011),solver,sat"
+    #     "$(solve-sat-heritage penelope-2014),solver,sat"
+    #     "$(solve-sat-heritage yalsat-2017),solver,sat"
+    #     "$(solve-sat-heritage parafrost-2020),solver,sat"
+    #     other/IsaSAT,solver,sat
+    # )
     local solver_specs=(
-        "$(solve-sat-heritage 2clseq-2002),solver,sat"
-        "$(solve-sat-heritage compsat-2005),solver,sat"
-        "$(solve-sat-heritage barcelogic-2007),solver,sat"
-        "$(solve-sat-heritage black_hole_sat-2011),solver,sat"
-        "$(solve-sat-heritage penelope-2014),solver,sat"
-        "$(solve-sat-heritage yalsat-2017),solver,sat"
-        "$(solve-sat-heritage parafrost-2020),solver,sat"
-        other/IsaSAT,solver,sat
+        "$(solve-sat-heritage unitwalk-2002),solver,sat"
+        "$(solve-sat-heritage haifasat-2005),solver,sat"
+        "$(solve-sat-heritage tinisat-2007),solver,sat"
+        "$(solve-sat-heritage adaptg2wsat2011-2011),solver,sat"
+        "$(solve-sat-heritage rokk-2014),solver,sat"
+        "$(solve-sat-heritage candy-2017),solver,sat"
+        "$(solve-sat-heritage pausat-2020),solver,sat"
+        other/MergeSat,solver,sat
     )
 
     solve \
