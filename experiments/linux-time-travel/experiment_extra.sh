@@ -62,25 +62,31 @@ experiment-stages() {
     done
 
     # run non-winning SAT solvers using various queries
-    # local solver_specs=(
-    #     "$(solve-sat-heritage 2clseq-2002),solver,sat"
-    #     "$(solve-sat-heritage compsat-2005),solver,sat"
-    #     "$(solve-sat-heritage barcelogic-2007),solver,sat"
-    #     "$(solve-sat-heritage black_hole_sat-2011),solver,sat"
-    #     "$(solve-sat-heritage penelope-2014),solver,sat"
-    #     "$(solve-sat-heritage yalsat-2017),solver,sat"
-    #     "$(solve-sat-heritage parafrost-2020),solver,sat"
-    #     other/IsaSAT,solver,sat
-    # )
     local solver_specs=(
+        sat-museum/limmat-2002,solver,sat
+        "$(solve-sat-heritage 2clseq-2002),solver,sat"
         "$(solve-sat-heritage unitwalk-2002),solver,sat"
+        sat-museum/satelite-gti-2005.sh,solver,sat
+        "$(solve-sat-heritage compsat-2005),solver,sat"
         "$(solve-sat-heritage haifasat-2005),solver,sat"
+        sat-museum/minisat-2008,solver,sat
+        "$(solve-sat-heritage barcelogic-2007),solver,sat"
         "$(solve-sat-heritage tinisat-2007),solver,sat"
+        sat-museum/glucose-2011.sh,solver,sat
+        "$(solve-sat-heritage black_hole_sat-2011),solver,sat"
         "$(solve-sat-heritage adaptg2wsat2011-2011),solver,sat"
+        sat-museum/lingeling-2014,solver,sat
+        "$(solve-sat-heritage penelope-2014),solver,sat"
         "$(solve-sat-heritage rokk-2014),solver,sat"
+        sat-museum/maple-lcm-dist-2017,solver,sat
+        "$(solve-sat-heritage yalsat-2017),solver,sat"
         "$(solve-sat-heritage candy-2017),solver,sat"
+        sat-museum/kissat-2020,solver,sat
+        "$(solve-sat-heritage parafrost-2020),solver,sat"
         "$(solve-sat-heritage pausat-2020),solver,sat"
+        other/IsaSAT,solver,sat
         other/MergeSat,solver,sat
+        # omit 2023 solver sbva_cadical to reduce runtime and because it has no museum counterpart
     )
 
     solve \
