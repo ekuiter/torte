@@ -62,6 +62,21 @@ experiment-stages() {
     done
 
     # run non-winning SAT solvers using various queries
+    
+    # we use these solvers to corroborate our time-travel experiments on Linux Kconfig models
+    # in our experiments, we focus on the winning SAT solvers from each year
+    # however, we also want to investigate how non-winning SAT solvers perform (and evolve) on the kernel
+    # most of these solvers were made available by the SAT heritage initiative
+    # we manually exclude winning solvers, solvers related to winning solvers (i.e., I from the same family), and defunct solvers
+    # we also screen solvers that are too slow or return wrong results
+
+    # barcelogic participated in 2008, but we could not obtain binaries for that year, so we use the 2007 version
+    # https://m-fleury.github.io/isasat/isasat-release/ Isabelle-verified SAT solver
+    # https://www.cs.toronto.edu/~fbacchus/sat.html 2clseq solver
+    # https://fmv.jku.at/compsat/
+    # https://www.academia.edu/22542285/PeneLoPe_in_SAT_Competition_2014 parallel portfolio-based solver
+    # https://fmv.jku.at/yalsat/ local search solver
+    # https://github.com/muhos/ParaFROST parallel solver with GPU-accelerated inprocessing
     local solver_specs=(
         sat-museum/limmat-2002,solver,sat
         "$(solve-sat-heritage 2clseq-2002),solver,sat"
