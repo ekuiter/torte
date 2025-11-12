@@ -178,7 +178,7 @@ add-linux-lkc-binding(revision) {
 }
 
 linux-lkc-binding-file(revision) {
-    output-path "$LKC_BINDINGS_DIRECTORY" linux "$revision"
+    output-path "$LKC_BINDINGS_DIRECTORY" linux "$revision" # todo: this seems to create useless (empty) lkc-bindings directories in some stages
 }
 
 add-linux-kconfig-revisions(revisions=, architecture=x86) {
