@@ -16,7 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// This file is based on kmax/kextractors/kextractor-next-20210426/kextractor.c.
+/*
+ * Log of kmax upstream changes (https://github.com/paulgazz/kmax/) that have been integrated into this file (as of 2025-11-14):
+ * - 2021: 2a73c64ce14386ff21d19d11a611e5e84b0375ad introduces kmax/kextractors/kextractor-next-20210426/kextractor.c, which this file is based on
+ * - 2023: f20ee441f43084cffc1ecdda8d85167d2f15cec9 fixes escaping of default values
+ * - 2024: ddc797dfca1f0afcb2e3a49eba25e03217136f42 adds tristate support
+ * - 2025: f8e8eab288d862bc17d2b51b0f5010b5b726e8c7 introduces kmax/kextractors/kextractor-next-20251023/kextractor.c, which we adapt partly.
+ *   some changes of this new version overlap with changes independently made by ourselves here (due to new changes in Linux 6.x).
+ *   while upstream removes and changes a lot of code, we keep the code flexible so it works with old implementations of LKC as well.
+ */
 
 #include <locale.h>
 #include <ctype.h>
@@ -61,11 +69,11 @@ static inline bool sym_is_optional(struct symbol *sym)
 #if HAS_sym_get_choice_prop
 #define choice_type property
 #define choice_function(sym) sym_get_choice_prop(sym)
-#define choice_loop for (e = (choice->expr); e && (def_sym = e->right.sym); e = e->left.expr)
+#define choice_loop for (e = (choice->expr); e && (def_sym = e->right.sym); e = e->left.expr) {
 #else
 #define choice_type menu
 #define choice_function(sym) list_first_entry(&sym->menus, struct menu, link)
-#define choice_loop list_for_each_entry(def_sym, &choice->choice_members, choice_link)
+#define choice_loop struct menu *menu; menu_for_each_sub_entry(menu, choice) { def_sym = menu->sym;
 #endif
 
 #define fopen(name, mode) ({                    \
@@ -165,9 +173,8 @@ static int _expr_compare_type(enum expr_type t1, enum expr_type t2)
 			return 1;
 #endif
 	default:
-		return -1;
+		break;
 	}
-	printf("[%dgt%d?]", t1, t2);
 	return 0;
 }
 
@@ -307,6 +314,49 @@ static void print_symbol(FILE *out, struct symbol *sym) {
 		fprintf(out, ")");
 }
 
+/* The returned pointer must be freed on the caller side */
+static char *escape_string_value(const char *in)
+{
+	const char *p;
+	char *out;
+	size_t len;
+
+	len = strlen(in) + strlen("\"\"") + 1;
+
+	p = in;
+	while (1) {
+		p += strcspn(p, "\"\\");
+
+		if (p[0] == '\0')
+			break;
+
+		len++;
+		p++;
+	}
+
+	out = malloc(len);
+	out[0] = '\0';
+
+	strcat(out, "\"");
+
+	p = in;
+	while (1) {
+		len = strcspn(p, "\"\\");
+		strncat(out, p, len);
+		p += len;
+
+		if (p[0] == '\0')
+			break;
+
+		strcat(out, "\\");
+		strncat(out, p++, 1);
+	}
+
+	strcat(out, "\"");
+
+	return out;
+}
+
 void print_python_symbol_detail(FILE *out, struct symbol *sym, bool force_naked) {
   if (sym->name) {
     if (strcmp(sym->name, "y") == 0 ||
@@ -315,7 +365,7 @@ void print_python_symbol_detail(FILE *out, struct symbol *sym, bool force_naked)
     } else if (strcmp(sym->name, "n") == 0) {
       fprintf(out, "0");
     } else if (S_UNKNOWN == sym->type) {
-      fprintf(out, "\"%s\"", sym->name);
+      fprintf(out, "%s", escape_string_value(sym->name));
     } else {
       if (! force_naked) {
         fprintf(out, "%s%s", config_prefix, sym->name);
@@ -355,9 +405,12 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 #endif
 #if HAS_E_EQUAL
 	case E_EQUAL:
-    if (strcmp(e->right.sym->name, "y") == 0 ||
-        strcmp(e->right.sym->name, "m") == 0) {
+    if (strcmp(e->right.sym->name, "y") == 0) {
       print_python_symbol(out, e->left.sym);
+			fprintf(out, "==y");
+		} else if (strcmp(e->right.sym->name, "m") == 0) {
+      print_python_symbol(out, e->left.sym);
+			fprintf(out, "==m");
     } else if (strcmp(e->right.sym->name, "n") == 0) {
       fprintf(out, " not ");
       print_python_symbol(out, e->left.sym);
@@ -371,10 +424,15 @@ void print_python_expr(struct expr *e, FILE *out, enum expr_type prevtoken)
 #endif
 #if HAS_E_UNEQUAL
 	case E_UNEQUAL:
-    if (strcmp(e->right.sym->name, "y") == 0 ||
-        strcmp(e->right.sym->name, "m") == 0) {
+    if (strcmp(e->right.sym->name, "y") == 0) {
       fprintf(out, " not ");
       print_python_symbol(out, e->left.sym);
+			fprintf(out, "==y");
+    } else if (strcmp(e->right.sym->name, "m") == 0) {
+      // TODO: actually print out ==m instead
+      fprintf(out, " not ");
+      print_python_symbol(out, e->left.sym);
+			fprintf(out, "==m");
     } else if (strcmp(e->right.sym->name, "n") == 0) {
       print_python_symbol(out, e->left.sym);
     } else {
@@ -910,8 +968,10 @@ int main(int argc, char **argv)
             exit(1);
         }
         
-        choice_loop {
-          fprintf(output_fp, " %s%s", config_prefix, def_sym->name);  // any dependencies should be handled below with 'dep'
+        choice_loop
+          if (def_sym) {
+            fprintf(output_fp, " %s%s", config_prefix, def_sym->name);  // any dependencies should be handled below with 'dep'
+          }
         }
         fprintf(output_fp, "|(");
 
