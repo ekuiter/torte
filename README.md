@@ -276,10 +276,10 @@ This file translates Boolean variability correctly, but non-Boolean variability 
 
 [^8]: We do not use KClause's `kclause_to_dimacs.py` script for CNF transformation, as it has had [some issues](https://github.com/paulgazz/kmax/issues/226) in the past.
 We also do not use KClause's integrated CNF transformation, which [earlier versions](https://github.com/jeho-oh/Kclause_Smarch/blob/master/Kclause/dimacs.py) implemented.
-These were based on a "lookup table" approach that directly encoded typical KConfig patterns into CNF, which seems reasonable at first glance.
-However, not all constraints can be translated using this approach, so a distributed transformation was implemented as fallback, which fails to scale to large models such as Linux.
+This transformation was based on a "lookup table" approach that directly encoded typical KConfig patterns into CNF, which seems reasonable at first glance.
+However, not all constraints can be translated using this approach, so KClause hardcoded a distributed transformation as fallback, which fails to scale to large models such as Linux.
 Thus, we continue to rely on the latest versions of KClause, which fully delegates CNF transformation to Z3.
-Here, we completely decouple extraction for transformation, and we offer a separate Docker container for Z3 (e.g., see `default` experiment).
+Here, we completely decouple extraction from transformation by offering a separate Docker container for Z3 (e.g., see `default` experiment).
 
 [^9]: The DIMACS files produced by KConfigReader may contain additional variables due to Plaisted-Greenbaum transformation (i.e., satisfiability is preserved, model counts are not).
 Currently, this behavior is not configurable.
