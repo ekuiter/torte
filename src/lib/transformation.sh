@@ -78,7 +78,7 @@ dimacs-data-extractor() {
 
 # transforms files to various formats using FeatJAR
 transform-with-featjar(input_extension, output_extension, transformer, timeout=0, data_fields=, data_extractor=, jobs=1) {
-    local jar=/home/FeatJAR/transform/build/libs/transform-0.1.0-SNAPSHOT-all.jar
+    local jar=/home/FeatJAR/torte-FeatJAR/build/libs/torte-FeatJAR-0.1.0-SNAPSHOT-all.jar
     transform-files \
         "$(input-csv)" \
         "$input_extension" \

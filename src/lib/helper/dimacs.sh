@@ -18,7 +18,8 @@ dimacs-set-clause-number(file, clause_number) {
 
 # looks up the variable index for a given feature in a DIMACS file
 dimacs-lookup-variable-index(file, feature) {
-    # see src/docker/featjar/transform/src/main/java/KConfigReaderFormat.java
+    # see https://github.com/ekuiter/torte-FeatJAR/blob/main/src/main/java/KConfigReaderFormat.java
+    # and https://github.com/FeatureIDE/FeatJAR-formula/blob/main/src/main/java/de/featjar/formula/io/KConfigReaderFormat.java
     feature=${feature//=/_}
     feature=${feature//:/_}
     feature=${feature//./_}

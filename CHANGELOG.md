@@ -27,6 +27,8 @@ This release significantly revises the extraction mechanism, which means we can 
 - Improved solver error handling
 - Unified feature set computation
 - Significantly increased performance of lambda and hook functions
+- Updated KClause binding kextractor, which enables tristate encoding in KClause-extracted formulas
+- Extracted FeatJAR module into dedicated repository, which simplifies building and testing it standalone
 
 ### Removed
 
@@ -37,6 +39,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Several bugs
 - Improved exit on Ctrl+C
 - Proper locking of CSV files during parallelized jobs
+- Improved encoding of logical equivalences in KClause
 
 ## [1.0.0] - 2025-08-27
 
