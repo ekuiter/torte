@@ -38,12 +38,21 @@ max-revision(r1, r2) {
     printf "%s\n" "$r1" "$r2" | sort -V | tail -n+2 | head -n1
 }
 
-# remove architecture from revision
-clean-revision(revision) {
+# enrich a revision with contextual information (e.g., date or architecture)
+revision-with-context(revision, context=) {
+    if [[ -n $context ]]; then
+        echo "$(revision-without-context "$revision")[$context]"
+    else
+        echo "$revision"
+    fi
+}
+
+# remove context from revision
+revision-without-context(revision) {
     echo "$revision" | cut -d\[ -f1
 }
 
-# get architecture from revision
-get-architecture(revision) {
+# get context from revision
+get-context(revision) {
     echo "$revision" | cut -d\[ -f2 | cut -d\] -f1
 }

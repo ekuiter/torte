@@ -21,7 +21,7 @@ This release significantly revises the extraction mechanism, which means we can 
 ### Changed
 
 - Revised export of Docker images, allowing to easily create GitHub releases with all images
-- Renamed analysis to solving
+- Renamed analysis to solving and architecture to context
 - Significantly improved extraction by replacing and compiling LKC's `conf.c` in place
 - Revisited, checked, and improved feature-model extraction of every existing system
 - Revised terminology (LKC to denote the KConfig parser implementation of the Linux kernel)

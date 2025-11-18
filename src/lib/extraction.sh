@@ -9,10 +9,10 @@ UNCONSTRAINED_FEATURES_INPUT_KEY=unconstrained_features # the name of the input 
 # checks out a system and prepares it for further processing
 kconfig-checkout(system, revision) {
     log "" "$(echo-progress checkout)"
-    local revision_clean err
-    revision_clean=$(clean-revision "$revision")
+    local revision_without_context err
+    revision_without_context=$(revision-without-context "$revision")
     push "$(input-directory)/$system"
-    git-checkout "$revision_clean"
+    git-checkout "$revision_without_context"
     # run system-specific code that may impair accuracy, but is necessary to extract a kconfig model
     compile-hook kconfig-post-checkout-hook
     kconfig-post-checkout-hook "$system" "$revision"
@@ -21,26 +21,27 @@ kconfig-checkout(system, revision) {
 }
 
 # checks whether an LKC binding has already been compiled for the given system and revision
-lkc-binding-done(system, revision) { # todo: how to handle revisions with context?
-    local file
+lkc-binding-done(system, revision) {
+    local file revision_without_context
     file=$(output-path "$LKC_BINDINGS_OUTPUT_CSV")
-    [[ -f $file ]] && grep -qP "^\Q$system,$revision,\E" "$file"
+    revision_without_context=$(revision-without-context "$revision")
+    [[ -f $file ]] && grep -qP "^\Q$system,$revision_without_context,\E" "$file"
 }
 
 # checks whether a feature model has already been extracted for the given system and revision
 kconfig-model-done(system, revision) {
-    local file revision_clean architecture
+    local file revision_without_context context
     file=$(output-csv)
-    revision_clean=$(clean-revision "$revision")
-    architecture=$(get-architecture "$revision") # todo: rename this to context, switch revision and context
-    [[ -f $file ]] && grep -qP "^\Q$system,$revision_clean,$architecture,\E" "$file"
+    revision_without_context=$(revision-without-context "$revision")
+    context=$(get-context "$revision")
+    [[ -f $file ]] && grep -qP "^\Q$system,$revision_without_context,$context,\E" "$file"
 }
 
 # compiles a C program that extracts Kconfig constraints from Kconfig files
 # for kconfigreader and kclause, this compiles dumpconf and kextractor against LKC's Kconfig parser, respectively
 # lkc_directory must contain an implementation of LKC with a conf.c file, which we replace with the custom implementation given by the binding name
 compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=config, lkc_output_directory=, environment=) {
-    revision=$(clean-revision "$revision") # todo: better handling of revisions with context
+    revision=$(revision-without-context "$revision")
     local lkc_binding_output_file
     lkc_binding_output_file="$(output-path "$LKC_BINDINGS_DIRECTORY" "$system" "$revision.$lkc_binding")"
 
@@ -107,13 +108,13 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
 extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, lkc_binding_file=, environment=, timeout=0) {
-    local revision_clean architecture
-    revision_clean=$(clean-revision "$revision")
-    architecture=$(get-architecture "$revision")
+    local revision_without_context context
+    revision_without_context=$(revision-without-context "$revision")
+    context=$(get-context "$revision")
     if [[ -z "$lkc_binding" ]]; then
         lkc_binding_file=""
     else
-        lkc_binding_file=${lkc_binding_file:-$(output-path "$LKC_BINDINGS_DIRECTORY" "$system" "$revision_clean")}
+        lkc_binding_file=${lkc_binding_file:-$(output-path "$LKC_BINDINGS_DIRECTORY" "$system" "$revision_without_context")}
         lkc_binding_file+=.$lkc_binding
     fi
     local file_extension="model"
@@ -161,7 +162,8 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
                 time=$((time+$(grep -oP "^measure_time=\K.*" < "$output_log")))
             elif [[ $extractor == configfix ]]; then
                 linux_source="/home/linux/linux-6.10"
-                export KBUILD_KCONFIG=$(realpath "$kconfig_file")
+                export KBUILD_KCONFIG
+                KBUILD_KCONFIG=$(realpath "$kconfig_file")
                 export srctree="/home/input/$system"
                 #todo ConfigFix: check these preprocessings and move them into hooks should they be necessary
                 #preprocessing for system busybox
@@ -260,7 +262,7 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
 
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
-    echo "$system,$revision_clean,$architecture,$lkc_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
+    echo "$system,$revision_without_context,$context,$lkc_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
 }
 
 # defines API functions for extracting kconfig models
@@ -305,13 +307,13 @@ register-kconfig-extractor(extractor, lkc_binding=, timeout=0) {
 
     add-kconfig(system, revision, kconfig_file, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
         log "$system@$revision"
-        if lkc-binding-done "$system" "$(clean-revision "$revision")" && kconfig-model-done "$system" "$revision"; then
+        if lkc-binding-done "$system" "$revision" && kconfig-model-done "$system" "$revision"; then
             log "" "$(echo-skip)"
             return
         fi
         kconfig-checkout "$system" "$revision"
         if [ -n "$LKC_BINDING" ]; then # todo ConfigFix: review this
-            if ! lkc-binding-done "$system" "$(clean-revision "$revision")"; then
+            if ! lkc-binding-done "$system" "$revision"; then
                 compile-lkc-binding "$LKC_BINDING" "$system" "$revision" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment"
             fi
         fi
@@ -326,7 +328,7 @@ register-kconfig-extractor(extractor, lkc_binding=, timeout=0) {
         echo system,revision,binding_file > "$(output-path "$LKC_BINDINGS_OUTPUT_CSV")"
     fi
     if [[ ! -f $(output-csv) ]]; then
-        echo system,revision,architecture,binding_file,kconfig_file,environment,model_file,model_features,model_variables,model_literals,model_time > "$(output-csv)"
+        echo system,revision,context,binding_file,kconfig_file,environment,model_file,model_features,model_variables,model_literals,model_time > "$(output-csv)"
     fi
 }
 
@@ -351,9 +353,9 @@ extract-kconfig-models-with-configfix(timeout=0) {
 # relies on KConfiglib for parsing the KConfig files, which may not succeed for all systems and revisions
 # so this is an optional step that can be used to enrich a flat UVL feature model with a hierarchy
 extract-kconfig-hierarchy(system, revision, kconfig_file, lkc_directory, lkc_target=config, environment=, timeout=0) {
-    local revision_clean architecture uvl_file unconstrained_features_file output_file report_file
-    revision_clean=$(clean-revision "$revision")
-    architecture=$(get-architecture "$revision")
+    local revision_without_context context uvl_file unconstrained_features_file output_file report_file
+    revision_without_context=$(revision-without-context "$revision")
+    context=$(get-context "$revision")
     push "$(input-directory)/$system"
 
     # set up the environment for successful parsing with KConfiglib
@@ -386,7 +388,7 @@ extract-kconfig-hierarchy(system, revision, kconfig_file, lkc_directory, lkc_tar
         fi
 
         # record the extracted hierarchy and mark it as done
-        echo "$system,$revision_clean,$architecture,${environment//,/|},$relative_uvl_file" >> "$(output-csv)"
+        echo "$system,$revision_without_context,$context,${environment//,/|},$relative_uvl_file" >> "$(output-csv)"
     done < <(table-field "$(input-csv "$UVL_INPUT_KEY")" uvl_file | grep "$(compose-path "$system" "$revision.uvl")")
 
     unset-environment "$environment"
@@ -413,7 +415,7 @@ extract-kconfig-hierarchies-with-kconfiglib(timeout=0) {
     }
 
     if [[ ! -f $(output-csv) ]]; then
-        echo system,revision,architecture,environment,uvl_file > "$(output-csv)"
+        echo system,revision,context,environment,uvl_file > "$(output-csv)"
     fi
 
     experiment-systems

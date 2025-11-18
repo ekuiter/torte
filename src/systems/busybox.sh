@@ -41,10 +41,10 @@ add-busybox-kconfig-history-commits() {
         for revision in $(git -C "$(input-directory)/busybox" log master --format="%h" --reverse); do
             local original_revision
             original_revision=$(git -C "$(input-directory)/busybox" rev-list --max-count=1 --format=%B "$revision" | sed '/^commit [0-9a-f]\{40\}$/d')
-            add-revision --system busybox --revision "${revision}[$original_revision]"
+            add-revision --system busybox --revision "$(revision-with-context "$revision" "$original_revision")"
             add-kconfig \
                 --system busybox \
-                --revision "${revision}[$original_revision]" \
+                --revision "$(revision-with-context "$revision" "$original_revision")" \
                 --kconfig-file "$(find-busybox-kconfig-file "$revision")" \
                 --lkc-directory "$(find-busybox-lkc-directory "$revision")"
         done
