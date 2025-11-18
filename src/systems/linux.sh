@@ -9,6 +9,7 @@ add-linux-system() {
     fi
     add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-linux
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-linux
+    add-hook-step kconfig-pre-hierarchy-hook kconfig-pre-hierarchy-hook-linux
     if [[ $LINUX_CLONE_MODE == fork ]]; then
         local url="$LINUX_URL_FORK"
     elif [[ $LINUX_CLONE_MODE == original ]] || [[ $LINUX_CLONE_MODE == filter ]]; then
@@ -371,4 +372,225 @@ read-linux-configs() {
 
     echo system,revision,kconfig_file,config > "$(output-csv)"
     experiment-systems
+}
+
+# modifies Kconfig files before hierarchy extraction with KConfigLib
+# this is necessary because KConfigLib is not geared towards evolutionary analysis of Linux
+# these patches have no relevance outside of hierarchy extraction (i.e., they do not affect feature-model extraction with KClause or KConfigReader)
+kconfig-pre-hierarchy-hook-linux(system, revision) {
+    local kconfig_file
+    if [[ $system == linux ]]; then
+        if [[ "$revision" = "v6."* ]]; then
+            kconfig_file="$(input-directory)/linux/kernel/module/Kconfig"
+            if [[ -f "$kconfig_file" ]]; then
+                sed -i 's/modules//g' "$kconfig_file" || { error "Failed to delete 'modules' from $kconfig_file"; }
+                echo "Deleted 'modules' from $kconfig_file for revision $revision"
+            else
+                error "Kconfig file not found at $kconfig_file for revision $revision"
+            fi
+        else
+            kconfig_file="$(input-directory)/linux/init/Kconfig"
+            if [[ -f "$kconfig_file" ]]; then
+                sed -E -i 's/^\s*(option\s+)?modules\s*$//g' "$kconfig_file" || { error "Failed to delete 'modules' from $kconfig_file"; }
+                echo "Deleted 'modules' from $kconfig_file for revision $revision"
+            else
+                error "Kconfig file not found at $kconfig_file for revision $revision"
+            fi
+            sed -i  's/;//g' "drivers/hwmon/Kconfig" #v2.6.26 - v2.6.36 11
+            case "$revision" in
+                v2.5.45|v2.5.46|v2.5.47|v2.5.48|v2.5.49|v2.5.50|v2.5.51)
+                    sed -i 's/TOPDIR/CURDIR/g' "scripts/kconfig/Makefile"
+                    sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                ;;
+            esac
+            case "$revision" in
+                v2.5.52|v2.5.53|v2.5.54|v2.5.55|v2.5.56|v2.5.57)
+                    sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                ;;
+            esac
+            case "$revision" in
+                v2.5.58|v2.5.59|v2.5.60|v2.5.61|v2.5.62|v2.5.63|v2.5.64)
+                    sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                    sed -i '9d' "drivers/char/Kconfig"
+                ;;
+            esac
+            case "$revision" in
+                v2.5.65|v2.5.66|v2.5.67|v2.5.68|v2.5.69|v2.5.70|v2.5.71|v2.5.72|v2.5.73|v2.5.74|v2.5.75)
+                    sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                    sed -i '26d; 58d' "scripts/kconfig/Makefile"
+                    sed -i '9d' "drivers/char/Kconfig"
+                ;;
+            esac
+            if [ "$revision" = "v2.6.0" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '273d; 274d' "drivers/net/wireless/Kconfig"
+                sed -i '433s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '877s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.1" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '273d; 274d' "drivers/net/wireless/Kconfig"
+                sed -i '433s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '877s/\bdepends\b/& on/' "fs/Kconfig"
+                sed -i '881s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.2" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '273d; 274d' "drivers/net/wireless/Kconfig"
+                sed -i '433s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '881s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.3" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '227d; 228d' "drivers/net/wireless/Kconfig"
+                sed -i '433s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '893s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.4" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '485s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '869s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.5" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '459s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '869s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.6" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '512s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '896s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.7" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '513s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '930s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.8" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '505s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '921s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.9" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '505s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '924s/\bdepends\b/& on/' "fs/Kconfig"
+                sed -i '26s/\bdepends\b/& on/' "lib/Kconfig.debug"
+            fi
+            if [ "$revision" = "v2.6.10" ]; then
+                sed -i 's/\xb4//g' "drivers/mtd/maps/Kconfig"
+                sed -i '528s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '956s/\bdepends\b/& on/' "fs/Kconfig"
+                sed -i '26s/\bdepends\b/& on/' "lib/Kconfig.debug"
+            fi
+            if [ "$revision" = "v2.6.11" ]; then
+                sed -i '541s/\bdepends\b/& on/; 797s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '851s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.12" ]; then
+                sed -i '95s/://' "net/ipv4/Kconfig"
+                sed -i '541s/\bdepends\b/& on/; 797s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '845s/\bdepends\b/& on/' "drivers/char/Kconfig"
+                sed -i '851s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.13" ]; then
+                sed -i '577s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '833s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '845s/\bdepends\b/& on/' "drivers/char/Kconfig"
+                sed -i '843s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.14" ]; then
+                sed -i '577s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '833s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '845s/\bdepends\b/& on/' "drivers/char/Kconfig"
+                sed -i '813s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.15" ]; then
+                sed -i '813s/\bdepends\b/& on/' "drivers/ide/Kconfig"
+                sed -i '585s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '841s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '845s/\bdepends\b/& on/' "drivers/char/Kconfig"
+                sed -i '813s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.16" ]; then
+                sed -i '227s/\bdepends\b/& on/' "init/Kconfig"
+                sed -i '806s/\bdepends\b/& on/' "drivers/ide/Kconfig"
+                sed -i '606s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '862s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '853s/\bdepends\b/& on/' "drivers/char/Kconfig"
+                sed -i '843s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.17" ]; then
+                sed -i '238s/\bdepends\b/& on/' "init/Kconfig"
+                sed -i '806s/\bdepends\b/& on/' "drivers/ide/Kconfig"
+                sed -i '632s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '873s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '867s/\bdepends\b/& on/' "drivers/char/Kconfig"
+                sed -i '15s/\bdepends\b/& on/; 24s/\bdepends\b/& on/; 31s/\bdepends\b/& on/; 38s/\bdepends\b/& on/; 45s/\bdepends\b/& on/; 54s/\bdepends\b/& on/; 70s/\bdepends\b/& on/; 78s/\bdepends\b/& on/; 85s/\bdepends\b/& on/' "drivers/leds/Kconfig"
+                sed -i '1d' "drivers/rtc/Kconfig"
+                sed -i '844s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.18" ]; then
+                sed -i '800s/\bdepends\b/& on/' "drivers/ide/Kconfig"
+                sed -i '636s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '877s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '871s/\bdepends\b/& on/' "drivers/char/Kconfig"
+                sed -i '3s/\bdepends\b/& on/' "sound/aoa/fabrics/Kconfig"
+                sed -i '15s/\bdepends\b/& on/; 24s/\bdepends\b/& on/; 31s/\bdepends\b/& on/; 38s/\bdepends\b/& on/; 45s/\bdepends\b/& on/; 54s/\bdepends\b/& on/; 68s/\bdepends\b/& on/; 78s/\bdepends\b/& on/; 83s/\bdepends\b/& on/; 91s/\bdepends\b/& on/ ; 98s/\bdepends\b/& on/; 105s/\bdepends\b/& on/' "drivers/leds/Kconfig"
+                sed -i '1d' "drivers/rtc/Kconfig"
+                sed -i '867s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.19" ]; then
+                sed -i '799s/\bdepends\b/& on/' "drivers/ide/Kconfig"
+                sed -i '637s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '883s/\bdepends\b/& on/' "drivers/serial/Kconfig"
+                sed -i '855s/\bdepends\b/& on/' "drivers/char/Kconfig"
+                sed -i '3s/\bdepends\b/& on/' "sound/aoa/fabrics/Kconfig"
+                sed -i '15s/\bdepends\b/& on/; 24s/\bdepends\b/& on/; 31s/\bdepends\b/& on/; 38s/\bdepends\b/& on/; 45s/\bdepends\b/& on/; 54s/\bdepends\b/& on/; 68s/\bdepends\b/& on/; 78s/\bdepends\b/& on/; 83s/\bdepends\b/& on/; 91s/\bdepends\b/& on/; 98s/\bdepends\b/& on/; 105s/\bdepends\b/& on/' "drivers/leds/Kconfig"
+                sed -i '1d' "drivers/rtc/Kconfig"
+                sed -i '1011s/\bdepends\b/& on/' "fs/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.20" ]; then
+                sed -i '1d' "drivers/rtc/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.21" ]; then
+                sed -i 's/\xa0//g' "scripts/kconfig/Makefile"
+                sed -i 's/\xa0//g' "drivers/usb/net/Kconfig"
+                sed -i '87s/\bdepends\b/& on/' "drivers/leds/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.22" ]; then
+                sed -i '150s/\bdepends\b/& on/' "drivers/input/misc/Kconfig"
+                sed -i '88s/\bdepends\b/& on/' "drivers/leds/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.23" ]; then
+                sed -i '22s/\bdepends\b/& on/' "drivers/telephony/Kconfig"
+                sed -i '155s/\bdepends\b/& on/' "drivers/input/misc/Kconfig"
+                sed -i '86s/\bdepends\b/& on/' "drivers/leds/Kconfig"
+            fi
+            if [ "$revision" = "v2.6.32" ] || [ "$revision" = "v2.6.33" ] || [ "$revision" = "v2.6.34" ] || [ "$revision" = "v2.6.35" ] || [ "$revision" = "v2.6.36" ] || [ "$revision" = "v2.6.37" ] || [ "$revision" = "v2.6.38" ] || [ "$revision" = "v2.6.39" ]; then
+                sed -i '7d' "scripts/kconfig/Makefile"
+            fi
+            if [ "$revision" = "v3.0" ]; then
+                sed -i '1d' "drivers/staging/iio/light/Kconfig"
+            fi
+            if [ "$revision" = "v3.10" ] || [ "$revision" = "v3.11" ] || [ "$revision" = "v3.7" ] || [ "$revision" = "v3.8" ] || [ "$revision" = "v3.9" ]; then
+                sed -i '20d' "drivers/media/usb/stk1160/Kconfig"
+            fi
+            if [ "$revision" = "v3.19" ]; then
+                sed -i ':a;N;$!ba;s/\\\\\n\t\t//g' "sound/soc/intel/Kconfig"
+            fi
+            if [ "$revision" = "v3.6" ] || [ "$revision" = "v3.7" ] || [ "$revision" = "v3.8" ] || [ "$revision" = "v3.9" ]; then
+                sed -i 's/+//' "sound/soc/ux500/Kconfig"
+            fi
+            if [ "$revision" = "v4.18" ]; then
+                sed -i 's/\xa0//g' "./net/netfilter/ipvs/Kconfig"
+            fi
+            if [ "$revision" = "v5.12" ]; then
+                sed -n '28,58p' "scripts/kconfig/Makefile" >> temp.txt
+                sed -i '28,58d' "scripts/kconfig/Makefile"
+                sed -i '24r temp.txt' "scripts/kconfig/Makefile"
+                rm temp.txt
+            fi
+        fi
+    fi
 }

@@ -243,9 +243,9 @@ run-clausy-batch-diff(input_directory=, timeout=0) {
     scripts/batch_diff.sh "$input_directory" "$timeout" > "$(output-csv)"
 }
 
-# expresses the intent to mount the default input in solving stages
+# expresses the intent to mount the default input in DIMACS solving stages
 # can be passed as --input to solve(...)
-mount-input(input=transform-model-to-dimacs) {
+mount-dimacs-input(input=transform-model-to-dimacs) {
     echo "$MAIN_INPUT_KEY=$input"
 }
 

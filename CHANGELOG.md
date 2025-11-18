@@ -16,6 +16,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Solvers: IsaSAT, MergeSat
 - Resumable stages for extraction, transformation, and solving
 - Flexible solver queries for void, backbone, and partial configuration analysis
+- Experimental hierarchy extraction for flat UVL models
 
 ### Changed
 

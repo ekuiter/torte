@@ -1,11 +1,7 @@
-# Copyright (C) 2025 Eric Ketzler, revised 2025 Elias Kuiter
-# todo: this requires the input repository, the flat UVL files, and the unconstrained features file. currently this is incompatible with the architecture of torte (requires multiple input directories)
+# Copyright (C) 2025 Eric Ketzler, Elias Kuiter
 
 import sys
-
 from kconfiglib import Kconfig, Symbol, Choice, MENU, COMMENT, TYPE_TO_STR
-
-# Usage: make ARCH=<arch> [SARCH=<sarch>] scriptconfig SCRIPT=construct-hierarchy.py SCRIPT_ARG=<path-to-uvl-file>
 
 def check_indent(string):
     indent = 0
@@ -84,7 +80,7 @@ def extract_menu_features(menu_lines):
     were not present in the input uvl. These features only appear as comments in the output. A second file will be
     output containing all the differing features. '''
 
-def construct_hierarchy(menu_lines, uvl_features, menu_features, constraints):
+def extract_hierarchy(menu_lines, uvl_features, menu_features, constraints):
     global uvl
     output = 'namespace root\n\nfeatures\n\tRoot\n'
     current_indent = 0
@@ -173,7 +169,7 @@ def construct_hierarchy(menu_lines, uvl_features, menu_features, constraints):
                 output += tabstr + comment
 
             if(sym_type == "hex" or sym_type == "int" or sym_type == "string"):
-                output += line.strip() + " //" + sym_type + "\n"
+                output += line.strip() + " // " + sym_type + "\n"
             else:
                 output += line
 
@@ -236,22 +232,21 @@ def construct_hierarchy(menu_lines, uvl_features, menu_features, constraints):
     for line in constraints:
         output += line
 
-    output_file = open(uvl.rstrip("uvl") + "hierarchy.uvl", 'w')
+    output_file = open(sys.argv[4], 'w')
     output_file.write(output)
     output_file.close()
 
-    output_file = open(uvl.rstrip("uvl") + "diff-features.txt", 'w')
+    output_file = open(sys.argv[5], 'w')
     output_file.write(diff_kconfiglib + diff_kclause)
     output_file.close()
 
 kconf = Kconfig(sys.argv[1])
-uvl = sys.argv[2]
 
-uvl_file = open(uvl, "r")
+uvl_file = open(sys.argv[2], "r")
 uvl_lines = uvl_file.readlines()
 uvl_file.close()
 
-unconstrained_features_file = open(uvl.rstrip("uvl") + "unconstrained.features", "r")
+unconstrained_features_file = open(sys.argv[3], "r")
 unconstrained_features = unconstrained_features_file.readlines()
 unconstrained_features_file.close()
 
@@ -261,4 +256,4 @@ uvl_features, constraints = extract_uvl_features(uvl_lines)
 uvl_features = uvl_features + unconstrained_features
 menu_features = extract_menu_features(menu_lines)
 
-construct_hierarchy(menu_lines, uvl_features, menu_features, constraints)
+extract_hierarchy(menu_lines, uvl_features, menu_features, constraints)

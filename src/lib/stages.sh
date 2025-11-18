@@ -59,7 +59,6 @@ define-stages() {
         extract-kconfig-models-with \
             --extractor kconfigreader \
             --input "$input" \
-            --output extract-kconfig-models-with-kconfigreader \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
@@ -67,14 +66,12 @@ define-stages() {
         extract-kconfig-models-with \
             --extractor kclause \
             --input "$input" \
-            --output extract-kconfig-models-with-kclause \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
             --timeout "$timeout"
         # extract-kconfig-models-with \
         # --extractor configfix \
-        # --output configfix \
         # --iterations "$iterations" \
         # --iteration-field "$iteration_field" \
         # --file-fields "$file_fields" \
@@ -90,6 +87,16 @@ define-stages() {
             --file-fields binding_file,model_file \
             --inputs extract-kconfig-models-with-kconfigreader extract-kconfig-models-with-kclause
             # --inputs kconfigreader kclause configfix
+    }
+
+    # extracts kconfig hierarchies with kconfiglib
+    extract-kconfig-hierarchies-with-kconfiglib(main_input=, uvl_input=, unconstrained_features_input=, output=extract-kconfig-hierarchies-with-kconfiglib, timeout=0) {
+        run \
+            --image kconfiglib \
+            --input "$(mount-for-hierarchy-extraction "$main_input" "$uvl_input" "$unconstrained_features_input")" \
+            --output "$output" \
+            --command extract-kconfig-hierarchies-with-kconfiglib \
+            --timeout "$timeout"
     }
 
     # transforms model files with FeatJAR

@@ -107,7 +107,7 @@ experiment-stages() {
     solve \
         --kind sat \
         --query void \
-        --input "$(mount-input),$(mount-sat-heritage)" \
+        --input "$(mount-dimacs-input),$(mount-sat-heritage)" \
         --timeout "$SOLVE_TIMEOUT"  \
         --solver_specs "${solver_specs[@]}"
     solve_stages=("solve-void-sat")
@@ -126,7 +126,7 @@ experiment-stages() {
         solve \
             --kind sat \
             --query "$query_name" \
-            --input "$(mount-input),$(mount-sat-heritage),$(mount-query-sample $query_input-sample)" \
+            --input "$(mount-dimacs-input),$(mount-sat-heritage),$(mount-query-sample $query_input-sample)" \
             --timeout "$SOLVE_TIMEOUT"  \
             --query-iterator "$(to-lambda query-$query_iterator constrained.features)" \
             --solver_specs "${solver_specs[@]}"

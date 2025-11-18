@@ -250,6 +250,7 @@ For transparency, we document the changes we make to these tools and known limit
 | - | - | - | - |
 | [arminbiere/cadiback](https://github.com/arminbiere/cadiback) | 2e912fb | 2023-07-21 | |
 | [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] [^24] |
+| [zephyrproject-rtos/Kconfiglib](https://github.com/zephyrproject-rtos/Kconfiglib) | 601f63d | 2025-11-04 | [^39] |
 | [delta-one/linux](https://github.com/delta-one/linux/tree/copy_patch_v6.10) (ConfigFix) | 8927ce7 | 2024-07-30 | [^33] |
 | [ekuiter/clausy](https://github.com/ekuiter/clausy) | 6b816a9 | 2024-01-15 | |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
@@ -295,7 +296,7 @@ We also added a new feature for exporting the community structure visualization 
 [^13]: We perform all transformations with FeatureIDE from within a FeatJAR instance, which does not affect the results.
 
 [^14]: Transformations with FeatureIDE into XML and UVL currently only encode a flat feature hierarchy, no feature-modeling notation is reverse-engineered.
-An experimental support for hierarchy extraction (under `src/docker/hierarchy`) is currently being integrated.
+An experimental support for UVL hierarchy extraction is available.[^39]
 
 [^15]: DIMACS files produced by FeatJAR and FeatureIDE do not contain additional variables (i.e., equivalence is preserved).
 Currently, this behavior is not configurable.
@@ -303,9 +304,18 @@ Currently, this behavior is not configurable.
 [^16]: Feature models and formulas produced by KConfigReader have nondeterministic clause order.
 This does not impact semantics, but it possibly influences the efficiency of solvers.
 
-[^24]: The formulas produced by KConfigReader and KClause do not explicitly mention unconstrained features (i.e., features that do not occur in any constraints). However, for many analyses that depend on knowing the entire feature set (e.g., simply listing all configurable features or calculating model counts), this is a threat to validity. We do not modify the extracted formulas, to preserve the original output of KConfigReader and KClause. To address this threat, we instead offer the transformation stage `compute-unconstrained-features`, which explicitly computes these features.
+[^24]: The formulas produced by KConfigReader and KClause do not explicitly mention unconstrained features (i.e., features that do not occur in any constraints).
+However, for many analyses that depend on knowing the entire feature set (e.g., simply listing all configurable features or calculating model counts), this is a threat to validity.
+We do not modify the extracted formulas, to preserve the original output of KConfigReader and KClause.
+To address this threat, we instead offer the transformation stage `compute-unconstrained-features`, which explicitly computes these features.
 
 [^33]: ConfigFix support is currently experimental.
+
+[^39]: UVL hierarchy extraction using Kconfiglib (under `src/docker/hierarchy`) is currently experimental.
+In particular, this extraction is not available for all systems and revisions because it heavily relies on the parsing behavior of Kconfiglib.
+Also, this hierarchy extraction introduces implications due to parent-child relationships.
+[Most of these](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf) are valid in the original formula, but small inaccuracies are possible.
+Finally, this extraction is geared towards KClause and may produce unintuitive results with KConfigReader due to its verbose encoding of non-Boolean features.
 
 ### Solvers
 
@@ -469,7 +479,7 @@ add-sat-heritage
 experiment-stages() {
     solve \
         --kind sat \
-        --input "$(mount-input),$(mount-sat-heritage)" \
+        --input "$(mount-dimacs-input),$(mount-sat-heritage)" \
         --solver_specs "$(solve-sat-heritage 2clseq-2002),solver,sat"
 }
 ```
@@ -495,9 +505,9 @@ Core contributors:
 
 Further contributors:
 
-- Eric Ketzler (University of Magdeburg, Germany): `src/docker/hierarchy`
-- Urs-Benedict Braun (University of Magdeburg, Germany): `experiments/linux-time-travel`
-- Rami Alfish (University of Magdeburg, Germany): `src/docker/configfix`
+- Eric Ketzler (University of Magdeburg, Germany): `src/docker/hierarchy` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf))
+- Urs-Benedict Braun (University of Magdeburg, Germany): `experiments/linux-time-travel` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Braun25.pdf))
+- Rami Alfish (University of Magdeburg, Germany): `src/docker/configfix` ([Master thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Alfish25.pdf))
 - Lukas Petermann (University of Magdeburg, Germany): `torte-dashboard`
 
 If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).

@@ -3,6 +3,8 @@
 
 LKC_BINDINGS_DIRECTORY=lkc-bindings # output directory for storing LKC bindings
 LKC_BINDINGS_OUTPUT_CSV=lkc-bindings.csv # output CSV file for storing LKC binding information
+UVL_INPUT_KEY=uvl # the name of the input key to access flat UVL feature model files
+UNCONSTRAINED_FEATURES_INPUT_KEY=unconstrained_features # the name of the input key to access unconstrained feature files
 
 # checks out a system and prepares it for further processing
 kconfig-checkout(system, revision) {
@@ -262,7 +264,7 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
 }
 
 # defines API functions for extracting kconfig models
-# sets the global EXTRACTOR and LKC_BINDING variables
+# sets the global EXTRACTOR, LKC_BINDING, TIMEOUT variables
 register-kconfig-extractor(extractor, lkc_binding=, timeout=0) {
     EXTRACTOR=$extractor
     LKC_BINDING=$lkc_binding
@@ -343,4 +345,83 @@ extract-kconfig-models-with-kconfigreader(timeout=0) {
 extract-kconfig-models-with-configfix(timeout=0) {
     register-kconfig-extractor configfix "" "$timeout"
     experiment-systems
+}
+
+# extracts a non-flat UVL feature hierarchy from KConfig files by leveraging their menu structure
+# relies on KConfiglib for parsing the KConfig files, which may not succeed for all systems and revisions
+# so this is an optional step that can be used to enrich a flat UVL feature model with a hierarchy
+extract-kconfig-hierarchy(system, revision, kconfig_file, lkc_directory, lkc_target=config, environment=, timeout=0) {
+    local revision_clean architecture uvl_file unconstrained_features_file output_file report_file
+    revision_clean=$(clean-revision "$revision")
+    architecture=$(get-architecture "$revision")
+    push "$(input-directory)/$system"
+
+    # set up the environment for successful parsing with KConfiglib
+    set-environment "$environment"
+
+    # some systems require generating intermediate files before KConfiglib can parse the KConfig files properly
+    # usually this can be done by running `make <target>`, typically `make config`
+    if [[ -n "$lkc_directory" ]]; then
+        echo "int main(void){return 0;}" > "$lkc_directory/conf.c"
+        yes "" | make "$lkc_target" >/dev/null 2>&1 || true
+    fi
+
+    # run system-specific code for influencing the hierarchy extraction, if needed
+    compile-hook kconfig-pre-hierarchy-hook
+    kconfig-pre-hierarchy-hook "$system" "$revision"
+
+    while read -r relative_uvl_file; do
+        log "$relative_uvl_file"
+        log "" "$(echo-progress extract)"
+        unconstrained_features_file=$(input-directory "$UNCONSTRAINED_FEATURES_INPUT_KEY")/${relative_uvl_file%.uvl}.unconstrained.features
+        output_file="$(output-path "$relative_uvl_file")"
+        report_file="$(output-path "${relative_uvl_file%.uvl}.report")"
+        uvl_file=$(input-directory "$UVL_INPUT_KEY")/$relative_uvl_file
+        if [[ -f "$uvl_file" ]] && [[ -f "$unconstrained_features_file" ]]; then
+            # parse with KConfiglib and extract the hierarchy
+            python3 /home/Kconfiglib/extract_hierarchy.py "$kconfig_file" "$uvl_file" "$unconstrained_features_file" "$output_file" "$report_file"
+            log "" "$(echo-done)"
+        else
+            log "" "$(echo-fail)"
+        fi
+
+        # record the extracted hierarchy and mark it as done
+        echo "$system,$revision_clean,$architecture,${environment//,/|},$relative_uvl_file" >> "$(output-csv)"
+    done < <(table-field "$(input-csv "$UVL_INPUT_KEY")" uvl_file | grep "$(compose-path "$system" "$revision.uvl")")
+
+    unset-environment "$environment"
+    pop
+}
+
+# defines API functions for extracting kconfig hierarchies
+# sets the global TIMEOUT variable
+extract-kconfig-hierarchies-with-kconfiglib(timeout=0) {
+    TIMEOUT=$timeout
+
+    add-kconfig-model(system, revision, kconfig_file, lkc_binding_file=, environment=) {
+        log "$system@$revision"
+        kconfig-checkout "$system" "$revision"
+        extract-kconfig-hierarchy "$system" "$revision" "$kconfig_file" "" "" "$environment" "$TIMEOUT"
+        git-clean "$(input-directory)/$system"
+    }
+
+    add-kconfig(system, revision, kconfig_file, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
+        log "$system@$revision"
+        kconfig-checkout "$system" "$revision"
+        extract-kconfig-hierarchy "$system" "$revision" "$kconfig_file" "$lkc_directory" "$lkc_target" "$environment" "$TIMEOUT"
+        git-clean "$(input-directory)/$system"
+    }
+
+    if [[ ! -f $(output-csv) ]]; then
+        echo system,revision,architecture,environment,uvl_file > "$(output-csv)"
+    fi
+
+    experiment-systems
+}
+
+# expresses the intent to mount everything needed for hierarchy extraction
+# can be passed as --input to solve(...)
+mount-for-hierarchy-extraction(input=, uvl_input=transform-model-to-uvl-with-featureide, unconstrained_features_input=compute-unconstrained-features) {
+    input=${input:-$ROOT_STAGE}
+    echo "$MAIN_INPUT_KEY=$input,$UVL_INPUT_KEY=$uvl_input,$UNCONSTRAINED_FEATURES_INPUT_KEY=$unconstrained_features_input"
 }
