@@ -30,6 +30,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Significantly increased performance of lambda and hook functions
 - Updated KClause binding kextractor, which enables tristate encoding in KClause-extracted formulas
 - Extracted FeatJAR module into dedicated repository, which simplifies building and testing it standalone
+- Updated FeatJAR to latest version
 
 ### Removed
 

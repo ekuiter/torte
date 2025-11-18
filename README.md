@@ -311,7 +311,7 @@ To address this threat, we instead offer the transformation stage `compute-uncon
 
 [^33]: ConfigFix support is currently experimental.
 
-[^39]: UVL hierarchy extraction using Kconfiglib (under `src/docker/hierarchy`) is currently experimental.
+[^39]: UVL hierarchy extraction using Kconfiglib is currently experimental.
 In particular, this extraction is not available for all systems and revisions because it heavily relies on the parsing behavior of Kconfiglib.
 Also, this hierarchy extraction introduces implications due to parent-child relationships.
 [Most of these](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf) are valid in the original formula, but small inaccuracies are possible.
@@ -505,7 +505,7 @@ Core contributors:
 
 Further contributors:
 
-- Eric Ketzler (University of Magdeburg, Germany): `src/docker/hierarchy` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf))
+- Eric Ketzler (University of Magdeburg, Germany): `src/docker/kconfiglib` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf))
 - Urs-Benedict Braun (University of Magdeburg, Germany): `experiments/linux-time-travel` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Braun25.pdf))
 - Rami Alfish (University of Magdeburg, Germany): `src/docker/configfix` ([Master thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Alfish25.pdf))
 - Lukas Petermann (University of Magdeburg, Germany): `torte-dashboard` ([Project presentation](https://raw.githubusercontent.com/ekuiter/torte-dashboard/main/slides/slides.pdf))
