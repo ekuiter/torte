@@ -1,4 +1,5 @@
 # Copyright (C) 2025 Eric Ketzler, Elias Kuiter
+# todo: we still have a small number of mistakes in the hierarchy. we could fix them by pushing the erroneous features into the flat hierarchy (to avoid wrong results). this would require an additional SAT check and considerable reworking of this script. also, the constraints are currently not simplified and just preserved as is. we could also create "near-correct" feature models that omit dead features, include all unconstrained features to improve the accuracy of extracted models, and have the correct feature hierarchy. however, whether this is desirable depends a bit on the use case.
 
 import sys
 from kconfiglib import Kconfig, Symbol, Choice, MENU, COMMENT, TYPE_TO_STR
