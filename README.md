@@ -203,8 +203,11 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |
 
 [^21]: Most revisions and architectures of Linux (since the introduction of KConfig in Linux 2.5.45) can be extracted successfully.
-Before Linux 2.5.45, a predecessor of KConfig known as CML1 was used, which is incompatible with KConfig.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
+Before Linux 2.5.45, a predecessor of KConfig known as CML1 was used, which is incompatible with KConfig.
+In theory, a rudimentary migration script from CML1 to KConfig is [available](https://zippel.home.xs4all.nl/lc/) (download [LKC 1.2](https://zippel.home.xs4all.nl/lc/old/lkc-1.2.tar.gz) and execute `KERNELSRC='path-to-linux-2.5.44' make install`).
+However, it produces many false positives and negatives, which require hundreds of manual patches before (`prepare-all.diff`) and after (`fixup-all.diff`) conversion.
+The included patches only apply to Linux 2.5.44, which makes the extraction of older revisions impossible.
 
 [^25]: Due to extractor limitations, we ignore the more recently introduced KConfig constructs defined in Linux' `scripts/Kconfig.include`.
 Most of these only add machine specific-default values or dependencies (affecting about 100 features in the kernel's history up to `v6.3`).
