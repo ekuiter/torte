@@ -513,7 +513,7 @@ Further contributors:
 - Eric Ketzler (University of Magdeburg, Germany): `src/docker/kconfiglib` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf))
 - Urs-Benedict Braun (University of Magdeburg, Germany): `experiments/linux-time-travel` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Braun25.pdf))
 - Rami Alfish (University of Magdeburg, Germany): `src/docker/configfix` ([Master thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Alfish25.pdf))
-- Lukas Petermann (University of Magdeburg, Germany): `torte-dashboard` ([Project presentation](https://raw.githubusercontent.com/ekuiter/torte-dashboard/main/slides/slides.pdf))
+- Lukas Petermann (University of Magdeburg, Germany): [torte-dashboard](https://github.com/ekuiter/torte-dashboard/) ([Project presentation](https://raw.githubusercontent.com/ekuiter/torte-dashboard/main/slides/slides.pdf))
 
 If you have any feedback, please contact me at [kuiter@ovgu.de](mailto:kuiter@ovgu.de).
 New issues, pull requests, or any other kinds of feedback are always welcome.
