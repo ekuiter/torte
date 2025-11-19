@@ -6,7 +6,7 @@ It integrates 10+ configurable software systems, various extractors and transfor
 [<img src="meta/cli.png" width="24%">](meta/cli.png)
 [<img src="meta/profile.png" width="24%">](meta/profile.png)
 [<img src="meta/satgraf.jpg" width="24%">](meta/satgraf.jpg)
-[<img src="meta/dashboard.png" width="24%">](meta/tree.png)
+[<img src="meta/dashboard.png" width="24%">](meta/dashboard.png)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/ekuiter/torte/run-tests.yml?style=for-the-badge&label=tests)](https://github.com/ekuiter/torte/actions/workflows/run-tests.yml)
 [![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/releases)
