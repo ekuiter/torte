@@ -258,7 +258,7 @@ For transparency, we document the changes we make to these tools and known limit
 | [delta-one/linux](https://github.com/delta-one/linux/tree/copy_patch_v6.10) (ConfigFix) | 8927ce7 | 2024-07-30 | [^33] |
 | [ekuiter/clausy](https://github.com/ekuiter/clausy) | 6b816a9 | 2024-01-15 | |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
-| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | e27aea7 | 2023-04-11 | [^12] [^15] |
+| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | e27aea7 | 2023-04-11 | [^12] [^15] [^40] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) (KClause) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
@@ -321,6 +321,9 @@ Also, this hierarchy extraction introduces implications due to parent-child rela
 [Most of these](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf) are valid in the original formula, but small inaccuracies are possible.
 Finally, this extraction is geared towards KClause and may produce unintuitive results with KConfigReader due to its verbose encoding of tristate and non-Boolean features.
 The new encoding of tristate features in KClause is not yet incorporated either.
+
+[^40]: FeatJAR has a [known bug](https://github.com/FeatureIDE/FeatJAR-uvl/issues/6) that impairs UVL parsing for some files.
+While this issue is being resolved, FeatureIDE's UVL parser can be relied on as an alternative.
 
 ### Solvers
 

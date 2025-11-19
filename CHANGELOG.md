@@ -17,6 +17,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Resumable stages for extraction, transformation, and solving
 - Flexible solver queries for void, backbone, and partial configuration analysis
 - Experimental hierarchy extraction for flat UVL models
+- Support for parsing UVL files in FeatJAR
 
 ### Changed
 
