@@ -229,7 +229,6 @@ Fixing this would require a Git history rewrite, which comes with its own issues
 As extraction of earlier versions is not supported anyway (due to CML1 being used), it should not be attempted to avoid this crash cause.
 The versions 1.0.1 - 1.1.3 can also not be extracted due to malformed KConfig files.
 
-
 [^36]: Feature-model extraction for uClibc only succeeds starting with version 0.9.21, as up to version 0.9.15, CML1 was used instead of KConfig.
 The in-between versions are in the process of migration and cannot be successfully extracted with our approach due to malformed KConfig files.
 
@@ -315,7 +314,8 @@ To address this threat, we instead offer the transformation stage `compute-uncon
 In particular, this extraction is not available for all systems and revisions because it heavily relies on the parsing behavior of Kconfiglib.
 Also, this hierarchy extraction introduces implications due to parent-child relationships.
 [Most of these](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf) are valid in the original formula, but small inaccuracies are possible.
-Finally, this extraction is geared towards KClause and may produce unintuitive results with KConfigReader due to its verbose encoding of non-Boolean features.
+Finally, this extraction is geared towards KClause and may produce unintuitive results with KConfigReader due to its verbose encoding of tristate and non-Boolean features.
+The new encoding of tristate features in KClause is not yet incorporated either.
 
 ### Solvers
 

@@ -32,6 +32,7 @@ experiment-stages() {
     draw-community-structure-with-satgraf --timeout "$TIMEOUT"
     transform-dimacs-to-backbone-dimacs-with --transformer cadiback --timeout "$TIMEOUT"
     compute-unconstrained-features --timeout "$TIMEOUT"
+    extract-kconfig-hierarchies-with-kconfiglib --timeout "$TIMEOUT"
     compute-backbone-features --timeout "$TIMEOUT"
     solve-sat --jobs "$JOBS" --timeout "$TIMEOUT"
     solve-sharp-sat --jobs "$JOBS" --timeout "$TIMEOUT"

@@ -89,9 +89,9 @@ def extract_hierarchy(menu_lines, uvl_features, menu_features, constraints):
     choice_nr = 0
     choice_tag = False
     check_usage = {}
-    diff_kconfiglib = "Features in Kconfiglib but not in KClause:\n\n"
+    diff_kconfiglib = "Features in Kconfiglib but not in .uvl:\n\n"
     diff_count = 0
-    diff_kclause = "Features in KClause not in Kconfiglib: \n\n"
+    diff_kclause = "Features in .uvl not in Kconfiglib: \n\n"
 
     for i,line in enumerate(menu_features):
 

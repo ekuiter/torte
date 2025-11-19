@@ -220,7 +220,7 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
                 fi
                 make -f "$linux_source/Makefile" mrproper
                 make -C "$linux_source" scripts/kconfig/cfoutconfig
-                measure "$timeout"  make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
+                measure "$timeout" make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
                 time=$((time+$(grep -oP "^measure_time=\K.*" < "$output_log")))
                 if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.features" ]]; then
                     cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
@@ -352,7 +352,7 @@ extract-kconfig-models-with-configfix(timeout=0) {
 # extracts a non-flat UVL feature hierarchy from KConfig files by leveraging their menu structure
 # relies on KConfiglib for parsing the KConfig files, which may not succeed for all systems and revisions
 # so this is an optional step that can be used to enrich a flat UVL feature model with a hierarchy
-extract-kconfig-hierarchy(system, revision, kconfig_file, lkc_directory, lkc_target=config, environment=, timeout=0) {
+extract-kconfig-hierarchy(system, revision, kconfig_file, lkc_directory=, lkc_target=config, environment=, timeout=0) {
     local revision_without_context context uvl_file unconstrained_features_file output_file report_file
     revision_without_context=$(revision-without-context "$revision")
     context=$(get-context "$revision")
@@ -372,16 +372,19 @@ extract-kconfig-hierarchy(system, revision, kconfig_file, lkc_directory, lkc_tar
     compile-hook kconfig-pre-hierarchy-hook
     kconfig-pre-hierarchy-hook "$system" "$revision"
 
+    # parse with KConfiglib and extract the hierarchy for each UVL file belonging to this system and revision
     while read -r relative_uvl_file; do
         log "$relative_uvl_file"
         log "" "$(echo-progress extract)"
         unconstrained_features_file=$(input-directory "$UNCONSTRAINED_FEATURES_INPUT_KEY")/${relative_uvl_file%.uvl}.unconstrained.features
         output_file="$(output-path "$relative_uvl_file")"
-        report_file="$(output-path "${relative_uvl_file%.uvl}.report")"
+        report_file="$(output-path "${relative_uvl_file%.uvl}.txt")"
         uvl_file=$(input-directory "$UVL_INPUT_KEY")/$relative_uvl_file
         if [[ -f "$uvl_file" ]] && [[ -f "$unconstrained_features_file" ]]; then
-            # parse with KConfiglib and extract the hierarchy
-            python3 /home/Kconfiglib/extract_hierarchy.py "$kconfig_file" "$uvl_file" "$unconstrained_features_file" "$output_file" "$report_file"
+            measure "$timeout" python3 /home/Kconfiglib/extract_hierarchy.py "$kconfig_file" "$uvl_file" "$unconstrained_features_file" "$output_file" "$report_file"
+            log "" "$(echo-done)"
+        fi
+        if [[ -f "$output_file" ]]; then
             log "" "$(echo-done)"
         else
             log "" "$(echo-fail)"
@@ -389,7 +392,7 @@ extract-kconfig-hierarchy(system, revision, kconfig_file, lkc_directory, lkc_tar
 
         # record the extracted hierarchy and mark it as done
         echo "$system,$revision_without_context,$context,${environment//,/|},$relative_uvl_file" >> "$(output-csv)"
-    done < <(table-field "$(input-csv "$UVL_INPUT_KEY")" uvl_file | grep "$(compose-path "$system" "$revision.uvl")")
+    done < <(table-field "$(input-csv "$UVL_INPUT_KEY")" uvl_file | grep -F "$(compose-path "$system" "$revision.uvl")")
 
     unset-environment "$environment"
     pop

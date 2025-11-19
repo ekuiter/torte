@@ -378,6 +378,7 @@ read-linux-configs() {
 # this is necessary because KConfigLib is not geared towards evolutionary analysis of Linux
 # these patches have no relevance outside of hierarchy extraction (i.e., they do not affect feature-model extraction with KClause or KConfigReader)
 kconfig-pre-hierarchy-hook-linux(system, revision) {
+    revision=$(revision-without-context "$revision")
     local kconfig_file
     if [[ $system == linux ]]; then
         if [[ "$revision" = "v6."* ]]; then
@@ -396,7 +397,9 @@ kconfig-pre-hierarchy-hook-linux(system, revision) {
             else
                 error "Kconfig file not found at $kconfig_file for revision $revision"
             fi
-            sed -i  's/;//g' "drivers/hwmon/Kconfig" #v2.6.26 - v2.6.36 11
+            if [[ -f drivers/hwmon/Kconfig ]]; then
+                sed -i 's/;//g' "drivers/hwmon/Kconfig" # v2.6.26 - v2.6.36 11
+            fi
             case "$revision" in
                 v2.5.45|v2.5.46|v2.5.47|v2.5.48|v2.5.49|v2.5.50|v2.5.51)
                     sed -i 's/TOPDIR/CURDIR/g' "scripts/kconfig/Makefile"
