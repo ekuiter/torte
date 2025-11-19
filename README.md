@@ -4,15 +4,15 @@
 It integrates 10+ configurable software systems, various extractors and transformers, and 700+ automated solvers.**
 
 [<img src="meta/cli.png" width="24%">](meta/cli.png)
-[<img src="meta/tree.png" width="24%">](meta/tree.png)
 [<img src="meta/profile.png" width="24%">](meta/profile.png)
 [<img src="meta/satgraf.jpg" width="24%">](meta/satgraf.jpg)
+[<img src="meta/dashboard.png" width="24%">](meta/tree.png)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/ekuiter/torte/run-tests.yml?style=for-the-badge&label=tests)](https://github.com/ekuiter/torte/actions/workflows/run-tests.yml)
 [![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/releases)
 [![License](https://img.shields.io/github/license/ekuiter/torte?style=for-the-badge&color=blue)](https://github.com/ekuiter/torte/blob/main/LICENSE.txt)
 
-Jump to: [**Publications**](#publications-and-artifacts) | [**Demo Video**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/)
+Jump to: [**Publications**](#publications-and-artifacts) | [**Dashboard**](http://elias-kuiter.de/torte-dashboard/) | [**Demo Video**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/)
 
 <img style="float: right;" align="right" width="23%" src="meta/torte.png">
 
@@ -41,6 +41,8 @@ This way, you can
 - **execute experiments** on a remote machine without having to bother with technical setup,
 - **distribute fully-automated reproduction packages** when an experiment is ready for publication, and
 - **adapt and update existing experiments** without needing to resort to clone-and-own practices.
+
+To demonstrate the capabilities of torte, we provide a [dashboard](http://elias-kuiter.de/torte-dashboard/) and [demo video](https://www.youtube.com/watch?v=VtaJiC_b8RA).
 
 ## Getting Started: The Quick Way
 
