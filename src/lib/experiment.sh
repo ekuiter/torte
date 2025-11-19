@@ -26,6 +26,7 @@ payload-file(payload_file) {
 # these are files of interest that reside besides the experiment file, such as Jupyter notebooks
 add-payload-file(payload_file) {
     if is-host; then
+        local original_payload_file src_payload_file
         original_payload_file=$(dirname "$ORIGINAL_EXPERIMENT_FILE")/$payload_file
         src_payload_file=$SRC_EXPERIMENT_DIRECTORY/$payload_file
         if [[ $payload_file == "$(basename "$ORIGINAL_EXPERIMENT_FILE")" ]]; then
@@ -39,6 +40,19 @@ add-payload-file(payload_file) {
         fi
         mkdir -p "$SRC_EXPERIMENT_DIRECTORY"
         cp "$original_payload_file" "$src_payload_file"
+    fi
+}
+
+# downloads a new payload file from a URL and adds it
+download-payload-file(payload_file, url) {
+    if is-host; then
+        local original_payload_file
+        original_payload_file=$(dirname "$ORIGINAL_EXPERIMENT_FILE")/$payload_file
+        if [[ ! -f $original_payload_file ]]; then
+            assert-command curl
+            curl -fsSL "$url" -o "$original_payload_file"
+        fi
+        add-payload-file "$payload_file"
     fi
 }
 

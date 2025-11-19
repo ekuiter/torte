@@ -18,6 +18,8 @@ This release significantly revises the extraction mechanism, which means we can 
 - Flexible solver queries for void, backbone, and partial configuration analysis
 - Experimental hierarchy extraction for flat UVL models
 - Support for parsing UVL files in FeatJAR
+- Support for extracting standalone KConfig files for testing purposes
+- Integration with non-KConfig repositories like feature-model benchmark and UVLHub
 
 ### Changed
 

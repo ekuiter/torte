@@ -187,3 +187,19 @@ table-lookup(file, key, value, field) {
 table-fields-except(file, field) {
     head -n1 < "$file" | sed 's/'"$field"'//' | sed 's/,,/,/' | sed 's/,$//g' | sed 's/^,//g'
 }
+
+# create a row with a single value in a given field
+table-construct-row(file, field, value) {
+    local idx total_fields
+    idx=$(table-field-index "$file" "$field")
+    total_fields=$(head -n1 < "$file" | tr , "\n" | wc -l)
+    local row=""
+    for ((i=1; i<=total_fields; i++)); do
+        if [[ $i -eq $idx ]]; then
+            row+="$value,"
+        else
+            row+=","
+        fi
+    done
+    echo "${row::-1}"
+}

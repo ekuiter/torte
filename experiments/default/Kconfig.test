@@ -1,0 +1,96 @@
+menu "Minimal Testcases – Full Semantics"
+
+# --- Typen ---
+config BOOL_FEAT
+    bool "Bool feature"
+
+config TRI_FEAT
+    tristate "Tristate feature"
+
+config INT_FEAT
+    int "Int feature"
+    range 1 5
+    default 3
+
+config STR_FEAT
+    string "String feature"
+    default "abc"
+
+config HEX_FEAT
+    hex "Hex feature"
+    default 0x1F
+
+# --- depends on / select / imply ---
+config DEP_B
+    bool "Depends B"
+    depends on BOOL_FEAT
+
+config SEL_C
+    bool "Select C"
+    select BOOL_FEAT
+
+config IMP_D
+    bool "Imply D"
+    imply BOOL_FEAT
+
+# --- choice ---
+choice
+    prompt "Choice A/B"
+    config CH_A
+        bool "Choice A"
+    config CH_B
+        bool "Choice B"
+endchoice
+
+# --- prompt if / default if / select if ---
+config ADV
+    bool "Advanced"
+
+config DEBUG
+    bool "Debug (visible only if ADV)" if ADV
+
+config VERBOSE
+    bool "Verbose"
+    select DEBUG if ADV
+
+config LEVEL
+    int "Level"
+    default 5 if DEBUG
+    default 1
+
+# --- Complex depends / bad select target ---
+config COND_TARGET
+    bool
+    depends on NONE
+
+config SEL_BAD
+    bool "Bad select"
+    select COND_TARGET
+
+config NONE
+    bool
+    default n
+
+# --- Nested depends (transitiv) ---
+config BASE
+    bool
+
+config MID
+    bool
+    depends on BASE
+
+config TOP
+    bool
+    depends on MID
+
+# --- Mixed-type choice ---
+choice
+    prompt "Mixed choice"
+    config MIX_BOOL
+        bool "Bool in choice"
+    config MIX_BOOL2
+        bool "Another bool in choice"
+endchoice
+
+endmenu
+
