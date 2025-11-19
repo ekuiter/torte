@@ -12,10 +12,11 @@ TIMEOUT=10
 JOBS=4
 
 add-payload-file evaluation.ipynb # we can add Jupyter notebooks to execute at the end of the experiment
-add-payload-file Kconfig.test # we can inject individual KConfig files to test extraction on small examples
-download-payload-file smart_home_fm.uvl https://www.uvlhub.io/hubfiles/download/189 # we can also download arbitrary payload files from the web
-download-payload-file Tankwar.dimacs \
-    https://raw.githubusercontent.com/SoftVarE-Group/feature-model-benchmark/refs/heads/master/feature_models/dimacs/games/Tankwar/Schulze2012.dimacs
+# add-payload-file Kconfig.test # we can inject individual KConfig files to test extraction on small examples
+# download-payload-file smart_home_fm.uvl https://www.uvlhub.io/hubfiles/download/189 # we can also download arbitrary payload files from the web
+# download-payload-file Tankwar.dimacs \
+#     https://raw.githubusercontent.com/SoftVarE-Group/feature-model-benchmark/refs/heads/master/feature_models/dimacs/games/Tankwar/Schulze2012.dimacs
+# (the previous lines are commented out here for demonstration purposes, to focus on the BusyBox model)
 
 experiment-systems() {
     add-busybox-kconfig-history --from 1_36_0 --to 1_36_1 # usually, we add (excerpts of) system histories to analyze here
