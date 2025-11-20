@@ -38,9 +38,8 @@ experiment-stages() {
     # ... but we can also inject pre-existing feature model files directly
     # here, any files are legal that can be successfully parsed by subsequent stages (typically FeatJAR or FeatureIDE)
     # this allows us to integrate with feature-model repositories, such as the feature-model benchmark or UVLHub (where we download these files from)
-    # inject-kconfig-model --payload-file smart_home_fm.uvl
-    # inject-kconfig-model --payload-file Tankwar.dimacs
-    # (the previous lines are commented out here for demonstration purposes, to focus on the BusyBox model)
+    # inject-feature-models --payload-files smart_home_fm.uvl Tankwar.dimacs
+    # (the previous line is commented out here for demonstration purposes, to focus on the BusyBox model)
 
     transform-model-with-featjar --transformer transform-model-to-xml-with-featureide --output-extension xml --timeout "$TIMEOUT"
     transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl --timeout "$TIMEOUT"

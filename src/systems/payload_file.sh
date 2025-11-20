@@ -20,7 +20,7 @@ add-payload-file-kconfig(payload_file, system=file, lkc_revision=v6.17) {
 }
 
 # injects a payload file into a stage
-inject-payload-file(payload_file, stage, csv_line=) {
+inject-payload-file(stage, payload_file, csv_line=) {
     if [[ -n $csv_line ]]; then
         csv_line="echo '$csv_line' >> $DOCKER_INPUT_DIRECTORY/$MAIN_INPUT_KEY/$OUTPUT_FILE_PREFIX.csv"
     fi
@@ -30,10 +30,18 @@ inject-payload-file(payload_file, stage, csv_line=) {
         "$csv_line"
 }
 
-# injects a UVL (or otherwise supported) feature model file into the extraction stage, allowing to sidestep Kconfig extraction
+# injects a UVL (or otherwise supported) feature-model file into a stage
+# by default, this injects into the extraction stage, allowing to sidestep Kconfig extraction
 # this is useful for experiments that do not involve Kconfig at all
-inject-kconfig-model(payload_file, stage=extract-kconfig-models) {
+inject-feature-model(payload_file, stage=extract-kconfig-models, file_column=model_file) {
     local csv_line
-    csv_line=$(table-construct-row "$(stage-csv "$stage")" model_file "$payload_file")
-    inject-payload-file --payload-file "$payload_file" --stage "$stage" --csv-line "$csv_line"
+    csv_line=$(table-construct-row "$(stage-csv "$stage")" "$file_column" "$payload_file")
+    inject-payload-file --stage "$stage" --payload-file "$payload_file" --csv-line "$csv_line"
+}
+
+# injects several feature-model files into a stage (extraction by default)
+inject-feature-models(stage=, file_column=, payload_files...) {
+    for payload_file in "${payload_files[@]}"; do
+        inject-feature-model --payload-file "$payload_file" --stage "$stage" --file-column "$file_column"
+    done
 }
