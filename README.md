@@ -258,13 +258,13 @@ For transparency, we document the changes we make to these tools and known limit
 | - | - | - | - |
 | [arminbiere/cadiback](https://github.com/arminbiere/cadiback) | 2e912fb | 2023-07-21 | |
 | [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] [^24] |
-| [zephyrproject-rtos/Kconfiglib](https://github.com/zephyrproject-rtos/Kconfiglib) | 601f63d | 2025-11-04 | [^39] |
+| [zephyrproject-rtos/Kconfiglib](https://github.com/zephyrproject-rtos/Kconfiglib) | 601f63d | 2025-11-04 | [^2] |
 | [delta-one/linux](https://github.com/delta-one/linux/tree/copy_patch_v6.10) (ConfigFix) | 8927ce7 | 2024-07-30 | [^33] |
 | [ekuiter/clausy](https://github.com/ekuiter/clausy) | 6b816a9 | 2024-01-15 | |
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
-| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | 3fc8d66 | 2025-10-10 | [^12] [^15] [^40] |
+| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | 3fc8d66 | 2025-10-10 | [^12] [^15] [^6] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
-| [paulgazz/kmax](https://github.com/paulgazz/kmax) (KClause) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] [^41] |
+| [paulgazz/kmax](https://github.com/paulgazz/kmax) (KClause) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] [^22] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 
 [^1]: Currently, non-Boolean variability (e.g., constraints on numerical features) is only partially supported (e.g., encoded naively into Boolean constraints).
@@ -304,7 +304,7 @@ We also added a new feature for exporting the community structure visualization 
 [^13]: We perform all transformations with FeatureIDE from within a FeatJAR instance, which does not affect the results.
 
 [^14]: Transformations with FeatureIDE into XML and UVL currently only encode a flat feature hierarchy, no feature-modeling notation is reverse-engineered.
-An experimental support for UVL hierarchy extraction is available.[^39]
+An experimental support for UVL hierarchy extraction is available.[^2]
 
 [^15]: DIMACS files produced by FeatJAR and FeatureIDE do not contain additional variables (i.e., equivalence is preserved).
 Currently, this behavior is not configurable.
@@ -319,17 +319,17 @@ To address this threat, we instead offer the transformation stage `compute-uncon
 
 [^33]: ConfigFix support is currently experimental.
 
-[^39]: UVL hierarchy extraction using Kconfiglib is currently experimental.
+[^2]: UVL hierarchy extraction using Kconfiglib is currently experimental.
 In particular, this extraction is not available for all systems and revisions because it heavily relies on the parsing behavior of Kconfiglib.
 Also, this hierarchy extraction introduces implications due to parent-child relationships.
 [Most of these](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf) are valid in the original formula, but small inaccuracies are possible.
 Finally, this extraction is geared towards KClause and may produce unintuitive results with KConfigReader due to its verbose encoding of tristate and non-Boolean features.
 The new encoding of tristate features in KClause is not yet incorporated either.
 
-[^40]: FeatJAR has a [known bug](https://github.com/FeatureIDE/FeatJAR-uvl/issues/6) that impairs UVL parsing for some files.
+[^6]: FeatJAR has a [known bug](https://github.com/FeatureIDE/FeatJAR-uvl/issues/6) that impairs UVL parsing for some files.
 While this issue is being resolved, FeatureIDE's UVL parser can be relied on as an alternative.
 
-[^41]: In 2025, KClause [added](https://github.com/paulgazz/kmax/commit/ddc797dfca1f0afcb2e3a49eba25e03217136f42) [support](https://github.com/paulgazz/kmax/commit/ae3b6d82fd4f48023534f8d555659cbd58bddca0) for encoding three-valued tristate options that are explicitly compared to `y/m`.
+[^22]: In 2025, KClause [added](https://github.com/paulgazz/kmax/commit/ddc797dfca1f0afcb2e3a49eba25e03217136f42) [support](https://github.com/paulgazz/kmax/commit/ae3b6d82fd4f48023534f8d555659cbd58bddca0) for encoding three-valued tristate options that are explicitly compared to `y/m`.
 This encoding may lead to an overestimation of valid configurations, as the introduced constraint `CONFIG_A <-> CONFIG_A==y ^ CONFIG_A==m` does not disallow selecting both `y` and `m` (which KConfigReader does, so it does not have this problem).
 Because of this accuracy problem and the violated backwards compatibility, we disable this new encoding by default in torte.
 This way, KClause continues to treat all tristate features as Boolean, correctly representing the Boolean fragment of the feature model.
