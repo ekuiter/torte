@@ -40,7 +40,7 @@ define-stages() {
     }
 
     # extracts kconfig models with the given extractor
-    extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=iteration, file_fields=, timeout=0) {
+    extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=iteration, file_fields=, options=, timeout=0) {
         output="${output:-extract-kconfig-models-with-$extractor}"
         iterate \
             --iterations "$iterations" \
@@ -51,17 +51,19 @@ define-stages() {
             --output "$output" \
             --resumable y \
             --command "extract-kconfig-models-with-$extractor" \
+            --options "$options" \
             --timeout "$timeout"
     }
 
     # extracts kconfig models with kconfigreader and kclause
-    extract-kconfig-models(input=, output=extract-kconfig-models, iterations=1, iteration_field=iteration, file_fields=, timeout=0) {
+    extract-kconfig-models(input=, output=extract-kconfig-models, iterations=1, iteration_field=iteration, file_fields=, options=, timeout=0) {
         extract-kconfig-models-with \
             --extractor kconfigreader \
             --input "$input" \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
+            --options "$options" \
             --timeout "$timeout"
         extract-kconfig-models-with \
             --extractor kclause \
@@ -69,12 +71,14 @@ define-stages() {
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "$file_fields" \
+            --options "$options" \
             --timeout "$timeout"
         # extract-kconfig-models-with \
         # --extractor configfix \
         # --iterations "$iterations" \
         # --iteration-field "$iteration_field" \
         # --file-fields "$file_fields" \
+            # --options "$options" \
         # --timeout "$timeout"
         # todo ConfigFix: the idea was that not every extractor needs a binding file, which is not correctly realized here, I think
         # file_fields="binding_file"

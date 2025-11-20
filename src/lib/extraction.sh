@@ -107,7 +107,7 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
-extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, lkc_binding_file=, environment=, timeout=0) {
+extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, lkc_binding_file=, environment=, options=, timeout=0) {
     local revision_without_context context
     revision_without_context=$(revision-without-context "$revision")
     context=$(get-context "$revision")
@@ -154,10 +154,19 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
                 time=$(grep -oP "^measure_time=\K.*" < "$output_log")
                 compile-hook kclause-post-binding-hook
                 kclause-post-binding-hook "$system" "$revision"
+                # as documented in the README file, we consider --disable-tristate-support to be the sensible default
+                # thus, we explicitly make tristate support opt-in here
+                if [[ -z "$options" ]]; then
+                    options="--disable-tristate-support"
+                elif [[ $options == "--enable-tristate-support" ]]; then
+                    options=
+                fi
+                # shellcheck disable=SC2086
                 measure "$timeout" /home/kclause.sh \
                     "$(output-path "$system" "$revision.kextractor")" \
                     "$(output-path "$system" "$revision.kclause")" \
                     "$kconfig_model" \
+                    $options \
                     | tee "$output_log"
                 time=$((time+$(grep -oP "^measure_time=\K.*" < "$output_log")))
             elif [[ $extractor == configfix ]]; then
@@ -262,14 +271,15 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
 
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
-    echo "$system,$revision_without_context,$context,$lkc_binding_file,$kconfig_file,${environment//,/|},$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
+    echo "$system,$revision_without_context,$context,$lkc_binding_file,$kconfig_file,${environment//,/|},$options,$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
 }
 
 # defines API functions for extracting kconfig models
 # sets the global EXTRACTOR, LKC_BINDING, TIMEOUT variables
-register-kconfig-extractor(extractor, lkc_binding=, timeout=0) {
+register-kconfig-extractor(extractor, lkc_binding=, options=, timeout=0) {
     EXTRACTOR=$extractor
     LKC_BINDING=$lkc_binding
+    OPTIONS=$options
     TIMEOUT=$timeout
     assert-value EXTRACTOR TIMEOUT
     # todo ConfigFix: review this (maybe create a dummy binding)
@@ -301,7 +311,7 @@ register-kconfig-extractor(extractor, lkc_binding=, timeout=0) {
         fi
         kconfig-checkout "$system" "$revision"
         extract-kconfig-model "$EXTRACTOR" "$LKC_BINDING" \
-            "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$environment" "$TIMEOUT"
+            "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$environment" "$OPTIONS" "$TIMEOUT"
         git-clean "$(input-directory)/$system"
     }
 
@@ -319,7 +329,7 @@ register-kconfig-extractor(extractor, lkc_binding=, timeout=0) {
         fi
         if ! kconfig-model-done "$system" "$revision"; then
             extract-kconfig-model "$EXTRACTOR" "$LKC_BINDING" \
-                "$system" "$revision" "$kconfig_file" "" "$environment" "$TIMEOUT"
+                "$system" "$revision" "$kconfig_file" "" "$environment" "$OPTIONS" "$TIMEOUT"
         fi
         git-clean "$(input-directory)/$system"
     }
@@ -328,24 +338,24 @@ register-kconfig-extractor(extractor, lkc_binding=, timeout=0) {
         echo system,revision,binding_file > "$(output-path "$LKC_BINDINGS_OUTPUT_CSV")"
     fi
     if [[ ! -f $(output-csv) ]]; then
-        echo system,revision,context,binding_file,kconfig_file,environment,model_file,model_features,model_variables,model_literals,model_time > "$(output-csv)"
+        echo system,revision,context,binding_file,kconfig_file,environment,options,model_file,model_features,model_variables,model_literals,model_time > "$(output-csv)"
     fi
 }
 
 # compiles LKC bindings and extracts kconfig models using kclause
-extract-kconfig-models-with-kclause(timeout=0) {
-    register-kconfig-extractor kclause kextractor "$timeout"
+extract-kconfig-models-with-kclause(options=, timeout=0) {
+    register-kconfig-extractor kclause kextractor "$options" "$timeout"
     experiment-systems
 }
 
 # compiles LKC bindings and extracts kconfig models using kconfigreader
-extract-kconfig-models-with-kconfigreader(timeout=0) {
-    register-kconfig-extractor kconfigreader dumpconf "$timeout"
+extract-kconfig-models-with-kconfigreader(options=, timeout=0) {
+    register-kconfig-extractor kconfigreader dumpconf "$options" "$timeout"
     experiment-systems
 }
 
-extract-kconfig-models-with-configfix(timeout=0) {
-    register-kconfig-extractor configfix "" "$timeout"
+extract-kconfig-models-with-configfix(options=, timeout=0) {
+    register-kconfig-extractor configfix "" "$options" "$timeout"
     experiment-systems
 }
 
