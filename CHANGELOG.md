@@ -20,6 +20,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Support for parsing UVL files in FeatJAR
 - Support for extracting standalone KConfig files for testing purposes
 - Integration with non-KConfig repositories like feature-model benchmark and UVLHub
+- Added more flexible and consistent stage helpers for extraction and CNF transformation
 
 ### Changed
 
@@ -34,7 +35,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Updated KClause binding kextractor, which enables tristate encoding in KClause-extracted formulas
 - Extracted FeatJAR module into dedicated repository, which simplifies building and testing it standalone
 - Updated FeatJAR to latest version
-- Simplified transformation stage naming and added stage helpers for CNF transformation
+- Simplified transformation stage naming
 
 ### Removed
 

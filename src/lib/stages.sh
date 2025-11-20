@@ -56,21 +56,39 @@ define-stages() {
     }
 
     # extracts kconfig models with kconfigreader and kclause
-    extract-kconfig-models(input=, output=extract-kconfig-models, iterations=1, iteration_field=, options=, timeout=0) {
-        extract-kconfig-models-with \
-            --extractor kconfigreader \
-            --input "$input" \
-            --iterations "$iterations" \
-            --iteration-field "$iteration_field" \
-            --options "$options" \
-            --timeout "$timeout"
-        extract-kconfig-models-with \
-            --extractor kclause \
-            --input "$input" \
-            --iterations "$iterations" \
-            --iteration-field "$iteration_field" \
-            --options "$options" \
-            --timeout "$timeout"
+    extract-kconfig-models(input=, output=extract-kconfig-models, iteration_field=, options=, timeout=0, with_kconfigreader=, with_kclause=) {
+        if [[ -z $with_kconfigreader ]] && [[ -z $with_kclause ]]; then
+            with_kconfigreader=y
+            with_kclause=y
+        fi
+        [[ $with_kconfigreader == n ]] && with_kconfigreader=
+        [[ $with_kconfigreader == y ]] && with_kconfigreader=1
+        [[ $with_kclause == n ]] && with_kclause=
+        [[ $with_kclause == y ]] && with_kclause=1
+        local inputs=()
+
+        if [[ -n $with_kconfigreader ]]; then
+            extract-kconfig-models-with \
+                --extractor kconfigreader \
+                --input "$input" \
+                --iterations "$with_kconfigreader" \
+                --iteration-field "$iteration_field" \
+                --options "$options" \
+                --timeout "$timeout"
+            inputs+=("extract-kconfig-models-with-kconfigreader")
+        fi
+
+        if [[ -n $with_kclause ]]; then
+            extract-kconfig-models-with \
+                --extractor kclause \
+                --input "$input" \
+                --iterations "$with_kclause" \
+                --iteration-field "$iteration_field" \
+                --options "$options" \
+                --timeout "$timeout"
+            inputs+=("extract-kconfig-models-with-kclause")
+        fi
+
         # extract-kconfig-models-with \
         # --extractor configfix \
         # --iterations "$iterations" \
@@ -82,12 +100,12 @@ define-stages() {
         # if [ -z "$binding_file" ]; then
         #     binding_file=""
         # fi
+
         aggregate \
             --output "$output" \
             --stage-field extractor \
             --file-fields binding_file,model_file \
-            --inputs extract-kconfig-models-with-kconfigreader extract-kconfig-models-with-kclause
-            # --inputs kconfigreader kclause configfix
+            --inputs "${inputs[@]}"
     }
 
     # extracts kconfig hierarchies with kconfiglib
@@ -133,77 +151,103 @@ define-stages() {
     }
 
     # transforms model files to DIMACS
-    # this allows to flexibly enable or disable the desired CNF transformations
+    # this allows to flexibly enable (repeated or single iterations of) the desired CNF transformations
     # some of these transformations are fully deterministic and need not be iterated (e.g., Z3), while KConfigReader is NOT deterministic
-    transform-to-dimacs(input=extract-kconfig-models, output=transform-to-dimacs, timeout=0, jobs=1, iterations=1, iteration_field=) {
+    transform-to-dimacs(input=extract-kconfig-models, output=transform-to-dimacs, timeout=0, jobs=1, iteration_field=, with_featureide=, with_featjar=, with_kconfigreader=, with_z3=) {
+        if [[ -z $with_featureide ]] && [[ -z $with_featjar ]] && [[ -z $with_kconfigreader ]] && [[ -z $with_z3 ]]; then
+            with_featureide=y
+            with_featjar=y
+            with_kconfigreader=y
+            with_z3=y
+        fi
+        [[ $with_featureide == n ]] && with_featureide=
+        [[ $with_featureide == y ]] && with_featureide=1
+        [[ $with_featjar == n ]] && with_featjar=
+        [[ $with_featjar == y ]] && with_featjar=1
+        [[ $with_kconfigreader == n ]] && with_kconfigreader=
+        [[ $with_kconfigreader == y ]] && with_kconfigreader=1
+        [[ $with_z3 == n ]] && with_z3=
+        [[ $with_z3 == y ]] && with_z3=1
+        local inputs=()
+
         # distributive tranformation with FeatureIDE (does not scale to large formulas)
-        transform-to-dimacs-with-featjar \
-            --transformer transform-to-dimacs-with-featureide \
-            --input "$input" \
-            --timeout "$timeout" \
-            --jobs "$jobs" \
-            --iterations "$iterations" \
-            --iteration-field "$iteration_field"
+        if [[ -n $with_featureide ]]; then
+            transform-to-dimacs-with-featjar \
+                --transformer transform-to-dimacs-with-featureide \
+                --input "$input" \
+                --timeout "$timeout" \
+                --jobs "$jobs" \
+                --iterations "$with_featureide" \
+                --iteration-field "$iteration_field"
+            inputs+=("transform-to-dimacs-with-featureide")
+        fi
 
         # distributive tranformation with FeatJAR (does not scale to large formulas)
-        transform-to-dimacs-with-featjar \
-            --transformer transform-to-dimacs-with-featjar \
-            --input "$input" \
-            --timeout "$timeout" \
-            --jobs "$jobs" \
-            --iterations "$iterations" \
-            --iteration-field "$iteration_field"
+        if [[ -n $with_featjar ]]; then
+            transform-to-dimacs-with-featjar \
+                --transformer transform-to-dimacs-with-featjar \
+                --input "$input" \
+                --timeout "$timeout" \
+                --jobs "$jobs" \
+                --iterations "$with_featjar" \
+                --iteration-field "$iteration_field"
+            inputs+=("transform-to-dimacs-with-featjar")
+        fi
 
-        # intermediate format for CNF transformation with KConfigReader
-        transform-with-featjar \
-            --transformer transform-to-model-with-featureide \
-            --output-extension featureide.model \
-            --input "$input" \
-            --timeout "$timeout" \
-            --jobs "$jobs"
+        if [[ -n $with_kconfigreader ]]; then
+            # intermediate format for CNF transformation with KConfigReader
+            transform-with-featjar \
+                --transformer transform-to-model-with-featureide \
+                --output-extension featureide.model \
+                --input "$input" \
+                --timeout "$timeout" \
+                --jobs "$jobs"
+            # Plaisted-Greenbaum CNF tranformation with KConfigReader (preserves satisfiability, but not model count)
+            iterate \
+                --iterations "$with_kconfigreader" \
+                --iteration-field "$iteration_field" \
+                --file-fields dimacs_file \
+                --image kconfigreader \
+                --input transform-to-model-with-featureide \
+                --output transform-to-dimacs-with-kconfigreader \
+                --resumable y \
+                --command transform-to-dimacs-with-kconfigreader \
+                --input-extension featureide.model \
+                --timeout "$timeout" \
+                --jobs "$jobs"
+            join-into transform-to-model-with-featureide transform-to-dimacs-with-kconfigreader
+            inputs+=("transform-to-dimacs-with-kconfigreader")
+        fi
 
-        # Plaisted-Greenbaum CNF tranformation with KConfigReader (preserves satisfiability, but not model count)
-        iterate \
-            --iterations "$iterations" \
-            --iteration-field "$iteration_field" \
-            --file-fields dimacs_file \
-            --image kconfigreader \
-            --input transform-to-model-with-featureide \
-            --output transform-to-dimacs-with-kconfigreader \
-            --resumable y \
-            --command transform-to-dimacs-with-kconfigreader \
-            --input-extension featureide.model \
-            --timeout "$timeout" \
-            --jobs "$jobs"
-        join-into transform-to-model-with-featureide transform-to-dimacs-with-kconfigreader
-
-        # intermediate format for CNF transformation with Z3
-        transform-with-featjar \
-            --transformer transform-to-smt-with-z3 \
-            --output-extension smt \
-            --input "$input" \
-            --timeout "$timeout" \
-            --jobs "$jobs"
-
-        # Tseitin CNF tranformation with Z3 (preserves satisfiability and model count)
-        iterate \
-            --iterations "$iterations" \
-            --iteration-field "$iteration_field" \
-            --file-fields dimacs_file \
-            --image z3 \
-            --input transform-to-smt-with-z3 \
-            --output transform-smt-to-dimacs-with-z3 \
-            --resumable y \
-            --command transform-smt-to-dimacs-with-z3 \
-            --timeout "$timeout" \
-            --jobs "$jobs"
-        join-into transform-to-smt-with-z3 transform-smt-to-dimacs-with-z3
+        if [[ -n $with_z3 ]]; then
+            # intermediate format for CNF transformation with Z3
+            transform-with-featjar \
+                --transformer transform-to-smt-with-z3 \
+                --output-extension smt \
+                --input "$input" \
+                --timeout "$timeout" \
+                --jobs "$jobs"
+            # Tseitin CNF tranformation with Z3 (preserves satisfiability and model count)
+            iterate \
+                --iterations "$with_z3" \
+                --iteration-field "$iteration_field" \
+                --file-fields dimacs_file \
+                --image z3 \
+                --input transform-to-smt-with-z3 \
+                --output transform-smt-to-dimacs-with-z3 \
+                --resumable y \
+                --command transform-smt-to-dimacs-with-z3 \
+                --timeout "$timeout" \
+                --jobs "$jobs"
+            join-into transform-to-smt-with-z3 transform-smt-to-dimacs-with-z3
+            inputs+=("transform-smt-to-dimacs-with-z3")
+        fi
 
         aggregate \
             --output "$output" \
             --directory-field dimacs_transformer \
             --file-fields dimacs_file \
-            --inputs transform-to-dimacs-with-featureide transform-to-dimacs-with-featjar transform-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
+            --inputs "${inputs[@]}"
     }
 
     # visualize community structure of DIMACS files as a JPEG file

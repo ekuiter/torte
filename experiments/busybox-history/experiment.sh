@@ -29,7 +29,7 @@ experiment-stages() {
         input=generate-busybox-models
     fi
     read-statistics --input "$input"
-    extract-kconfig-models-with --extractor kclause --input "$input" --output extract-kconfig-models
+    extract-kconfig-models --with-kclause y --input "$input"
     join-into read-statistics extract-kconfig-models
     transform-with-featjar --transformer transform-to-uvl-with-featureide --output-extension uvl
     transform-to-dimacs

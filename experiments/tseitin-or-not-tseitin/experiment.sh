@@ -31,38 +31,14 @@ experiment-stages() {
     # extract
     clone-systems
     read-statistics
-    extract-kconfig-models --iterations "$N"
+    extract-kconfig-models --with-kconfigreader "$N" --with-kclause "$N"
     join-into read-statistics extract-kconfig-models
 
     # transform
-    transform-to-dimacs-with-featjar \
-        --transformer transform-to-dimacs-with-featureide
-    transform-with-featjar \
-        --transformer transform-to-smt-with-z3 \
-        --output-extension smt \
-        --jobs 16
-    transform-with-featjar \
-        --transformer transform-to-model-with-featureide \
-        --output-extension featureide.model \
-        --jobs 16
-    run \
-        --image kconfigreader \
-        --input transform-to-model-with-featureide \
-        --output transform-to-dimacs-with-kconfigreader \
-        --command transform-to-dimacs-with-kconfigreader \
-        --input-extension featureide.model
-    join-into transform-to-model-with-featureide transform-to-dimacs-with-kconfigreader
-    run \
-        --image z3 \
-        --input transform-to-smt-with-z3 \
-        --output transform-smt-to-dimacs-with-z3 \
-        --command transform-smt-to-dimacs-with-z3
-    join-into transform-to-smt-with-z3 transform-smt-to-dimacs-with-z3
-    aggregate \
-        --output transform-to-dimacs \
-        --directory-field dimacs_transformer \
-        --file-fields dimacs_file \
-        --inputs transform-to-dimacs-with-featureide transform-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
+    transform-to-dimacs \
+        --with-featureide y \
+        --with-kconfigreader y \
+        --with-z3 y
     join-into extract-kconfig-models transform-to-dimacs
 
     # solve

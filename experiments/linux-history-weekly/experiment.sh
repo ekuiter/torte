@@ -17,7 +17,7 @@ experiment-test-systems(__NO_CI__) {
 experiment-stages() {
     clone-systems
     read-statistics --option skip-sloc
-    extract-kconfig-models-with --extractor kclause
-    join-into read-statistics extract-kconfig-models-with-kclause
-    collect-stage-files --input extract-kconfig-models-with-kclause --extension model
+    extract-kconfig-models --with-kclause y
+    join-into read-statistics extract-kconfig-models
+    collect-stage-files --input extract-kconfig-models --extension model
 }

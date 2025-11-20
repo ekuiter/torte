@@ -58,14 +58,7 @@ experiment-stages() {
 
     # transform
     transform-with-featjar --transformer transform-to-uvl-with-featureide --output-extension uvl --jobs 16
-    transform-with-featjar --transformer transform-to-smt-with-z3 --output-extension smt --jobs 16
-    run \
-        --image z3 \
-        --input transform-to-smt-with-z3 \
-        --output transform-to-dimacs \
-        --command transform-smt-to-dimacs-with-z3 \
-        --jobs 16
-    join-into transform-to-smt-with-z3 transform-to-dimacs
+    transform-to-dimacs --with-z3 y --jobs 16
     join-into extract-kconfig-models transform-to-dimacs
 
     # solve

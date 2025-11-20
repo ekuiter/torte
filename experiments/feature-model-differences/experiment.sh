@@ -23,7 +23,7 @@ experiment-stages() {
     clone-systems
     [[ "$PASS" == "busybox-commits" ]] && generate-busybox-models
     read-statistics
-    extract-kconfig-models-with --extractor kclause
+    extract-kconfig-models --with-kclause y
     join-into read-statistics kconfig
     build-image clausy
 }

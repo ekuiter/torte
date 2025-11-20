@@ -24,22 +24,10 @@ experiment-stages() {
     tag-linux-revisions
     read-statistics --option skip-sloc
 
-    extract-kconfig-models-with \
-        --extractor kclause \
-        --output extract-kconfig-models
+    extract-kconfig-models --with-kclause y
     join-into read-statistics extract-kconfig-models
 
-    transform-with-featjar \
-        --transformer transform-to-smt-with-z3 \
-        --output-extension smt \
-        --jobs 8
-    run \
-        --image z3 \
-        --input transform-to-smt-with-z3 \
-        --output transform-to-dimacs \
-        --command transform-smt-to-dimacs-with-z3 \
-        --jobs 8
-    join-into transform-to-smt-with-z3 transform-to-dimacs
+    transform-to-dimacs --with-z3 y --jobs 8
     join-into extract-kconfig-models transform-to-dimacs
 
     # compute two samples: one for backbone (core/dead) queries, one for partial configuration queries
