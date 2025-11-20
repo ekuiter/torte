@@ -202,6 +202,9 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
 | [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |
 
+torte also integrates with feature-model repositories such as our own [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark) or the [UVLHub](https://www.uvlhub.io/) (with `inject-kconfig-models`).
+We also support the extraction of individual KConfig files (with `add-payload-file-kconfig`), which is useful for testing extractors.
+
 [^21]: Most revisions and architectures of Linux (since the introduction of KConfig in Linux 2.5.45) can be extracted successfully.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
 Before Linux 2.5.45, a predecessor of KConfig known as CML1 was used, which is incompatible with KConfig.
@@ -570,7 +573,7 @@ This project has evolved through several stages and intends to replace them all:
   It was mostly intended as a reproduction package for a single academic paper.
   Its functionality is almost completely subsumed by torte, which can be used to create reproduction packages for many different experiments.
 
-If you are looking for a curated collection of feature models from various domains, have a look at our [feature-model-benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark).
+If you are looking for a curated collection of feature models from various domains, have a look at our [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark).
 
 ## License
 
