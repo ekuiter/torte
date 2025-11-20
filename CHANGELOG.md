@@ -20,7 +20,7 @@ This release significantly revises the extraction mechanism, which means we can 
 - Support for parsing UVL files in FeatJAR
 - Support for extracting standalone KConfig files for testing purposes
 - Integration with non-KConfig repositories like feature-model benchmark and UVLHub
-- Added more flexible and consistent stage helpers for extraction and CNF transformation
+- Added more flexible and consistent stage helpers for extraction and transformation
 
 ### Changed
 

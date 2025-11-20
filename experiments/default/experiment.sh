@@ -41,8 +41,8 @@ experiment-stages() {
     # inject-feature-models --payload-files smart_home_fm.uvl Tankwar.dimacs
     # (the previous line is commented out here for demonstration purposes, to focus on the BusyBox model)
 
-    transform-with-featjar --transformer transform-to-xml-with-featureide --output-extension xml --timeout "$TIMEOUT"
-    transform-with-featjar --transformer transform-to-uvl-with-featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-to-xml --timeout "$TIMEOUT"
+    transform-to-uvl --timeout "$TIMEOUT"
     transform-to-dimacs --timeout "$TIMEOUT"
 
     draw-community-structure-with-satgraf --timeout "$TIMEOUT"

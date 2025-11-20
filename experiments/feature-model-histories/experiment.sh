@@ -38,7 +38,7 @@ experiment-stages() {
     join-into read-statistics extract-kconfig-models
 
     # transform into UVL
-    transform-with-featjar --transformer transform-to-uvl-with-featureide --output-extension uvl --timeout "$TRANSFORM_TIMEOUT"
+    transform-to-uvl --timeout "$TRANSFORM_TIMEOUT"
 
     # CNF transformation
     transform-to-dimacs --timeout "$TRANSFORM_TIMEOUT"

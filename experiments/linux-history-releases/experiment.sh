@@ -57,7 +57,7 @@ experiment-stages() {
     compute-unconstrained-features --jobs 16
 
     # transform
-    transform-with-featjar --transformer transform-to-uvl-with-featureide --output-extension uvl --jobs 16
+    transform-to-uvl --jobs 16
     transform-to-dimacs --with-z3 y --jobs 16
     join-into extract-kconfig-models transform-to-dimacs
 

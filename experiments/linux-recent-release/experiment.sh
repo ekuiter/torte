@@ -17,8 +17,8 @@ experiment-stages() {
     compute-unconstrained-features
 
     # transform
-    transform-with-featjar --transformer transform-to-uvl-with-featureide --output-extension uvl --jobs 2
-    transform-with-featjar --transformer transform-to-xml-with-featureide --output-extension xml --jobs 2
+    transform-to-xml --timeout "$TIMEOUT" --jobs 2
+    transform-to-uvl --timeout "$TIMEOUT" --jobs 2
     transform-to-dimacs --with-z3 y --jobs 2
     join-into extract-kconfig-models transform-to-dimacs
 

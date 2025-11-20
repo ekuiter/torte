@@ -250,6 +250,30 @@ define-stages() {
             --inputs "${inputs[@]}"
     }
 
+    # transforms model files to UVL
+    transform-to-uvl(input=extract-kconfig-models, timeout=0, jobs=1, iterations=1, iteration_field=) {
+        transform-with-featjar \
+            --transformer transform-to-uvl-with-featureide \
+            --output-extension uvl  \
+            --input "$input" \
+            --timeout "$timeout" \
+            --jobs "$jobs" \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field"
+    }
+
+    # transforms model files to XML
+    transform-to-xml(input=extract-kconfig-models, timeout=0, jobs=1, iterations=1, iteration_field=) {
+        transform-with-featjar \
+            --transformer transform-to-xml-with-featureide \
+            --output-extension xml  \
+            --input "$input" \
+            --timeout "$timeout" \
+            --jobs "$jobs" \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field"
+    }
+
     # visualize community structure of DIMACS files as a JPEG file
     draw-community-structure-with-satgraf(input=transform-to-dimacs, output=draw-community-structure-with-satgraf, timeout=0, jobs=1) {
         run \
