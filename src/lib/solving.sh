@@ -245,7 +245,7 @@ run-clausy-batch-diff(input_directory=, timeout=0) {
 
 # expresses the intent to mount the default input in DIMACS solving stages
 # can be passed as --input to solve(...)
-mount-dimacs-input(input=transform-model-to-dimacs) {
+mount-dimacs-input(input=transform-to-dimacs) {
     echo "$MAIN_INPUT_KEY=$input"
 }
 

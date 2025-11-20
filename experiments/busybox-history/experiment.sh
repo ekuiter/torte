@@ -31,9 +31,9 @@ experiment-stages() {
     read-statistics --input "$input"
     extract-kconfig-models-with --extractor kclause --input "$input" --output extract-kconfig-models
     join-into read-statistics extract-kconfig-models
-    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl
-    transform-model-to-dimacs
+    transform-with-featjar --transformer transform-to-uvl-with-featureide --output-extension uvl
+    transform-to-dimacs
 
-    collect-stage-files --input transform-model-to-dimacs-with-featureide --extension dimacs
-    collect-stage-files --input transform-model-to-uvl-with-featureide --extension uvl
+    collect-stage-files --input transform-to-dimacs-with-featureide --extension dimacs
+    collect-stage-files --input transform-to-uvl-with-featureide --extension uvl
 }

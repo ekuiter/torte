@@ -104,7 +104,7 @@ define-stages() {
     }
 
     # transforms model files with FeatJAR
-    transform-model-with-featjar(transformer, output_extension, input=extract-kconfig-models, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+    transform-with-featjar(transformer, output_extension, input=extract-kconfig-models, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
         # shellcheck disable=SC2128
         iterate \
             --iterations "$iterations" \
@@ -123,8 +123,8 @@ define-stages() {
     }
 
     # transforms model files to DIMACS with FeatJAR
-    transform-model-to-dimacs-with-featjar(transformer, input=extract-kconfig-models, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
-        transform-model-with-featjar \
+    transform-to-dimacs-with-featjar(transformer, input=extract-kconfig-models, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+        transform-with-featjar \
             --command transform-to-dimacs-with-featjar \
             --output-extension dimacs \
             --input "$input" \
@@ -137,28 +137,28 @@ define-stages() {
     }
 
     # transforms model files to DIMACS
-    transform-model-to-dimacs(input=extract-kconfig-models, output=transform-model-to-dimacs, timeout=0, jobs=1) {
+    transform-to-dimacs(input=extract-kconfig-models, output=transform-to-dimacs, timeout=0, jobs=1) {
         # distributive tranformation
-        transform-model-to-dimacs-with-featjar \
-            --transformer transform-model-to-dimacs-with-featureide \
+        transform-to-dimacs-with-featjar \
+            --transformer transform-to-dimacs-with-featureide \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
-        transform-model-to-dimacs-with-featjar \
-            --transformer transform-model-to-dimacs-with-featjar \
+        transform-to-dimacs-with-featjar \
+            --transformer transform-to-dimacs-with-featjar \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
         
         # intermediate formats for CNF transformation
-        transform-model-with-featjar \
-            --transformer transform-model-to-model-with-featureide \
+        transform-with-featjar \
+            --transformer transform-to-model-with-featureide \
             --output-extension featureide.model \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
-        transform-model-with-featjar \
-            --transformer transform-model-to-smt-with-z3 \
+        transform-with-featjar \
+            --transformer transform-to-smt-with-z3 \
             --output-extension smt \
             --input "$input" \
             --timeout "$timeout" \
@@ -168,35 +168,35 @@ define-stages() {
         # todo: extract primitives and reuse in experiments
         run \
             --image kconfigreader \
-            --input transform-model-to-model-with-featureide \
-            --output transform-model-to-dimacs-with-kconfigreader \
+            --input transform-to-model-with-featureide \
+            --output transform-to-dimacs-with-kconfigreader \
             --resumable y \
-            --command transform-model-to-dimacs-with-kconfigreader \
+            --command transform-to-dimacs-with-kconfigreader \
             --input-extension featureide.model \
             --timeout "$timeout" \
             --jobs "$jobs"
-        join-into transform-model-to-model-with-featureide transform-model-to-dimacs-with-kconfigreader
+        join-into transform-to-model-with-featureide transform-to-dimacs-with-kconfigreader
 
         # Tseitin CNF tranformation
         run \
             --image z3 \
-            --input transform-model-to-smt-with-z3 \
+            --input transform-to-smt-with-z3 \
             --output transform-smt-to-dimacs-with-z3 \
             --resumable y \
             --command transform-smt-to-dimacs-with-z3 \
             --timeout "$timeout" \
             --jobs "$jobs"
-        join-into transform-model-to-smt-with-z3 transform-smt-to-dimacs-with-z3
+        join-into transform-to-smt-with-z3 transform-smt-to-dimacs-with-z3
 
         aggregate \
             --output "$output" \
             --directory-field dimacs_transformer \
             --file-fields dimacs_file \
-            --inputs transform-model-to-dimacs-with-featureide transform-model-to-dimacs-with-featjar transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
+            --inputs transform-to-dimacs-with-featureide transform-to-dimacs-with-featjar transform-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
     }
 
     # visualize community structure of DIMACS files as a JPEG file
-    draw-community-structure-with-satgraf(input=transform-model-to-dimacs, output=draw-community-structure-with-satgraf, timeout=0, jobs=1) {
+    draw-community-structure-with-satgraf(input=transform-to-dimacs, output=draw-community-structure-with-satgraf, timeout=0, jobs=1) {
         run \
             --image satgraf \
             --input "$input" \
@@ -208,7 +208,7 @@ define-stages() {
     }
 
     # compute DIMACS files with explicit backbone using kissat or cadiback
-    transform-dimacs-to-backbone-dimacs-with(transformer, input=transform-model-to-dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
+    transform-dimacs-to-backbone-dimacs-with(transformer, input=transform-to-dimacs, output=transform-dimacs-to-backbone-dimacs, timeout=0, jobs=1) {
         if [[ $transformer == cadiback ]]; then
             local image=cadiback
         elif [[ $transformer == kissat ]]; then
@@ -292,7 +292,7 @@ define-stages() {
     }
 
     # solve DIMACS files
-    solve(kind, query=, input=transform-model-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
+    solve(kind, query=, input=transform-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
@@ -331,7 +331,7 @@ define-stages() {
 
     # solve DIMACS files for satisfiability
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=) {
+    solve-sat(input=transform-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
             sat-competition/02-zchaff,solver,sat
             sat-competition/03-Forklift,solver,sat
@@ -395,7 +395,7 @@ define-stages() {
 
     # solve DIMACS files for model count
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-sharp-sat(input=transform-model-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=) {
+    solve-sharp-sat(input=transform-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=) {
         local solver_specs=(
             emse-2023/countAntom,solver,sharp-sat
             emse-2023/d4,solver,sharp-sat

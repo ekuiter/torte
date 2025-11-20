@@ -29,18 +29,18 @@ experiment-stages() {
         --output extract-kconfig-models
     join-into read-statistics extract-kconfig-models
 
-    transform-model-with-featjar \
-        --transformer transform-model-to-smt-with-z3 \
+    transform-with-featjar \
+        --transformer transform-to-smt-with-z3 \
         --output-extension smt \
         --jobs 8
     run \
         --image z3 \
-        --input transform-model-to-smt-with-z3 \
-        --output transform-model-to-dimacs \
+        --input transform-to-smt-with-z3 \
+        --output transform-to-dimacs \
         --command transform-smt-to-dimacs-with-z3 \
         --jobs 8
-    join-into transform-model-to-smt-with-z3 transform-model-to-dimacs
-    join-into extract-kconfig-models transform-model-to-dimacs
+    join-into transform-to-smt-with-z3 transform-to-dimacs
+    join-into extract-kconfig-models transform-to-dimacs
 
     # compute two samples: one for backbone (core/dead) queries, one for partial configuration queries
     compute-constrained-features

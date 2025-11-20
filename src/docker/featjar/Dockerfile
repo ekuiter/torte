@@ -24,7 +24,7 @@ RUN scripts/clone.bat \
     && git -C formula-analysis-javasmt checkout 26d5092afae321bfa9372c30688960d9227ac55f \
     && git -C formula-analysis-sat4j checkout 8e4aacf0911b340e5b5e90da4f74ce191dc3b0ca \
     && git -C uvl checkout b5867699e0aca973e47529406d7c4f9ec9894239 \
-    && git -C torte-FeatJAR checkout c1cad89dcb47899a094538d80520b54db541cbf4
+    && git -C torte-FeatJAR checkout 52f86b1d5cd15f04a4afc040a6f74f8dd1778b89
 WORKDIR /home
 COPY *.sh ./
 RUN chmod +x *.sh \

@@ -37,39 +37,39 @@ experiment-stages() {
     join-into read-statistics extract-kconfig-models
 
     # transform
-    transform-model-to-dimacs-with-featjar \
-        --transformer transform-model-to-dimacs-with-featureide
-    transform-model-with-featjar \
-        --transformer transform-model-to-smt-with-z3 \
+    transform-to-dimacs-with-featjar \
+        --transformer transform-to-dimacs-with-featureide
+    transform-with-featjar \
+        --transformer transform-to-smt-with-z3 \
         --output-extension smt \
         --jobs 16
-    transform-model-with-featjar \
-        --transformer transform-model-to-model-with-featureide \
+    transform-with-featjar \
+        --transformer transform-to-model-with-featureide \
         --output-extension featureide.model \
         --jobs 16
     run \
         --image kconfigreader \
-        --input transform-model-to-model-with-featureide \
-        --output transform-model-to-dimacs-with-kconfigreader \
-        --command transform-model-to-dimacs-with-kconfigreader \
+        --input transform-to-model-with-featureide \
+        --output transform-to-dimacs-with-kconfigreader \
+        --command transform-to-dimacs-with-kconfigreader \
         --input-extension featureide.model
-    join-into transform-model-to-model-with-featureide transform-model-to-dimacs-with-kconfigreader
+    join-into transform-to-model-with-featureide transform-to-dimacs-with-kconfigreader
     run \
         --image z3 \
-        --input transform-model-to-smt-with-z3 \
+        --input transform-to-smt-with-z3 \
         --output transform-smt-to-dimacs-with-z3 \
         --command transform-smt-to-dimacs-with-z3
-    join-into transform-model-to-smt-with-z3 transform-smt-to-dimacs-with-z3
+    join-into transform-to-smt-with-z3 transform-smt-to-dimacs-with-z3
     aggregate \
-        --output transform-model-to-dimacs \
+        --output transform-to-dimacs \
         --directory-field dimacs_transformer \
         --file-fields dimacs_file \
-        --inputs transform-model-to-dimacs-with-featureide transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
-    join-into extract-kconfig-models transform-model-to-dimacs
+        --inputs transform-to-dimacs-with-featureide transform-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
+    join-into extract-kconfig-models transform-to-dimacs
 
     # solve
     transform-dimacs-to-backbone-dimacs-with --transformer cadiback
-    join-into transform-model-to-dimacs transform-dimacs-to-backbone-dimacs
+    join-into transform-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs 16
 
     solve \

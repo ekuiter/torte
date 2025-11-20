@@ -41,10 +41,10 @@ experiment-stages() {
     # inject-feature-models --payload-files smart_home_fm.uvl Tankwar.dimacs
     # (the previous line is commented out here for demonstration purposes, to focus on the BusyBox model)
 
-    transform-model-with-featjar --transformer transform-model-to-xml-with-featureide --output-extension xml --timeout "$TIMEOUT"
-    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl --timeout "$TIMEOUT"
-    transform-model-to-dimacs --timeout "$TIMEOUT"
-    
+    transform-with-featjar --transformer transform-to-xml-with-featureide --output-extension xml --timeout "$TIMEOUT"
+    transform-with-featjar --transformer transform-to-uvl-with-featureide --output-extension uvl --timeout "$TIMEOUT"
+    transform-to-dimacs --timeout "$TIMEOUT"
+
     draw-community-structure-with-satgraf --timeout "$TIMEOUT"
     transform-dimacs-to-backbone-dimacs-with --transformer cadiback --timeout "$TIMEOUT"
     compute-unconstrained-features --timeout "$TIMEOUT"
@@ -53,14 +53,14 @@ experiment-stages() {
     solve-sat --jobs "$JOBS" --timeout "$TIMEOUT"
     solve-sharp-sat --jobs "$JOBS" --timeout "$TIMEOUT"
 
-    join-into extract-kconfig-models transform-model-to-dimacs
-    join-into transform-model-to-dimacs draw-community-structure-with-satgraf
-    join-into transform-model-to-dimacs solve-sat
-    join-into transform-model-to-dimacs solve-sharp-sat
+    join-into extract-kconfig-models transform-to-dimacs
+    join-into transform-to-dimacs draw-community-structure-with-satgraf
+    join-into transform-to-dimacs solve-sat
+    join-into transform-to-dimacs solve-sharp-sat
 
     log-output-field read-statistics source_lines_of_code
     log-output-field extract-kconfig-models model_features
-    log-output-field transform-model-to-dimacs dimacs_variables
+    log-output-field transform-to-dimacs dimacs_variables
     log-output-field solve-sat sat
     log-output-field solve-sharp-sat sharp_sat
     run-jupyter-notebook --input draw-community-structure-with-satgraf --payload-file evaluation.ipynb

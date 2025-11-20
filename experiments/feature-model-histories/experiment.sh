@@ -38,10 +38,10 @@ experiment-stages() {
     join-into read-statistics extract-kconfig-models
 
     # transform into UVL
-    transform-model-with-featjar --transformer transform-model-to-uvl-with-featureide --output-extension uvl --timeout "$TRANSFORM_TIMEOUT"
+    transform-with-featjar --transformer transform-to-uvl-with-featureide --output-extension uvl --timeout "$TRANSFORM_TIMEOUT"
 
     # CNF transformation
-    transform-model-to-dimacs --timeout "$TRANSFORM_TIMEOUT"
+    transform-to-dimacs --timeout "$TRANSFORM_TIMEOUT"
 }
 
 # execute this with "torte feature-model-histories clean-up" in the stages directory

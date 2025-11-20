@@ -50,8 +50,8 @@ experiment-stages() {
     join-into read-statistics extract-kconfig-models
 
     # transform (with two CNF transformations)
-    transform-model-with-featjar \
-        --transformer transform-model-to-smt-with-z3 \
+    transform-with-featjar \
+        --transformer transform-to-smt-with-z3 \
         --output-extension smt \
         --jobs 8
     # we don't iterate this CNF transformation because it is fully deterministic
@@ -60,14 +60,14 @@ experiment-stages() {
         --iteration-field transform-iteration \
         --file-fields dimacs_file \
         --image z3 \
-        --input transform-model-to-smt-with-z3 \
+        --input transform-to-smt-with-z3 \
         --output transform-smt-to-dimacs-with-z3 \
         --command transform-smt-to-dimacs-with-z3 \
         --jobs 8
-    join-into transform-model-to-smt-with-z3 transform-smt-to-dimacs-with-z3
+    join-into transform-to-smt-with-z3 transform-smt-to-dimacs-with-z3
 
-    transform-model-with-featjar \
-        --transformer transform-model-to-model-with-featureide \
+    transform-with-featjar \
+        --transformer transform-to-model-with-featureide \
         --output-extension featureide.model \
         --jobs 8
     iterate \
@@ -75,19 +75,19 @@ experiment-stages() {
         --iteration-field transform-iteration \
         --file-fields dimacs_file \
         --image kconfigreader \
-        --input transform-model-to-model-with-featureide \
-        --output transform-model-to-dimacs-with-kconfigreader \
-        --command transform-model-to-dimacs-with-kconfigreader \
+        --input transform-to-model-with-featureide \
+        --output transform-to-dimacs-with-kconfigreader \
+        --command transform-to-dimacs-with-kconfigreader \
         --input-extension featureide.model \
         --jobs 8
-    join-into transform-model-to-model-with-featureide transform-model-to-dimacs-with-kconfigreader
+    join-into transform-to-model-with-featureide transform-to-dimacs-with-kconfigreader
     
     aggregate \
-        --output transform-model-to-dimacs \
+        --output transform-to-dimacs \
         --directory-field dimacs_transformer \
         --file-fields dimacs_file \
-        --inputs transform-model-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
-    join-into extract-kconfig-models transform-model-to-dimacs
+        --inputs transform-to-dimacs-with-kconfigreader transform-smt-to-dimacs-with-z3
+    join-into extract-kconfig-models transform-to-dimacs
 
     # solve (not parallelized so as not to disturb time measurements)
     solve \

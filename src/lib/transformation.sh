@@ -113,12 +113,12 @@ transform-to-dimacs-with-featjar(input_extension, output_extension, transformer,
 }
 
 # transforms kconfigreader model files to DIMACS using kconfigreader
-transform-model-to-dimacs-with-kconfigreader(input_extension=model, output_extension=dimacs, timeout=0, jobs=1) {
+transform-to-dimacs-with-kconfigreader(input_extension=model, output_extension=dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
         "$output_extension" \
-        transform-model-to-dimacs-with-kconfigreader \
+        transform-to-dimacs-with-kconfigreader \
         "$(lambda input,output 'echo /home/kconfigreader/run.sh '$(memory-limit 1)' de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \

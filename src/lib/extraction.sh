@@ -436,7 +436,7 @@ extract-kconfig-hierarchies-with-kconfiglib(timeout=0) {
 
 # expresses the intent to mount everything needed for hierarchy extraction
 # can be passed as --input to solve(...)
-mount-for-hierarchy-extraction(input=, uvl_input=transform-model-to-uvl-with-featureide, unconstrained_features_input=compute-unconstrained-features) {
+mount-for-hierarchy-extraction(input=, uvl_input=transform-to-uvl-with-featureide, unconstrained_features_input=compute-unconstrained-features) {
     input=${input:-$ROOT_STAGE}
     echo "$MAIN_INPUT_KEY=$input,$UVL_INPUT_KEY=$uvl_input,$UNCONSTRAINED_FEATURES_INPUT_KEY=$unconstrained_features_input"
 }
