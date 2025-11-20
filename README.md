@@ -48,7 +48,7 @@ To demonstrate the capabilities of torte, we provide a [dashboard](http://elias-
 
 torte provides three major setup options:
 
-1. This one-liner will get you started with the [default experiment](experiments/default.sh) ([Docker](https://docs.docker.com/get-docker/) or [Podman](https://podman.io/get-started) required).
+1. This one-liner will get you started with the [default experiment](experiments/default/experiment.sh) ([Docker](https://docs.docker.com/get-docker/) or [Podman](https://podman.io/get-started) required).
     ```
     curl -sL https://elias-kuiter.de/torte/ | sh
     ```
@@ -147,7 +147,7 @@ curl -sL https://elias-kuiter.de/torte/ | sh
 
 **Executing Experiments**
 
-- Above, we run the [default experiment](experiments/default.sh), which extracts, transforms, and solves the feature model of BusyBox 1.36.0 as a demonstration.
+- Above, we run the [default experiment](experiments/default/experiment.sh), which extracts, transforms, and solves the feature model of BusyBox 1.36.0 as a demonstration.
 To execute another experiment with the one-liner, run `curl -sL https://elias-kuiter.de/torte/ | sh -s - <experiment>` (information about predefined experiments is available [here](#predefined-experiments)).
 You can also write your own experiments by adapting an existing experiment file.
 - As an alternative to the self-extracting one-line installer shown above, you can clone this repository and run experiments with `./torte.sh <experiment>` (e.g., `./torte.sh busybox-history`).
@@ -204,6 +204,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 
 torte also integrates with feature-model repositories such as our own [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark) or the [UVLHub](https://www.uvlhub.io/) (with `inject-kconfig-models`).
 We also support the extraction of individual KConfig files (with `add-payload-file-kconfig`), which is useful for testing extractors.
+These integrations are demonstrated in the [default experiment](experiments/default/experiment.sh).
 
 [^21]: Most revisions and architectures of Linux (since the introduction of KConfig in Linux 2.5.45) can be extracted successfully.
 The user-mode architecture `um` is currently not supported, as it requires setting an additional sub-architecture.
