@@ -45,8 +45,7 @@ experiment-stages() {
     # extract (with two KConfig extractors)
     extract-kconfig-models \
         --iterations "$ITERATIONS" \
-        --iteration-field extract-iteration \
-        --file-fields model_file
+        --iteration-field extract-iteration
     join-into read-statistics extract-kconfig-models
 
     # transform (with two CNF transformations)

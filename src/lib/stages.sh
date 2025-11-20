@@ -40,12 +40,12 @@ define-stages() {
     }
 
     # extracts kconfig models with the given extractor
-    extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=iteration, file_fields=, options=, timeout=0) {
+    extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=, options=, timeout=0) {
         output="${output:-extract-kconfig-models-with-$extractor}"
         iterate \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
-            --file-fields "$file_fields" \
+            --file-fields binding_file,model_file \
             --image "$extractor" \
             --input "$input" \
             --output "$output" \
@@ -56,13 +56,12 @@ define-stages() {
     }
 
     # extracts kconfig models with kconfigreader and kclause
-    extract-kconfig-models(input=, output=extract-kconfig-models, iterations=1, iteration_field=iteration, file_fields=, options=, timeout=0) {
+    extract-kconfig-models(input=, output=extract-kconfig-models, iterations=1, iteration_field=, options=, timeout=0) {
         extract-kconfig-models-with \
             --extractor kconfigreader \
             --input "$input" \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
-            --file-fields "$file_fields" \
             --options "$options" \
             --timeout "$timeout"
         extract-kconfig-models-with \
@@ -70,14 +69,12 @@ define-stages() {
             --input "$input" \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
-            --file-fields "$file_fields" \
             --options "$options" \
             --timeout "$timeout"
         # extract-kconfig-models-with \
         # --extractor configfix \
         # --iterations "$iterations" \
         # --iteration-field "$iteration_field" \
-        # --file-fields "$file_fields" \
             # --options "$options" \
         # --timeout "$timeout"
         # todo ConfigFix: the idea was that not every extractor needs a binding file, which is not correctly realized here, I think
@@ -104,12 +101,12 @@ define-stages() {
     }
 
     # transforms model files with FeatJAR
-    transform-with-featjar(transformer, output_extension, input=extract-kconfig-models, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+    transform-with-featjar(transformer, output_extension, input=extract-kconfig-models, command=transform-with-featjar, timeout=0, jobs=1, iterations=1, iteration_field=) {
         # shellcheck disable=SC2128
         iterate \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
-            --file-fields "$file_fields" \
+            --file-fields "${output_extension}_file" \
             --image featjar \
             --input "$input" \
             --output "$transformer" \
@@ -123,7 +120,7 @@ define-stages() {
     }
 
     # transforms model files to DIMACS with FeatJAR
-    transform-to-dimacs-with-featjar(transformer, input=extract-kconfig-models, timeout=0, jobs=1, iterations=1, iteration_field=iteration, file_fields=) {
+    transform-to-dimacs-with-featjar(transformer, input=extract-kconfig-models, timeout=0, jobs=1, iterations=1, iteration_field=) {
         transform-with-featjar \
             --command transform-to-dimacs-with-featjar \
             --output-extension dimacs \
@@ -132,41 +129,44 @@ define-stages() {
             --timeout "$timeout" \
             --jobs "$jobs" \
             --iterations "$iterations" \
-            --iteration-field "$iteration_field" \
-            --file-fields "$file_fields"
+            --iteration-field "$iteration_field"
     }
 
     # transforms model files to DIMACS
-    transform-to-dimacs(input=extract-kconfig-models, output=transform-to-dimacs, timeout=0, jobs=1) {
-        # distributive tranformation
+    # this allows to flexibly enable or disable the desired CNF transformations
+    # some of these transformations are fully deterministic and need not be iterated (e.g., Z3), while KConfigReader is NOT deterministic
+    transform-to-dimacs(input=extract-kconfig-models, output=transform-to-dimacs, timeout=0, jobs=1, iterations=1, iteration_field=) {
+        # distributive tranformation with FeatureIDE (does not scale to large formulas)
         transform-to-dimacs-with-featjar \
             --transformer transform-to-dimacs-with-featureide \
             --input "$input" \
             --timeout "$timeout" \
-            --jobs "$jobs"
+            --jobs "$jobs" \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field"
+
+        # distributive tranformation with FeatJAR (does not scale to large formulas)
         transform-to-dimacs-with-featjar \
             --transformer transform-to-dimacs-with-featjar \
             --input "$input" \
             --timeout "$timeout" \
-            --jobs "$jobs"
-        
-        # intermediate formats for CNF transformation
+            --jobs "$jobs" \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field"
+
+        # intermediate format for CNF transformation with KConfigReader
         transform-with-featjar \
             --transformer transform-to-model-with-featureide \
             --output-extension featureide.model \
             --input "$input" \
             --timeout "$timeout" \
             --jobs "$jobs"
-        transform-with-featjar \
-            --transformer transform-to-smt-with-z3 \
-            --output-extension smt \
-            --input "$input" \
-            --timeout "$timeout" \
-            --jobs "$jobs"
 
-        # Plaisted-Greenbaum CNF tranformation
-        # todo: extract primitives and reuse in experiments
-        run \
+        # Plaisted-Greenbaum CNF tranformation with KConfigReader (preserves satisfiability, but not model count)
+        iterate \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field" \
+            --file-fields dimacs_file \
             --image kconfigreader \
             --input transform-to-model-with-featureide \
             --output transform-to-dimacs-with-kconfigreader \
@@ -177,8 +177,19 @@ define-stages() {
             --jobs "$jobs"
         join-into transform-to-model-with-featureide transform-to-dimacs-with-kconfigreader
 
-        # Tseitin CNF tranformation
-        run \
+        # intermediate format for CNF transformation with Z3
+        transform-with-featjar \
+            --transformer transform-to-smt-with-z3 \
+            --output-extension smt \
+            --input "$input" \
+            --timeout "$timeout" \
+            --jobs "$jobs"
+
+        # Tseitin CNF tranformation with Z3 (preserves satisfiability and model count)
+        iterate \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field" \
+            --file-fields dimacs_file \
             --image z3 \
             --input transform-to-smt-with-z3 \
             --output transform-smt-to-dimacs-with-z3 \
@@ -292,7 +303,7 @@ define-stages() {
     }
 
     # solve DIMACS files
-    solve(kind, query=, input=transform-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=, solver_specs...) {
+    solve(kind, query=, input=transform-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=, file_fields=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
@@ -331,7 +342,7 @@ define-stages() {
 
     # solve DIMACS files for satisfiability
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-sat(input=transform-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=) {
+    solve-sat(input=transform-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=, file_fields=) {
         local solver_specs=(
             sat-competition/02-zchaff,solver,sat
             sat-competition/03-Forklift,solver,sat
@@ -395,7 +406,7 @@ define-stages() {
 
     # solve DIMACS files for model count
     # many solvers are available, which are listed below, but only few are enabled by default
-    solve-sharp-sat(input=transform-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=iteration, file_fields=) {
+    solve-sharp-sat(input=transform-to-dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=, file_fields=) {
         local solver_specs=(
             emse-2023/countAntom,solver,sharp-sat
             emse-2023/d4,solver,sharp-sat

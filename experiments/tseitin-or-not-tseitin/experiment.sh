@@ -31,9 +31,7 @@ experiment-stages() {
     # extract
     clone-systems
     read-statistics
-    extract-kconfig-models \
-        --iterations "$N" \
-        --file-fields model_file
+    extract-kconfig-models --iterations "$N"
     join-into read-statistics extract-kconfig-models
 
     # transform

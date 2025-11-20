@@ -280,7 +280,7 @@ iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=,
         if [[ ! -f "$(stage-csv "${output}-1")" ]]; then
             error "Required output CSV for stage ${output}-1 is missing, please re-run stage ${output}-1."
         fi
-        aggregate "$output" "$file_fields" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d_ -f1 | rev")" "" "${stages[@]}"
+        aggregate "$output" "$file_fields" "$iteration_field" "$(lambda value "echo \$value | rev | cut -d- -f1 | rev")" "" "${stages[@]}"
     fi
 }
 
