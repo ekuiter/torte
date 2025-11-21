@@ -285,7 +285,7 @@ iterate(iterations, iteration_field=iteration, file_fields=, image=util, input=,
 }
 
 # runs the util Docker container as a transient stage; e.g., for a small calculation to add to an existing stage
-# only run if the specified file does not exist yet
+# only run if the specified file does not exist yet or is empty
 # should be run before the existing stage is moved (e.g., by an aggregation)
 run-transient-unless(file=, input=, command...) {
     local file_path

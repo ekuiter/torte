@@ -41,3 +41,8 @@ add-kconfig-model(system, revision, kconfig_file, lkc_binding_file=, environment
 add-kconfig(system, revision, kconfig_file, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
     :
 }
+
+# adds a feature-model payload file that is not specified in KConfig
+add-model-payload-file(payload_file) {
+    :
+}

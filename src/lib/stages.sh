@@ -101,11 +101,18 @@ define-stages() {
         #     binding_file=""
         # fi
 
+        # aggregate all extracted models in one stage
         aggregate \
             --output "$output" \
             --stage-field extractor \
             --file-fields binding_file,model_file \
             --inputs "${inputs[@]}"
+
+        # inject any payload files specified in experiment-systems (e.g., additional UVL files)
+        run-transient-unless \
+            --file "$output/.payload_files_injected" \
+            --input "$output" \
+            --command inject-payload-files-after-extraction
     }
 
     # extracts kconfig hierarchies with kconfiglib
