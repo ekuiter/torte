@@ -7,9 +7,9 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # This experiment extracts, transforms, and solves a single feature model.
 # It serves as a demo and integration test for torte and also returns some common statistics of the model.
 
-# here we define global configuration variables, which are explicitly passed to stages below
-TIMEOUT=10
-JOBS=4
+# here we define global experiment parameters, which are passed to the stages that need them below
+with_timeout="--timeout 10"
+with_jobs="--jobs 4"
 
 add-payload-file evaluation.ipynb # we can add Jupyter notebooks to execute at the end of the experiment
 # add-payload-file Kconfig.test # we can inject individual KConfig files to test extraction on small examples
@@ -28,6 +28,7 @@ experiment-test-systems() {
     add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
 }
 
+# shellcheck disable=SC2086
 experiment-stages() {
     clone-systems
     read-statistics
@@ -41,22 +42,19 @@ experiment-stages() {
     # inject-feature-models --payload-files smart_home_fm.uvl Tankwar.dimacs
     # (the previous line is commented out here for demonstration purposes, to focus on the BusyBox model)
 
-    transform-to-xml --timeout "$TIMEOUT"
-    transform-to-uvl --timeout "$TIMEOUT"
-    transform-to-dimacs --timeout "$TIMEOUT"
-
-    draw-community-structure-with-satgraf --timeout "$TIMEOUT"
-    transform-dimacs-to-backbone-dimacs-with --transformer cadiback --timeout "$TIMEOUT"
-    compute-unconstrained-features --timeout "$TIMEOUT"
-    extract-kconfig-hierarchies-with-kconfiglib --timeout "$TIMEOUT"
-    compute-backbone-features --timeout "$TIMEOUT"
-    solve-sat --jobs "$JOBS" --timeout "$TIMEOUT"
-    solve-sharp-sat --jobs "$JOBS" --timeout "$TIMEOUT"
-
+    transform-to-xml $with_timeout
+    transform-to-uvl $with_timeout
+    transform-to-dimacs $with_timeout
     join-into extract-kconfig-models transform-to-dimacs
-    join-into transform-to-dimacs draw-community-structure-with-satgraf
-    join-into transform-to-dimacs solve-sat
-    join-into transform-to-dimacs solve-sharp-sat
+
+    draw-community-structure-with-satgraf $with_timeout
+    transform-dimacs-to-backbone-dimacs-with --transformer cadiback $with_timeout
+    compute-unconstrained-features $with_timeout
+    extract-kconfig-hierarchies-with-kconfiglib $with_timeout
+    compute-backbone-features $with_timeout
+    
+    solve-sat $with_jobs $with_timeout
+    solve-sharp-sat $with_jobs $with_timeout
 
     log-output-field read-statistics source_lines_of_code
     log-output-field extract-kconfig-models model_features
