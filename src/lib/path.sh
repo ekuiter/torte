@@ -142,17 +142,24 @@ output-directory() {
 }
 
 # returns the path to a file at a given composite path, which is created if necessary
+# pass __NO_CREATE__ as one component to prevent directory creation
 compose-path(base_directory, components...) {
     local new_components=()
+    local no_create
     for component in "${components[@]}"; do
         if [ -z "$component" ]; then
+            continue
+        elif [[ "$component" == __NO_CREATE__ ]]; then
+            no_create=y
             continue
         fi
         new_components+=("$component")
     done
     local path
     path=$base_directory/$(printf '%s\n' "${new_components[@]}" | paste -s -d "$PATH_SEPARATOR" -)
-    mkdir -p "$(dirname "$path")"
+    if [[ -z $no_create ]]; then
+        mkdir -p "$(dirname "$path")"
+    fi
     echo "$path"
 }
 

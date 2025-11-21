@@ -121,6 +121,10 @@ linux-attempt-grouper(file, query) {
 }
 
 add-linux-kconfig(revision, architecture=x86, lkc_binding_file=) {
+    add-linux-system
+    if [[ ! -d $(input-directory)/linux ]]; then
+        return
+    fi
     if [[ $architecture == x86 ]] && linux-architectures "$revision" | grep -q '^i386$'; then
         architecture=i386 # in old revisions, x86 is called i386
     fi
@@ -146,7 +150,6 @@ add-linux-kconfig(revision, architecture=x86, lkc_binding_file=) {
     kconfig_file=$({ git -C "$(input-directory)/linux" show "$revision:scripts/kconfig/Makefile" | grep "^Kconfig := [^$]" | cut -d' ' -f3; } || true)
     kconfig_file=${kconfig_file:-arch/\$(SRCARCH)/Kconfig}
     kconfig_file=${kconfig_file//\$(SRCARCH)/$architecture}
-    add-linux-system
     add-revision --system linux --revision "$revision"
     if [[ -n $lkc_binding_file ]]; then
         add-kconfig-model \
@@ -167,6 +170,9 @@ add-linux-kconfig(revision, architecture=x86, lkc_binding_file=) {
 
 add-linux-lkc-binding(revision) {
     add-linux-system
+    if [[ ! -d $(input-directory)/linux ]]; then
+        return
+    fi
     # explicitly set the architecture to an arbitrary valid one, which is not used to compile the binding
     # older Linux versions otherwise default to the host machine architecture, which may not be available (e.g., aarch64)
     # we use x86/i386 here as it is available in every revision
@@ -179,11 +185,14 @@ add-linux-lkc-binding(revision) {
 }
 
 linux-lkc-binding-file(revision) {
-    output-path "$LKC_BINDINGS_DIRECTORY" linux "$revision" # todo: this seems to create useless (empty) lkc-bindings directories in some stages
+    output-path __NO_CREATE__ "$LKC_BINDINGS_DIRECTORY" linux "$revision"
 }
 
 add-linux-kconfig-revisions(revisions=, architecture=x86) {
     add-linux-system
+    if [[ ! -d $(input-directory)/linux ]]; then
+        return
+    fi
     # for up to linux 2.5.70, use LKC of linux 2.5.71 for extraction, as previous versions cannot be easily compiled
     # this is because LKC was very much under development in between October 2002 and June 2003 (for example, property->expr does not even exist until 2.5.71)
     # in theory, we could try to guess how to adapt our bindings, but this might easily introduce mistakes and would be a lot of effort due to the many changes

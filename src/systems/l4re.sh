@@ -12,6 +12,9 @@ add-l4re-system() {
 
 add-l4re-kconfig(revision) {
     add-l4re-system
+    if [[ ! -d $(input-directory)/l4re ]]; then
+        return
+    fi
     add-revision --system l4re --revision "$revision"
     # do not confuse src/Kconfig with build/Kconfig, only the latter is complete
     add-kconfig \

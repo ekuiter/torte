@@ -30,6 +30,9 @@ add-freetz-ng-system() {
 
 add-freetz-ng-kconfig(revision) {
     add-freetz-ng-system
+    if [[ ! -d $(input-directory)/freetz-ng ]]; then
+        return
+    fi
     add-revision --system freetz-ng --revision "$revision"
     add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-freetz-ng
     add-kconfig \
