@@ -34,7 +34,9 @@ add-payload-file(payload_file) {
         elif [[ ! -f $original_payload_file ]] && [[ -n $TORTE_EXPERIMENT ]] && [[ -f $(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file ]]; then
             # this addresses the corner case where the experiment file has been obtained with the one-liner from the README file (which sets TORTE_EXPERIMENT)
             # in that case, we obtain the payload from this project's repository
-            original_payload_file=$(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file
+            local repository_payload_file
+            repository_payload_file=$(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file
+            cp "$repository_payload_file" "$original_payload_file"
         elif [[ ! -f $original_payload_file ]]; then
             error-help "The requested payload file $payload_file does not exist and cannot be added."
         fi

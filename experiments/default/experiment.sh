@@ -13,21 +13,21 @@ with_timeout="--timeout 10"
 with_jobs="--jobs 4"
 
 add-payload-file evaluation.ipynb # we can add Jupyter notebooks to execute at the end of the experiment
-add-payload-file Kconfig.test # we can inject individual KConfig files to test extraction on small examples
-download-payload-file smart_home_fm.uvl https://www.uvlhub.io/hubfiles/download/189 # we can also download arbitrary payload files from the web
-download-payload-file Tankwar.dimacs \
-    https://raw.githubusercontent.com/SoftVarE-Group/feature-model-benchmark/refs/heads/master/feature_models/dimacs/games/Tankwar/Schulze2012.dimacs
+# add-payload-file Kconfig.test # we can inject individual KConfig files to test extraction on small examples
+# download-payload-file smart_home_fm.uvl https://www.uvlhub.io/hubfiles/download/189 # we can also download arbitrary payload files from the web
+# download-payload-file Tankwar.dimacs \
+#     https://raw.githubusercontent.com/SoftVarE-Group/feature-model-benchmark/refs/heads/master/feature_models/dimacs/games/Tankwar/Schulze2012.dimacs
 
 experiment-systems() {
     # usually we extract feature models from KConfig-specified ground truth ...
     add-busybox-kconfig-history --from 1_36_0 --to 1_36_1 # typically, we add (excerpts of) system histories to analyze
-    add-kconfig-payload-file Kconfig.test # we can also just analyze one KConfig file, which will be parsed with Linux's LKC implementation
+    # add-kconfig-payload-file Kconfig.test # we can also just analyze one KConfig file, which will be parsed with Linux's LKC implementation
     
     # ... but we can also inject pre-existing feature model files directly
     # here, any files are legal that can be successfully parsed by subsequent stages (typically FeatJAR or FeatureIDE)
     # this allows us to integrate with feature-model repositories, such as the feature-model benchmark or UVLHub (where we download these files from)
-    add-model-payload-file smart_home_fm.uvl
-    add-model-payload-file Tankwar.dimacs
+    # add-model-payload-file smart_home_fm.uvl
+    # add-model-payload-file Tankwar.dimacs
 }
 
 experiment-test-systems() {
