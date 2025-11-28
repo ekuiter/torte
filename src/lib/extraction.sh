@@ -39,6 +39,8 @@ kconfig-model-done(system, revision) {
 
 # compiles a C program that extracts Kconfig constraints from Kconfig files
 # for kconfigreader and kclause, this compiles dumpconf and kextractor against LKC's Kconfig parser, respectively
+# this ensures that the parser understands all Kconfig constructs used by the given system and revision and translates them correctly in terms of semantics
+# for configfix, we skip this step, because it is tightly integrated with LKC and very hard to adapt to other systems and revisions
 # lkc_directory must contain an implementation of LKC with a conf.c file, which we replace with the custom implementation given by the binding name
 compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=config, lkc_output_directory=, environment=) {
     revision=$(revision-without-context "$revision")
@@ -105,10 +107,121 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
     echo "$system,$revision,$lkc_binding_output_file" >> "$(output-path "$LKC_BINDINGS_OUTPUT_CSV")"
 }
 
+# runs KConfigReader to extract a feature-model formula from Kconfig files
+# sets the global MEASURED_TIME variable
+extract-kconfig-model-with-kconfigreader(system, revision, kconfig_file, lkc_binding_file, output_log, timeout=0) {
+    measure "$timeout" /home/kconfigreader/run.sh \
+        "$(memory-limit 1)" \
+        de.fosd.typechef.kconfig.KConfigReader \
+        --fast \
+        --dumpconf "$lkc_binding_file" \
+        "$kconfig_file" \
+        "$(output-path "$system" "$revision")" \
+        | tee "$output_log"
+    MEASURED_TIME=$(grep -oP "^measure_time=\K.*" < "$output_log")
+}
+
+# runs KClause to extract a feature-model formula from Kconfig files
+# sets the global MEASURED_TIME variable
+extract-kconfig-model-with-kclause(system, revision, kconfig_file, lkc_binding_file, kconfig_model, features_file, output_log, options=, timeout=0) {
+    measure "$timeout" /home/kextractor.sh \
+        "$lkc_binding_file" \
+        "$(output-path "$system" "$revision.kextractor")" \
+        "$features_file" "$kconfig_file" \
+        | tee "$output_log"
+    MEASURED_TIME=$(grep -oP "^measure_time=\K.*" < "$output_log")
+    compile-hook kclause-post-binding-hook
+    kclause-post-binding-hook "$system" "$revision"
+    # as documented in the README file, we consider --disable-tristate-support to be the sensible default
+    # thus, we explicitly make tristate support opt-in here
+    if [[ -z "$options" ]]; then
+        options="--disable-tristate-support"
+    elif [[ $options == "--enable-tristate-support" ]]; then
+        options=
+    fi
+    # shellcheck disable=SC2086
+    measure "$timeout" /home/kclause.sh \
+        "$(output-path "$system" "$revision.kextractor")" \
+        "$(output-path "$system" "$revision.kclause")" \
+        "$kconfig_model" \
+        $options \
+        | tee "$output_log"
+    MEASURED_TIME=$((MEASURED_TIME+$(grep -oP "^measure_time=\K.*" < "$output_log")))
+}
+
+# todo
+extract-kconfig-model-with-configfix() {
+    linux_source="/home/linux/linux-6.10"
+    export KBUILD_KCONFIG
+    KBUILD_KCONFIG=$(realpath "$kconfig_file")
+    export srctree="/home/input/$system"
+    #todo ConfigFix: check these preprocessings and move them into hooks should they be necessary
+    #preprocessing for system busybox
+    if [[ "$system" == "busybox" ]]; then
+        find "$srctree" -type f -exec sed -i '/source\s\+networking\/udhcp\/Config\.in/d' {} \;
+        find $srctree -name "$kconfig_file" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
+    fi
+    #preprocessing for system axtls
+    if [[ "$system" == "axtls" ]]; then
+        find "$srctree" -type f -name "Config.in" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
+    fi
+    #preprocessing for system uclibc-ng
+    if [[ "$system" == "uclibc-ng" ]]; then
+        find "$srctree" -type f -exec sed -i -r "s|^source\\s+\"(.*)\"|source \"$(realpath "$srctree")/\\1\"|" {} \;
+        # to ask 
+        find "$srctree" -type f -exec sed -i '/option env/d' {} \;
+    fi
+    #preprocessing for system embtoolkit
+    if [[ "$system" == "embtoolkit" ]]; then
+        find "$srctree" -type f -exec sed -i '/option env/d' {} \;
+        config_files=$(find "$srctree" -type f -name "Kconfig") 
+            for file in $config_files; do
+                sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
+                    -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
+            done
+        config_files=$(find "$srctree" -type f -name "*.kconfig") 
+            for file in $config_files; do
+                sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
+                -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
+            done
+    fi
+    #preprocessing for system freetz-ng
+    if [[ "$system" == "freetz-ng" ]]; then
+        config_files=$(find "$srctree" -type f -name "*.in") 
+        for file in $config_files; do
+            sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
+            sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
+                -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
+        done
+        config_files=$(find "$srctree" -type f -name "Config.in.busybox") 
+        for file in $config_files; do
+            sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
+            sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
+                -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
+        done
+    fi
+    #preprocessing for system toybox
+    if [[ "$system" == "toybox" ]]; then
+        config_files=$(find "$srctree" -type f -name "*.in") 
+        for file in $config_files; do
+            sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/toybox/\1"|' \
+                -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/toybox/\1"|' "$file"
+        done
+    fi
+    make -f "$linux_source/Makefile" mrproper
+    make -C "$linux_source" scripts/kconfig/cfoutconfig
+    measure "$timeout" make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
+    MEASURED_TIME=$(grep -oP "^measure_time=\K.*" < "$output_log")
+    if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.features" ]]; then
+        cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
+                cp "$linux_source/scripts/kconfig/cfout_constraints.features" "$features_file"
+    fi
+}
+
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
 extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, lkc_binding_file=, environment=, options=, timeout=0) {
-    local revision_without_context context
+    local revision_without_context context time
     revision_without_context=$(revision-without-context "$revision")
     context=$(get-context "$revision")
     if [[ -z "$lkc_binding" ]]; then
@@ -135,106 +248,13 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
         if [[ -z "$lkc_binding_file" || -f $lkc_binding_file ]]; then
             set-environment "$environment"
             if [[ $extractor == kconfigreader ]]; then
-                measure "$timeout" /home/kconfigreader/run.sh \
-                    "$(memory-limit 1)" \
-                    de.fosd.typechef.kconfig.KConfigReader \
-                    --fast \
-                    --dumpconf "$lkc_binding_file" \
-                    "$kconfig_file" \
-                    "$(output-path "$system" "$revision")" \
-                    | tee "$output_log"
-                local time
-                time=$(grep -oP "^measure_time=\K.*" < "$output_log")
+                extract-kconfig-model-with-kconfigreader \
+                    "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$output_log" "$timeout"
             elif [[ $extractor == kclause ]]; then
-                measure "$timeout" /home/kextractor.sh \
-                    "$lkc_binding_file" \
-                    "$(output-path "$system" "$revision.kextractor")" \
-                    "$features_file" "$kconfig_file" \
-                    | tee "$output_log"
-                time=$(grep -oP "^measure_time=\K.*" < "$output_log")
-                compile-hook kclause-post-binding-hook
-                kclause-post-binding-hook "$system" "$revision"
-                # as documented in the README file, we consider --disable-tristate-support to be the sensible default
-                # thus, we explicitly make tristate support opt-in here
-                if [[ -z "$options" ]]; then
-                    options="--disable-tristate-support"
-                elif [[ $options == "--enable-tristate-support" ]]; then
-                    options=
-                fi
-                # shellcheck disable=SC2086
-                measure "$timeout" /home/kclause.sh \
-                    "$(output-path "$system" "$revision.kextractor")" \
-                    "$(output-path "$system" "$revision.kclause")" \
-                    "$kconfig_model" \
-                    $options \
-                    | tee "$output_log"
-                time=$((time+$(grep -oP "^measure_time=\K.*" < "$output_log")))
+                extract-kconfig-model-with-kclause \
+                    "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$kconfig_model" "$features_file" "$output_log" "$options" "$timeout"
             elif [[ $extractor == configfix ]]; then
-                linux_source="/home/linux/linux-6.10"
-                export KBUILD_KCONFIG
-                KBUILD_KCONFIG=$(realpath "$kconfig_file")
-                export srctree="/home/input/$system"
-                #todo ConfigFix: check these preprocessings and move them into hooks should they be necessary
-                #preprocessing for system busybox
-                if [[ "$system" == "busybox" ]]; then
-                    find "$srctree" -type f -exec sed -i '/source\s\+networking\/udhcp\/Config\.in/d' {} \;
-                    find $srctree -name "$kconfig_file" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
-                fi
-                #preprocessing for system axtls
-                if [[ "$system" == "axtls" ]]; then
-                    find "$srctree" -type f -name "Config.in" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
-                fi
-                #preprocessing for system uclibc-ng
-                if [[ "$system" == "uclibc-ng" ]]; then
-                    find "$srctree" -type f -exec sed -i -r "s|^source\\s+\"(.*)\"|source \"$(realpath "$srctree")/\\1\"|" {} \;
-                    # to ask 
-                    find "$srctree" -type f -exec sed -i '/option env/d' {} \;
-                fi
-                #preprocessing for system embtoolkit
-                if [[ "$system" == "embtoolkit" ]]; then
-                    find "$srctree" -type f -exec sed -i '/option env/d' {} \;
-                    config_files=$(find "$srctree" -type f -name "Kconfig") 
-                        for file in $config_files; do
-                            sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
-                                -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
-                        done
-                    config_files=$(find "$srctree" -type f -name "*.kconfig") 
-                        for file in $config_files; do
-                            sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
-                            -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
-                        done
-                fi
-                #preprocessing for system freetz-ng
-                if [[ "$system" == "freetz-ng" ]]; then
-                    config_files=$(find "$srctree" -type f -name "*.in") 
-                    for file in $config_files; do
-                        sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
-                        sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
-                            -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
-                    done
-                    config_files=$(find "$srctree" -type f -name "Config.in.busybox") 
-                    for file in $config_files; do
-                        sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
-                        sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
-                            -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
-                    done
-                fi
-                #preprocessing for system toybox
-                if [[ "$system" == "toybox" ]]; then
-                    config_files=$(find "$srctree" -type f -name "*.in") 
-                    for file in $config_files; do
-                        sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/toybox/\1"|' \
-                            -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/toybox/\1"|' "$file"
-                    done
-                fi
-                make -f "$linux_source/Makefile" mrproper
-                make -C "$linux_source" scripts/kconfig/cfoutconfig
-                measure "$timeout" make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
-                time=$((time+$(grep -oP "^measure_time=\K.*" < "$output_log")))
-                if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.features" ]]; then
-                    cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
-                            cp "$linux_source/scripts/kconfig/cfout_constraints.features" "$features_file"
-                fi
+                error "ConfigFix extraction is not yet implemented"
             fi
             unset-environment "$environment"
         else
@@ -271,7 +291,7 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
 
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
-    echo "$system,$revision_without_context,$context,$lkc_binding_file,$kconfig_file,${environment//,/|},$options,$kconfig_model,$features,$variables,$literals,$time" >> "$(output-csv)"
+    echo "$system,$revision_without_context,$context,$lkc_binding_file,$kconfig_file,${environment//,/|},$options,$kconfig_model,$features,$variables,$literals,$MEASURED_TIME" >> "$(output-csv)"
 }
 
 # defines API functions for extracting kconfig models

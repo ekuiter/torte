@@ -32,7 +32,7 @@ add-lkc-binding(system, revision, lkc_directory, lkc_target=, lkc_output_directo
 }
 
 # adds a kconfig model
-# implemented by library scripts (e.g., to read a kconfig model with kconfigreader or kclause)
+# implemented by library scripts (e.g., to read a kconfig model with kconfigreader, kclause, or configfix)
 add-kconfig-model(system, revision, kconfig_file, lkc_binding_file=, environment=) {
     :
 }
