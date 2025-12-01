@@ -26,8 +26,8 @@ clone-systems() {
 }
 
 # counts number of source lines of codes using cloc
-read-statistics(statistics_option=) {
-    STATISTICS_OPTION=$statistics_option
+read-statistics(options=) {
+    STATISTICS_OPTIONS=$options
 
     add-revision(system, revision) {
         revision=$(revision-without-context "$revision")
@@ -41,7 +41,7 @@ read-statistics(statistics_option=) {
         local date
         date=$(date -d "@$time" +"%Y-%m-%d")
         echo "$system,$revision,$time,$date" >> "$(output-path date.csv)"
-        if [[ $STATISTICS_OPTION != skip-sloc ]]; then
+        if [[ $STATISTICS_OPTIONS != --skip-sloc ]]; then
             local sloc_file
             sloc_file=$(output-path "$system" "$revision.txt")
             push "$(input-directory)/$system"

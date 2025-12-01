@@ -233,9 +233,9 @@ add-linux-kconfig-sample(interval, architecture=x86) {
 # creates an orphaned branch and tag for each revision
 # useful to add old revisions before the first Git tag v2.6.12
 # by default, tags all revisions between 2.5.45 and 2.6.12, as these use Kconfig
-tag-linux-revisions(tag_option=) {
-    TAG_OPTION=$tag_option
-    
+tag-linux-revisions(options=) {
+    TAG_OPTIONS=$tag_options
+
     add-system(system, url=) {
         if [[ -z $DONE_TAGGING_LINUX ]] && [[ $system == linux ]]; then
             if [[ ! -d $(input-directory)/linux ]]; then
@@ -246,7 +246,7 @@ tag-linux-revisions(tag_option=) {
                 git -C "$(input-directory)/linux" tag -d v2.6.11 # delete non-commit 2.6.11
             fi
 
-            if [[ $TAG_OPTION != skip-tagging ]]; then
+            if [[ $TAG_OPTIONS != --skip-tagging ]]; then
                 # could also tag older revisions, but none use Kconfig
                 tag-revisions https://mirrors.edge.kernel.org/pub/linux/kernel/v2.5/ 2.5.45
                 tag-revisions https://mirrors.edge.kernel.org/pub/linux/kernel/v2.6/ 2.6.0 2.6.12
