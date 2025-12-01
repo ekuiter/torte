@@ -328,7 +328,7 @@ However, ConfigFix is still viable on systems that only use simple KConfig const
 We successfully tested ConfigFix on the following systems and respective revisions: axTLS (1.0.0 - 2.1.5), BusyBox (1.5.1 - 1.36.1), EmbToolkit (0.1.0 - 1.9.0), Linux (6.13 - 6.17), toybox (0.0.2 - 0.4.1), uClibc (0.9.30 - 0.9.33), uClibc-ng (1.0.7 - 1.0.47).
 We did not succeed with the following systems: Buildroot, Freetz-NG, L4Re.
 
-[^33]: ConfigFix does not offer a feature extraction mechanism, so the computations for (un-)constrained features cannot be applied for this extractor.
+[^39]: ConfigFix does not offer a feature extraction mechanism, so the computations for (un-)constrained features cannot be applied for this extractor.
 
 [^2]: UVL hierarchy extraction using Kconfiglib is currently experimental.
 In particular, this extraction is not available for all systems and revisions because it heavily relies on the parsing behavior of Kconfiglib.
