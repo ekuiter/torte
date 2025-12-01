@@ -78,7 +78,6 @@ experiment-stages() {
         mcc-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
     join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 
-    # todo: evaluate
     # run-jupyter-notebook --payload-file evaluation.ipynb
 }
 

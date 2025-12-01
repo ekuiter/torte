@@ -29,7 +29,6 @@ experiment-stages() {
 }
 
 # can be executed from output directory to copy and rename model files
-# todo: remove
 copy-models() {
     shopt -s globstar
     mkdir -p models

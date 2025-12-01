@@ -23,7 +23,6 @@ define-stages() {
         run --output read-linux-architectures
     }
 
-    # todo: generalize this
     # extracts configuration options of linux revisions
     read-linux-configs() {
         run --output read-linux-configs
