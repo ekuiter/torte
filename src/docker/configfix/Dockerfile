@@ -30,7 +30,8 @@ ENV LD_LIBRARY_PATH=/home/picosat-965
 # install (the tested version of) configfix
 RUN git clone https://github.com/ekuiter/torte-ConfigFix.git \
     && cd torte-ConfigFix \
-    && git checkout 0312ab71e49a55163f82f70a84b7e46790e11794 \
-    && make scripts/kconfig/cfoutconfig
+    && git checkout a2bee573cd3a70bd21af87b9ca9af6831fee7aab \
+    && make build_cfoutconfig
 
-# COPY *.py /tools/
+COPY *.sh .
+RUN chmod +x *.sh

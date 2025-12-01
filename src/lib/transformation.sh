@@ -180,8 +180,9 @@ compute-model-features-helper(input, output) {
         # this formula was extracted with KClause
         grep -E "^config " "$kextractor_file" | cut -d' ' -f2 | sed 's/^CONFIG_//'
     else
-        # this formula was extracted with KConfigReader and already mentions all variables in the model file
+        # this formula was either extracted with KConfigReader (and already mentions all variables in the model file) ...
         grep -E "^#item " "$input" | cut -d' ' -f2
+        # ... or with ConfigFix, which unfortunately does not export an explicit feature list, so this set is empty
     fi | sort | uniq > "$output"
 }
 
@@ -191,8 +192,6 @@ compute-constrained-features-helper(input, output) {
     # extract features mentioned in the model file (i.e., the formula)
     if grep -q "def(" "$input"; then
         sed "s/)/)\n/g" < "$input" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g"
-    elif grep -q "definedEx(" "$input"; then # todo: handle ConfigFix, more gracefully, and unify both cases?
-        sed "s/)/)\n/g" < "$input" | grep "definedEx(" | sed "s/.*definedEx(\(.*\)).*/\1/g"
     fi | sort | uniq > "$output"
 }
 

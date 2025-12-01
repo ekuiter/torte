@@ -55,16 +55,20 @@ define-stages() {
             --timeout "$timeout"
     }
 
-    # extracts kconfig models with kconfigreader and kclause
-    extract-kconfig-models(input=, output=extract-kconfig-models, iteration_field=, options=, timeout=0, with_kconfigreader=, with_kclause=) {
-        if [[ -z $with_kconfigreader ]] && [[ -z $with_kclause ]]; then
+    # extracts kconfig models with kconfigreader, kclause, and/or configfix
+    # configfix is disabled by default, because it is experimental
+    extract-kconfig-models(input=, output=extract-kconfig-models, iteration_field=, options=, timeout=0, with_kconfigreader=, with_kclause=, with_configfix=) {
+        if [[ -z $with_kconfigreader ]] && [[ -z $with_kclause ]] && [[ -z $with_configfix ]]; then
             with_kconfigreader=y
             with_kclause=y
+            with_configfix=n
         fi
         [[ $with_kconfigreader == n ]] && with_kconfigreader=
         [[ $with_kconfigreader == y ]] && with_kconfigreader=1
         [[ $with_kclause == n ]] && with_kclause=
         [[ $with_kclause == y ]] && with_kclause=1
+        [[ $with_configfix == n ]] && with_configfix=
+        [[ $with_configfix == y ]] && with_configfix=1
         local inputs=()
 
         if [[ -n $with_kconfigreader ]]; then
@@ -89,17 +93,16 @@ define-stages() {
             inputs+=("extract-kconfig-models-with-kclause")
         fi
 
-        # extract-kconfig-models-with \
-        # --extractor configfix \
-        # --iterations "$iterations" \
-        # --iteration-field "$iteration_field" \
-            # --options "$options" \
-        # --timeout "$timeout"
-        # todo ConfigFix: the idea was that not every extractor needs a binding file, which is not correctly realized here, I think
-        # file_fields="binding_file"
-        # if [ -z "$binding_file" ]; then
-        #     binding_file=""
-        # fi
+        if [[ -n $with_configfix ]]; then
+            extract-kconfig-models-with \
+                --extractor configfix \
+                --input "$input" \
+                --iterations "$with_configfix" \
+                --iteration-field "$iteration_field" \
+                --options "$options" \
+                --timeout "$timeout"
+            inputs+=("extract-kconfig-models-with-configfix")
+        fi
 
         # aggregate all extracted models in one stage
         aggregate \
@@ -160,10 +163,11 @@ define-stages() {
     # transforms model files to DIMACS
     # this allows to flexibly enable (repeated or single iterations of) the desired CNF transformations
     # some of these transformations are fully deterministic and need not be iterated (e.g., Z3), while KConfigReader is NOT deterministic
+    # FeatJAR is disabled by default, because it is experimental
     transform-to-dimacs(input=extract-kconfig-models, output=transform-to-dimacs, timeout=0, jobs=1, iteration_field=, with_featureide=, with_featjar=, with_kconfigreader=, with_z3=) {
         if [[ -z $with_featureide ]] && [[ -z $with_featjar ]] && [[ -z $with_kconfigreader ]] && [[ -z $with_z3 ]]; then
             with_featureide=y
-            with_featjar=y
+            with_featjar=n
             with_kconfigreader=y
             with_z3=y
         fi

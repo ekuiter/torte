@@ -9,6 +9,7 @@ TOYBOX_URL=https://github.com/landley/toybox
 add-toybox-kconfig-history(from=, to=) {
     add-system --system toybox --url "$TOYBOX_URL"
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-toybox
+    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-toybox
     for revision in $(git-tag-revisions toybox | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system toybox --revision "$revision"
         add-kconfig \
@@ -27,5 +28,11 @@ kconfig-pre-binding-hook-toybox(system, revision, lkc_directory=) {
         if [[ -f $(input-directory)/toybox/kconfig/zconf.hash.c_shipped ]]; then
             sed -i 's/^__inline$//' "$(input-directory)/toybox/kconfig/zconf.hash.c_shipped"
         fi
+    fi
+}
+
+configfix-pre-extraction-hook-toybox(system, revision) {
+    if [[ $system == toybox ]]; then
+        wrap-source-statements-in-double-quotes
     fi
 }

@@ -157,6 +157,7 @@ add-linux-kconfig(revision, architecture=x86, lkc_binding_file=) {
             --revision "$(revision-with-context "$revision" "$architecture")" \
             --kconfig-file "$kconfig_file" \
             --lkc-binding-file "$lkc_binding_file" \
+            --lkc-directory scripts/kconfig \
             --environment "$environment"
     else
         add-kconfig \

@@ -39,11 +39,11 @@ experiment-test-systems() {
 experiment-stages() {
     clone-systems
     read-statistics
-    extract-kconfig-models
+    extract-kconfig-models --with_kconfigreader y --with_kclause y --with_configfix y
 
     transform-to-xml $with_timeout
     transform-to-uvl $with_timeout
-    transform-to-dimacs $with_timeout
+    transform-to-dimacs --with_featureide y --with_featjar y --with_kconfigreader y --with_z3 y $with_timeout
     join-into extract-kconfig-models transform-to-dimacs
 
     draw-community-structure-with-satgraf $with_timeout

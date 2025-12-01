@@ -9,3 +9,8 @@ replace-times(n, search, replace) {
         cat - | sed "s/$search/$replace/" | replace-times $((n-1)) "$search" "$replace"
     fi
 }
+
+# placeholder value for empty parameters (useful for unsetting optional parameters)
+none() {
+    echo __NONE__
+}

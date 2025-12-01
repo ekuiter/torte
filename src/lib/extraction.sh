@@ -149,83 +149,103 @@ extract-kconfig-model-with-kclause(system, revision, kconfig_file, lkc_binding_f
     MEASURED_TIME=$((MEASURED_TIME+$(grep -oP "^measure_time=\K.*" < "$output_log")))
 }
 
-# todo
-extract-kconfig-model-with-configfix() {
-    linux_source="/home/linux/linux-6.10"
-    export KBUILD_KCONFIG
-    KBUILD_KCONFIG=$(realpath "$kconfig_file")
-    export srctree="/home/input/$system"
-    #todo ConfigFix: check these preprocessings and move them into hooks should they be necessary
-    #preprocessing for system busybox
-    if [[ "$system" == "busybox" ]]; then
-        find "$srctree" -type f -exec sed -i '/source\s\+networking\/udhcp\/Config\.in/d' {} \;
-        find $srctree -name "$kconfig_file" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
+# runs ConfigFix to extract a feature-model formula from Kconfig files
+# sets the global MEASURED_TIME variable
+extract-kconfig-model-with-configfix(system, revision, kconfig_file, kconfig_model, features_file, output_log, lkc_directory, lkc_target=config, lkc_output_directory=, options=, timeout=0) {
+    local configfix_directory=/home/torte-ConfigFix override_lkc_target
+
+    # the following three lines are only needed to address a bug in ConfigFix
+    # for systems that don't define a list of defconfigs, we need an empty dummy file (instead of an empty list) to avoid a segmentation fault inside of ConfigFix
+    # for systems like Linux, these lines have no effect because the list will be overwritten in the makefile anyway
+    export KCONFIG_DEFCONFIG_LIST
+    KCONFIG_DEFCONFIG_LIST=/home/empty-kconfig-defconfig-list.txt
+    touch "$KCONFIG_DEFCONFIG_LIST"
+
+    # allow for system-specific adaptations before running ConfigFix
+    # typically this will transform KConfig files to adhere to the rigid syntactical expectations of ConfigFix, as we have no flexible binding compilation here
+    compile-hook configfix-pre-extraction-hook
+    override_lkc_target=$(configfix-pre-extraction-hook "$system" "$revision" | grep -oP '^override-lkc-target=\K.*' || true)
+    if [[ -n $override_lkc_target ]]; then
+        lkc_target=$override_lkc_target
     fi
-    #preprocessing for system axtls
-    if [[ "$system" == "axtls" ]]; then
-        find "$srctree" -type f -name "Config.in" -exec sed -i -r '/^source "[^"]+"/! s|^source (.*)$|source "/home/input/'"$system"'/\1"|' {} \;
+
+    # for extraction, we use a different approach than for KClause and KConfigReader, because ConfigFix is tightly integrated with LKC
+    # there is no separate binding stage, instead we run ConfigFix directly on the Kconfig file
+    # the question is how to call ConfigFix such that the correct environment variables are passed
+    # we offer two options for this, which can be controlled via lkc_output_directory and lkc_target
+    # the first option works better if no LKC environment is needed (e.g., for standalone KConfig files)
+    # the second option works better if LKC plays a larger role (e.g., for BusyBox or Linux)
+    if [[ $lkc_output_directory == $(none) ]] || [[ $lkc_target == $(none) ]]; then
+        # either we run the compiled ConfigFix binary directly on the Kconfig file (simpler, but only passes explicitly specified --environment)
+        measure "$timeout" "$configfix_directory/scripts/kconfig/cfoutconfig" \
+            "$kconfig_file" \
+            | tee "$output_log"
+    else
+        # or we hijack LKC's makefile to run ConfigFix via "make config" (more complex, but also includes environment variables set by the makefiles)
+        # this uses similar mechanisms as compile-lkc-binding above
+        # this has the disadvantage that we cannot explicitly specify the Kconfig file location, but must rely on LKC's makefiles to find it
+        # (sometimes there is a KBUILD_KCONFIG variable that we override here, but not all systems and revisions will respect this)
+        # shellcheck disable=SC2116 disable=SC2086
+        # to do this, we first prepare several paths ...
+        lkc_directory=$(echo $lkc_directory)
+        lkc_output_directory=${lkc_output_directory:-$lkc_directory}
+        mkdir -p "$lkc_directory"
+        # ... then we compile a dummy "make config" implementation ...
+        echo "int main(){return 0;}" > "$lkc_directory/conf.c"
+        yes "" | make "$lkc_target" KBUILD_KCONFIG="$kconfig_file" >/dev/null 2>&1 || true
+        # ... which we can then replace with the ConfigFix binary ...
+        cp "$configfix_directory/scripts/kconfig/cfoutconfig" "$lkc_output_directory/conf"
+        # ... and finally we run "make <target>" to execute ConfigFix with all the right environment variables
+        measure "$timeout" make "$lkc_target" \
+            | tee "$output_log"
     fi
-    #preprocessing for system uclibc-ng
-    if [[ "$system" == "uclibc-ng" ]]; then
-        find "$srctree" -type f -exec sed -i -r "s|^source\\s+\"(.*)\"|source \"$(realpath "$srctree")/\\1\"|" {} \;
-        # to ask 
-        find "$srctree" -type f -exec sed -i '/option env/d' {} \;
-    fi
-    #preprocessing for system embtoolkit
-    if [[ "$system" == "embtoolkit" ]]; then
-        find "$srctree" -type f -exec sed -i '/option env/d' {} \;
-        config_files=$(find "$srctree" -type f -name "Kconfig") 
-            for file in $config_files; do
-                sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
-                    -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
-            done
-        config_files=$(find "$srctree" -type f -name "*.kconfig") 
-            for file in $config_files; do
-                sed -i -r -e 's|^source\s+"([^"]+)"|source "/home/input/embtoolkit/\1"|' \
-                -e 's|^source\s+([^"/][^"]*)|source "/home/input/embtoolkit/\1"|' "$file"
-            done
-    fi
-    #preprocessing for system freetz-ng
-    if [[ "$system" == "freetz-ng" ]]; then
-        config_files=$(find "$srctree" -type f -name "*.in") 
-        for file in $config_files; do
-            sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
-            sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
-                -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
-        done
-        config_files=$(find "$srctree" -type f -name "Config.in.busybox") 
-        for file in $config_files; do
-            sed -i -r '/^\s*source\s+"make\/Config\.in\.generated"/d' "$file"
-            sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/freetz-ng/\1"|' \
-                -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/freetz-ng/\1"|' "$file"
-        done
-    fi
-    #preprocessing for system toybox
-    if [[ "$system" == "toybox" ]]; then
-        config_files=$(find "$srctree" -type f -name "*.in") 
-        for file in $config_files; do
-            sed -i -r -e 's|^\s*source\s+"([^"]+)"|source "/home/input/toybox/\1"|' \
-                -e 's|^\s*source\s+([^"/][^"]*)|source "/home/input/toybox/\1"|' "$file"
-        done
-    fi
-    make -f "$linux_source/Makefile" mrproper
-    make -C "$linux_source" scripts/kconfig/cfoutconfig
-    measure "$timeout" make -C "$linux_source" cfoutconfig Kconfig=$KBUILD_KCONFIG | tee "$output_log"
+
     MEASURED_TIME=$(grep -oP "^measure_time=\K.*" < "$output_log")
-    if [[ -f "$linux_source/scripts/kconfig/cfout_constraints.txt" && -f "$linux_source/scripts/kconfig/cfout_constraints.features" ]]; then
-        cp "$linux_source/scripts/kconfig/cfout_constraints.txt" "$kconfig_model"
-                cp "$linux_source/scripts/kconfig/cfout_constraints.features" "$features_file"
+    if [[ -f cfout_constraints.txt ]] && [[ -f cfout_constraints.dimacs ]]; then
+        # translate ConfigFix's output to the standard .model format produced by KConfigReader
+        /home/configfix2model.sh cfout_constraints.txt
+        cp cfout_constraints.txt "$kconfig_model"
+        # ConfigFix is also able to produce a CNF with its internal Tseitin transformation
+        # we do not use this CNF for further processing, but we store it nonetheless if requested
+        # this is opt-in to save disk space
+        # this transformation is tightly integrated with the extraction (via internal data structures)
+        # thus, we do not decouple it as a transformation stage (as done for KConfigReader)
+        if [[ $options == "--with-dimacs" ]]; then
+            cp cfout_constraints.dimacs "$(output-path "$system" "$revision.dimacs")"
+        fi
+        # ConfigFix does not export an explicit feature list, unfortunately
+        echo "ConfigFix does not offer a built-in feature extraction." > "$features_file"
     fi
+}
+
+# wraps source statements in the selected KConfig files the working directory in double quotes
+# this is necessary for extraction with ConfigFix, which cannot parse unquoted paths
+wrap-source-statements-in-double-quotes(file_query...) {
+    if [[ ${#file_query[@]} -eq 0 ]]; then
+        file_query=(-name Config.in)
+    fi
+    find . "${file_query[@]}" -exec sed -i -r 's|^[[:space:]]*source[[:space:]]+([^"].*)$|source "\1"|' {} \;
+}
+
+# until Linux 4.18, option env is used to import environment variables into the KConfig namespace
+# this is not supported by ConfigFix (which is roughly based on LKC in Linux 6.14) and must be removed
+# see https://stackoverflow.com/q/10099478
+# this has no impact because we are usually not interested in default values derived from environment variables
+remove-environment-variable-imports(file_query...) {
+    if [[ ${#file_query[@]} -eq 0 ]]; then
+        file_query=(-name Config.in)
+    fi
+    find . "${file_query[@]}" -exec sed -i '/option env/d' {} \;
 }
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
-extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, lkc_binding_file=, environment=, options=, timeout=0) {
+extract-kconfig-model(extractor, lkc_binding, system, revision, kconfig_file, lkc_binding_file=, lkc_directory, lkc_target=config, lkc_output_directory=, environment=, options=, timeout=0) {
     local revision_without_context context time
     revision_without_context=$(revision-without-context "$revision")
     context=$(get-context "$revision")
-    if [[ -z "$lkc_binding" ]]; then
-        lkc_binding_file=""
+    if [[ $lkc_binding == $(none) ]] || [[ $lkc_binding_file == $(none) ]]; then
+        lkc_binding_file=NA
     else
         lkc_binding_file=${lkc_binding_file:-$(output-path "$LKC_BINDINGS_DIRECTORY" "$system" "$revision_without_context")}
         lkc_binding_file+=.$lkc_binding
@@ -243,26 +263,30 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
     features_file=$(output-path "$system" "$revision.features")
     local output_log
     output_log=$(mktemp)
-    if [[ -f $kconfig_file ]]; then
-        # todo ConfigFix: maybe create a dummy binding file for ConfigFix, so to avoid this parameter getting optional? (could just revert part of the change from the merge commit)
-        if [[ -z "$lkc_binding_file" || -f $lkc_binding_file ]]; then
-            set-environment "$environment"
-            if [[ $extractor == kconfigreader ]]; then
-                extract-kconfig-model-with-kconfigreader \
-                    "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$output_log" "$timeout"
-            elif [[ $extractor == kclause ]]; then
-                extract-kconfig-model-with-kclause \
-                    "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$kconfig_model" "$features_file" "$output_log" "$options" "$timeout"
-            elif [[ $extractor == configfix ]]; then
-                error "ConfigFix extraction is not yet implemented"
+    set-environment "$environment"
+    if [[ $extractor != configfix ]]; then
+        # at this point, the KConfig file should already have been generated by the makefiles during binding compilation
+        if [[ -f $kconfig_file ]]; then
+            if [[ -f $lkc_binding_file ]]; then
+                if [[ $extractor == kconfigreader ]]; then
+                    extract-kconfig-model-with-kconfigreader \
+                        "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$output_log" "$timeout"
+                elif [[ $extractor == kclause ]]; then
+                    extract-kconfig-model-with-kclause \
+                        "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$kconfig_model" "$features_file" "$output_log" "$options" "$timeout"
+                fi
+            else
+                echo "LKC binding file $lkc_binding_file does not exist"
             fi
-            unset-environment "$environment"
         else
-            echo "LKC binding file $lkc_binding_file does not exist"
+            echo "kconfig file $kconfig_file does not exist"
         fi
     else
-        echo "kconfig file $kconfig_file does not exist"
+        # for ConfigFix, the root KConfig file may yet have to be generated, which is why we skip its validation here
+        extract-kconfig-model-with-configfix \
+            "$system" "$revision" "$kconfig_file" "$kconfig_model" "$features_file" "$output_log" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$options" "$timeout"
     fi
+    unset-environment "$environment"
     rm-safe "$output_log"
     pop
     trap - EXIT
@@ -272,23 +296,12 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
         kconfig_model=NA
     else
         log "" "$(echo-done)"
-        # todo ConfigFix: review this
-        if [[ $extractor != "configfix" ]]; then
-            local features
+        local features=NA variables=NA literals=NA
+        if [[ $extractor != configfix ]]; then
             features=$(wc -l < "$features_file")
-            local variables
-            variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
-            local literals
-            literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
-        else
-            local features
-            features=$(wc -l < "$features_file")
-            local variables
-            variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "definedEx(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
-            local literals
-            literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "definedEx(")
         fi
-
+        variables=$(sed "s/)/)\n/g" < "$kconfig_model" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g" | sort | uniq | wc -l)
+        literals=$(sed "s/)/)\n/g" < "$kconfig_model" | grep -c "def(")
         kconfig_model=${kconfig_model#"$(output-directory)/"}
     fi
     echo "$system,$revision_without_context,$context,$lkc_binding_file,$kconfig_file,${environment//,/|},$options,$kconfig_model,$features,$variables,$literals,$MEASURED_TIME" >> "$(output-csv)"
@@ -296,18 +309,12 @@ extract-kconfig-model(extractor, lkc_binding=, system, revision, kconfig_file, l
 
 # defines API functions for extracting kconfig models
 # sets the global EXTRACTOR, LKC_BINDING, TIMEOUT variables
-register-kconfig-extractor(extractor, lkc_binding=, options=, timeout=0) {
+register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0) {
     EXTRACTOR=$extractor
     LKC_BINDING=$lkc_binding
     OPTIONS=$options
     TIMEOUT=$timeout
     assert-value EXTRACTOR TIMEOUT
-    # todo ConfigFix: review this (maybe create a dummy binding)
-    if [ -z "$LKC_BINDING" ]; then
-        echo "No LKC_BINDING provided, running without LKC_BINDING."
-    else
-        echo "Using LKC_BINDING: $LKC_BINDING"
-    fi
 
     add-lkc-binding(system, revision, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
         log "$system@$revision"
@@ -316,14 +323,13 @@ register-kconfig-extractor(extractor, lkc_binding=, options=, timeout=0) {
             return
         fi
         kconfig-checkout "$system" "$revision"
-        # todo ConfigFix: review this (maybe create a dummy binding)
-        if [ -n "$LKC_BINDING" ]; then
+        if [[ $LKC_BINDING != $(none) ]]; then
             compile-lkc-binding "$LKC_BINDING" "$system" "$revision" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment"
         fi
         git-clean "$(input-directory)/$system"
     }
 
-    add-kconfig-model(system, revision, kconfig_file, lkc_binding_file=, environment=) {
+    add-kconfig-model(system, revision, kconfig_file, lkc_binding_file, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
         log "$system@$revision"
         if kconfig-model-done "$system" "$revision"; then
             log "" "$(echo-skip)"
@@ -331,7 +337,7 @@ register-kconfig-extractor(extractor, lkc_binding=, options=, timeout=0) {
         fi
         kconfig-checkout "$system" "$revision"
         extract-kconfig-model "$EXTRACTOR" "$LKC_BINDING" \
-            "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$environment" "$OPTIONS" "$TIMEOUT"
+            "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment" "$OPTIONS" "$TIMEOUT"
         git-clean "$(input-directory)/$system"
     }
 
@@ -342,14 +348,12 @@ register-kconfig-extractor(extractor, lkc_binding=, options=, timeout=0) {
             return
         fi
         kconfig-checkout "$system" "$revision"
-        if [ -n "$LKC_BINDING" ]; then # todo ConfigFix: review this
-            if ! lkc-binding-done "$system" "$revision"; then
-                compile-lkc-binding "$LKC_BINDING" "$system" "$revision" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment"
-            fi
+        if [[ $LKC_BINDING != $(none) ]] && ! lkc-binding-done "$system" "$revision"; then
+            compile-lkc-binding "$LKC_BINDING" "$system" "$revision" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment"
         fi
         if ! kconfig-model-done "$system" "$revision"; then
             extract-kconfig-model "$EXTRACTOR" "$LKC_BINDING" \
-                "$system" "$revision" "$kconfig_file" "" "$environment" "$OPTIONS" "$TIMEOUT"
+                "$system" "$revision" "$kconfig_file" "" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment" "$OPTIONS" "$TIMEOUT"
         fi
         git-clean "$(input-directory)/$system"
     }
@@ -374,8 +378,9 @@ extract-kconfig-models-with-kconfigreader(options=, timeout=0) {
     experiment-systems
 }
 
+# extracts kconfig models using configfix, which does not use a revision-tailored LKC binding
 extract-kconfig-models-with-configfix(options=, timeout=0) {
-    register-kconfig-extractor configfix "" "$options" "$timeout"
+    register-kconfig-extractor configfix "$(none)" "$options" "$timeout"
     experiment-systems
 }
 

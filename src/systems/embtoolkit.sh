@@ -10,6 +10,7 @@ add-embtoolkit-kconfig-history(from=, to=) {
     add-system --system embtoolkit --url "$EMBTOOLKIT_URL"
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-embtoolkit
     add-hook-step kclause-post-binding-hook kclause-post-binding-hook-embtoolkit
+    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-embtoolkit
     for revision in $(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e '-.*-' | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system embtoolkit --revision "$revision"
         add-kconfig \
@@ -36,5 +37,14 @@ kclause-post-binding-hook-embtoolkit(system, revision) {
     if [[ $system == embtoolkit ]]; then
         # fix incorrect feature names, which kclause interprets as a binary subtraction operator
         sed -i 's/-/_/g' "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")"
+    fi
+}
+
+configfix-pre-extraction-hook-embtoolkit(system, revision) {
+    if [[ $system == embtoolkit ]]; then
+        wrap-source-statements-in-double-quotes \( -name Config.in -o -name '*.kconfig' \)
+        remove-environment-variable-imports \( -name Config.in -o -name '*.kconfig' \)
+        # for embtoolkit, we do not call ConfigFix from the LKC makefiles, but directly
+        echo "override-lkc-target=$(none)"
     fi
 }

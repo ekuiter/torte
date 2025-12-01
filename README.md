@@ -262,7 +262,7 @@ For transparency, we document the changes we make to these tools and known limit
 | [ekuiter/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | 3fc8d66 | 2025-10-10 | [^12] [^15] [^6] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
-| [isselab/configfix](https://github.com/ekuiter/torte-ConfigFix) | 0312ab7 | 2025-11-28 | [^33] |
+| [isselab/configfix](https://github.com/ekuiter/torte-ConfigFix) | 0312ab7 | 2025-11-28 | [^33] [^39] |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) ([KClause](https://github.com/paulgazz/kmax/blob/master/kmax/kclause)) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] [^22] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 | [zephyrproject-rtos/Kconfiglib](https://github.com/zephyrproject-rtos/Kconfiglib) | 601f63d | 2025-11-04 | [^2] |
@@ -300,6 +300,7 @@ Currently, this behavior is not configurable.
 We also added a new feature for exporting the community structure visualization as a JPG file, avoiding the graphical user interface.
 
 [^12]: FeatJAR is still in an experimental stage and its results should generally be cross-validated with FeatureIDE.
+Thus, we disable FeatJAR's own distributive CNF transformation by default.
 
 [^13]: We perform all transformations with FeatureIDE from within a FeatJAR instance, which does not affect the results.
 
@@ -317,7 +318,17 @@ However, for many analyses that depend on knowing the entire feature set (e.g., 
 We do not modify the extracted formulas, to preserve the original output of KConfigReader and KClause.
 To address this threat, we instead offer the transformation stage `compute-unconstrained-features`, which explicitly computes these features.
 
-[^33]: ConfigFix support is currently experimental.
+[^33]: Extraction with ConfigFix is experimental (and not enabled by default), which means that not all systems and revisions are supported.
+This is because the integration of ConfigFix with the C implementation of LKC is so tight that it cannot be easily decoupled.
+In particular, ConfigFix does not have a dedicated abstraction layer in between KConfig and the extraction tool, such as the other extractors (i.e., a C binding that produces intermediate output).
+Due to this architecture, compiling ConfigFix against older versions of the Linux kernel or even other systems is essentially a futile effort.
+Instead, we only integrate one version of ConfigFix, which we compiled against a [patched version](https://github.com/ekuiter/torte-ConfigFix) of Linux from 2025-02-07.
+Consequently, ConfigFix is less flexibly applicable than the other extractors, mostly due to breaking syntax changes in the KConfig grammar (which sometimes cause segmentation faults in ConfigFix).
+However, ConfigFix is still viable on systems that only use simple KConfig constructs (e.g., BusyBox) and on recent Linux versions (as of 2025).
+We successfully tested ConfigFix on the following systems and respective revisions: axTLS (1.0.0 - 2.1.5), BusyBox (1.5.1 - 1.36.1), EmbToolkit (0.1.0 - 1.9.0), Linux (6.13 - 6.17), toybox (0.0.2 - 0.4.1), uClibc (0.9.30 - 0.9.33), uClibc-ng (1.0.7 - 1.0.47).
+We did not succeed with the following systems: Buildroot, Freetz-NG, L4Re.
+
+[^33]: ConfigFix does not offer a feature extraction mechanism, so the computations for (un-)constrained features cannot be applied for this extractor.
 
 [^2]: UVL hierarchy extraction using Kconfiglib is currently experimental.
 In particular, this extraction is not available for all systems and revisions because it heavily relies on the parsing behavior of Kconfiglib.
@@ -583,6 +594,8 @@ This project has evolved through several stages and intends to replace them all:
   Its functionality is almost completely subsumed by torte, which can be used to create reproduction packages for many different experiments.
 
 If you are looking for a curated collection of feature models from various domains, have a look at our [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark).
+
+This is a multi-repository project. A list of all related repositories containing torte-related code is available [here](https://github.com/ekuiter?tab=repositories&q=torte&type=&language=&sort=).
 
 ## License
 

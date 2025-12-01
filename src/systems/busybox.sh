@@ -3,6 +3,21 @@
 BUSYBOX_URL=https://github.com/mirror/busybox
 BUSYBOX_URL_FORK=https://github.com/ekuiter/torte-busybox
 
+add-busybox-system() {
+    add-system --system busybox --url "$BUSYBOX_URL"
+    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-busybox
+}
+
+configfix-pre-extraction-hook-busybox(system, revision) {
+    if [[ $system == busybox ]]; then
+        # the file networking/udhcp/Config.in it does not exist in old revisions, so we have to remove references to it
+        if [[ ! -f networking/udhcp/Config.in ]]; then
+            find . -type f -exec sed -i '/source\s\+networking\/udhcp\/Config\.in/d' {} \;
+        fi
+        wrap-source-statements-in-double-quotes \( -name Config.in -o -name Config.src \)
+    fi
+}
+
 # determine the correct KConfig file for BusyBox at the given revision
 find-busybox-kconfig-file(revision) {
     if git -C "$(input-directory)/busybox" cat-file -e "$revision:Config.in" 2>/dev/null; then
@@ -23,7 +38,7 @@ find-busybox-lkc-directory(revision) {
 
 # all versions before 1.00 use CML1 instead of KConfig, which we currently cannot extract, so we start at 1.00
 add-busybox-kconfig-history(from=1_00, to=) {
-    add-system --system busybox --url "$BUSYBOX_URL"
+    add-busybox-system
     for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision "$from" | stop-at-revision "$to"); do
         add-revision --system busybox --revision "$revision"
         add-kconfig \
@@ -36,7 +51,7 @@ add-busybox-kconfig-history(from=1_00, to=) {
 
 # consider all commits that changed the BusyBox feature model (this is a bit convoluted due to the reasons listed in generate-busybox-models)
 add-busybox-kconfig-history-commits() {
-    add-system --system busybox --url "$BUSYBOX_URL"
+    add-busybox-system
     if [[ -f "$(input-directory)/busybox/.generate_busybox_models" ]]; then
         for revision in $(git -C "$(input-directory)/busybox" log master --format="%h" --reverse); do
             local original_revision

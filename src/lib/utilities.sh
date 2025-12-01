@@ -7,6 +7,8 @@ clone-systems() {
         log "git-clone: $system"
         if [[ ! -d "$(output-directory)/$system" ]]; then
             log "" "$(echo-progress clone)"
+            compile-hook pre-clone-hook
+            pre-clone-hook "$system" "$url"
             git clone "$url" "$(output-directory)/$system"
             compile-hook post-clone-hook
             post-clone-hook "$system" "$url"
@@ -18,7 +20,7 @@ clone-systems() {
 
     experiment-systems
 
-    # allow adding additional dependencies outside of experiment-systemsh
+    # allow adding additional dependencies outside of experiment-systems
     compile-hook post-experiment-systems-hook
     post-experiment-systems-hook
 }
