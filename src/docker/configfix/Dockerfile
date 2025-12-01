@@ -22,6 +22,7 @@ WORKDIR /home
 COPY picosat-965.tar.gz .
 RUN tar -xvf picosat-965.tar.gz && \
     cd picosat-965 && \
+    export CFLAGS="-fPIC" && \
     ./configure.sh && \
     make libpicosat.so && \
     cp libpicosat.so libpicosat-trace.so
