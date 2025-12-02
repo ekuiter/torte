@@ -13,7 +13,7 @@ experiment-systems() {
 experiment-stages() {
     # extract
     clone-systems
-    extract-kconfig-models
+    extract-kconfig-models --with-kconfigreader y --with-kclause y --with-configfix y
     compute-unconstrained-features
 
     # transform

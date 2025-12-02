@@ -27,7 +27,7 @@ experiment-stages(__NO_SILENT__) {
     # - check if CI passes
     # - git tag and git push -t
     # - run this experiment on a Linux machine
-    # - create a release on git up and upload the images in 'release'
+    # - create a release on GitHub and upload the images in 'release'
 
     # make sure we are running in export mode
     if [[ -z $DOCKER_EXPORT ]]; then

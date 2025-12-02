@@ -9,11 +9,11 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # Our general strategy is to read feature models for all tagged Git revisions, provided that tags give a meaningful history, or a yearly sample otherwise.
 # Usually, we compile bindings from the LKC distributions included in the projects' source code to get the most accurate translation.
 # It is also possible to read feature models for any other tags/commits (e.g., for every commit that changes a Kconfig file).
-# However,  usually very old versions won't work (because Kconfig might have only been introduced later).
+# However, usually very old versions won't work (because Kconfig might have only been introduced later).
 # Very recent versions might also not work (because they use new/esoteric Kconfig features).
 
-EXTRACT_TIMEOUT=600 # timeout for extraction in seconds
-TRANSFORM_TIMEOUT=60 # timeout for transformation in seconds
+EXTRACT_TIMEOUT=300 # timeout for extraction in seconds
+TRANSFORM_TIMEOUT=30 # timeout for transformation in seconds
 
 experiment-systems() {
     add-axtls-kconfig-history
@@ -34,7 +34,7 @@ experiment-stages() {
     read-statistics
     
     # extract feature models
-    extract-kconfig-models --timeout "$EXTRACT_TIMEOUT"
+    extract-kconfig-models --with-kconfigreader y --with-kclause y --with-configfix y --timeout "$EXTRACT_TIMEOUT"
     join-into read-statistics extract-kconfig-models
 
     # transform into UVL
