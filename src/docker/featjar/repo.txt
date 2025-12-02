@@ -1,5 +1,4 @@
 https://github.com/FeatureIDE/FeatJAR-base.git base
-https://github.com/FeatureIDE/FeatJAR-bin-javasmt.git bin-javasmt
 https://github.com/FeatureIDE/FeatJAR-feature-model.git feature-model
 https://github.com/FeatureIDE/FeatJAR-formula.git formula
 https://github.com/FeatureIDE/FeatJAR-formula-analysis-javasmt.git formula-analysis-javasmt
