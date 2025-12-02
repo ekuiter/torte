@@ -11,6 +11,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # It is also possible to read feature models for any other tags/commits (e.g., for every commit that changes a Kconfig file).
 # However, usually very old versions won't work (because Kconfig might have only been introduced later).
 # Very recent versions might also not work (because they use new/esoteric Kconfig features).
+# No experimental features are enabled in this experiment (e.g., ConfigFix is disabled).
 
 EXTRACT_TIMEOUT=300 # timeout for extraction in seconds
 TRANSFORM_TIMEOUT=30 # timeout for transformation in seconds
