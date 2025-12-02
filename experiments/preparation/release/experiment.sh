@@ -22,12 +22,14 @@ experiment-systems() {
 
 experiment-stages(__NO_SILENT__) {
     # when creating a new release, make sure to:
-    # - update CHANGELOG.md
-    # - git commit and git push
-    # - check if CI passes
-    # - git tag and git push -t
-    # - run this experiment on a Linux machine
-    # - create a release on GitHub and upload the images in 'release'
+    # update CHANGELOG.md
+    # git add -A && git commit -m vX.Y.Z
+    # git push origin main
+    # check if CI passes
+    # git tag vX.Y.Z
+    # git push -t origin main
+    # run this experiment on a Linux machine with `./torte.sh preparation/release`
+    # create a release on GitHub and upload the images in 'release'
 
     # make sure we are running in export mode
     if [[ -z $DOCKER_EXPORT ]]; then
