@@ -34,7 +34,7 @@ experiment-stages() {
     read-statistics
     
     # extract feature models
-    extract-kconfig-models --with-kconfigreader y --with-kclause y --with-configfix y --timeout "$EXTRACT_TIMEOUT"
+    extract-kconfig-models --timeout "$EXTRACT_TIMEOUT"
     join-into read-statistics extract-kconfig-models
 
     # transform into UVL
