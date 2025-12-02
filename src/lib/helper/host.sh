@@ -4,7 +4,7 @@
 ENGINE=docker # default container engine
 
 # transparently use Podman engine instead of Docker if explicitly requested or if Docker is not available
-if has-command podman && ( [[ -n $FORCE_PODMAN ]] || ! has-command docker ); then
+if command -v podman > /dev/null && ( [[ -n $FORCE_PODMAN ]] || ! command -v docker > /dev/null ); then
     ENGINE=podman
     docker(args...) {
         podman "${args[@]}"
