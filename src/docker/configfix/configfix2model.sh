@@ -10,4 +10,4 @@ fi
 
 sed -i'' 's/definedEx(/def(/g' "$model_file"
 sed -i'' 's/ || /|/g' "$model_file"
-sed -i'' 's/ && /&/g' "$model_file"
+sed -i'' 's/ && /\&/g' "$model_file"

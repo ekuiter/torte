@@ -155,6 +155,7 @@ draw-community-structure-with-satgraf(input_extension=dimacs, output_extension=j
 }
 
 # computes backbone of a DIMACS file using kissat or cadiback
+# todo: currently kissat cannot be executed because it is located under solver/other/... (a different path than CadiBack)
 transform-dimacs-to-backbone-dimacs-with(transformer, input_extension=dimacs, output_extension=backbone.dimacs, timeout=0, jobs=1) {
     transform-files \
         "$(input-csv)" \

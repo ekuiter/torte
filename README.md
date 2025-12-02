@@ -261,7 +261,7 @@ For transparency, we document the changes we make to these tools and known limit
 | [ekuiter/clausy](https://github.com/ekuiter/clausy) | 6b816a9 | 2024-01-15 | |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | 3fc8d66 | 2025-10-10 | [^12] [^15] [^6] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
-| [isselab/configfix](https://github.com/ekuiter/torte-ConfigFix) | 0312ab7 | 2025-11-28 | [^33] [^39] |
+| [isselab/configfix](https://github.com/ekuiter/torte-ConfigFix) | 0312ab7 | 2025-11-28 | [^33] [^39] [^40] |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) ([KClause](https://github.com/paulgazz/kmax/blob/master/kmax/kclause)) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] [^22] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 | [zephyrproject-rtos/Kconfiglib](https://github.com/zephyrproject-rtos/Kconfiglib) | 601f63d | 2025-11-04 | [^2] |
@@ -329,6 +329,9 @@ We successfully tested ConfigFix on the following systems and respective revisio
 We did not succeed with the following systems: Buildroot, Freetz-NG, L4Re.
 
 [^39]: ConfigFix does not offer a feature extraction mechanism, so the computations for (un-)constrained features cannot be applied for this extractor.
+
+[^40]: ConfigFix has a [known bug](https://github.com/isselab/configfix/issues/1) that causes formulas of recent Linux versions (>= 6.16) to be unsatisfiable.
+While this issue is being resolved, we recommend to only extract formulas for Linux <= 6.15.
 
 [^2]: UVL hierarchy extraction using Kconfiglib is currently experimental.
 In particular, this extraction is not available for all systems and revisions because it heavily relies on the parsing behavior of Kconfiglib.
