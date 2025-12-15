@@ -51,6 +51,7 @@ kconfig-post-checkout-hook-freetz-ng(system, revision) {
             sed -i 's/.*error Please re-run.*//g' Makefile
             sed -i 's/.*empty directory root\/sys is missing!.*//g' Makefile
             sed -i 's/.*File permissions or links are wrong!.*//g' Makefile
+            sed -i 's/.*Your Linux System seams to be too old.*//g' Makefile
             # in revision dd5227ed5, this dependency on deps_config_cache leads to an infinite loop in the makefile
             # as it does not affect the extraction, we remove it here
             sed -i 's/\$(deps_config_cache)$//g' Makefile
@@ -63,8 +64,10 @@ kconfig-post-checkout-hook-freetz-ng(system, revision) {
 
         # since 2012, freetz-ng has a rather advanced mechanism that downloads LKC during the first call to "make config" and automatically patches it afterwards
         # however, the download URLs used there have become outdated over time (a frozen mirror is listed in the README, should the following go down)
-        sed -i 's#https://raw.githubusercontent.com/Freetz-NG/dl-mirror/master#https://github.com/Freetz-NG/dl-mirror/releases/download/dl#g' tools/freetz_download
-        sed -i 's#https://github.com/Freetz-NG/dl-mirror/raw/master#https://github.com/Freetz-NG/dl-mirror/releases/download/dl#g' tools/freetz_download
+        if [[ -f tools/freetz_download ]]; then
+            sed -i 's#https://raw.githubusercontent.com/Freetz-NG/dl-mirror/master#https://github.com/Freetz-NG/dl-mirror/releases/download/dl#g' tools/freetz_download
+            sed -i 's#https://github.com/Freetz-NG/dl-mirror/raw/master#https://github.com/Freetz-NG/dl-mirror/releases/download/dl#g' tools/freetz_download
+        fi
         # also, to be able to correctly locate the downloaded and patched LKC implementation in the source tree, we need to run "make config" once here before compiling the binding
         # it is important that this is not a pre-binding hook, because that hook already assumes that the location of LKC is known
         # see https://github.com/Freetz-NG/freetz-ng/tree/master/make/host-tools/kconfig-host
