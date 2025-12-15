@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+## [2.0.1] - 2025-12-15
+
+### Fixed
+
+- Fixed regression in the extraction of Freetz-NG due to a changed mirror for LKC
+
 ## [2.0.0] - 2025-12-02
 
 This release significantly revises and extends the extraction mechanism, which means we can now extract almost fully complete feature-model histories not only for Linux, but every supported system.
