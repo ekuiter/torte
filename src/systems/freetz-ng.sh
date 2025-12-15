@@ -60,8 +60,12 @@ kconfig-post-checkout-hook-freetz-ng(system, revision) {
             sed -i 's#http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git.*$#https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/snapshot/linux-\$(KCONFIG_VERSION).tar.gz#g' tools/make/kconfig.mk
             sed -i 's#/scripts##g' tools/make/kconfig.mk
         fi
+
         # since 2012, freetz-ng has a rather advanced mechanism that downloads LKC during the first call to "make config" and automatically patches it afterwards
-        # to be able to correctly locate the LKC implementation in the source tree, we need to run "make config" once here before compiling the binding
+        # however, the download URLs used there have become outdated over time (a frozen mirror is listed in the README, should the following go down)
+        sed -i 's#https://raw.githubusercontent.com/Freetz-NG/dl-mirror/master#https://github.com/Freetz-NG/dl-mirror/releases/download/dl#g' tools/freetz_download
+        sed -i 's#https://github.com/Freetz-NG/dl-mirror/raw/master#https://github.com/Freetz-NG/dl-mirror/releases/download/dl#g' tools/freetz_download
+        # also, to be able to correctly locate the downloaded and patched LKC implementation in the source tree, we need to run "make config" once here before compiling the binding
         # it is important that this is not a pre-binding hook, because that hook already assumes that the location of LKC is known
         # see https://github.com/Freetz-NG/freetz-ng/tree/master/make/host-tools/kconfig-host
         # should the LKC download fail for some reason in the future, a mirror for several versions is available here: https://github.com/Freetz-NG/dl-mirror
