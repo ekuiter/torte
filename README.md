@@ -553,7 +553,7 @@ New issues, pull requests, or any other kinds of feedback are always welcome.
 
 torte has been used in several research publications and artifacts (also listed on our [Zenodo community](https://zenodo.org/communities/torte/)):
 
-- Elias Kuiter. torte: Reproducible Feature-Model Experiments à la Carte. In Proc. Intl Conf. on Software Engineering (ICSE). ACM, April 2026.
+- Elias Kuiter. torte: Reproducible Feature-Model Experiments à la Carte. In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.
 
 - Tim Bächle, Erik Hofmayer, Christoph König, Tobias Pett, and Ina Schaefer. [Investigating the Effects of T-Wise Interaction Sampling for Vulnerability Discovery in Highly-Configurable Software Systems](https://doi.org/10.1145/3744915.3748462). In Proc. Int'l Systems and Software Product Line Conf. (SPLC). ACM, September 2025.
 
