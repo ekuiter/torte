@@ -66,6 +66,11 @@ add-restrictions-payload-file(payload_file) {
     source <(compile-script <(compile-restrictions "$(payload-file "$payload_file")"))
 }
 
+# default implementation of should-skip, which never skips anything
+should-skip(function=, argument=, system=, revision=, file=) {
+    return 1
+}
+
 # precompiles restrictions from a CSV file into a single efficient Bash function, which is only loaded once (at experiment load time)
 # each line in the CSV file should contain one restriction, for which every non-empty field must match for the restriction to apply
 # if any restriction applies, the corresponding action will not be performed and skipped instead
