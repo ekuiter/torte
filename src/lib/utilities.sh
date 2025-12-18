@@ -5,7 +5,7 @@
 clone-systems() {
     add-system(system, url) {
         log "git-clone: $system"
-        if [[ ! -d "$(output-directory)/$system" ]]; then
+        if [[ ! -d "$(output-directory)/$system" ]] && ! should-skip add-system "" "$system"; then
             log "" "$(echo-progress clone)"
             compile-hook pre-clone-hook
             pre-clone-hook "$system" "$url"

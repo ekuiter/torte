@@ -19,8 +19,9 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
     mkdir -p "$(dirname "$state")"
     output_log=$(mktemp)
     
-    # skip if already solved
-    if [[ -f $(output-csv) ]] && grep -qP "^\Q$file,\E" "$(output-csv)"; then
+    # skip if already solved or if a restriction applies
+    if ([[ -f $(output-csv) ]] && grep -qP "^\Q$file,\E" "$(output-csv)") \
+        || should-skip solve-file "" "" "" "$file"; then
         log "$solver_name: $file" "$(echo-skip)"
         return
     fi
@@ -40,65 +41,69 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
     # iterate over all queries to be solved for the given file
     while [[ -n $next_query ]]; do
         log "$solver_name: $file [$next_query]"
-        log "" "$(echo-progress solve)"
-        csv_line="$file,"
-
-        # in case of a certain number of successive timeouts, skip any further attempts
-        # this is useful if files are executed in order of increasingly complexity, as later files will likely not be solvable either
-        # if files naturally cluster into several groups of increasing complexity (like Linux's architectures), we can optionally group them accordingly
-        if [[ -n $attempt_grouper ]]; then
-            timeout_file=$(output-file "$("$attempt_grouper" "$file" "$next_query").timeout")
+        if should-skip solve-file "$next_query" "" "" "$file"; then
+            log "" "$(echo-skip)"
         else
-            timeout_file=$(output-file "default.timeout")
-        fi
-        timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
-        if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
-            fail_fast=y
-        fi
+            log "" "$(echo-progress solve)"
+            csv_line="$file,"
 
-        # attempt to solve the file with the solver
-        if [[ -z $fail_fast ]]; then
-            # shellcheck disable=SC2046
-            measure "$timeout" $("$solver" "$output") | tee "$output_log"
-        fi
-
-        # check whether the solving attempt was successful
-        local success
-        if [[ -z $fail_fast ]] \
-            && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; } \
-            && ! grep -q "^measure_timeout=y" < "$output_log"; then
-            success=y
-        fi
-
-        # in case of timeout, append this attempt to the timeout file, so further attempts can potentially be skipped
-        if grep -q "^measure_timeout=y" < "$output_log"; then
-            append-atomically "$timeout_file" "$file"
-        fi
-        
-        # collect results into CSV line
-        csv_line+="$solver_name,$next_query,$(grep -oP "^measure_time=\K.*" < "$output_log" || echo)"
-
-        # collect additional data fields (e.g., satisfiability or model count) if requested and if solving succeeded
-        if [[ -n $data_extractor ]]; then
-            if [[ -n $success ]]; then
-                csv_line+=",$("$data_extractor" "$output_log")"
+            # in case of a certain number of successive timeouts, skip any further attempts
+            # this is useful if files are executed in order of increasingly complexity, as later files will likely not be solvable either
+            # if files naturally cluster into several groups of increasing complexity (like Linux's architectures), we can optionally group them accordingly
+            if [[ -n $attempt_grouper ]]; then
+                timeout_file=$(output-file "$("$attempt_grouper" "$file" "$next_query").timeout")
             else
-                for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
-                    csv_line+=",NA"
-                done
+                timeout_file=$(output-file "default.timeout")
             fi
-        fi
+            timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
+            if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
+                fail_fast=y
+            fi
 
-        # clean up and append results to CSV file
-        rm-safe "$output_log"
-        append-atomically "$(output-csv)" "$csv_line"
+            # attempt to solve the file with the solver
+            if [[ -z $fail_fast ]]; then
+                # shellcheck disable=SC2046
+                measure "$timeout" $("$solver" "$output") | tee "$output_log"
+            fi
 
-        # report success or failure
-        if [[ -n $success ]]; then
-            log "" "$(echo-done)"
-            rm-safe "$timeout_file"
-        else
-            log "" "$(echo-fail)"
+            # check whether the solving attempt was successful
+            local success
+            if [[ -z $fail_fast ]] \
+                && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; } \
+                && ! grep -q "^measure_timeout=y" < "$output_log"; then
+                success=y
+            fi
+
+            # in case of timeout, append this attempt to the timeout file, so further attempts can potentially be skipped
+            if grep -q "^measure_timeout=y" < "$output_log"; then
+                append-atomically "$timeout_file" "$file"
+            fi
+            
+            # collect results into CSV line
+            csv_line+="$solver_name,$next_query,$(grep -oP "^measure_time=\K.*" < "$output_log" || echo)"
+
+            # collect additional data fields (e.g., satisfiability or model count) if requested and if solving succeeded
+            if [[ -n $data_extractor ]]; then
+                if [[ -n $success ]]; then
+                    csv_line+=",$("$data_extractor" "$output_log")"
+                else
+                    for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
+                        csv_line+=",NA"
+                    done
+                fi
+            fi
+
+            # clean up and append results to CSV file
+            rm-safe "$output_log"
+            append-atomically "$(output-csv)" "$csv_line"
+
+            # report success or failure
+            if [[ -n $success ]]; then
+                log "" "$(echo-done)"
+                rm-safe "$timeout_file"
+            else
+                log "" "$(echo-fail)"
+            fi
         fi
 
         # advance iterator to next query

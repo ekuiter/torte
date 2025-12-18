@@ -318,7 +318,7 @@ register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0) {
 
     add-lkc-binding(system, revision, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
         log "$system@$revision"
-        if lkc-binding-done "$system" "$revision"; then
+        if lkc-binding-done "$system" "$revision" || should-skip compile-lkc-binding "" "$system" "$revision"; then
             log "" "$(echo-skip)"
             return
         fi
@@ -331,7 +331,7 @@ register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0) {
 
     add-kconfig-model(system, revision, kconfig_file, lkc_binding_file, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
         log "$system@$revision"
-        if kconfig-model-done "$system" "$revision"; then
+        if kconfig-model-done "$system" "$revision" || should-skip extract-kconfig-model "" "$system" "$revision"; then
             log "" "$(echo-skip)"
             return
         fi
@@ -343,15 +343,16 @@ register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0) {
 
     add-kconfig(system, revision, kconfig_file, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
         log "$system@$revision"
-        if lkc-binding-done "$system" "$revision" && kconfig-model-done "$system" "$revision"; then
+        if (lkc-binding-done "$system" "$revision" && kconfig-model-done "$system" "$revision") \
+            || (should-skip compile-lkc-binding "" "$system" "$revision" && should-skip extract-kconfig-model "" "$system" "$revision"); then
             log "" "$(echo-skip)"
             return
         fi
         kconfig-checkout "$system" "$revision"
-        if [[ $LKC_BINDING != $(none) ]] && ! lkc-binding-done "$system" "$revision"; then
+        if [[ $LKC_BINDING != $(none) ]] && ! lkc-binding-done "$system" "$revision" && ! should-skip compile-lkc-binding "" "$system" "$revision"; then
             compile-lkc-binding "$LKC_BINDING" "$system" "$revision" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment"
         fi
-        if ! kconfig-model-done "$system" "$revision"; then
+        if ! kconfig-model-done "$system" "$revision" && ! should-skip extract-kconfig-model "" "$system" "$revision"; then
             extract-kconfig-model "$EXTRACTOR" "$LKC_BINDING" \
                 "$system" "$revision" "$kconfig_file" "" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment" "$OPTIONS" "$TIMEOUT"
         fi

@@ -11,7 +11,8 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
     output_log=$(mktemp)
     csv_line="$file,"
     log "$transformer_name: $file"
-    if [[ -f $(output-csv) ]] && grep -qP "^\Q$csv_line\E" "$(output-csv)"; then
+    if ([[ -f $(output-csv) ]] && grep -qP "^\Q$csv_line\E" "$(output-csv)") \
+        || should-skip transform-file "" "" "" "$file"; then
         log "" "$(echo-skip)"
         return
     fi
