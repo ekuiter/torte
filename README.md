@@ -555,7 +555,7 @@ torte has been used in several research publications and artifacts (also listed 
 
 - Elias Kuiter. torte: Reproducible Feature-Model Experiments à la Carte. In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.
 
-- Elias Kuiter. Can SAT Solvers Keep Up With the Linux Kernel's Feature Model? In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.
+- Elias Kuiter, Urs-Benedict Braun, Thomas Thüm, Sebastian Krieter, and Gunter Saake. Can SAT Solvers Keep Up With the Linux Kernel's Feature Model? In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.
 
 - Tim Bächle, Erik Hofmayer, Christoph König, Tobias Pett, and Ina Schaefer. [Investigating the Effects of T-Wise Interaction Sampling for Vulnerability Discovery in Highly-Configurable Software Systems](https://doi.org/10.1145/3744915.3748462). In Proc. Int'l Systems and Software Product Line Conf. (SPLC). ACM, September 2025.
 
