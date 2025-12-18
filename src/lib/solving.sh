@@ -167,7 +167,19 @@ query-void(file, input, input_extension, output, state) {
 query-complex(kind, polarities, features_extension, file, input, input_extension, output, state) {
     local feature
     if [[ ! -f "$state" ]]; then
-        cp "$DOCKER_INPUT_DIRECTORY/$QUERY_SAMPLE_INPUT_KEY/$(dirname "$file")/$(basename "$file" ".$input_extension").$features_extension" "$state"
+        # try to locate the features file to be queried for the current input file
+        # by default, we assume the query sample stage stores it under the same directory structure as the input file
+        local features_file_base features_file
+        features_file_base="$DOCKER_INPUT_DIRECTORY/$QUERY_SAMPLE_INPUT_KEY"
+        features_file="$(dirname "$file")/$(basename "$file" ".$input_extension").$features_extension"
+        # however, possibly the query sample stage is less specifically aggregated, so we remove the first directory component and try again
+        while [[ ! -f "$features_file_base/$features_file" && "$features_file" == */* ]]; do
+            features_file="${features_file#*/}"
+        done
+        if [[ ! -f "$features_file_base/$features_file" ]]; then
+            error "Could not locate corresponding features file in the query sample for a complex query on file '$file'."
+        fi
+        cp "$features_file_base/$features_file" "$state"
     fi
     features=$(head -n1 "$state")
     if [[ -z $features ]]; then
