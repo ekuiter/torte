@@ -74,22 +74,22 @@ should-skip(function=, argument=, system=, revision=, file=) {
 # precompiles restrictions from a CSV file into a single efficient Bash function, which is only loaded once (at experiment load time)
 # each line in the CSV file should contain one restriction, for which every non-empty field must match for the restriction to apply
 # if any restriction applies, the corresponding action will not be performed and skipped instead
-# thus, this mechanism is useful to for bit specific combinations of stages, systems, or analyses
+# thus, this mechanism is useful to forbid specific combinations of stages, systems, or analyses
 # (e.g., to skip distributive CNF transformation for systems where it is known not to scale)
 # this is also useful to temporarily disable certain actions without having to modify the experiment file itself
-# the special comment field can be used to add human-readable comments to each restriction line (e.g., to add a rationale)
+# the special "comment" field can be used to add human-readable comments to each restriction line (e.g., to add a rationale)
 # fields are matched using Bash's ==, so glob patterns are supported (e.g., to match only a major revision of a system)
 # no subshells are spawned by the generated function, to ensure maximum performance
-# this mechanism resembles query-by-example (QBE) in that we specify specific interactions to filter out
+# this mechanism resembles query-by-example (QBE) in that we list specific interactions to filter out
 # it also resembles aspect-oriented programming (AOP) in that we define "pointcuts" (restrictions) and "weave" them in at compile time
-# the excluded actions will not be logged in CSV files, as they are considered excluded from the experiment by design
+# the skipped actions will not be logged in CSV files, as they are considered excluded from the experiment by design
 # this is an example restrictions file (use with "add-restrictions-payload-file restrictions.csv"):
 # pass,stage,function,argument,system,revision,file,comment
-# ,,add-system,,sat-heritage,,,temporarily skip cloning the large Linux Git repository
+# ,,add-system,,linux,,,temporarily skip cloning the large Linux Git repository
 # ,extract-kconfig-models-with-kconfigreader,,,,,,fully skip KConfigReader extraction
 # ,transform-to-xml-with-featureide,,,,,extract-kconfig-models-with-configfix/*,skip XML transformation for formulas extracted by ConfigFix
 # ,transform-to-dimacs-with-featureide,,,,,*/linux/*v6.*,skip expensive distributive transformation for recent Linux versions
-# second,,extract-kconfig-model,,,,,fully skip extraction in the second pass
+# second,,extract-kconfig-model,,,,,fully skip extraction in the "second" pass
 # ,solve-emse-2023-d4,,,,,transform-to-dimacs-with-kconfigreader/*,skip model counting for Plaisted-Greenbaum transformation
 # ,,solve-file,"core -"*,,,,skip all core feature queries (this requires quotes because of the dash)
 # ,,solve-file,*FEATURE_NAME*,,,,skip all queries related to a specific feature
