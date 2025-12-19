@@ -14,7 +14,7 @@ It integrates 10+ configurable software systems, various extractors and transfor
 [![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/releases)
 [![License](https://img.shields.io/github/license/ekuiter/torte?style=for-the-badge&color=blue)](https://github.com/ekuiter/torte/blob/main/LICENSE.txt)
 
-Jump to: [**Publications**](#publications-and-artifacts) | [**Dashboard**](http://elias-kuiter.de/torte-dashboard/) | [**Demo Video**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/)
+Jump to: [**ICSE'26 Demo**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Publications**](#publications-and-artifacts) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/) | [**Dashboard**](http://elias-kuiter.de/torte-dashboard/)
 
 <img style="float: right;" align="right" width="23%" src="meta/torte.png">
 
@@ -553,25 +553,14 @@ New issues, pull requests, or any other kinds of feedback are always welcome.
 
 torte has been used in several research publications and artifacts (also listed on our [Zenodo community](https://zenodo.org/communities/torte/)):
 
-- Elias Kuiter. torte: Reproducible Feature-Model Experiments à la Carte. In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.
-
+- Elias Kuiter. torte: Reproducible Feature-Model Experiments à la Carte. In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.\
+  [**ICSE'26 Demo Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2026/2026-ICSE-Kuiter-Torte.pdf) | [**ICSE'26 Demo Video**](https://www.youtube.com/watch?v=VtaJiC_b8RA)
 - Elias Kuiter, Urs-Benedict Braun, Thomas Thüm, Sebastian Krieter, and Gunter Saake. Can SAT Solvers Keep Up With the Linux Kernel's Feature Model? In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.
-
-- Tim Bächle, Erik Hofmayer, Christoph König, Tobias Pett, and Ina Schaefer. [Investigating the Effects of T-Wise Interaction Sampling for Vulnerability Discovery in Highly-Configurable Software Systems](https://doi.org/10.1145/3744915.3748462). In Proc. Int'l Systems and Software Product Line Conf. (SPLC). ACM, September 2025.
-
-  Badge: *Artifacts Evaluated – Reusable v1.1*
-
-- Elias Kuiter, Chico Sundermann, Thomas Thüm, Tobias Heß, Sebastian Krieter, and Gunter Saake. [How Configurable is the Linux Kernel? Analyzing Two Decades of Feature-Model History](https://doi.org/10.1145/3729423). In Trans. on Software Engineering and Methodology (TOSEM), ACM, April 2025.
-  
+- Tim Bächle, Erik Hofmayer, Christoph König, Tobias Pett, and Ina Schaefer. [Investigating the Effects of T-Wise Interaction Sampling for Vulnerability Discovery in Highly-Configurable Software Systems](https://doi.org/10.1145/3744915.3748462). In Proc. Int'l Systems and Software Product Line Conf. (SPLC). ACM, September 2025. *Artifacts Evaluated – Reusable v1.1*
+- Elias Kuiter, Chico Sundermann, Thomas Thüm, Tobias Heß, Sebastian Krieter, and Gunter Saake. [How Configurable is the Linux Kernel? Analyzing Two Decades of Feature-Model History](https://doi.org/10.1145/3729423). In Trans. on Software Engineering and Methodology (TOSEM), ACM, April 2025. *Artifacts Evaluated – Reusable v1.1*\
   [**TOSEM'25 Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2025/2025-TOSEM-Kuiter.pdf) | [**FOSD'24 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2024/2024-04-10-FOSD-Linux.pdf) | [**TOSEM'25 RCR Report**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2025/2025-TOSEM-Kuiter-RCR-Report.pdf)
-
-  Badge: *Artifacts Evaluated – Reusable v1.1*
-
-- Elias Kuiter, Sebastian Krieter, Chico Sundermann, Thomas Thüm, and Gunter Saake. [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://doi.org/10.1145/3551349.3556938). In Proc. Int'l Conf. on Automated Software Engineering (ASE). ACM, October 2022.
-  
+- Elias Kuiter, Sebastian Krieter, Chico Sundermann, Thomas Thüm, and Gunter Saake. [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://doi.org/10.1145/3551349.3556938). In Proc. Int'l Conf. on Automated Software Engineering (ASE). ACM, October 2022. *Artifacts Evaluated – Reusable v1.1*\
   [**ASE'22 Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) | [**FOSD'22 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2022/2022-03-31-FOSD-Tseitin.pdf) | [**ASE'22 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2022/2022-10-13-ASE-Tseitin.pdf) | [**SE'23 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2023/2023-02-22-SE-Tseitin.pdf) | [**SAT'23 Slides**](https://raw.githubusercontent.com/SoftVarE-Group/Slides/main/2023/2023-07-04-SAT-Tseitin.pdf)
-  
-  Badge: *Artifacts Evaluated – Reusable v1.1*
 
 ### Availability and Reproducibility
 
