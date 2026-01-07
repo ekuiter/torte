@@ -553,7 +553,7 @@ New issues, pull requests, or any other kinds of feedback are always welcome.
 
 torte has been used in several research publications and artifacts (also listed on our [Zenodo community](https://zenodo.org/communities/torte/)):
 
-- Elias Kuiter. torte: Reproducible Feature-Model Experiments à la Carte. In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.\
+- Elias Kuiter. [torte: Reproducible Feature-Model Experiments à la Carte](https://doi.org/10.1145/3774748.3787618). In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.\
   [**ICSE'26 Demo Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2026/2026-ICSE-Kuiter-Torte.pdf) | [**ICSE'26 Demo Video**](https://www.youtube.com/watch?v=VtaJiC_b8RA)
 - Elias Kuiter, Urs-Benedict Braun, Thomas Thüm, Sebastian Krieter, and Gunter Saake. Can SAT Solvers Keep Up With the Linux Kernel's Feature Model? In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.\
   [**ICSE'26 Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2026/2026-ICSE-Kuiter.pdf)
