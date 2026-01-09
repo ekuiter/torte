@@ -555,7 +555,7 @@ torte has been used in several research publications and artifacts (also listed 
 
 - Elias Kuiter. [torte: Reproducible Feature-Model Experiments à la Carte](https://doi.org/10.1145/3774748.3787618). In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.\
   [**ICSE'26 Demo Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2026/2026-ICSE-Kuiter-Torte.pdf) | [**ICSE'26 Demo Video**](https://www.youtube.com/watch?v=VtaJiC_b8RA)
-- Elias Kuiter, Urs-Benedict Braun, Thomas Thüm, Sebastian Krieter, and Gunter Saake. Can SAT Solvers Keep Up With the Linux Kernel's Feature Model? In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.\
+- Elias Kuiter, Urs-Benedict Braun, Thomas Thüm, Sebastian Krieter, and Gunter Saake. [Can SAT Solvers Keep Up With the Linux Kernel's Feature Model?](https://doi.org/10.1145/3744916.3787823) In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026.\
   [**ICSE'26 Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2026/2026-ICSE-Kuiter.pdf)
 - Tim Bächle, Erik Hofmayer, Christoph König, Tobias Pett, and Ina Schaefer. [Investigating the Effects of T-Wise Interaction Sampling for Vulnerability Discovery in Highly-Configurable Software Systems](https://doi.org/10.1145/3744915.3748462). In Proc. Int'l Systems and Software Product Line Conf. (SPLC). ACM, September 2025. *Artifacts Evaluated – Reusable v1.1*
 - Elias Kuiter, Chico Sundermann, Thomas Thüm, Tobias Heß, Sebastian Krieter, and Gunter Saake. [How Configurable is the Linux Kernel? Analyzing Two Decades of Feature-Model History](https://doi.org/10.1145/3729423). In Trans. on Software Engineering and Methodology (TOSEM), ACM, April 2025. *Artifacts Evaluated – Reusable v1.1*\
