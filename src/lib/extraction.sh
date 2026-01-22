@@ -109,7 +109,7 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
 
 # runs KConfigReader to extract a feature-model formula from Kconfig files
 # sets the global MEASURED_TIME variable
-extract-kconfig-model-with-kconfigreader(system, revision, kconfig_file, lkc_binding_file, output_log, timeout=0) {
+extract-kconfig-model-with-kconfigreader(system, revision, kconfig_file, lkc_binding_file, output_log, options=, timeout=0) {
     measure "$timeout" /home/kconfigreader/run.sh \
         "$(memory-limit 1)" \
         de.fosd.typechef.kconfig.KConfigReader \
@@ -119,6 +119,16 @@ extract-kconfig-model-with-kconfigreader(system, revision, kconfig_file, lkc_bin
         "$(output-path "$system" "$revision")" \
         | tee "$output_log"
     MEASURED_TIME=$(grep -oP "^measure_time=\K.*" < "$output_log")
+    # as documented in the README file, we make no decision regarding tristate or Boolean semantics by default
+    # but if asked to, we realize the user's choice by setting the value of MODULES, if it exists
+    if [[ -f "$(output-path "$system" "$revision.model")" ]] \
+        && grep -qP "^#item MODULES$" "$(output-path "$system" "$revision.model")"; then
+        if [[ $options == *"kconfigreader-boolean"* ]]; then
+            echo "!def(MODULES)" >> "$(output-path "$system" "$revision.model")"
+        elif [[ $options == *"kconfigreader-tristate"* ]]; then
+            echo "def(MODULES)" >> "$(output-path "$system" "$revision.model")"
+        fi
+    fi
 }
 
 # runs KClause to extract a feature-model formula from Kconfig files
@@ -134,10 +144,10 @@ extract-kconfig-model-with-kclause(system, revision, kconfig_file, lkc_binding_f
     kclause-post-binding-hook "$system" "$revision"
     # as documented in the README file, we consider --disable-tristate-support to be the sensible default
     # thus, we explicitly make tristate support opt-in here
-    if [[ -z "$options" ]]; then
-        options="--disable-tristate-support"
-    elif [[ $options == "--enable-tristate-support" ]]; then
+    if [[ $options == *"kclause-tristate"* ]]; then
         options=
+    else
+        options="--disable-tristate-support"
     fi
     # shellcheck disable=SC2086
     measure "$timeout" /home/kclause.sh \
@@ -270,7 +280,7 @@ extract-kconfig-model(extractor, lkc_binding, system, revision, kconfig_file, lk
             if [[ -f $lkc_binding_file ]]; then
                 if [[ $extractor == kconfigreader ]]; then
                     extract-kconfig-model-with-kconfigreader \
-                        "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$output_log" "$timeout"
+                        "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$output_log" "$options" "$timeout"
                 elif [[ $extractor == kclause ]]; then
                     extract-kconfig-model-with-kclause \
                         "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$kconfig_model" "$features_file" "$output_log" "$options" "$timeout"

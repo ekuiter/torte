@@ -254,7 +254,10 @@ The following tools are bundled with torte and can be used in experiments for ex
 Most tools are not included in this repository, but cloned and built with tool-specific Docker files in the `docker` directory.
 The bundled solvers are listed in a separate table [below](#solvers).
 
-For transparency, we document the changes we make to these tools and known limitations. There are also some general known limitations of torte. [^1]
+For transparency, we document the changes we make to these tools and known limitations.
+We strongly recommend reading all the footnotes for the chosen tools, because the standard behavior does not serve every use case.
+
+There are also some general known limitations of torte. [^1]
 
 | Tool | Version | Date | Notes |
 | - | - | - | - |
@@ -349,9 +352,21 @@ While this issue is being resolved, FeatureIDE's UVL parser can be relied on as 
 This encoding may lead to an overestimation of valid configurations, as the introduced constraint `CONFIG_A <-> CONFIG_A==y ^ CONFIG_A==m` does not disallow selecting both `y` and `m` (which KConfigReader does, so it does not have this problem).
 Because of this accuracy problem and the violated backwards compatibility, we disable this new encoding by default in torte.
 This way, KClause continues to treat all tristate features as Boolean, correctly representing the Boolean fragment of the feature model.
-This "lower bound" on valid configurations pairs well with KConfigReader, which can be considered an "upper bound" that correctly incorporates tristate features.
-While we consider this to be a sensible default, we also allow to explicitly enable this encoding with `extract-kconfig-models --options --enable-tristate-support`.
+This "lower bound" on valid configurations pairs well with KConfigReader, which can be considered an "upper bound" that correctly incorporates tristate features (if set to `kconfigreader-tristate`, see [^41]).
+While we consider this to be a sensible default, we also allow to explicitly enable this encoding with `extract-kconfig-models --options kclause-tristate` (the default is `kclause-boolean`).
 On Linux 2.6.14, this encoding makes a difference of 28 orders of magnitude in the number of configurations, namely 10^590 (disabled, our default) vs. 10^618 (enabled).
+
+[^41]: When at least one tristate feature is defined (i.e., only on Linux, in practice), KConfigReader introduces a special variable `MODULES`, whose value determines whether the tristate or Boolean encoding is enabled.
+By default, both are encoded in the extracted `.model` files, so the formula is technically an overestimation, which may not be desired.
+Users can then explicitly choose the tristate semantics by setting `MODULES` to `true` (and `false` for Boolean semantics, respectively).
+torte offers all three options for KConfigReader: `extract-kconfig-models --options kconfigreader-[both|tristate|boolean]`.
+Choosing `kconfigreader-boolean` theoretically makes the resulting models more comparable with KClause (although there is still the matter of non-Boolean features, which make KConfigReader's models larger by several orders of magnitude).
+Choosing `kconfigreader-both` versus `kconfigreader-tristate` only makes a minor difference, due of the huge size of Linux.
+For example, on Linux 2.5.70, both encodings have roughly the same number of configurations, namely 10^680 (their quotient differs first in the 206th decimal place).
+However, the encoding can noticeably affect the performance of model counting with #SAT solvers.
+We consider `kconfigreader-both` a sensible default for three reasons:
+It preserves the original behavior of KConfigReader, the difference to `kconfigreader-tristate` is minor, and it offers full versatility due to the encoding of both semantics.
+Nevertheless, we recommend setting this option explicitly whenever working with Linux, if only to improve reasoning performance.
 
 ### Solvers
 
