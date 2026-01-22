@@ -1,14 +1,16 @@
 #!/bin/bash
 
+PAYLOAD_FILE_SYSTEM_NAME=payload_file # the directory name under which the payload file is cloned
+
 # adds a single Kconfig file (useful for testing) as a system by creating a temporary git repository
 # because our file is not accompanied by any LKC toolchain, we choose a recent version of Linux's LKC implementation
-add-kconfig-payload-file(payload_file, system=file, lkc_revision=v6.17, only_configfix=) {
+add-kconfig-payload-file(payload_file, lkc_revision=v6.17, only_configfix=) {
     local url lkc_binding_file
     url=$(mktemp -d)
     cp -R "$SRC_EXPERIMENT_DIRECTORY/$payload_file" "$url/$payload_file"
     add-hook-step pre-clone-hook pre-clone-hook-payload-file
-    add-system --system "$system" --url "$url"
-    add-revision --system "$system" --revision HEAD
+    add-system --system "$PAYLOAD_FILE_SYSTEM_NAME" --url "$url"
+    add-revision --system "$PAYLOAD_FILE_SYSTEM_NAME" --revision HEAD
     # this is a little performance hack to skip cloning and checking out Linux when we only want to use ConfigFix
     # as this abstraction level does not know about extractors, we must pass this manually as a parameter if desired
     # not passing the parameter always works, but it can save some time if we only intend to extract with ConfigFix
@@ -19,7 +21,7 @@ add-kconfig-payload-file(payload_file, system=file, lkc_revision=v6.17, only_con
         lkc_binding_file=$(linux-lkc-binding-file "$lkc_revision")
     fi
     add-kconfig-model \
-        --system "$system" \
+        --system "$PAYLOAD_FILE_SYSTEM_NAME" \
         --revision HEAD \
         --kconfig-file "$payload_file" \
         --lkc-directory "$(none)" \
@@ -29,9 +31,11 @@ add-kconfig-payload-file(payload_file, system=file, lkc_revision=v6.17, only_con
 # prepares a temporary git repository containing the payload file
 # only executed in clone-systems stage to avoid recreating the repository in other stages
 pre-clone-hook-payload-file(system, url) {
-    git -C "$url" init
-    git -C "$url" add -A
-    git -C "$url" commit -m .
+    if [[ $system == "$PAYLOAD_FILE_SYSTEM_NAME" ]]; then
+        git -C "$url" init
+        git -C "$url" add -A
+        git -C "$url" commit -m .
+    fi
 }
 
 # injects a payload file into a stage, typically a UVL (or otherwise parseable) feature-model file
