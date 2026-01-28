@@ -280,7 +280,7 @@ It is recommended to check manually whether non-Boolean variability is represent
 [^4]: We majorly revised the native C bindings `dumpconf.c` (KConfigReader) and `kextractor.c` (KClause), which are intended to be compiled against a system's Kconfig parser to get accurate feature models.
 Our improved versions adapt to the KConfig constructs actually used in a system, which is important to extract evolution histories with evolving KConfig parsers.
 Our changes are generalizations of the original versions of `dumpconf.c` and `kextractor.c` and should pose no threat to validity.
-Specifically, we added support for `E_CHOICE` (treated as `E_LIST`), `P_IMPLY` (treated as `P_SELECT`, see [smba/kconfigreader](https://github.com/smba/kconfigreader)), and `E_NONE`, `E_LTH`, `E_LEQ`, `E_GTH`, `E_GEQ` (ignored).
+Specifically, we added support for `E_CHOICE` (treated as `E_LIST`), `P_IMPLY` (ignored, see [^42]), and `E_NONE`, `E_LTH`, `E_LEQ`, `E_GTH`, `E_GEQ` (ignored).
 
 [^5]: Compiling the native C bindings of KConfigReader and KClause is not possible for all KConfig-based systems (e.g., if the Python-based [Kconfiglib](https://github.com/ulfalizer/Kconfiglib) parser is used).
 In that case, you can try to reuse a C binding from an existing system with similar KConfig files; however, this may limit the extracted model's accuracy.
@@ -378,6 +378,9 @@ Practically speaking, we choose to preserve the extractor behavior as is (for no
 This also makes sense because [semantically](https://docs.kernel.org/kbuild/kconfig-language.html#menu-attributes), `imply` represents more of a recommendation than an obligation to choose another feature.
 In practice, this subtlety only affects Linux, and likely not to a large degree:
 Of 42k `select/depends on/imply` dependencies in Linux v6.19-rc7, only 1.1% (458) are `imply`; and of 415 `imply`d features in Linux v6.19-rc7, 31% (128) have no prompt and are therefore forcibly `select`ed.
+Note that a previous fork of KConfigReader ([smba/kconfigreader](https://github.com/smba/kconfigreader)) treated `imply` as `select`.
+This leads to an overapproximation of the constraints and which may even render parts of the feature model (conditionally) dead.
+We advise against this, as it probably does more harm to the feature model than ignoring `imply` completely.
 
 ### Solvers
 
