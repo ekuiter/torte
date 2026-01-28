@@ -262,12 +262,12 @@ There are also some general known limitations of torte. [^1]
 | Tool | Version | Date | Notes |
 | - | - | - | - |
 | [arminbiere/cadiback](https://github.com/arminbiere/cadiback) | 2e912fb | 2023-07-21 | |
-| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] [^24] [^41] |
+| [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] [^24] [^41] [^42] |
 | [ekuiter/clausy](https://github.com/ekuiter/clausy) | b63bdfc | 2025-12-02 | |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | 3fc8d66 | 2025-10-10 | [^12] [^15] [^6] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
-| [isselab/configfix](https://github.com/ekuiter/torte-ConfigFix) | 0312ab7 | 2025-11-28 | [^33] [^39] [^40] |
-| [paulgazz/kmax](https://github.com/paulgazz/kmax) ([KClause](https://github.com/paulgazz/kmax/blob/master/kmax/kclause)) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] [^22] |
+| [isselab/configfix](https://github.com/ekuiter/torte-ConfigFix) | 0312ab7 | 2025-11-28 | [^33] [^39] [^40] [^42] |
+| [paulgazz/kmax](https://github.com/paulgazz/kmax) ([KClause](https://github.com/paulgazz/kmax/blob/master/kmax/kclause)) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] [^22] [^42] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 | [zephyrproject-rtos/Kconfiglib](https://github.com/zephyrproject-rtos/Kconfiglib) | 601f63d | 2025-11-04 | [^2] |
 | [znewsham/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
@@ -367,6 +367,17 @@ However, the encoding can noticeably affect the performance of model counting wi
 We consider `kconfigreader-both` a sensible default for three reasons:
 It preserves the original behavior of KConfigReader, the difference to `kconfigreader-tristate` is minor, and it offers full versatility due to the encoding of both semantics.
 Nevertheless, we recommend setting this option explicitly whenever working with Linux, if only to improve reasoning performance.
+
+[^42]: In 2016, the `imply` keyword was introduced to KConfig in the Linux kernel.
+This keyword is a "softer" version of the `select` keywords, which strongly suggests the selection of a feature, but does not force it.
+That is, `imply` effectively only implies the *default* value of a feature, which may still be changed manually if the feature is visible in the configurator.
+Conversely, this means that when a feature is not visible (e.g., when it has no prompt), `imply` basically acts equivalent to `select`.
+KConfigReader, KClause, and ConfigFix all ignore the `imply` keyword completely.
+Strictly speaking, this is not correct for all features (i.e., invisibly `imply`d features are `select`ed) and, thus, an underapproximation of the constraints.
+Practically speaking, we choose to preserve the extractor behavior as is (for now), which ensures comparability and the intentions of the extractors' authors.
+This also makes sense because [semantically](https://docs.kernel.org/kbuild/kconfig-language.html#menu-attributes), `imply` represents more of a recommendation than an obligation to choose another feature.
+In practice, this subtlety only affects Linux, and likely not to a large degree:
+Of 42k `select/depends on/imply` dependencies in Linux v6.19-rc7, only 1.1% (458) are `imply`; and of 415 `imply`d features in Linux v6.19-rc7, 31% (128) have no prompt and are therefore forcibly `select`ed.
 
 ### Solvers
 

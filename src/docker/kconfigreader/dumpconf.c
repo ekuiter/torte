@@ -86,7 +86,7 @@ char* getPropType(enum prop_type t) {
         case P_SYMBOL: return "symbol";
 #endif
 #if HAS_P_IMPLY
-        case P_IMPLY: return "select";
+        case P_IMPLY: return "imply";
 #endif
 	}
 	return "?";
@@ -240,21 +240,26 @@ void dumpexpr(FILE *out, struct expr *e) {
 
 
 void dumpprop(FILE *out, struct property *prop) {
-	fprintf(out, "<property type=\"%s\">",getPropType(prop->type));
-	if (prop->text)	
-    	fprintf(out, "<text><![CDATA[%s]]></text>", prop->text);
-	if (prop->expr)	{
-       	fprintf(out, "<expr>");
-       	dumpexpr(out, prop->expr);
-     	fprintf(out, "</expr>");
-    }
-	if (prop->visible.expr)	{
-       	fprintf(out, "<visible><expr>");
-       	dumpexpr(out, prop->visible.expr);
-     	fprintf(out, "</expr></visible>");
-    }
+	const char *type = getPropType(prop->type);
+	// we explicitly ignore "imply" properties here, as documented in the README file
+	// this improves comparability with the other extractors (which also ignore imply)
+	if (strcmp(type, "imply") != 0) {
+		fprintf(out, "<property type=\"%s\">", type);
+		if (prop->text)
+			fprintf(out, "<text><![CDATA[%s]]></text>", prop->text);
+		if (prop->expr)	{
+			fprintf(out, "<expr>");
+			dumpexpr(out, prop->expr);
+			fprintf(out, "</expr>");
+		}
+		if (prop->visible.expr)	{
+			fprintf(out, "<visible><expr>");
+			dumpexpr(out, prop->visible.expr);
+			fprintf(out, "</expr></visible>");
+		}
 
-	fprintf(out, "</property>\n");
+		fprintf(out, "</property>\n");
+	}
 }
 
 
