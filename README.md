@@ -373,13 +373,13 @@ This keyword is a "softer" version of the `select` keyword - it strongly suggest
 That is, `imply` effectively only implies the *default* value of a feature, which may still be changed manually if the feature is visible in the configurator.
 Conversely, this means that when a feature is not visible (e.g., when it has no prompt), `imply` basically acts equivalent to `select`.
 KConfigReader, KClause, and ConfigFix all ignore the `imply` keyword completely.
-Strictly speaking, this is not correct for all features (i.e., invisibly `imply`'d features are `select`'ed) and, thus, an underapproximation of the constraints.
-Practically speaking, we choose to preserve the extractor behavior as is (for now), which ensures comparability and the intentions of the extractors' authors.
-This also makes sense because [semantically](https://docs.kernel.org/kbuild/kconfig-language.html#menu-attributes), `imply` represents more of a recommendation than an obligation to choose another feature.
+Strictly speaking, this is not correct for all features (i.e., invisibly `imply`'d features are `select`'ed), so this is an underapproximation of the constraints.
+However, practically speaking, we choose to preserve the extractor behavior, which ensures comparability and the intentions of the extractors' authors.
+This is also reasonable because [semantically](https://docs.kernel.org/kbuild/kconfig-language.html#menu-attributes), `imply` represents more of a recommendation than an obligation to choose another feature.
 In practice, this subtlety only affects Linux, and likely not to a large degree:
 Of 42k `select/depends on/imply` dependencies in Linux v6.19-rc7, only 1.1% (458) are `imply` dependencies; and of 415 `imply`'d features in Linux v6.19-rc7, 31% (128) have no prompt and are therefore forcibly `select`'ed.
 Note that a previous fork of KConfigReader ([smba/kconfigreader](https://github.com/smba/kconfigreader)) treated `imply` as `select`.
-This leads to an overapproximation of the constraints and which may even render parts of the feature model (conditionally) dead.
+This leads to an overapproximation of the constraints that may even render parts of the feature model (conditionally) dead.
 We advise against this, as it probably does more harm to the feature model than ignoring `imply` completely.
 
 ### Solvers
