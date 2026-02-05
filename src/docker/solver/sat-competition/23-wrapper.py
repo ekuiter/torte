@@ -26,7 +26,7 @@ def run_solver_reduced(args, reduced_cnf, reduced_drat):
     p = subprocess.run([
         args.solver,
         reduced_cnf,
-        'solver.drat',
+        f'{args.output}/solver.drat',
         '--no-binary'
     ], stdout=subprocess.PIPE)
 
@@ -43,7 +43,7 @@ def run_solver_reduced(args, reduced_cnf, reduced_drat):
             proof = ''
             with open(reduced_drat, 'r') as f:
                 proof += f.read()
-            with open('solver.drat', 'r') as f:
+            with open(f'{args.output}/solver.drat', 'r') as f:
                 proof += f.read()
             
             with open(f'{args.output}/proof.out', 'w') as f:
@@ -69,14 +69,14 @@ def run(args):
     p = subprocess.run([
         'timeout', str(args.t2), args.bva,
         '-i', args.input,
-        '-o', 'bva.cnf',
-        '-p', 'bva.drat',
+        '-o', f'{args.output}/bva.cnf',
+        '-p', f'{args.output}/bva.drat',
         '-t', str(args.t1),
     ])
 
     if p.returncode == 0:
         # BVA ran successfully
-        run_solver_reduced(args, 'bva.cnf', 'bva.drat')
+        run_solver_reduced(args, f'{args.output}/bva.cnf', f'{args.output}/bva.drat')
     else:
         # Run original solver on input
         run_solver_bare(args)

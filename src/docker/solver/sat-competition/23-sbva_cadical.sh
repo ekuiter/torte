@@ -8,7 +8,7 @@ INNER_TIMEOUT=200
 
 python3 "$(dirname "$0")"/23-wrapper.py \
     --input $1 \
-    --output "$(mktemp)" \
+    --output "$(mktemp -d)" \
     --bva $SBVA \
     --t1 $INNER_TIMEOUT \
     --t2 $OUTER_TIMEOUT \
