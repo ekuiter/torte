@@ -11,7 +11,7 @@ else
   XDIR=`echo $0 | sed "s%\(.*\)/.*$%\1%"`
 fi
 
-TMP=/tmp/GTI_${HOSTNAME}_$$
+TMP="$(mktemp -d)"/GTI_${HOSTNAME}_$$
 SE=$XDIR/satelite-2005
 MS=$XDIR/minisat-2005
 if [ x"$1" = "xdebug" ]; then SE=$XDIR/SatELite; shift;fi   

@@ -5,7 +5,7 @@ if [ "x$1" = "x" ]; then
   exit 1
 fi
 
-TMP=/tmp/SatElite_temp
+TMP="$(mktemp -d)"/SatElite_temp
 SE=$(dirname "$0")/07-SatELite
 RS=$(dirname "$0")/07-RSat
 INPUT=$1; shift 

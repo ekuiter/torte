@@ -11,7 +11,7 @@ fi
 
 # To set in a normal envirnement
 mypath=$(dirname "$0")
-TMPDIR=/tmp
+TMPDIR="$(mktemp -d)"
 
 TMP=$TMPDIR/glucose_$$
 SE=$mypath/11-SatELite

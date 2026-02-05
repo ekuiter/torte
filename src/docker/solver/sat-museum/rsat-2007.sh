@@ -5,7 +5,7 @@ if [ "x$1" = "x" ]; then
   exit 1
 fi
 
-TMP=/tmp/rsat-$$
+TMP="$(mktemp -d)"/rsat-$$
 SE=`echo $0|xargs dirname`/satelite-2007
 RS=`echo $0|xargs dirname`/rsat-2007
 INPUT="$1"

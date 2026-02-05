@@ -11,7 +11,7 @@ fi
 
 # To set in a normal envirnement
 mypath=.
-TMPDIR=/tmp
+TMPDIR="$(mktemp -d)"
 
 TMP=$TMPDIR/glucose_$$ #set this to the location of temporary files
 SE=$(dirname "$0")/SatELite-2012          #set this to the executable of SatELite
