@@ -9,8 +9,8 @@ define-stages() {
     }
 
     # tag old Linux revisions that are not included in its Git history
-    tag-linux-revisions(option=) {
-        run --output tag-linux-revisions --command tag-linux-revisions "$option"
+    tag-linux-revisions(options=) {
+        run --output tag-linux-revisions --command tag-linux-revisions "$options"
     }
 
     # extracts code names of linux revisions
@@ -29,8 +29,8 @@ define-stages() {
     }
 
     # read basic statistics for each system
-    read-statistics(input=, option=) {
-        run --input "$input" --output read-statistics --command read-statistics "$option"
+    read-statistics(input=, options=) {
+        run --input "$input" --output read-statistics --command read-statistics "$options"
     }
 
     # generate repository with full history of BusyBox feature model
