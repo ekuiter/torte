@@ -211,7 +211,7 @@ add-linux-kconfig-revisions(revisions=, architecture=x86) {
             add-linux-kconfig \
                 --revision "$revision" \
                 --architecture "$architecture" \
-                --lkc-binding-file "$(output-path "$LKC_BINDINGS_DIRECTORY" linux "$first_binding_revision")"
+                --lkc-binding-file "$(linux-lkc-binding-file "$first_binding_revision")"
         else
             add-linux-kconfig --revision "$revision" --architecture "$architecture"
         fi
