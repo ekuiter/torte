@@ -14,7 +14,7 @@ It integrates 10+ configurable software systems, various extractors and transfor
 [![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/releases)
 [![License](https://img.shields.io/github/license/ekuiter/torte?style=for-the-badge&color=blue)](https://github.com/ekuiter/torte/blob/main/LICENSE.txt)
 
-Jump to: [**ICSE'26 Demo**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Publications**](#publications-and-artifacts) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/) | [**Dashboard**](http://elias-kuiter.de/torte-dashboard/)
+Jump to: [**ICSE'26 Demo**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Publications**](#publications-and-artifacts) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/) | [**Dashboard**](http://elias-kuiter.de/torte-dashboard/) | [**Research**](http://elias-kuiter.de/torte-research/)
 
 <img style="float: right;" align="right" width="23%" src="meta/torte.png">
 
@@ -247,6 +247,9 @@ The in-between versions are in the process of migration and cannot be successful
 To avoid this, use KClause instead or run on a machine with more RAM.
 
 ## Bundled Tools
+
+We only list tools here that are integrated into torte.
+For an overview of additional tools to feature-model analysis, have a look at our [research](http://elias-kuiter.de/torte-research/) website.
 
 ### Extraction and Transformation
 
