@@ -246,7 +246,7 @@ tag-linux-revisions(options=) {
                 git -C "$(input-directory)/linux" tag -d v2.6.11 # delete non-commit 2.6.11
             fi
 
-            if [[ $TAG_OPTIONS != --skip-tagging ]]; then
+            if [[ $TAG_OPTIONS != skip-tagging ]]; then
                 # could also tag older revisions, but none use Kconfig
                 tag-revisions https://mirrors.edge.kernel.org/pub/linux/kernel/v2.5/ 2.5.45
                 tag-revisions https://mirrors.edge.kernel.org/pub/linux/kernel/v2.6/ 2.6.0 2.6.12

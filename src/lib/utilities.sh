@@ -41,7 +41,7 @@ read-statistics(options=) {
         local date
         date=$(date -d "@$time" +"%Y-%m-%d")
         echo "$system,$revision,$time,$date" >> "$(output-path date.csv)"
-        if [[ $STATISTICS_OPTIONS != --skip-sloc ]]; then
+        if [[ $STATISTICS_OPTIONS != skip-sloc ]]; then
             local sloc_file
             sloc_file=$(output-path "$system" "$revision.txt")
             push "$(input-directory)/$system"

@@ -22,7 +22,7 @@ experiment-systems() {
 experiment-stages() {
     clone-systems
     tag-linux-revisions
-    read-statistics --options --skip-sloc
+    read-statistics --options skip-sloc
 
     extract-kconfig-models --with-kclause y
     join-into read-statistics extract-kconfig-models
