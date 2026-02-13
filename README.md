@@ -185,6 +185,7 @@ Thus, we exclude some experiments from the CI pipeline with `__NO_CI__`. However
 
 This is a list of all subject systems for which feature-model extraction has been tested and confirmed to work for at least one extraction tool.
 Other systems or revisions may also be supported.
+For an overview of KConfig-based system software, have a look at our [research](http://elias-kuiter.de/torte-research/) website.
 
 Detailed system-specific information on potential threats to validity is available in the `scripts/systems` directory.
 The files in this directory include templates and convenience functions for working with well-known systems.
