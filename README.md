@@ -374,9 +374,9 @@ Nevertheless, we recommend setting this option explicitly whenever working with 
 
 [^42]: In 2016, the `imply` keyword was introduced to KConfig in the Linux kernel.
 This keyword is a "softer" version of the `select` keyword - it strongly suggests the selection of a feature, but does not force it.
-That is, `imply` effectively only implies the *default* value of a feature, which may still be changed manually if the feature is visible in the configurator.
+That is, `imply` effectively only implies the *default* value of a feature, which may still be changed manually if the feature is [visible](https://groups.google.com/g/kconfig-sat/c/3zb3PX7e4OE/m/YIbylBsNBgAJ) in the configurator.
 Conversely, this means that when a feature is not visible (e.g., when it has no prompt), `imply` basically acts equivalent to `select`.
-KConfigReader, KClause, and ConfigFix all ignore the `imply` keyword completely.
+KConfigReader, KClause, and [ConfigFix](https://groups.google.com/g/kconfig-sat/c/3zb3PX7e4OE/m/FqC74X8CBgAJ) all ignore the `imply` keyword completely.
 Strictly speaking, this is not correct for all features (i.e., invisibly `imply`'d features are `select`'ed), so this is an underapproximation of the constraints.
 However, practically speaking, we choose to preserve the extractor behavior, which ensures comparability and the intentions of the extractors' authors.
 This is also reasonable because [semantically](https://docs.kernel.org/kbuild/kconfig-language.html#menu-attributes), `imply` represents more of a recommendation than an obligation to choose another feature.
