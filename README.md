@@ -205,8 +205,8 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
 | [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |
 
-torte also integrates with feature-model repositories such as our own [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark) or the [UVLHub](https://www.uvlhub.io/) (with `inject-feature-models`).
-We also support the extraction of individual KConfig files (with `add-payload-file-kconfig`), which is useful for testing extractors.
+torte also integrates with feature-model or formula repositories such as [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark), [UVLHub](https://www.uvlhub.io/), or [Global Benchmark Database](https://benchmark-database.de/) (with `download-payload-file`/`add-model-payload-file`).
+We also support the extraction of individual KConfig files (with `add-kconfig-payload-file`), which is useful for testing extractors.
 These integrations are demonstrated in the [default experiment](experiments/default/experiment.sh).
 
 [^21]: Most revisions and architectures of Linux (since the introduction of KConfig in Linux 2.5.45) can be extracted successfully.
