@@ -379,7 +379,7 @@ Conversely, this means that when a feature is not visible (e.g., when it has no 
 KConfigReader, KClause, and [ConfigFix](https://groups.google.com/g/kconfig-sat/c/3zb3PX7e4OE/m/FqC74X8CBgAJ) all ignore the `imply` keyword completely.
 Strictly speaking, this is not correct for all features (i.e., invisibly `imply`'d features are `select`'ed), so this is an underapproximation of the constraints.
 However, practically speaking, we choose to preserve the extractor behavior, which ensures comparability and the intentions of the extractors' authors.
-This is also reasonable because [semantically](https://docs.kernel.org/kbuild/kconfig-language.html#menu-attributes), `imply` represents more of a recommendation than an obligation to choose another feature.
+This is also reasonable because [semantically](https://docs.kernel.org/kbuild/kconfig-language.html#menu-attributes), `imply` represents more of a [recommendation](https://docs.nordicsemi.com/bundle/ncs-1.1.0/page/zephyr/guides/kconfig/index.html#the_imply_statement) than an obligation to choose another feature.
 In practice, this subtlety only affects Linux, and likely not to a large degree:
 Of 42k `select/depends on/imply` dependencies in Linux v6.19-rc7, only 1.1% (458) are `imply` dependencies; and of 415 `imply`'d features in Linux v6.19-rc7, 31% (128) have no prompt and are therefore forcibly `select`'ed.
 Note that a previous fork of KConfigReader ([smba/kconfigreader](https://github.com/smba/kconfigreader)) treated `imply` as `select`.
