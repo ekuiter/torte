@@ -216,9 +216,9 @@ In theory, a rudimentary migration script from CML1 to KConfig is [available](ht
 However, it produces many false positives and negatives, which require hundreds of manual patches before (`prepare-all.diff`) and after (`fixup-all.diff`) conversion.
 The included patches only apply to Linux 2.5.44, which makes the extraction of older revisions impossible.
 
-[^25]: Due to extractor limitations, we ignore the more recently introduced KConfig constructs defined in Linux' `scripts/Kconfig.include`.
-Most of these only add machine specific-default values or dependencies (affecting about 100 features in the kernel's history up to `v6.3`).
-However, these constructs do not affect our feature-model extraction, as we want to ignore machine-dependent restrictions.
+[^25]: Due to extractor limitations, we ignore the more recently introduced KConfig macro language defined in Linux' `scripts/Kconfig.include`.
+Mostly, this language is related to adding machine specific-default values or dependencies (affecting about 100 features in the kernel's history up to `v6.3`).
+However, it does not substantially affect our feature-model extraction, as we want to ignore machine-dependent restrictions.
 
 [^26]: Currently, we use the KConfig parser (LKC) of Linux 2.5.71 for all revisions of Linux up to Linux 2.5.71, as older versions of LKC cannot be easily compiled (see [`add-linux-kconfig-revisions`](src/systems/linux.sh)).
 
