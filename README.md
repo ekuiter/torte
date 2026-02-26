@@ -163,6 +163,7 @@ You can also write your own experiments by adapting an existing experiment file.
 - Run `./torte.sh help` to get further usage information (e.g., running an experiment over SSH and im-/export of Docker containers).
 - Developers are recommended to use [ShellCheck](https://www.shellcheck.net/) to improve code quality.
 - If Docker is running in rootless mode, experiments must not be run as `sudo`. Otherwise, experiments must be run as `sudo`.
+- On Linux with Docker Desktop, you may have to specify Docker Desktop's socket explicitly with `sudo env DOCKER_HOST=unix:///home/<user>/.docker/desktop/docker.sock ./torte.sh <experiment>`.
 - The first execution of torte can take a while (~30 minutes), as several complex Docker containers need to be built.
   This can be avoided by loading a reproduction package that includes Docker images (built by `./torte.sh export`) or by setting up torte with a [release](https://github.com/ekuiter/torte/releases) (see above).
 - Run `PROFILE=y ./torte.sh <experiment>` to profile all function calls.
