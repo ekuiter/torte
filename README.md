@@ -48,7 +48,7 @@ To demonstrate the capabilities of torte, we provide a [dashboard](http://elias-
 
 ## Getting Started: The Quick Way
 
-torte provides three major setup options:
+torte provides four major setup options:
 
 1. This one-liner will get you started with the [default experiment](experiments/default/experiment.sh) ([Docker](https://docs.docker.com/get-docker/) or [Podman](https://podman.io/get-started) required).
     ```
@@ -66,7 +66,7 @@ torte provides three major setup options:
     </ul>
     To fully undo the effects, run: 
     <pre>torte/torte.sh uninstall && rm -rf default.sh torte stages</pre>
-    If you do not want to pipe into <code>bash</code> for security reasons, consider one of the other setup options.
+    If you do not want to pipe into <code>sh</code> for security reasons, consider one of the other setup options.
     </details>
 2. You can also clone this repository and run torte directly.
     ```
@@ -78,6 +78,8 @@ torte provides three major setup options:
 3. A third option is to manually download and set up a [release](https://github.com/ekuiter/torte/releases) of torte.
     This increases the total download size, but it also allows you to skip building any Docker images.
     Choose this option if reproducibility matters a lot, or images fail to build with the other options above.
+4. Finally, torte can be set up from our [reproduction package](https://doi.org/10.5281/zenodo.17940304) available on Zenodo.
+    This is effectively identical to the third option, but we release there less frequently.
 
 By default, any of these options will store results in the `stages` directory.
 Read on if you want to know more details (e.g., how to execute other experiments).
