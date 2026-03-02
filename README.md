@@ -55,6 +55,19 @@ torte provides three major setup options:
     curl -sL https://elias-kuiter.de/torte/ | sh
     ```
     Choose this option if you do not intend to customize torte.
+    <details>
+    <summary><strong>What will this do?</strong></summary>
+    This one-liner will:
+    <ul>
+    <li>download the default experiment to <code>$PWD/default.sh</code></li>
+    <li>clone this repository to <code>$PWD/torte</code></li>
+    <li>build all required Docker/Podman images under the <code>torte_</code> prefix</li>
+    <li>execute the experiment and store all data in <code>$PWD/stages</code></li>
+    </ul>
+    To fully undo the effects, run: 
+    <pre>torte/torte.sh uninstall && rm -rf default.sh torte stages</pre>
+    If you do not want to pipe into <code>bash</code> for security reasons, consider one of the other setup options.
+    </details>
 2. You can also clone this repository and run torte directly.
     ```
     git clone --recursive https://github.com/ekuiter/torte.git
@@ -164,6 +177,8 @@ You can also write your own experiments by adapting an existing experiment file.
 - Developers are recommended to use [ShellCheck](https://www.shellcheck.net/) to improve code quality.
 - If Docker is running in rootless mode, experiments must not be run as `sudo`. Otherwise, experiments must be run as `sudo`.
 - On Linux with Docker Desktop, you may have to specify Docker Desktop's socket explicitly with `sudo env DOCKER_HOST=unix:///home/<user>/.docker/desktop/docker.sock ./torte.sh <experiment>`.
+- On macOS, torte's first usage of (an updated version of) `make` may trigger the error `You have not agreed to the Xcode license agreements. Please run 'sudo xcodebuild -license' from within a Terminal window to review and agree to the Xcode and Apple SDKs license`.
+  This can be fixed by executing `sudo xcodebuild -license` as suggested.
 - The first execution of torte can take a while (~30 minutes), as several complex Docker containers need to be built.
   This can be avoided by loading a reproduction package that includes Docker images (built by `./torte.sh export`) or by setting up torte with a [release](https://github.com/ekuiter/torte/releases) (see above).
 - Run `PROFILE=y ./torte.sh <experiment>` to profile all function calls.

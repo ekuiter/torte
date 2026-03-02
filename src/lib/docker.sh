@@ -82,7 +82,7 @@ command-uninstall() {
     for image in $(dangling-images); do
         docker rmi -f "$image"
     done
-    echo "Success. Consider to run 'docker system prune' manually (which may remove artifacts unrelated to $TOOL)."
+    echo "Success. Consider to run 'docker system prune' manually. (This may also remove artifacts unrelated to $TOOL, so use it at your own discretion.)"
 }
 
 # start a web server for browsing output files
