@@ -604,6 +604,7 @@ New issues, pull requests, or any other kinds of feedback are always welcome.
 
 torte has been used in several research publications and artifacts (also listed on our [Zenodo community](https://zenodo.org/communities/torte/)):
 
+- Ruben Heradio, Cristina Cerrada, Ismael Abad, Ernesto Aranda, Juan Jose Escribano, and David Fernandez-Amoros. [A Dataset of DIMACS Formulas Derived from Kconfig Models for Research on Highly Configurable Software](https://www.sciencedirect.com/science/article/pii/S2352340926003008). In Data in Brief. Elsevier, April 2026.
 - Elias Kuiter. [torte: Reproducible Feature-Model Experiments à la Carte](https://doi.org/10.1145/3774748.3787618). In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026. *Artifacts Evaluated – Reusable v1.1*\
   [**ICSE'26 Demo Paper**](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2026/2026-ICSE-Kuiter-Torte.pdf) | [**ICSE'26 Demo Video**](https://www.youtube.com/watch?v=VtaJiC_b8RA)
 - Elias Kuiter, Urs-Benedict Braun, Thomas Thüm, Sebastian Krieter, and Gunter Saake. [Can SAT Solvers Keep Up With the Linux Kernel's Feature Model?](https://doi.org/10.1145/3744916.3787823) In Proc. Int'l Conf. on Software Engineering (ICSE). ACM, April 2026. *Artifacts Evaluated – Reusable v1.1*\
