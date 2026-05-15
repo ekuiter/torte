@@ -20,7 +20,7 @@ add-payload-file evaluation.ipynb # we can add Jupyter notebooks to execute at t
 
 experiment-systems() {
     # usually we extract feature models from KConfig-specified ground truth ...
-    add-busybox-kconfig-history --from 1_36_0 --to 1_36_1 # typically, we add (excerpts of) system histories to analyze
+    add-busybox-kconfig-history --from 1_36_1 --to 1_36_2 # typically, we add (excerpts of) system histories to analyze
     # add-kconfig-payload-file Kconfig.test # we can also just analyze one KConfig file, which will be parsed with Linux's LKC implementation
     
     # ... but we can also inject pre-existing feature model files directly
@@ -32,7 +32,7 @@ experiment-systems() {
 
 experiment-test-systems() {
     # only extract BusyBox in test mode and CI pipeline
-    add-busybox-kconfig-history --from 1_36_0 --to 1_36_1
+    add-busybox-kconfig-history --from 1_36_1 --to 1_36_2
 }
 
 # shellcheck disable=SC2086
