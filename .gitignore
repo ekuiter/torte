@@ -10,3 +10,4 @@
 /*.tar.gz
 .ipynb_checkpoints
 *.local.json
+/meta/plans

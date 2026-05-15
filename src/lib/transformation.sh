@@ -120,7 +120,7 @@ transform-to-dimacs-with-kconfigreader(input_extension=model, output_extension=d
         "$input_extension" \
         "$output_extension" \
         transform-to-dimacs-with-kconfigreader \
-        "$(lambda input,output 'echo /home/kconfigreader/run.sh '$(memory-limit 1)' de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
+        "$(lambda input,output 'echo /home/kconfigreader/run.sh '"$(memory-limit 1)"' de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
         "$timeout" \
@@ -135,6 +135,22 @@ transform-smt-to-dimacs-with-z3(input_extension=smt, output_extension=dimacs, ti
         "$output_extension" \
         transform-smt-to-dimacs-with-z3 \
         "$(lambda input,output 'echo python3 smt2dimacs.py "$input" "$output"')" \
+        "$(dimacs-data-fields)" \
+        "$(dimacs-data-extractor)" \
+        "$timeout" \
+        "$jobs"
+}
+
+# transforms model files to DIMACS using clausy
+# options controls the clausy transformation (e.g., -t cnf-tseitin or -t cnf-dist)
+transform-to-dimacs-with-clausy(input_extension=model, output_extension=dimacs, options=, timeout=0, jobs=1) {
+    options=${options:--t cnf-tseitin}
+    transform-files \
+        "$(input-csv)" \
+        "$input_extension" \
+        "$output_extension" \
+        transform-to-dimacs-with-clausy \
+        "$(lambda input,output 'echo build/clausy -e -i "$input" '"$options"' -o "$output"')" \
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
         "$timeout" \

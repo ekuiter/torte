@@ -25,6 +25,9 @@ torte is a declarative workbench for reproducible experiments in feature-model a
 - `./torte.sh browse` - Start web server for browsing output files
 - `./torte.sh help` - Show help information
 
+### Testing
+- `TEST=y ./torte.sh clean && TEST=y ./torte.sh` - Run the default experiment in CI mode with lightweight test systems (use this to verify changes end-to-end; always clean before running to avoid stale cached results)
+
 ## Architecture
 
 ### Core Structure
@@ -103,6 +106,16 @@ torte automatically numbers stages in execution order for easier navigation:
 - when committing with git, keep generated commit message rather short (at most 4 bullet points; if the commit does a rather small thing, maybe even no bullet points)
 - IMPORTANT: DO NOT refer to Claude in Git commit messages, under any circumstances
 - DO NOT attempt to refactor Jupyter notebooks because Claude is not able to do it correctly
+
+### Preprocessor Pitfalls
+
+- **Multi-word defaults are invalid**: The preprocessor splits `options=-t cnf-tseitin` on the space, treating `-t` as the default and `cnf-tseitin` as a second unrecognized parameter. The error is `local: 'cnf-tseitin': not a valid identifier`. Fix: use `options=` (empty default) and set `options=${options:--t cnf-tseitin}` in the function body.
+
+### Transformer / transform-files pipeline
+
+- `transform-files` always calls `assert-command parallel` — every Docker image used as a transformer must have `parallel` installed.
+- The `transform-file` pipeline does `measure "$timeout" $("$transformer" "$input" "$output") | tee "$output_log"`. The `$()` captures the lambda's stdout and **word-splits** it. Shell redirections (`>`) in that output are treated as literal strings, not redirections — so they would be passed as arguments to `measure`, not interpreted as redirections.
+- For tools that write to stdout instead of an output file (e.g., clausy), do **not** use a wrapper script. Instead, bypass `transform-files` and write a custom loop (see `clausy-transform-file` in `src/lib/transformation.sh`). The key call is `measure "$timeout" bash -c "cmd -i \"$input\" > \"$output\""` — `bash`, `-c`, and the script are three separate words, so `bash` handles the redirection internally.
 
 ## Important Files to Understand
 

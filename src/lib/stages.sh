@@ -159,12 +159,28 @@ define-stages() {
             --iteration-field "$iteration_field"
     }
 
+    # transforms model files to DIMACS using clausy
+    transform-to-dimacs-with-clausy(input=extract-kconfig-models, output=transform-to-dimacs-with-clausy, options=, timeout=0, jobs=1, iterations=1, iteration_field=) {
+        iterate \
+            --iterations "$iterations" \
+            --iteration-field "$iteration_field" \
+            --file-fields dimacs_file \
+            --image clausy \
+            --input "$input" \
+            --output "$output" \
+            --resumable y \
+            --command transform-to-dimacs-with-clausy \
+            --options "$options" \
+            --timeout "$timeout" \
+            --jobs "$jobs"
+    }
+
     # transforms model files to DIMACS
     # this allows to flexibly enable (repeated or single iterations of) the desired CNF transformations
     # some of these transformations are fully deterministic and need not be iterated (e.g., Z3), while KConfigReader is NOT deterministic
     # FeatJAR is disabled by default, because it is experimental
-    transform-to-dimacs(input=extract-kconfig-models, output=transform-to-dimacs, timeout=0, jobs=1, iteration_field=, with_featureide=, with_featjar=, with_kconfigreader=, with_z3=) {
-        if [[ -z $with_featureide ]] && [[ -z $with_featjar ]] && [[ -z $with_kconfigreader ]] && [[ -z $with_z3 ]]; then
+    transform-to-dimacs(input=extract-kconfig-models, output=transform-to-dimacs, timeout=0, jobs=1, iteration_field=, with_featureide=, with_featjar=, with_kconfigreader=, with_z3=, with_clausy=, clausy_options=) {
+        if [[ -z $with_featureide ]] && [[ -z $with_featjar ]] && [[ -z $with_kconfigreader ]] && [[ -z $with_z3 ]] && [[ -z $with_clausy ]]; then
             with_featureide=y
             with_featjar=n
             with_kconfigreader=y
@@ -178,6 +194,8 @@ define-stages() {
         [[ $with_kconfigreader == y ]] && with_kconfigreader=1
         [[ $with_z3 == n ]] && with_z3=
         [[ $with_z3 == y ]] && with_z3=1
+        [[ $with_clausy == n ]] && with_clausy=
+        [[ $with_clausy == y ]] && with_clausy=1
         local inputs=()
 
         # distributive tranformation with FeatureIDE (does not scale to large formulas)
@@ -251,6 +269,23 @@ define-stages() {
                 --jobs "$jobs"
             join-into transform-to-smt-with-z3 transform-smt-to-dimacs-with-z3
             inputs+=("transform-smt-to-dimacs-with-z3")
+        fi
+
+        if [[ -n $with_clausy ]]; then
+            # Tseitin or distributive CNF transformation with clausy (options configurable, default: Tseitin)
+            iterate \
+                --iterations "$with_clausy" \
+                --iteration-field "$iteration_field" \
+                --file-fields dimacs_file \
+                --image clausy \
+                --input "$input" \
+                --output transform-to-dimacs-with-clausy \
+                --resumable y \
+                --command transform-to-dimacs-with-clausy \
+                --options "$clausy_options" \
+                --timeout "$timeout" \
+                --jobs "$jobs"
+            inputs+=("transform-to-dimacs-with-clausy")
         fi
 
         aggregate \
