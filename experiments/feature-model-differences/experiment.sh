@@ -56,7 +56,7 @@ experiment-systems() {
             add-model-payload-file "$file"
         done
         ;;
-        commits) # todo: test this (what about duplicate files? what about the sorting of the files in the right order for diffing?)
+        commits)
         add-busybox-kconfig-history-commits ;;
     esac
 }
