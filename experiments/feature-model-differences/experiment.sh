@@ -21,7 +21,7 @@ experiment-systems() {
     esac
 }
 
-experiment-test-systems() {
+experiment-test-systems(__NO_CI__) {
     case "$PASS" in
         releases)
         add-axtls-kconfig-history --from release-1.0.0 --to release-1.0.2 ;;
