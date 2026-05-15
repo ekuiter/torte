@@ -7,7 +7,6 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # Extraction and comparison of all feature models of several feature-model histories
 
 PASSES=(main commits)
-# # mkdir -p output && screen -dmSL diff bash -c "for system in toybox axtls uclibc-ng busybox FinancialServices01 embtoolkit automotive2 linux; do scripts/batch_diff.sh ../models/$system output/$system.csv 300 n kissat; done"
 
 download-additional-models() {
     additional_model_urls=(
