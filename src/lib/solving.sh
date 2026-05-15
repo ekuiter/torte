@@ -6,6 +6,7 @@ SAT_HERITAGE_URL=https://github.com/ekuiter/torte-sat-heritage
 SAT_HERITAGE_SYSTEM_NAME=sat-heritage # the directory name under which SAT heritage is cloned
 SAT_HERITAGE_INPUT_KEY=sat_heritage # the name of the input key to access SAT heritage solvers
 QUERY_SAMPLE_INPUT_KEY=query_sample # the name of the input key to access which feature sample to query
+PAIR_INPUT_KEY=pair # the name of the input key to access the pairs stage in diff analyses
 
 # solves a file
 # measures the solve time
@@ -254,12 +255,6 @@ run-jupyter-notebook(payload_file, to=html, options=) {
     jupyter nbconvert --to "$to" ${options:+"$options"} --execute --output-dir "$(output-directory)" "$SRC_EXPERIMENT_DIRECTORY/$payload_file"
 }
 
-# computes differences for model files with clausy
-run-clausy-batch-diff(input_directory=, timeout=0) {
-    input_directory=${input_directory:-$(input-directory)}
-    scripts/batch_diff.sh "$input_directory" "$timeout" > "$(output-csv)"
-}
-
 # expresses the intent to mount the default input in DIMACS solving stages
 # can be passed as --input to solve(...)
 mount-dimacs-input(input=transform-to-dimacs) {
@@ -293,4 +288,56 @@ mount-sat-heritage(input=clone-systems) {
 # can be used inside the --solver_specs of solve(...)
 solve-sat-heritage(solver) {
     echo "$DOCKER_INPUT_DIRECTORY/$SAT_HERITAGE_INPUT_KEY/$SAT_HERITAGE_SYSTEM_NAME/run.sh $solver"
+}
+
+# expresses the intent to mount files and their pairs stages in diff stages
+# can be passed as --input to diff-with-clausy(...)
+mount-for-diff(input=extract-kconfig-models, pair_input=compute-file-pairs) {
+    echo "$MAIN_INPUT_KEY=$input,$PAIR_INPUT_KEY=$pair_input"
+}
+
+# diffs pairs of feature model files using clausy
+# iterates over pairs from the pairs stage, calling evaluate_diff.sh for each pair
+# evaluate_diff.sh manages its own CSV header, timing, and multi-row output
+diff-with-clausy(file_field, timeout=0) {
+    local left_field="left_${file_field}"
+    local right_field="right_${file_field}"
+    local pair_csv
+    pair_csv="$(input-csv "$PAIR_INPUT_KEY")"
+    local left_files right_files
+    readarray -t left_files < <(table-field "$pair_csv" "$left_field")
+    readarray -t right_files < <(table-field "$pair_csv" "$right_field")
+    for ((i=0; i<${#left_files[@]}; i++)); do
+        local left_file="${left_files[$i]}"
+        local right_file="${right_files[$i]}"
+        if [[ $left_file == NA ]] || [[ $right_file == NA ]]; then
+            continue
+        fi
+        local left_path right_path
+        left_path="$(input-directory)/$left_file"
+        right_path="$(input-directory)/$right_file"
+        log "$(dirname "$left_file")/{$(basename "$left_file"),$(basename "$right_file")}"
+        if [[ -f $(output-csv) ]] && grep -qP "^\Q$left_file,$right_file,\E" "$(output-csv)"; then
+            log "" "$(echo-skip)"
+            continue
+        fi
+        log "" "$(echo-progress diff)"
+        if is-file-empty "$left_path" || is-file-empty "$right_path"; then
+            log "" "$(echo-fail)"
+            continue
+        fi
+        local tmp_csv
+        tmp_csv=$(mktemp)
+        scripts/evaluate_diff.sh "$left_path" "$right_path" "$tmp_csv" "$timeout" kissat >> "$(output-log)"
+        if ! [[ -f $(output-csv) ]] || ! [[ -s $(output-csv) ]]; then
+            head -n1 "$tmp_csv" > "$(output-csv)"
+        fi
+        tail -n +2 "$tmp_csv" | sed "s|$(input-directory)/||g" >> "$(output-csv)"
+        rm-safe "$tmp_csv"
+        if grep -qP "^\Q$left_file,$right_file,\E" "$(output-csv)" 2>/dev/null; then
+            log "" "$(echo-done)"
+        else
+            log "" "$(echo-fail)"
+        fi
+    done
 }

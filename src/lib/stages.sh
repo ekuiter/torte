@@ -399,6 +399,17 @@ define-stages() {
             --jobs "$jobs"
     }
 
+    # computes neighboring pairs of files from the given field of the input stage
+    compute-file-pairs(file_field, group_field=, input=extract-kconfig-models, output=compute-file-pairs) {
+        run \
+            --input "$input" \
+            --output "$output" \
+            --resumable y \
+            --command compute-file-pairs \
+            --file-field "$file_field" \
+            --group-field "$group_field"
+    }
+
     # compute a random sample of some input stage with line-delimited output (e.g., feature lists)
     compute-random-sample(input, output=compute-random-sample, extension, size=1, t_wise=1, separator=, seed=, timeout=0, jobs=1) {
         run \
@@ -560,6 +571,18 @@ define-stages() {
             --payload-file "$payload_file" \
             --to "$to" \
             --options "$options"
+    }
+
+    # diffs pairs of feature model files using clausy
+    diff-with-clausy(file_field, input=, pair_input=, output=diff-with-clausy, timeout=0) {
+        run \
+            --image clausy \
+            --input "$(mount-for-diff "$input" "$pair_input")" \
+            --output "$output" \
+            --resumable y \
+            --command diff-with-clausy \
+            --file-field "$file_field" \
+            --timeout "$timeout"
     }
 
     # build the given image, if necessary

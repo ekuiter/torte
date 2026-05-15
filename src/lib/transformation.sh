@@ -327,3 +327,22 @@ compute-random-sample(extension, size=1, t_wise=1, separator=, seed=, timeout=0,
         "$timeout" \
         "$jobs"
 }
+
+# computes neighboring pairs of files from the given field of the input stage's CSV
+# files are grouped by their directory and sorted by sort -V within each group
+compute-file-pairs(file_field, group_field=group) {
+    echo "left_${file_field},right_${file_field},${group_field}" > "$(output-csv)"
+    declare -A groups
+    while IFS= read -r file; do
+        local group
+        group=$(dirname "$file")
+        groups["$group"]+="$file"$'\n'
+    done < <(table-field "$(input-csv)" "$file_field" | grep -v "^NA$")
+    for group in "${!groups[@]}"; do
+        local files
+        readarray -t files < <(printf '%s' "${groups[$group]}" | sort -V)
+        for ((i=0; i<${#files[@]}-1; i++)); do
+            echo "${files[$i]},${files[$i+1]},$group" >> "$(output-csv)"
+        done
+    done
+}
