@@ -71,11 +71,13 @@ experiment-test-systems(__NO_CI__) {
 experiment-stages() {
     clone-systems
     local input
-    if [[ "$PASS" == commits ]]; then
+    if [[ "$PASS" == main ]]; then
+        tag-linux-revisions
+    elif [[ "$PASS" == commits ]]; then
         generate-busybox-models
         input=generate-busybox-models
     fi
-    read-statistics --input "$input"
+    read-statistics --options skip-sloc --input "$input"
     extract-kconfig-models --with-kconfigreader y --with-kclause y --input "$input"
     join-into read-statistics extract-kconfig-models
     compute-file-pairs --file-field model_file
