@@ -42,16 +42,16 @@ download-additional-models
 experiment-systems() {
     case "$PASS" in
         main)
-        # add-toybox-kconfig-history
-        # add-axtls-kconfig-history
-        # add-uclibc-kconfig-history
-        # add-uclibc-ng-kconfig-history
-        # add-busybox-kconfig-history
-        # add-l4re-kconfig-history
-        # add-embtoolkit-kconfig-history
-        # add-buildroot-kconfig-history
-        # add-freetz-ng-kconfig-history
-        # add-linux-kconfig-history
+        add-toybox-kconfig-history
+        add-axtls-kconfig-history
+        add-uclibc-kconfig-history
+        add-uclibc-ng-kconfig-history
+        add-busybox-kconfig-history
+        add-l4re-kconfig-history
+        add-embtoolkit-kconfig-history
+        add-buildroot-kconfig-history
+        add-freetz-ng-kconfig-history
+        add-linux-kconfig-history
         for file in "${additional_model_files[@]}"; do
             add-model-payload-file "$file"
         done
