@@ -29,16 +29,24 @@ common-fields(files...) {
     rm-safe "$tmp_1" "$tmp_2"
 }
 
-# joins two CSV files on the first n fields
+# joins two CSV files on the first n fields (right outer join: all rows from second file are kept)
 # assumes that the first line contains a header and that the string '###' is not used
 join-tables-by-prefix(first_file, second_file, n=1) {
     ((n--))
     local escape_sequence=\#\#\#
-    join -t, \
-        <(replace-times $n , $escape_sequence < "$first_file" | head -n1) \
-        <(replace-times $n , $escape_sequence < "$second_file" | head -n1) \
+    local f1_header f2_header f1_fields f2_fields join_format
+    f1_header=$(replace-times $n , $escape_sequence < "$first_file" | head -n1)
+    f2_header=$(replace-times $n , $escape_sequence < "$second_file" | head -n1)
+    f1_fields=$(echo "$f1_header" | tr -cd , | wc -c)
+    f2_fields=$(echo "$f2_header" | tr -cd , | wc -c)
+    join_format="0"
+    for ((i=2; i<=f1_fields+1; i++)); do join_format+=",1.$i"; done
+    for ((i=2; i<=f2_fields+1; i++)); do join_format+=",2.$i"; done
+    join -t, -a 2 -e "" -o "$join_format" \
+        <(echo "$f1_header") \
+        <(echo "$f2_header") \
         | replace-times $n $escape_sequence ,
-    join -t, \
+    join -t, -a 2 -e "" -o "$join_format" \
         <(replace-times $n , $escape_sequence < "$first_file" | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
         <(replace-times $n , $escape_sequence < "$second_file" | tail -n+2 | LANG=en_EN sort -k1,1 -t,) \
         | replace-times $n $escape_sequence ,
@@ -49,7 +57,7 @@ add-fields(file) {
     xargs -I {} echo -n \<\(table-field "$file" {} y\)" "
 }
 
-# joins two CSV files on at least one common field
+# joins two CSV files on at least one common field (right outer join)
 join-two-tables(first_file, second_file) {
     local common_fields
     common_fields=$(diff-fields "$first_file" "$second_file" -12)
@@ -66,6 +74,7 @@ join-two-tables(first_file, second_file) {
 }
 
 # joins any number of CSV files on at least one common field
+# this is a right outer join for all files but the first one
 join-tables(files...) {
     assert-array files
     if [[ ${#files[@]} -eq 1 ]]; then
