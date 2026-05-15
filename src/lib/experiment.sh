@@ -36,12 +36,16 @@ add-payload-file(payload_file) {
             # in that case, we obtain the payload from this project's repository
             local repository_payload_file
             repository_payload_file=$(dirname "$(experiment-file "$TORTE_EXPERIMENT")")/$payload_file
+            mkdir -p "$(dirname "$original_payload_file")"
             cp "$repository_payload_file" "$original_payload_file"
         elif [[ ! -f $original_payload_file ]]; then
             error-help "The requested payload file $payload_file does not exist and cannot be added."
         fi
         mkdir -p "$SRC_EXPERIMENT_DIRECTORY"
-        cp "$original_payload_file" "$src_payload_file"
+        mkdir -p "$(dirname "$src_payload_file")"
+        if [[ ! $original_payload_file -ef $src_payload_file ]]; then
+            cp "$original_payload_file" "$src_payload_file"
+        fi
     fi
 }
 
@@ -52,6 +56,7 @@ download-payload-file(payload_file, url) {
         original_payload_file=$(dirname "$ORIGINAL_EXPERIMENT_FILE")/$payload_file
         if [[ ! -f $original_payload_file ]]; then
             assert-command curl
+            mkdir -p "$(dirname "$original_payload_file")"
             curl -fsSL "$url" -o "$original_payload_file"
         fi
         add-payload-file "$payload_file"
