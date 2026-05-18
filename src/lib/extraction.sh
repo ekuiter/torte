@@ -109,34 +109,34 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
 
 # runs KConfigReader to extract a feature-model formula from Kconfig files
 # sets the global MEASURED_TIME variable
-extract-kconfig-model-with-kconfigreader(system, revision, kconfig_file, lkc_binding_file, output_log, options=, timeout=0) {
+extract-kconfig-model-with-kconfigreader(system, revision, kconfig_file, lkc_binding_file, output_log, options=, timeout=0, date_prefix=) {
     measure "$timeout" /home/kconfigreader/run.sh \
         "$(memory-limit 1)" \
         de.fosd.typechef.kconfig.KConfigReader \
         --fast \
         --dumpconf "$lkc_binding_file" \
         "$kconfig_file" \
-        "$(output-path "$system" "$revision")" \
+        "$(output-path "$system" "${date_prefix}$revision")" \
         | tee "$output_log"
     MEASURED_TIME=$(grep -oP "^measure_time=\K.*" < "$output_log")
     # as documented in the README file, we make no decision regarding tristate or Boolean semantics by default
     # but if asked to, we realize the user's choice by setting the value of MODULES, if it exists
-    if [[ -f "$(output-path "$system" "$revision.model")" ]] \
-        && grep -qP "^#item MODULES$" "$(output-path "$system" "$revision.model")"; then
+    if [[ -f "$(output-path "$system" "${date_prefix}$revision.model")" ]] \
+        && grep -qP "^#item MODULES$" "$(output-path "$system" "${date_prefix}$revision.model")"; then
         if [[ $options == *"kconfigreader-boolean"* ]]; then
-            echo "!def(MODULES)" >> "$(output-path "$system" "$revision.model")"
+            echo "!def(MODULES)" >> "$(output-path "$system" "${date_prefix}$revision.model")"
         elif [[ $options == *"kconfigreader-tristate"* ]]; then
-            echo "def(MODULES)" >> "$(output-path "$system" "$revision.model")"
+            echo "def(MODULES)" >> "$(output-path "$system" "${date_prefix}$revision.model")"
         fi
     fi
 }
 
 # runs KClause to extract a feature-model formula from Kconfig files
 # sets the global MEASURED_TIME variable
-extract-kconfig-model-with-kclause(system, revision, kconfig_file, lkc_binding_file, kconfig_model, features_file, output_log, options=, timeout=0) {
+extract-kconfig-model-with-kclause(system, revision, kconfig_file, lkc_binding_file, kconfig_model, features_file, output_log, options=, timeout=0, date_prefix=) {
     measure "$timeout" /home/kextractor.sh \
         "$lkc_binding_file" \
-        "$(output-path "$system" "$revision.kextractor")" \
+        "$(output-path "$system" "${date_prefix}$revision.kextractor")" \
         "$features_file" "$kconfig_file" \
         | tee "$output_log"
     MEASURED_TIME=$(grep -oP "^measure_time=\K.*" < "$output_log")
@@ -151,8 +151,8 @@ extract-kconfig-model-with-kclause(system, revision, kconfig_file, lkc_binding_f
     fi
     # shellcheck disable=SC2086
     measure "$timeout" /home/kclause.sh \
-        "$(output-path "$system" "$revision.kextractor")" \
-        "$(output-path "$system" "$revision.kclause")" \
+        "$(output-path "$system" "${date_prefix}$revision.kextractor")" \
+        "$(output-path "$system" "${date_prefix}$revision.kclause")" \
         "$kconfig_model" \
         $options \
         | tee "$output_log"
@@ -161,7 +161,7 @@ extract-kconfig-model-with-kclause(system, revision, kconfig_file, lkc_binding_f
 
 # runs ConfigFix to extract a feature-model formula from Kconfig files
 # sets the global MEASURED_TIME variable
-extract-kconfig-model-with-configfix(system, revision, kconfig_file, kconfig_model, features_file, output_log, lkc_directory, lkc_target=config, lkc_output_directory=, options=, timeout=0) {
+extract-kconfig-model-with-configfix(system, revision, kconfig_file, kconfig_model, features_file, output_log, lkc_directory, lkc_target=config, lkc_output_directory=, options=, timeout=0, date_prefix=) {
     local configfix_directory=/home/torte-ConfigFix override_lkc_target
 
     # the following three lines are only needed to address a bug in ConfigFix
@@ -221,7 +221,7 @@ extract-kconfig-model-with-configfix(system, revision, kconfig_file, kconfig_mod
         # this transformation is tightly integrated with the extraction (via internal data structures)
         # thus, we do not decouple it as a transformation stage (as done for KConfigReader)
         if [[ $options == "--with-dimacs" ]]; then
-            cp cfout_constraints.dimacs "$(output-path "$system" "$revision.dimacs")"
+            cp cfout_constraints.dimacs "$(output-path "$system" "${date_prefix}$revision.dimacs")"
         fi
         # ConfigFix does not export an explicit feature list, unfortunately
         echo "ConfigFix does not offer a built-in feature extraction." > "$features_file"
@@ -250,7 +250,7 @@ remove-environment-variable-imports(file_query...) {
 
 # extracts a feature model in form of a logical formula from a kconfig-based software system
 # it is suggested to run compile-c-binding beforehand, first to get an accurate kconfig parser, second because the make call generates files this function may need
-extract-kconfig-model(extractor, lkc_binding, system, revision, kconfig_file, lkc_binding_file=, lkc_directory, lkc_target=config, lkc_output_directory=, environment=, options=, timeout=0) {
+extract-kconfig-model(extractor, lkc_binding, system, revision, kconfig_file, lkc_binding_file=, lkc_directory, lkc_target=config, lkc_output_directory=, environment=, options=, timeout=0, date_prefix=) {
     local revision_without_context context time
     revision_without_context=$(revision-without-context "$revision")
     context=$(get-context "$revision")
@@ -260,17 +260,20 @@ extract-kconfig-model(extractor, lkc_binding, system, revision, kconfig_file, lk
         lkc_binding_file=${lkc_binding_file:-$(output-path "$LKC_BINDINGS_DIRECTORY" "$system" "$revision_without_context")}
         lkc_binding_file+=.$lkc_binding
     fi
+    if [[ -n $date_prefix ]]; then
+        date_prefix="[$(date -d "@$(git -C "$(input-directory)/$system" log -1 --format="%ct" "$revision_without_context")" +"$date_prefix")]"
+    fi
     local file_extension="model"
     if [[ $extractor == configfix ]]; then
         file_extension="model"
     fi
     log "" "$(echo-progress extract)"
-    trap 'ec=$?; (( ec != 0 )) && rm-safe '"$(output-path "$system" "$revision")"'*' EXIT
+    trap 'ec=$?; (( ec != 0 )) && rm-safe '"$(output-path "$system" "${date_prefix}$revision")"'*' EXIT
     push "$(input-directory)/$system"
     local kconfig_model
-    kconfig_model=$(output-path "$system" "$revision.model")
+    kconfig_model=$(output-path "$system" "${date_prefix}$revision.model")
     local features_file
-    features_file=$(output-path "$system" "$revision.features")
+    features_file=$(output-path "$system" "${date_prefix}$revision.features")
     local output_log
     output_log=$(mktemp)
     set-environment "$environment"
@@ -280,10 +283,10 @@ extract-kconfig-model(extractor, lkc_binding, system, revision, kconfig_file, lk
             if [[ -f $lkc_binding_file ]]; then
                 if [[ $extractor == kconfigreader ]]; then
                     extract-kconfig-model-with-kconfigreader \
-                        "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$output_log" "$options" "$timeout"
+                        "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$output_log" "$options" "$timeout" "$date_prefix"
                 elif [[ $extractor == kclause ]]; then
                     extract-kconfig-model-with-kclause \
-                        "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$kconfig_model" "$features_file" "$output_log" "$options" "$timeout"
+                        "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$kconfig_model" "$features_file" "$output_log" "$options" "$timeout" "$date_prefix"
                 fi
             else
                 echo "LKC binding file $lkc_binding_file does not exist"
@@ -294,7 +297,7 @@ extract-kconfig-model(extractor, lkc_binding, system, revision, kconfig_file, lk
     else
         # for ConfigFix, the root KConfig file may yet have to be generated, which is why we skip its validation here
         extract-kconfig-model-with-configfix \
-            "$system" "$revision" "$kconfig_file" "$kconfig_model" "$features_file" "$output_log" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$options" "$timeout"
+            "$system" "$revision" "$kconfig_file" "$kconfig_model" "$features_file" "$output_log" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$options" "$timeout" "$date_prefix"
     fi
     unset-environment "$environment"
     rm-safe "$output_log"
@@ -318,12 +321,13 @@ extract-kconfig-model(extractor, lkc_binding, system, revision, kconfig_file, lk
 }
 
 # defines API functions for extracting kconfig models
-# sets the global EXTRACTOR, LKC_BINDING, TIMEOUT variables
-register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0) {
+# sets the global EXTRACTOR, LKC_BINDING, TIMEOUT, DATE_PREFIX variables
+register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0, date_prefix=) {
     EXTRACTOR=$extractor
     LKC_BINDING=$lkc_binding
     OPTIONS=$options
     TIMEOUT=$timeout
+    DATE_PREFIX=$date_prefix
     assert-value EXTRACTOR TIMEOUT
 
     add-lkc-binding(system, revision, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
@@ -347,7 +351,7 @@ register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0) {
         fi
         kconfig-checkout "$system" "$revision"
         extract-kconfig-model "$EXTRACTOR" "$LKC_BINDING" \
-            "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment" "$OPTIONS" "$TIMEOUT"
+            "$system" "$revision" "$kconfig_file" "$lkc_binding_file" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment" "$OPTIONS" "$TIMEOUT" "$DATE_PREFIX"
         git-clean "$(input-directory)/$system"
     }
 
@@ -364,7 +368,7 @@ register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0) {
         fi
         if ! kconfig-model-done "$system" "$revision" && ! should-skip extract-kconfig-model "" "$system" "$revision"; then
             extract-kconfig-model "$EXTRACTOR" "$LKC_BINDING" \
-                "$system" "$revision" "$kconfig_file" "" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment" "$OPTIONS" "$TIMEOUT"
+                "$system" "$revision" "$kconfig_file" "" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment" "$OPTIONS" "$TIMEOUT" "$DATE_PREFIX"
         fi
         git-clean "$(input-directory)/$system"
     }
@@ -378,20 +382,20 @@ register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0) {
 }
 
 # compiles LKC bindings and extracts kconfig models using kclause
-extract-kconfig-models-with-kclause(options=, timeout=0) {
-    register-kconfig-extractor kclause kextractor "$options" "$timeout"
+extract-kconfig-models-with-kclause(options=, timeout=0, date_prefix=) {
+    register-kconfig-extractor kclause kextractor "$options" "$timeout" "$date_prefix"
     experiment-systems
 }
 
 # compiles LKC bindings and extracts kconfig models using kconfigreader
-extract-kconfig-models-with-kconfigreader(options=, timeout=0) {
-    register-kconfig-extractor kconfigreader dumpconf "$options" "$timeout"
+extract-kconfig-models-with-kconfigreader(options=, timeout=0, date_prefix=) {
+    register-kconfig-extractor kconfigreader dumpconf "$options" "$timeout" "$date_prefix"
     experiment-systems
 }
 
 # extracts kconfig models using configfix, which does not use a revision-tailored LKC binding
-extract-kconfig-models-with-configfix(options=, timeout=0) {
-    register-kconfig-extractor configfix "$(none)" "$options" "$timeout"
+extract-kconfig-models-with-configfix(options=, timeout=0, date_prefix=) {
+    register-kconfig-extractor configfix "$(none)" "$options" "$timeout" "$date_prefix"
     experiment-systems
 }
 

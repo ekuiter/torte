@@ -39,7 +39,7 @@ define-stages() {
     }
 
     # extracts kconfig models with the given extractor
-    extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=, options=, timeout=0) {
+    extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=, options=, timeout=0, date_prefix=) {
         output="${output:-extract-kconfig-models-with-$extractor}"
         iterate \
             --iterations "$iterations" \
@@ -51,12 +51,13 @@ define-stages() {
             --resumable y \
             --command "extract-kconfig-models-with-$extractor" \
             --options "$options" \
-            --timeout "$timeout"
+            --timeout "$timeout" \
+            --date-prefix "$date_prefix"
     }
 
     # extracts kconfig models with kconfigreader, kclause, and/or configfix
     # configfix is disabled by default, because it is experimental
-    extract-kconfig-models(input=, output=extract-kconfig-models, iteration_field=, options=, timeout=0, with_kconfigreader=, with_kclause=, with_configfix=) {
+    extract-kconfig-models(input=, output=extract-kconfig-models, iteration_field=, options=, timeout=0, with_kconfigreader=, with_kclause=, with_configfix=, date_prefix=) {
         if [[ -z $with_kconfigreader ]] && [[ -z $with_kclause ]] && [[ -z $with_configfix ]]; then
             with_kconfigreader=y
             with_kclause=y
@@ -77,7 +78,8 @@ define-stages() {
                 --iterations "$with_kconfigreader" \
                 --iteration-field "$iteration_field" \
                 --options "$options" \
-                --timeout "$timeout"
+                --timeout "$timeout" \
+                --date-prefix "$date_prefix"
             inputs+=("extract-kconfig-models-with-kconfigreader")
         fi
 
@@ -88,7 +90,8 @@ define-stages() {
                 --iterations "$with_kclause" \
                 --iteration-field "$iteration_field" \
                 --options "$options" \
-                --timeout "$timeout"
+                --timeout "$timeout" \
+                --date-prefix "$date_prefix"
             inputs+=("extract-kconfig-models-with-kclause")
         fi
 
@@ -99,7 +102,8 @@ define-stages() {
                 --iterations "$with_configfix" \
                 --iteration-field "$iteration_field" \
                 --options "$options" \
-                --timeout "$timeout"
+                --timeout "$timeout" \
+                --date-prefix "$date_prefix"
             inputs+=("extract-kconfig-models-with-configfix")
         fi
 

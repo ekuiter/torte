@@ -78,8 +78,14 @@ experiment-stages() {
         input=generate-busybox-models
     fi
     read-statistics --options skip-sloc --input "$input"
-    extract-kconfig-models --with-kconfigreader y --with-kclause y --input "$input"
+
+    extract-kconfig-models \
+        --with-kconfigreader y \
+        --with-kclause y \
+        --date-prefix "$(date-format time)" \
+        --input "$input"
     join-into read-statistics extract-kconfig-models
+
     compute-file-pairs --file-field model_file
     diff-with-clausy \
         --file-field model_file \

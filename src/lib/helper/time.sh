@@ -19,6 +19,16 @@ format-time(nanoseconds=, prefix=, suffix=) {
     fi
 }
 
+# returns a sortable git --format string for the committer date
+date-format(granularity=date) {
+    case "$granularity" in
+        year)  echo "%Y" ;;
+        month) echo "%Y-%m" ;;
+        date)  echo "%Y-%m-%d" ;;
+        time)  echo "%Y-%m-%d-%H-%M-%S" ;;
+    esac
+}
+
 # returns intervals in seconds
 interval(name) {
     if [[ "$name" == hourly ]]; then
