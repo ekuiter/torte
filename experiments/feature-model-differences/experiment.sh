@@ -86,6 +86,7 @@ experiment-stages() {
         --input "$input"
     join-into read-statistics extract-kconfig-models
 
+    remove-duplicate-files --file-field model_file
     compute-file-pairs --file-field model_file
     diff-with-clausy \
         --file-field model_file \
