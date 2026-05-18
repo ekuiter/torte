@@ -41,19 +41,19 @@ download-additional-models
 experiment-systems() {
     case "$PASS" in
         main)
-        add-axtls-kconfig-history
+        # add-axtls-kconfig-history
         add-buildroot-kconfig-history
-        add-busybox-kconfig-history
-        add-embtoolkit-kconfig-history
-        add-freetz-ng-kconfig-history
-        add-l4re-kconfig-history
-        add-linux-kconfig-history
-        add-toybox-kconfig-history
-        add-uclibc-kconfig-history
-        add-uclibc-ng-kconfig-history
-        for file in "${additional_model_files[@]}"; do
-            add-model-payload-file "$file"
-        done
+        # add-busybox-kconfig-history
+        # add-embtoolkit-kconfig-history
+        # add-freetz-ng-kconfig-history
+        # add-l4re-kconfig-history
+        # add-linux-kconfig-history
+        # add-toybox-kconfig-history
+        # add-uclibc-kconfig-history
+        # add-uclibc-ng-kconfig-history
+        # for file in "${additional_model_files[@]}"; do
+        #     add-model-payload-file "$file"
+        # done
         ;;
         commits)
         add-busybox-kconfig-history-commits ;;
@@ -80,7 +80,7 @@ experiment-stages() {
     read-statistics --options skip-sloc --input "$input"
 
     extract-kconfig-models \
-        --with-kconfigreader y \
+        --with-kconfigreader n \
         --with-kclause y \
         --date-prefix "$(date-format time)" \
         --input "$input"

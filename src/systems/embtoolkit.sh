@@ -33,10 +33,10 @@ kconfig-pre-binding-hook-embtoolkit(system, revision, lkc_directory=) {
     fi
 }
 
-kclause-post-binding-hook-embtoolkit(system, revision) {
+kclause-post-binding-hook-embtoolkit(system, revision, date_prefix=) {
     if [[ $system == embtoolkit ]]; then
         # fix incorrect feature names, which kclause interprets as a binary subtraction operator
-        sed -i 's/-/_/g' "$(output-path "$KCONFIG_MODELS_OUTPUT_DIRECTORY" "$system" "$revision.kextractor")"
+        sed -i 's/-/_/g' "$(output-path "$system" "${date_prefix}$revision.kextractor")"
     fi
 }
 

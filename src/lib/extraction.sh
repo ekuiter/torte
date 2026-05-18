@@ -141,7 +141,7 @@ extract-kconfig-model-with-kclause(system, revision, kconfig_file, lkc_binding_f
         | tee "$output_log"
     MEASURED_TIME=$(grep -oP "^measure_time=\K.*" < "$output_log")
     compile-hook kclause-post-binding-hook
-    kclause-post-binding-hook "$system" "$revision"
+    kclause-post-binding-hook "$system" "$revision" "$date_prefix"
     # as documented in the README file, we consider --disable-tristate-support to be the sensible default
     # thus, we explicitly make tristate support opt-in here
     if [[ $options == *"kclause-tristate"* ]]; then
