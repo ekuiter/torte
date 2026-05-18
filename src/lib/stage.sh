@@ -317,6 +317,14 @@ join-into(first_stage, second_stage) {
         "join-tables $DOCKER_INPUT_DIRECTORY/1/$OUTPUT_FILE_PREFIX.csv $DOCKER_INPUT_DIRECTORY/2/$OUTPUT_FILE_PREFIX.$first_stage.csv > $DOCKER_INPUT_DIRECTORY/2/$OUTPUT_FILE_PREFIX.csv"
 }
 
+# removes files with identical content from neighboring pairs within each subdirectory of the input stage
+remove-duplicate-files(file_field, input=extract-kconfig-models) {
+    run-transient-unless \
+        "$input/$OUTPUT_FILE_PREFIX.remove-duplicate-files.csv" \
+        "$input" \
+        "remove-duplicate-files-helper --file-field $file_field"
+}
+
 # forces all subsequent stages to be run
 force-run() {
     FORCE_RUN=y

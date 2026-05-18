@@ -346,3 +346,33 @@ compute-file-pairs(file_field, group_field=group) {
         done
     done
 }
+
+# removes files with identical content from neighboring pairs within each subdirectory group
+# files are grouped by directory and sorted by sort -V; if right == left (content), right is removed
+remove-duplicate-files-helper(file_field) {
+    local csv_file field_idx
+    csv_file=$(input-csv)
+    field_idx=$(table-field-index "$csv_file" "$file_field")
+    local tmp
+    tmp=$(mktemp)
+    cp "$csv_file" "$tmp"
+    local prev= removed=()
+    while IFS= read -r file; do
+        if [[ -n $prev ]] && [[ $(dirname "$file") == $(dirname "$prev") ]] && \
+                cmp -s "$(input-directory)/$prev" "$(input-directory)/$file"; then
+            log "$file" "$(echo-progress dupe)"
+            removed+=("$file")
+        else
+            prev=$file
+        fi
+    done < <(table-field "$csv_file" "$file_field" | grep -v "^NA$" | sort -V)
+    if [[ ${#removed[@]} -gt 0 ]]; then
+        printf '%s\n' "${removed[@]}" | awk -F, -v fi="$field_idx" \
+            'NR==FNR{skip[$0];next}FNR==1||!($fi in skip)' - "$csv_file" > "$csv_file.tmp" \
+            && mv "$csv_file.tmp" "$csv_file"
+        for f in "${removed[@]}"; do
+            rm-safe "$(input-directory)/${f%.*}".*
+        done
+    fi
+    mv "$tmp" "$(input-file remove-duplicate-files.csv)"
+}
