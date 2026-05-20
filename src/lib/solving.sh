@@ -299,14 +299,18 @@ mount-for-diff(input=extract-kconfig-models, pair_input=compute-file-pairs) {
 # diffs pairs of feature model files using clausy
 # iterates over pairs from the pairs stage, calling evaluate_diff.sh for each pair
 # evaluate_diff.sh manages its own CSV header, timing, and multi-row output
-diff-with-clausy(file_field, timeout=0) {
+# if attempts is set and that many consecutive pairs in a group all timed out, skip remaining pairs in that group
+diff-with-clausy(file_field, timeout=0, attempts=, group_field=) {
     local left_field="left_${file_field}"
     local right_field="right_${file_field}"
     local pair_csv
     pair_csv="$(input-csv "$PAIR_INPUT_KEY")"
-    local left_files right_files
+    local left_files right_files group_values=()
     readarray -t left_files < <(table-field "$pair_csv" "$left_field")
     readarray -t right_files < <(table-field "$pair_csv" "$right_field")
+    if [[ -n $attempts ]] && [[ -n $group_field ]]; then
+        readarray -t group_values < <(table-field "$pair_csv" "$group_field")
+    fi
     for ((i=0; i<${#left_files[@]}; i++)); do
         local left_file="${left_files[$i]}"
         local right_file="${right_files[$i]}"
@@ -321,23 +325,70 @@ diff-with-clausy(file_field, timeout=0) {
             log "" "$(echo-skip)"
             continue
         fi
-        log "" "$(echo-progress diff)"
         if is-file-empty "$left_path" || is-file-empty "$right_path"; then
             log "" "$(echo-fail)"
             continue
         fi
+
+        # determine whether consecutive timeouts in this group have reached the attempts limit
+        local timeout_file='' dry_run=''
+        if [[ -n $attempts ]]; then
+            if [[ -n $group_field ]]; then
+                timeout_file=$(output-file "${group_values[$i]/\//_}.timeout")
+            else
+                timeout_file=$(output-file "default.timeout")
+            fi
+            local timeouts
+            timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
+            if [[ $timeouts -ge $attempts ]]; then
+                log "" "$(echo-skip)"
+                dry_run=y
+            fi
+        fi
+        if [[ -z $dry_run ]]; then
+            log "" "$(echo-progress diff)"
+        fi
+
         local tmp_csv
         tmp_csv=$(mktemp)
-        scripts/evaluate_diff.sh "$left_path" "$right_path" "$tmp_csv" "$timeout" kissat >> "$(output-log)"
-        if ! [[ -f $(output-csv) ]] || ! [[ -s $(output-csv) ]]; then
+        DRY_RUN=$dry_run scripts/evaluate_diff.sh "$left_path" "$right_path" "$tmp_csv" "$timeout" kissat >> "$(output-log)"
+
+        # detect whether all (or all but one) diff runs for this pair timed out
+        # the reason why we allow one time out is that the run "false,false,satisfy,kissat,tseitin"
+        # almost always succeeds (yielding an undescriptive arbitrary edit) because it contains no time-intensive operation
+        # so, having at least two successes means some time-intensive operation succeeded (counting or slicing or simplified reasoning)
+        # this cuts down the experiment duration considerably
+        # also, if there is only one success, there is nothing to compare to, which justifies skipping the pair as well
+        # when interpreting the results, be careful that there could be one successful kissat run that is now documented as a timeout in the CSV
+        # this run should probably be excluded in the data analysis stage
+        local pair_timed_out=
+        if [[ -n $attempts ]] && [[ -z $dry_run ]]; then
+            local nonempty_count
+            nonempty_count=$(table-field "$tmp_csv" "classification" | grep -c . || true)
+            if [[ $nonempty_count -le 1 ]]; then
+                pair_timed_out=y
+            fi
+        fi
+
+        if ! [[ -s $(output-csv) ]]; then
             head -n1 "$tmp_csv" > "$(output-csv)"
         fi
         tail -n +2 "$tmp_csv" | sed "s|$(input-directory)/||g" >> "$(output-csv)"
         rm-safe "$tmp_csv"
-        if grep -qP "^\Q$left_file,$right_file,\E" "$(output-csv)" 2>/dev/null; then
-            log "" "$(echo-done)"
-        else
-            log "" "$(echo-fail)"
+
+        if [[ -z $dry_run ]]; then
+            if grep -qP "^\Q$left_file,$right_file,\E" "$(output-csv)" 2>/dev/null; then
+                log "" "$(echo-done)"
+                if [[ -n $attempts ]]; then
+                    if [[ -n $pair_timed_out ]]; then
+                        append-atomically "$timeout_file" "$left_file,$right_file"
+                    else
+                        rm-safe "$timeout_file"
+                    fi
+                fi
+            else
+                log "" "$(echo-fail)"
+            fi
         fi
     done
 }

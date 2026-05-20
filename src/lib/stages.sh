@@ -578,7 +578,7 @@ define-stages() {
     }
 
     # diffs pairs of feature model files using clausy
-    diff-with-clausy(file_field, input=, pair_input=, output=diff-with-clausy, timeout=0) {
+    diff-with-clausy(file_field, input=, pair_input=, output=diff-with-clausy, timeout=0, attempts=, group_field=) {
         run \
             --image clausy \
             --input "$(mount-for-diff "$input" "$pair_input")" \
@@ -586,7 +586,9 @@ define-stages() {
             --resumable y \
             --command diff-with-clausy \
             --file-field "$file_field" \
-            --timeout "$timeout"
+            --timeout "$timeout" \
+            --attempts "$attempts" \
+            --group-field "$group_field"
     }
 
     # build the given image, if necessary

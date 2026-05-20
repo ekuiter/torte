@@ -87,8 +87,10 @@ experiment-stages() {
     join-into read-statistics extract-kconfig-models
 
     remove-duplicate-files --file-field model_file
-    compute-file-pairs --file-field model_file
+    compute-file-pairs --file-field model_file --group-field extractor_system
     diff-with-clausy \
         --file-field model_file \
-        --timeout 300
+        --timeout 300 \
+        --attempts 3 \
+        --group-field extractor_system
 }
