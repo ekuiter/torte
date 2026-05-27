@@ -20,25 +20,41 @@ find-buildroot-lkc-output-directory(revision) {
     fi
 }
 
-add-buildroot-kconfig-history(from=, to=) {
-    local environment
+add-buildroot-system() {
     add-system --system buildroot --url "$BUILDROOT_URL"
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-buildroot
     add-hook-step kclause-post-binding-hook kclause-post-binding-hook-buildroot
+}
+
+define-system \
+    --system buildroot \
+    --sample-branch master
+
+add-buildroot-kconfig(revision) {
+    add-buildroot-system
+    if [[ ! -d $(input-directory)/buildroot ]]; then
+        return
+    fi
+    local environment
+    # setting these correctly is needed for some versions that refer to these variables in their KConfig files
+    environment="BASE_DIR=$(input-directory)/buildroot/output,BUILD_DIR=$(input-directory)/buildroot/output/build"
+    if git -C "$(input-directory)/buildroot" cat-file -e "$revision:support/dummy-external" 2>/dev/null; then
+        environment="$environment,BR2_EXTERNAL=support/dummy-external"
+    fi
+    add-revision --system buildroot --revision "$revision"
+    add-kconfig \
+        --system buildroot \
+        --revision "$revision" \
+        --kconfig-file Config.in \
+        --lkc-directory "$(find-buildroot-lkc-directory "$revision")" \
+        --lkc-output-directory "$(find-buildroot-lkc-output-directory "$revision")" \
+        --environment "$environment"
+}
+
+add-buildroot-kconfig-history(from=, to=) {
+    add-buildroot-system
     for revision in $(git-tag-revisions buildroot | exclude-revision rc _ 'settings-.*' '\..*\.' | start-at-revision "$from" | stop-at-revision "$to"); do
-        # setting these correctly is needed for some versions that refer to these variables in their KConfig files
-        environment="BASE_DIR=$(input-directory)/buildroot/output,BUILD_DIR=$(input-directory)/buildroot/output/build"
-        if git -C "$(input-directory)/buildroot" cat-file -e "$revision:support/dummy-external" 2>/dev/null; then
-            environment="$environment,BR2_EXTERNAL=support/dummy-external"
-        fi
-        add-revision --system buildroot --revision "$revision"
-        add-kconfig \
-            --system buildroot \
-            --revision "$revision" \
-            --kconfig-file Config.in \
-            --lkc-directory "$(find-buildroot-lkc-directory "$revision")" \
-            --lkc-output-directory "$(find-buildroot-lkc-output-directory "$revision")" \
-            --environment "$environment"
+        add-buildroot-kconfig --revision "$revision"
     done
 }
 

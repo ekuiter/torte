@@ -2,17 +2,20 @@
 
 UCLIBC_NG_URL=https://github.com/wbx-github/uclibc-ng
 
-add-uclibc-ng-kconfig-history(from=, to=) {
+add-uclibc-ng-system() {
     add-system --system uclibc-ng --url "$UCLIBC_NG_URL"
     add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-uclibc-ng
-    for revision in $(git-tag-revisions uclibc-ng | start-at-revision "$from" | stop-at-revision "$to"); do
-        add-revision --system uclibc-ng --revision "$revision"
-        add-kconfig \
-            --system uclibc-ng \
-            --revision "$revision" \
-            --kconfig-file extra/Configs/Config.in \
-            --lkc-directory extra/config
-    done
+}
+
+define-system \
+    --system uclibc-ng \
+    --kconfig-file extra/Configs/Config.in \
+    --lkc-directory extra/config \
+    --sample-branch master
+
+add-uclibc-ng-kconfig-history(from=, to=) {
+    add-uclibc-ng-kconfig-revisions \
+        "$(git-tag-revisions uclibc-ng | start-at-revision "$from" | stop-at-revision "$to")"
 }
 
 configfix-pre-extraction-hook-uclibc-ng(system, revision) {

@@ -6,19 +6,22 @@
 # git filter-repo --path-rename Kconfig:Config.in
 EMBTOOLKIT_URL=https://github.com/ekuiter/torte-embtoolkit
 
-add-embtoolkit-kconfig-history(from=, to=) {
+add-embtoolkit-system() {
     add-system --system embtoolkit --url "$EMBTOOLKIT_URL"
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-embtoolkit
     add-hook-step kclause-post-binding-hook kclause-post-binding-hook-embtoolkit
     add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-embtoolkit
-    for revision in $(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e '-.*-' | start-at-revision "$from" | stop-at-revision "$to"); do
-        add-revision --system embtoolkit --revision "$revision"
-        add-kconfig \
-            --system embtoolkit \
-            --revision "$revision" \
-            --kconfig-file Config.in \
-            --lkc-directory scripts/kconfig
-    done
+}
+
+define-system \
+    --system embtoolkit \
+    --kconfig-file Config.in \
+    --lkc-directory scripts/kconfig \
+    --sample-branch master
+
+add-embtoolkit-kconfig-history(from=, to=) {
+    add-embtoolkit-kconfig-revisions \
+        "$(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e '-.*-' | start-at-revision "$from" | stop-at-revision "$to")"
 }
 
 kconfig-pre-binding-hook-embtoolkit(system, revision, lkc_directory=) {

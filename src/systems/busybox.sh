@@ -8,6 +8,10 @@ add-busybox-system() {
     add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-busybox
 }
 
+define-system \
+    --system busybox \
+    --sample-branch master
+
 configfix-pre-extraction-hook-busybox(system, revision) {
     if [[ $system == busybox ]]; then
         # the file networking/udhcp/Config.in it does not exist in old revisions, so we have to remove references to it
@@ -36,16 +40,25 @@ find-busybox-lkc-directory(revision) {
     fi
 }
 
+add-busybox-kconfig(revision) {
+    add-busybox-system
+    if [[ ! -d $(input-directory)/busybox ]]; then
+        return
+    fi
+    add-revision --system busybox --revision "$revision"
+    add-kconfig \
+        --system busybox \
+        --revision "$revision" \
+        --kconfig-file "$(find-busybox-kconfig-file "$revision")" \
+        --lkc-directory "$(find-busybox-lkc-directory "$revision")"
+}
+
+
 # all versions before 1.00 use CML1 instead of KConfig, which we currently cannot extract, so we start at 1.00
 add-busybox-kconfig-history(from=1_00, to=) {
     add-busybox-system
     for revision in $(git-tag-revisions busybox | exclude-revision pre alpha rc | start-at-revision "$from" | stop-at-revision "$to"); do
-        add-revision --system busybox --revision "$revision"
-        add-kconfig \
-            --system busybox \
-            --revision "$revision" \
-            --kconfig-file "$(find-busybox-kconfig-file "$revision")" \
-            --lkc-directory "$(find-busybox-lkc-directory "$revision")"
+        add-busybox-kconfig --revision "$revision"
     done
 }
 

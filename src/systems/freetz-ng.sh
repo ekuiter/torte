@@ -4,7 +4,7 @@ FREETZ_NG_URL=https://github.com/Freetz-NG/freetz-ng
 
 # like BusyBox, Freetz-NG generates parts of its feature model (with https://github.com/Freetz-NG/freetz-ng/blob/master/tools/genin)
 # this is no issue as long as we don't aim to analyze every single commit that touches the feature model
-# (for BusyBox, we enable this with generate-busybox-models, and a similar approach could probably be used here)
+# (for BusyBox, we enable this with generate-busybox-models, and a similar approach could probably be used here if needed in the future)
 
 # determine the correct KConfig file for Freetz-NG at the given revision
 find-freetz-ng-kconfig-file(revision) {
@@ -27,6 +27,10 @@ find-freetz-ng-lkc-directory(revision) {
 add-freetz-ng-system() {
     add-system --system freetz-ng --url "$FREETZ_NG_URL"
 }
+
+define-system \
+    --system freetz-ng \
+    --sample-branch master
 
 add-freetz-ng-kconfig(revision) {
     add-freetz-ng-system
@@ -80,19 +84,6 @@ kconfig-post-checkout-hook-freetz-ng(system, revision) {
     fi
 }
 
-add-freetz-ng-kconfig-revisions(revisions=) {
-    add-freetz-ng-system
-    if [[ -z $revisions ]]; then
-        return
-    fi
-    while read -r revision; do
-        add-freetz-ng-kconfig --revision "$revision"
-    done < <(printf '%s\n' "$revisions")
-}
-
-add-freetz-ng-kconfig-sample(interval) {
-    add-freetz-ng-kconfig-revisions "$(memoize-global git-sample-revisions freetz-ng "$interval" master)"
-}
 
 add-freetz-ng-kconfig-history(interval_name=yearly) {
     add-freetz-ng-kconfig-sample --interval "$(interval "$interval_name")"

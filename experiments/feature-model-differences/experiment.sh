@@ -6,7 +6,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 # Extraction and comparison of all feature models of several feature-model histories
 
-PASSES=(main commits)
+PASSES=(main commits yearly)
 
 download-additional-models() {
     additional_model_urls=(
@@ -56,7 +56,18 @@ experiment-systems() {
         done
         ;;
         commits)
-        add-busybox-kconfig-history-commits ;;
+        add-busybox-kconfig-history-commits
+        ;;
+        yearly)
+        add-axtls-kconfig-sample --interval "$(interval yearly)"
+        add-buildroot-kconfig-sample --interval "$(interval yearly)"
+        add-busybox-kconfig-sample --interval "$(interval yearly)"
+        add-embtoolkit-kconfig-sample --interval "$(interval yearly)"
+        add-linux-kconfig-sample --interval "$(interval yearly)"
+        add-toybox-kconfig-sample --interval "$(interval yearly)"
+        add-uclibc-kconfig-sample --interval "$(interval yearly)"
+        add-uclibc-ng-kconfig-sample --interval "$(interval yearly)"
+        ;;
     esac
 }
 
@@ -65,13 +76,14 @@ experiment-test-systems(__NO_CI__) {
         main)
         add-axtls-kconfig-history --from release-1.0.0 --to release-1.0.2 ;;
         commits) ;;
+        yearly) ;;
     esac
 }
 
 experiment-stages() {
     clone-systems
     local input
-    if [[ "$PASS" == main ]]; then
+    if [[ "$PASS" == main ]] || [[ "$PASS" == yearly ]]; then
         tag-linux-revisions
     elif [[ "$PASS" == commits ]]; then
         generate-busybox-models
