@@ -8,6 +8,12 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 
 PASSES=(main commits years)
 
+if [[ "$PASS" == main ]]; then
+ITERATIONS=3
+elif [[ "$PASS" == commits ]] || [[ "$PASS" == years ]]; then
+ITERATIONS=1
+fi
+
 download-additional-models() {
     additional_model_urls=(
         finance/FinancialServices01/Nieke2018-2017-05-22.xml
@@ -95,7 +101,7 @@ experiment-stages() {
     compute-file-pairs --file-field model_file --group-field system
     diff-with-clausy \
         --file-field model_file \
-        --iterations 3 \
+        --iterations "$ITERATIONS" \
         --timeout 300 \
         --attempts 3 \
         --group-field system
