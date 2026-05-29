@@ -311,6 +311,9 @@ diff-with-clausy(file_field, timeout=0, attempts=, group_field=) {
     if [[ -n $attempts ]] && [[ -n $group_field ]]; then
         readarray -t group_values < <(table-field "$pair_csv" "$group_field")
     fi
+    if [[ ${#left_files[@]} -eq 0 ]]; then
+        scripts/evaluate_diff.sh --header-only > "$(output-csv)"
+    fi
     for ((i=0; i<${#left_files[@]}; i++)); do
         local left_file="${left_files[$i]}"
         local right_file="${right_files[$i]}"
