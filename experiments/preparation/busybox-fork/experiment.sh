@@ -5,7 +5,7 @@
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
 # This experiment clones the original BusyBox git repository and then generates KConfig files for each revision that touches the feature model.
-# The resulting repository has been pushed as a fork to https://github.com/ekuiter/busybox and is used as a default to improved performance.
+# The resulting repository has been pushed as a fork to https://github.com/ekuiter/busybox and is used as a default to improve performance.
 # This repository should only be avoided when very recent revisions should be analyzed (which the repository may not include yet).
 # This is unlikely to be necessary because BusyBox is currently not being developed very actively.
 

@@ -1,11 +1,22 @@
 #!/bin/bash
 
-BUSYBOX_URL=https://github.com/mirror/busybox
+BUSYBOX_URL=https://github.com/vda-linux/busybox_mirror
 BUSYBOX_URL_FORK=https://github.com/ekuiter/torte-busybox
 
 add-busybox-system() {
-    add-system --system busybox --url "$BUSYBOX_URL"
     add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-busybox
+    add-hook-step post-clone-hook post-clone-hook-busybox
+    add-system --system busybox --url "$BUSYBOX_URL"
+}
+
+post-clone-hook-busybox(system, revision) {
+    if [[ $system == busybox ]]; then
+        # manually tag the release 1.38.0
+        local revision_hash=fc71374dfccd46448c62947269a35f1420d7ee28
+        if git -C "$(input-directory)/$system" rev-parse --quiet --verify "$revision_hash" >/dev/null; then
+            git -C "$(input-directory)/$system" tag -a 1_38_0 "$revision_hash" -m 1_38_0
+        fi
+    fi
 }
 
 define-system \
