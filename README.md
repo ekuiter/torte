@@ -214,7 +214,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | - | - | - | - |
 | [axTLS](src/systems/axtls.sh) | 1.0.0 - 2.1.5 | 2006 - 2019 | |
 | [Buildroot](src/systems/buildroot.sh) | 2009.02 - 2025.08 | 2009 - 2025 | |
-| [BusyBox](src/systems/busybox.sh) | 1.0 - 1.36.1 | 2004 - 2023 | [^27] [^34] |
+| [BusyBox](src/systems/busybox.sh) | 1.0 - 1.38.0 | 2004 - 2026 | [^27] [^34] |
 | [EmbToolkit](src/systems/embtoolkit.sh) | 0.1.0 - 1.9.0 | 2012 - 2017 | |
 | [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] |
 | [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] |
