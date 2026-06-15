@@ -3,6 +3,10 @@
 BUSYBOX_URL=https://github.com/vda-linux/busybox_mirror
 BUSYBOX_URL_FORK=https://github.com/ekuiter/torte-busybox
 
+define-system \
+    --system busybox \
+    --sample-branch master
+
 add-busybox-system(transform...) {
     add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-busybox
     add-hook-step post-clone-hook post-clone-hook-busybox
@@ -23,10 +27,6 @@ post-clone-hook-busybox(system, transform...) {
         fi
     fi
 }
-
-define-system \
-    --system busybox \
-    --sample-branch master
 
 configfix-pre-extraction-hook-busybox(system, revision) {
     if [[ $system == busybox ]]; then
@@ -70,7 +70,6 @@ add-busybox-kconfig(revision) {
         --kconfig-file "$(find-busybox-kconfig-file "$revision_without_context")" \
         --lkc-directory "$(find-busybox-lkc-directory "$revision_without_context")"
 }
-
 
 # all versions before 1.00 use CML1 instead of KConfig, which we currently cannot extract, so we start at 1.00
 add-busybox-kconfig-tags(from=1_00, to=) {

@@ -6,18 +6,18 @@
 # git filter-repo --path-rename Kconfig:Config.in
 EMBTOOLKIT_URL=https://github.com/ekuiter/torte-embtoolkit
 
-add-embtoolkit-system() {
-    add-system --system embtoolkit --url "$EMBTOOLKIT_URL"
-    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-embtoolkit
-    add-hook-step kclause-post-binding-hook kclause-post-binding-hook-embtoolkit
-    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-embtoolkit
-}
-
 define-system \
     --system embtoolkit \
     --kconfig-file Config.in \
     --lkc-directory scripts/kconfig \
     --sample-branch master
+
+add-embtoolkit-system() {
+    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-embtoolkit
+    add-hook-step kclause-post-binding-hook kclause-post-binding-hook-embtoolkit
+    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-embtoolkit
+    add-system --system embtoolkit --url "$EMBTOOLKIT_URL"
+}
 
 add-embtoolkit-kconfig-tags(from=, to=) {
     add-embtoolkit-kconfig-revisions \

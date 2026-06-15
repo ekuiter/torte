@@ -6,6 +6,14 @@ FREETZ_NG_URL=https://github.com/Freetz-NG/freetz-ng
 # this is no issue as long as we don't aim to analyze every single commit that touches the feature model
 # (for BusyBox, we enable this with add-busybox-kconfig-commits, and a similar approach could probably be used here if needed in the future)
 
+define-system \
+    --system freetz-ng \
+    --sample-branch master
+
+add-freetz-ng-system() {
+    add-system --system freetz-ng --url "$FREETZ_NG_URL"
+}
+
 # determine the correct KConfig file for Freetz-NG at the given revision
 find-freetz-ng-kconfig-file(revision) {
     if git -C "$(input-directory)/freetz-ng" cat-file -e "$revision:Config.in" 2>/dev/null; then
@@ -23,14 +31,6 @@ find-freetz-ng-lkc-directory(revision) {
         echo source/host-tools/kconfig*/scripts/kconfig
     fi
 }
-
-add-freetz-ng-system() {
-    add-system --system freetz-ng --url "$FREETZ_NG_URL"
-}
-
-define-system \
-    --system freetz-ng \
-    --sample-branch master
 
 add-freetz-ng-kconfig(revision) {
     add-freetz-ng-system

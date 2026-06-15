@@ -24,6 +24,5 @@ experiment-systems() {
 
 experiment-stages() {
     clone-systems
-
-    # then execute repositories-push.sh to update the prepared forks
+    "$(dirname "$0")/repositories-push.sh"
 }

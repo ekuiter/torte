@@ -3,16 +3,16 @@
 # use a frozen Git copy of the original SVN repository, including newer versions up to 2.1.5
 AXTLS_URL=https://github.com/ekuiter/torte-axTLS
 
-add-axtls-system() {
-    add-system --system axtls --url "$AXTLS_URL"
-    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-axtls
-}
-
 define-system \
     --system axtls \
     --kconfig-file config/Config.in \
     --lkc-directory config/scripts/config \
     --sample-branch main
+
+add-axtls-system() {
+    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-axtls
+    add-system --system axtls --url "$AXTLS_URL"
+}
 
 add-axtls-kconfig-tags(from=, to=) {
     add-axtls-kconfig-revisions \

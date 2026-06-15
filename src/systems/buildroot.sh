@@ -2,6 +2,16 @@
 
 BUILDROOT_URL=https://github.com/buildroot/buildroot
 
+define-system \
+    --system buildroot \
+    --sample-branch master
+
+add-buildroot-system() {
+    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-buildroot
+    add-hook-step kclause-post-binding-hook kclause-post-binding-hook-buildroot
+    add-system --system buildroot --url "$BUILDROOT_URL"
+}
+
 # determine the correct LKC directory for buildroot at the given revision
 find-buildroot-lkc-directory(revision) {
     if git -C "$(input-directory)/buildroot" cat-file -e "$revision:package/config" 2>/dev/null; then
@@ -19,16 +29,6 @@ find-buildroot-lkc-output-directory(revision) {
         echo package/config
     fi
 }
-
-add-buildroot-system() {
-    add-system --system buildroot --url "$BUILDROOT_URL"
-    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-buildroot
-    add-hook-step kclause-post-binding-hook kclause-post-binding-hook-buildroot
-}
-
-define-system \
-    --system buildroot \
-    --sample-branch master
 
 add-buildroot-kconfig(revision) {
     add-buildroot-system

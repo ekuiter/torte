@@ -2,16 +2,16 @@
 
 UCLIBC_URL=https://github.com/kraj/uClibc
 
-add-uclibc-system() {
-    add-system --system uclibc --url "$UCLIBC_URL"
-    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-uclibc
-}
-
 define-system \
     --system uclibc \
     --kconfig-file extra/Configs/Config.in \
     --lkc-directory extra/config \
     --sample-branch master
+
+add-uclibc-system() {
+    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-uclibc
+    add-system --system uclibc --url "$UCLIBC_URL"
+}
 
 add-uclibc-kconfig-tags(from=, to=) {
     add-uclibc-kconfig-revisions \

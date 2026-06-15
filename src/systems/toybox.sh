@@ -6,17 +6,17 @@ TOYBOX_URL=https://github.com/landley/toybox
 # this is no issue as long as we don't aim to analyze every single commit that touches the feature model
 # (for BusyBox, we enable this with add-busybox-kconfig-commits, and a similar approach could probably be used here if needed in the future)
 
-add-toybox-system() {
-    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-toybox
-    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-toybox
-    add-system --system toybox --url "$TOYBOX_URL"
-}
-
 define-system \
     --system toybox \
     --kconfig-file Config.in \
     --lkc-directory kconfig \
     --sample-branch master
+
+add-toybox-system() {
+    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-toybox
+    add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-toybox
+    add-system --system toybox --url "$TOYBOX_URL"
+}
 
 add-toybox-kconfig-tags(from=, to=) {
     add-toybox-kconfig-revisions \
