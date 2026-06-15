@@ -51,6 +51,7 @@ generate-kconfig-commits(system, generator, branch=master, change_globs...) {
     fi
     local input_directory
     input_directory="$(input-directory)/$system"
+    log generate-kconfig-commits
 
     # create a temporary Git repository for the generated KConfig history
     local output_directory
@@ -78,12 +79,14 @@ generate-kconfig-commits(system, generator, branch=master, change_globs...) {
         # commit the snapshot only if it is the first one or changed relevant files
         git -C "$output_directory" add -A
         if [[ $i -eq 1 ]] || ! git -C "$output_directory" diff --staged --quiet -- "${change_globs[@]}"; then
-            log "transform-repository: $system [$i/$n] $revision" "$(echo-progress gen)"
             GIT_AUTHOR_DATE=$timestamp GIT_COMMITTER_DATE=$timestamp \
                 git -C "$output_directory" commit -q -m "$revision" --date "$timestamp" >/dev/null || true
-            log "" "$(echo-done)"
+        fi
+        if [ $((i % 100)) -eq 1 ]; then
+            log "" "$(echo-progress "$((i*100/n))%")"
         fi
     done < <(git -C "$input_directory" log "$branch" --format="%h" | tac)
+    log "" "$(echo-done)"
 
     # replace the original clone with the generated KConfig history
     rm-safe "$input_directory"

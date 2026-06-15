@@ -259,7 +259,7 @@ linux-tag-old-releases-from-tarballs(base_uri, start_inclusive=, end_exclusive=)
         | stop-at-revision "$end_exclusive")
     for revision in $revisions; do
         if ! git -C "$(input-directory)/linux" tag | grep -q "^v$revision$"; then
-            log "tag-revision: linux@$revision" "$(echo-progress add)"
+            log "linux@$revision" "$(echo-progress tag)"
             local date
             date=$(date -d "$(curl -s "$base_uri" | grep "linux-$revision.tar.gz" \
                 | cut -d'>' -f3 | tr -s ' ' | cut -d' ' -f2- | rev | cut -d' ' -f2- | rev)" +%s)
