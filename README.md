@@ -3,9 +3,9 @@
 **torte is a declarative experimentation platform for reproducible feature-model analysis research.
 It integrates 10+ configurable software systems, various extractors and transformers, and 700+ automated solvers.**
 
-[<img src="meta/demo.gif">](https://www.youtube.com/watch?v=VtaJiC_b8RA)
-
 Jump to: [**ICSE'26 Demo**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Publications**](#publications-and-artifacts) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/) | [**Dashboard**](http://elias-kuiter.de/torte-dashboard/) | [**Research**](http://elias-kuiter.de/torte-research/)
+
+<img src="meta/demo.gif">
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/ekuiter/torte/run-tests.yml?style=for-the-badge&label=tests)](https://github.com/ekuiter/torte/actions/workflows/run-tests.yml)
 [![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/releases)
