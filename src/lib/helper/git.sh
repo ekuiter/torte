@@ -15,21 +15,43 @@ git-checkout(revision, directory=.) {
     git -C "$directory" checkout -q -f "$revision" > /dev/null
 }
 
-# list all tag revisions in version order
-git-tag-revisions(system) {
+# returns committer date of given revision as Unix timestamp
+git-timestamp(system, revision) {
+    git -C "$(input-directory)/$system" log -1 --pretty=%ct "$revision"
+}
+
+# returns the commit message of a given revision
+git-commit-message(system, revision) {
+    git -C "$(input-directory)/$system" log -1 --format=%B "$revision"
+}
+
+# list all tags in version order
+git-tags(system) {
     if [[ ! -d $(input-directory)/$system ]]; then
         return
     fi
     git -C "$(input-directory)/$system" tag | sort -V
 }
 
-# returns committer date of given revision as Unix timestamp
-git-timestamp(system, revision) {
-    git -C "$(input-directory)/$system" log -1 --pretty=%ct "$revision"
+# lists commits on a branch, oldest first
+git-commits(system, branch=master) {
+    if [[ ! -d $(input-directory)/$system ]]; then
+        return
+    fi
+    git -C "$(input-directory)/$system" log "$branch" --format="%h" --reverse
 }
 
-# sample revisions in a given interval
-git-sample-revisions(system, interval, branch=main) {
+# lists commits on a branch that touched any given paths, oldest first
+git-commits-touching(system, branch=master, paths...) {
+    assert-array paths
+    if [[ ! -d $(input-directory)/$system ]]; then
+        return
+    fi
+    git -C "$(input-directory)/$system" log "$branch" --format="%h" --reverse -- "${paths[@]}"
+}
+
+# sample commits in a given interval
+git-sample-commits(system, interval, branch=master) {
     if [[ ! -d $(input-directory)/$system ]]; then
         return
     fi

@@ -13,9 +13,9 @@ define-system \
     --lkc-directory extra/config \
     --sample-branch master
 
-add-uclibc-ng-kconfig-history(from=, to=) {
+add-uclibc-ng-kconfig-tags(from=, to=) {
     add-uclibc-ng-kconfig-revisions \
-        "$(git-tag-revisions uclibc-ng | start-at-revision "$from" | stop-at-revision "$to")"
+        "$(git-tags uclibc-ng | start-at-revision "$from" | stop-at-revision "$to")"
 }
 
 configfix-pre-extraction-hook-uclibc-ng(system, revision) {

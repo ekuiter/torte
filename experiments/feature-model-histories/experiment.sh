@@ -17,16 +17,16 @@ EXTRACT_TIMEOUT=1200 # timeout for extraction in seconds
 TRANSFORM_TIMEOUT=30 # timeout for transformation in seconds
 
 experiment-systems() {
-    add-axtls-kconfig-history
-    add-buildroot-kconfig-history
-    add-busybox-kconfig-history
-    add-embtoolkit-kconfig-history
-    add-freetz-ng-kconfig-history
-    add-l4re-kconfig-history
-    add-linux-kconfig-history
-    add-toybox-kconfig-history
-    add-uclibc-kconfig-history
-    add-uclibc-ng-kconfig-history
+    add-axtls-kconfig-tags
+    add-buildroot-kconfig-tags
+    add-busybox-kconfig-tags
+    add-embtoolkit-kconfig-tags
+    add-freetz-ng-kconfig-sample --interval "$(interval yearly)"
+    add-l4re-kconfig-sample --interval "$(interval yearly)"
+    add-linux-kconfig-tags
+    add-toybox-kconfig-tags
+    add-uclibc-kconfig-tags
+    add-uclibc-ng-kconfig-tags
 }
 
 experiment-stages() {

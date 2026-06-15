@@ -51,9 +51,9 @@ add-buildroot-kconfig(revision) {
         --environment "$environment"
 }
 
-add-buildroot-kconfig-history(from=, to=) {
+add-buildroot-kconfig-tags(from=, to=) {
     add-buildroot-system
-    for revision in $(git-tag-revisions buildroot | exclude-revision rc _ 'settings-.*' '\..*\.' | start-at-revision "$from" | stop-at-revision "$to"); do
+    for revision in $(git-tags buildroot | exclude-revision rc _ 'settings-.*' '\..*\.' | start-at-revision "$from" | stop-at-revision "$to"); do
         add-buildroot-kconfig --revision "$revision"
     done
 }

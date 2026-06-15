@@ -39,7 +39,6 @@ experiment-test-systems(__NO_CI__) {
 
 experiment-stages() {
     clone-systems
-    tag-linux-revisions
     read-statistics --options skip-sloc
 
     # extract (with two KConfig extractors)

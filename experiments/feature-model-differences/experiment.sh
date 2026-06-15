@@ -47,22 +47,22 @@ download-additional-models
 experiment-systems() {
     case "$PASS" in
         main)
-        add-axtls-kconfig-history
-        add-buildroot-kconfig-history
-        add-busybox-kconfig-history
-        add-embtoolkit-kconfig-history
-        add-freetz-ng-kconfig-history
-        add-l4re-kconfig-history
-        add-linux-kconfig-history
-        add-toybox-kconfig-history
-        add-uclibc-kconfig-history
-        add-uclibc-ng-kconfig-history
+        add-axtls-kconfig-tags
+        add-buildroot-kconfig-tags
+        add-busybox-kconfig-tags
+        add-embtoolkit-kconfig-tags
+        add-freetz-ng-kconfig-sample --interval "$(interval yearly)"
+        add-l4re-kconfig-sample --interval "$(interval yearly)"
+        add-linux-kconfig-tags
+        add-toybox-kconfig-tags
+        add-uclibc-kconfig-tags
+        add-uclibc-ng-kconfig-tags
         for file in "${additional_model_files[@]}"; do
             add-model-payload-file "$file"
         done
         ;;
         commits)
-        add-busybox-kconfig-history-commits
+        add-busybox-kconfig-commits
         ;;
         years)
         add-busybox-kconfig-sample --interval "$(interval yearly)"
@@ -73,7 +73,7 @@ experiment-systems() {
 experiment-test-systems(__NO_CI__) {
     case "$PASS" in
         main)
-        add-axtls-kconfig-history --from release-1.0.0 --to release-1.0.2 ;;
+        add-axtls-kconfig-tags --from release-1.0.0 --to release-1.0.2 ;;
         commits) ;;
         years) ;;
     esac
@@ -81,20 +81,12 @@ experiment-test-systems(__NO_CI__) {
 
 experiment-stages() {
     clone-systems
-    local input
-    if [[ "$PASS" == main ]] || [[ "$PASS" == years ]]; then
-        tag-linux-revisions
-    elif [[ "$PASS" == commits ]]; then
-        generate-busybox-models
-        input=generate-busybox-models
-    fi
-    read-statistics --options skip-sloc --input "$input"
+    read-statistics --options skip-sloc
 
     extract-kconfig-models \
         --with-kconfigreader y \
         --with-kclause y \
-        --date-prefix "$(date-format time)" \
-        --input "$input"
+        --date-prefix "$(date-format time)"
     join-into read-statistics extract-kconfig-models
 
     remove-duplicate-files --file-field model_file

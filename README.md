@@ -241,15 +241,15 @@ However, it does not substantially affect our feature-model extraction, as we wa
 [^26]: Currently, we use the KConfig parser (LKC) of Linux 2.5.71 for all revisions of Linux up to Linux 2.5.71, as older versions of LKC cannot be easily compiled (see [`add-linux-kconfig-revisions`](src/systems/linux.sh)).
 
 [^29]: For Linux, specifying arbitrary commit hashes is not enabled by default, because we must perform a complete Git history rewrite (resetting the commit hashes in the process) in order to ensure that checking out the repository also succeeds cross-platform on case-insensitive file systems (e.g., APFS on macOS, by default).
-To specify up-to-date commit hashes, use `LINUX_CLONE_MODE=original|filter` (see `scripts/systems/linux.sh#post-clone-hook-linux`: `original` only works on case-sensitive file systems, while `filter` is cross-platform, but takes several hours to run).
-To specify arbitrary commit hashes identical to the original repository, use `LINUX_CLONE_MODE=original`.
+By default, `add-linux-system` requests the `filter-case-insensitive` and `tag-old-releases` repository transforms and `CLONE_FORKS` lets torte clone the prepared fork instead of regenerating it.
+Set `CLONE_FORKS=` to regenerate the requested transform locally, or explicitly add Linux without transforms (e.g., `add-system --system linux --url "https://github.com/torvalds/linux"`) to use commit hashes identical to the original repository (will likely break on APFS).
 This does not affect typical use cases that involve tag and branch identifiers.
 Note that our history rewrite removes several `.c|h` files that cause filename collisions, which does not affect feature-model extraction, but may lead to a very slight underestimation of source code statistics like SLOC.
 
 [^23]: This system does not regularly release tagged revisions, so only a yearly sample has been tested.
 
 [^27]: As noted by [Kröher et al. 2023](https://www.sciencedirect.com/science/article/abs/pii/S0164121223001322), the feature model of BusyBox is scattered across its `.c` source code files in special comments and therefore not trivial to extract as a full history (because we use Git to detect changes in any KConfig files to identify relevant commits).
-We solve this problem by iterating over all commits to generate all KConfig files, committing them to a new `busybox-models` repository, in which each commit represents one version of the feature model.
+We solve this problem by iterating over all commits to generate all KConfig files, committing them to a new, modified BusyBox [repository](https://github.com/ekuiter/torte-busybox), in which each commit represents one version of the feature model.
 (This is only relevant for experiments that operate on the entire (i.e., all commits) history of BusyBox instead of specific revision ranges.)
 
 [^34]: Feature-model extraction for BusyBox should only be attempted starting with version 1.0, where the root KConfig file is named `sysdeps/linux/Config.in`.

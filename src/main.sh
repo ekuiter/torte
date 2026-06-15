@@ -22,8 +22,7 @@ FORCE_RUN=${FORCE_RUN:-} # y if every stage should be forced to run regardless o
 FORCE_BUILD=${FORCE_BUILD:-} # y if Docker images should be built without cache
 VERBOSE=${VERBOSE:-} # y if console output should be verbose
 DEBUG=${DEBUG:-} # y for debugging stages interactively
-LINUX_CLONE_MODE=${LINUX_CLONE_MODE:-fork} # clone mode for Linux repository, can be either fork, original, or filter
-BUSYBOX_GENERATE_MODE=${BUSYBOX_GENERATE_MODE:-fork} # mode for BusyBox full history generation, can be either fork or generate
+CLONE_FORKS=${CLONE_FORKS:-y} # if non-empty, clone prepared forks when a fork URL is available
 MEMORY_LIMIT=${MEMORY_LIMIT:-} # if unset, this is automatically determined in helper/platform.sh
 
 # global configuration options that cannot be overridden in experiment files, but only with environment variables

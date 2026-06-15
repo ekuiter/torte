@@ -17,14 +17,14 @@ TRANSFORM_TIMEOUT=180 # timeout for CNF transformation in seconds
 SOLVE_TIMEOUT=1200 # timeout for model counting in seconds
 
 experiment-systems() {
-    add-linux-kconfig-history --from v4.18 --to v4.19 --architecture x86
-    add-axtls-kconfig-history --from release-2.0.0 --to release-2.0.1
-    add-buildroot-kconfig-history --from 2021.11.2 --to 2021.11.3
-    add-busybox-kconfig-history --from 1_35_0 --to 1_35_1
-    add-embtoolkit-kconfig-history --from embtoolkit-1.8.0 --to embtoolkit-1.8.1
+    add-linux-kconfig-tags --from v4.18 --to v4.19 --architecture x86
+    add-axtls-kconfig-tags --from release-2.0.0 --to release-2.0.1
+    add-buildroot-kconfig-tags --from 2021.11.2 --to 2021.11.3
+    add-busybox-kconfig-tags --from 1_35_0 --to 1_35_1
+    add-embtoolkit-kconfig-tags --from embtoolkit-1.8.0 --to embtoolkit-1.8.1
     add-fiasco-kconfig 58aa50a8aae2e9396f1c8d1d0aa53f2da20262ed
     add-freetz-ng-kconfig 5c5a4d1d87ab8c9c6f121a13a8fc4f44c79700af
-    add-uclibc-ng-kconfig-history --from v1.0.40 --to v1.0.41
+    add-uclibc-ng-kconfig-tags --from v1.0.40 --to v1.0.41
 }
 
 experiment-stages() {

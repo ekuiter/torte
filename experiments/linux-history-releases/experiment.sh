@@ -35,17 +35,16 @@ add-payload-file evaluation.ipynb
 
 experiment-systems() {
     # analyze all revisions and architectures of the Linux kernel
-    add-linux-kconfig-history --from v2.5.45 --to v6.12 --architecture all
+    add-linux-kconfig-tags --from v2.5.45 --to v6.12 --architecture all
 }
 
 experiment-test-systems(__NO_CI__) {
-    add-linux-kconfig-history --from v6.11 --to v6.12 --architecture x86
+    add-linux-kconfig-tags --from v6.11 --to v6.12 --architecture x86
 }
 
 experiment-stages() {
     # extract
     clone-systems
-    tag-linux-revisions
     read-linux-names
     read-linux-architectures
     read-linux-configs
@@ -89,7 +88,7 @@ git-statistics() {
     echo -n "Number of tagged revisions: "
     git -C input/linux tag | start-at-revision v2.6.12 | wc -l
     echo -n "Number of releases: "
-    linux-tag-revisions | start-at-revision v2.6.12 | wc -l
+    linux-tags | start-at-revision v2.6.12 | wc -l
     echo -n "Number of all commits that touch Kconfig files: "
     git -C input/linux log --pretty=oneline --diff-filter=AMD --branches --tags -- '**/*Kconfig*' | wc -l
 }

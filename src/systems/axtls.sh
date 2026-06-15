@@ -14,9 +14,9 @@ define-system \
     --lkc-directory config/scripts/config \
     --sample-branch main
 
-add-axtls-kconfig-history(from=, to=) {
+add-axtls-kconfig-tags(from=, to=) {
     add-axtls-kconfig-revisions \
-        "$(git-tag-revisions axtls | exclude-revision @ | start-at-revision "$from" | stop-at-revision "$to")"
+        "$(git-tags axtls | exclude-revision @ | start-at-revision "$from" | stop-at-revision "$to")"
 }
 
 configfix-pre-extraction-hook-axtls(system, revision) {

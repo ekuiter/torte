@@ -4,7 +4,7 @@ FREETZ_NG_URL=https://github.com/Freetz-NG/freetz-ng
 
 # like BusyBox, Freetz-NG generates parts of its feature model (with https://github.com/Freetz-NG/freetz-ng/blob/master/tools/genin)
 # this is no issue as long as we don't aim to analyze every single commit that touches the feature model
-# (for BusyBox, we enable this with generate-busybox-models, and a similar approach could probably be used here if needed in the future)
+# (for BusyBox, we enable this with add-busybox-kconfig-commits, and a similar approach could probably be used here if needed in the future)
 
 # determine the correct KConfig file for Freetz-NG at the given revision
 find-freetz-ng-kconfig-file(revision) {
@@ -82,9 +82,4 @@ kconfig-post-checkout-hook-freetz-ng(system, revision) {
         # ... and for older versions
         make -C tools/config clean 2>&1 || true
     fi
-}
-
-
-add-freetz-ng-kconfig-history(interval_name=yearly) {
-    add-freetz-ng-kconfig-sample --interval "$(interval "$interval_name")"
 }

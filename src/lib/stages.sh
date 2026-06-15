@@ -8,11 +8,6 @@ define-stages() {
         run --output clone-systems
     }
 
-    # tag old Linux revisions that are not included in its Git history
-    tag-linux-revisions(options=) {
-        run --output tag-linux-revisions --command tag-linux-revisions "$options"
-    }
-
     # extracts code names of linux revisions
     read-linux-names() {
         run --output read-linux-names
@@ -31,11 +26,6 @@ define-stages() {
     # read basic statistics for each system
     read-statistics(input=, options=) {
         run --input "$input" --output read-statistics --command read-statistics "$options"
-    }
-
-    # generate repository with full history of BusyBox feature model
-    generate-busybox-models() {
-        run --output generate-busybox-models
     }
 
     # extracts kconfig models with the given extractor

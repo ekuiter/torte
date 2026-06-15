@@ -15,7 +15,9 @@ experiment-stages() {
 
 # adds a system
 # implemented by library scripts (e.g., to clone a Git repository)
-add-system(system, url=) {
+# fork_url is used as a cached source for the transformed repository when CLONE_FORKS is enabled
+# optional transform names request a transformation on the repository
+add-system(system, url=, fork_url=, transform...) {
     :
 }
 

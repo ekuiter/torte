@@ -19,9 +19,9 @@ define-system \
     --lkc-directory scripts/kconfig \
     --sample-branch master
 
-add-embtoolkit-kconfig-history(from=, to=) {
+add-embtoolkit-kconfig-tags(from=, to=) {
     add-embtoolkit-kconfig-revisions \
-        "$(git-tag-revisions embtoolkit | exclude-revision rc | grep -v -e '-.*-' | start-at-revision "$from" | stop-at-revision "$to")"
+        "$(git-tags embtoolkit | exclude-revision rc | grep -v -e '-.*-' | start-at-revision "$from" | stop-at-revision "$to")"
 }
 
 kconfig-pre-binding-hook-embtoolkit(system, revision, lkc_directory=) {

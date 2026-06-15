@@ -4,10 +4,10 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
-# This experiment extracts and transforms a single feature model from a recent revision of the Linux kernel.
+# This experiment extracts and transform a single feature model from a recent revision of the Linux kernel.
 
 experiment-systems() {
-    add-linux-kconfig-history --from v6.17 --to v6.18 --architecture x86
+    add-linux-kconfig-tags --from v6.17 --to v6.18 --architecture x86
 }
 
 experiment-stages() {

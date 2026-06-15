@@ -9,27 +9,22 @@ PASSES=(releases commits)
 
 experiment-systems() {
     case "$PASS" in
-        releases) add-busybox-kconfig-history --from 1_00 --to 1_36_2 ;;
-        commits) add-busybox-kconfig-history-commits ;;
+        releases) add-busybox-kconfig-tags ;;
+        commits) add-busybox-kconfig-commits ;;
     esac
 }
 
 experiment-test-systems() {
     case "$PASS" in
-        releases) add-busybox-kconfig-history --from 1_36_1 --to 1_36_2 ;;
+        releases) add-busybox-kconfig-tags --from 1_38_0 --to 1_39_0 ;;
         commits) ;;
     esac
 }
 
 experiment-stages() {
     clone-systems
-    local input
-    if [[ "$PASS" == commits ]]; then
-        generate-busybox-models
-        input=generate-busybox-models
-    fi
-    read-statistics --input "$input"
-    extract-kconfig-models --with-kclause y --input "$input"
+    read-statistics
+    extract-kconfig-models --with-kclause y
     join-into read-statistics extract-kconfig-models
     transform-to-uvl
     transform-to-dimacs

@@ -27,7 +27,7 @@ define-system(system, kconfig_file=, lkc_directory=, lkc_output_directory=, samp
 		    done < <(printf '%s\n' "\$revisions")
 		}
 		add-${system}-kconfig-sample(interval) {
-		    add-${system}-kconfig-revisions "\$(memoize-global git-sample-revisions ${system} "\$interval" ${sample_branch})"
+		    add-${system}-kconfig-revisions "\$(memoize-global git-sample-commits ${system} "\$interval" ${sample_branch})"
 		}
 		END
     ))"
