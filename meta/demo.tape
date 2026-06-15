@@ -1,5 +1,5 @@
 # https://github.com/tamnd/ascii-gif
-# $(go env GOPATH)/bin/ascii-gif render demo.tape
+# $(go env GOPATH)/bin/ascii-gif render meta/demo.tape
 Set TypingSpeed 200ms
 # Set PlaybackSpeed 1.0
 Sleep 1s
