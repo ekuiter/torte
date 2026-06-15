@@ -155,6 +155,33 @@ linux-attempt-grouper(file, query) {
     echo "$file" | sed 's#\(.*\)linux/.*\[\(.*\)\]\..*#\1\2#' | tr '/' '.'
 }
 
+# reads Linux-specific revision properties
+read-property-linux(property, revision) {
+    if [[ $property == name ]]; then
+        local name
+        name=$({ git -C "$(input-directory)/linux" show "$revision:Makefile" | grep -oP "^NAME = \K.*"; } || true)
+        echo "${name:-NA}"
+    elif [[ $property == architecture ]]; then
+        linux-architectures "$revision"
+    fi
+}
+
+# extracts code names of linux revisions, just because it's fun :-)
+read-linux-names() {
+    read-property --output read-linux-names --system linux --reader read-property-linux --field name
+}
+
+# extracts architectures of linux revisions
+read-linux-architectures() {
+    read-property --output read-linux-architectures --system linux --reader read-property-linux --field architecture
+}
+
+# extracts configuration options of linux revisions
+read-linux-configs() {
+    # this does not exclude the architecture um as done in other functions
+    read-kconfig-configs --output read-linux-configs --system linux --globs '**/*Kconfig*'
+}
+
 add-linux-kconfig(revision, architecture=x86, lkc_binding_file=) {
     add-linux-system
     if [[ ! -d $(input-directory)/linux ]]; then
@@ -486,117 +513,4 @@ kconfig-pre-hierarchy-hook-linux(system, revision) {
             fi
         fi
     fi
-}
-
-#---
-
-# extracts code names of linux revisions, just because it's fun :-)
-read-linux-names() {
-    add-revision(system, revision) {
-        if [[ $system == linux ]]; then
-            log "read-linux-name: $system@$revision" "$(echo-progress read)"
-            if grep -q "^$system,$revision," "$(output-csv)"; then
-                log "" "$(echo-skip)"
-                return
-            fi
-            if [[ ! -d $(input-directory)/linux ]]; then
-                error "Linux has not been cloned yet. Please prepend a stage that clones Linux."
-            fi
-            local name
-            name=$({ git -C "$(input-directory)/linux" show "$revision:Makefile" | grep -oP "^NAME = \K.*"; } || true)
-            name=${name:-NA}
-            echo "$system,$revision,$name" >> "$(output-csv)"
-            log "" "$(echo-done)"
-        fi
-    }
-
-    echo system,revision,name > "$(output-csv)"
-    experiment-systems
-}
-
-# extracts architectures of linux revisions
-read-linux-architectures() {
-    add-revision(system, revision) {
-        if [[ $system == linux ]]; then
-            log "read-linux-architectures: $system@$revision" "$(echo-progress read)"
-            if grep -q "^$system,$revision," "$(output-csv)"; then
-                log "" "$(echo-skip)"
-                return
-            fi
-            if [[ ! -d $(input-directory)/linux ]]; then
-                error "Linux has not been cloned yet. Please prepend a stage that clones Linux."
-            fi
-            local architectures
-            mapfile -t architectures < <(linux-architectures "$revision")
-            for architecture in "${architectures[@]}"; do
-                echo "$system,$revision,$architecture" >> "$(output-csv)"
-            done
-            log "" "$(echo-done)"
-        fi
-    }
-
-    echo system,revision,architecture > "$(output-csv)"
-    experiment-systems
-}
-
-linux-configs(revision) {
-    # match lines in all Kconfig files of the given revision that:
-    # - start with 'config' or 'menuconfig' (possibly with leading whitespace)
-    # - after which follows an alphanumeric configuration option name
-    # then format the result by removing 'config' or 'menuconfig', possible comments, and trimming any whitespace
-    # finally, ignore all lines which contain illegal characters (e.g., whitespace)
-    # note that this does not exclude the architecture um as done in other functions
-    git -C "$(input-directory)/linux" grep -E $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Kconfig*' \
-        | awk -F: $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print "linux", $1, $2, $3}' \
-        | grep -E ',.*,.*,[0-9a-zA-Z_]+$' \
-        | sort | uniq
-}
-
-linux-config-types(revision) {
-    # similar to linux-configs, reads all configuration options, but also tries to read their types from the succeeding line
-    # note that this is less accurate than linux-configs due to the complexity of the regular expressions
-    # also, this does not exclude the architecture um as done in other functions
-    git -C "$(input-directory)/linux" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- '**/*Kconfig*' \
-        | perl -pe 's/[ \t]*(menu)?config[ \t]+([0-9a-zA-Z_]+).*/$2/' \
-        | perl -pe 's/\n/&&&/g' \
-        | perl -pe 's/&&&--&&&/\n/g' \
-        | perl -pe 's/&&&[^:&]*?:[^:&]*?Kconfig[^:&]*?-/&&&/g' \
-        | perl -pe 's/&&&([^:&]*?:[^:&]*?Kconfig[^:&]*?:)/&&&\n$1/g' \
-        | perl -pe 's/&&&/:/g' \
-        | awk -F: $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print "linux", $1, $2, $3, $4}' \
-        | grep -E ',(bool|tristate|string|int|hex)$' \
-        | sort | uniq
-}
-
-# extracts configuration options of linux revisions
-read-linux-configs() {
-    add-revision(system, revision) {
-        if [[ $system == linux ]]; then
-            log "read-linux-configs: $system@$revision" "$(echo-progress read)"
-            if grep -q "^$system,$revision," "$(output-csv)"; then
-                log "" "$(echo-skip)"
-                return
-            fi
-            if [[ ! -d $(input-directory)/linux ]]; then
-                error "Linux has not been cloned yet. Please prepend a stage that clones Linux."
-            fi
-            local configs config_types
-            configs=$(mktemp)
-            config_types=$(mktemp)
-            echo system,revision,kconfig_file,config >> "$configs"
-            echo system,revision,kconfig_file,config,type >> "$config_types"
-            linux-configs "$revision" >> "$configs"
-            tail -n+2 < "$configs" >> "$(output-csv)"
-            linux-config-types "$revision" >> "$config_types"
-            if [[ ! -f $(output-file types.csv) ]]; then
-                join-tables "$configs" "$config_types" | head -n1 > "$(output-file types.csv)"
-            fi
-            join-tables "$configs" "$config_types" | tail -n+2 >> "$(output-file types.csv)"
-            log "" "$(echo-done)"
-            rm-safe "$configs" "$config_types"
-        fi
-    }
-
-    echo system,revision,kconfig_file,config > "$(output-csv)"
-    experiment-systems
 }

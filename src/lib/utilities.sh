@@ -104,7 +104,7 @@ read-statistics(options=) {
 
     add-revision(system, revision) {
         revision=$(revision-without-context "$revision")
-        log "read-statistics: $system@$revision" "$(echo-progress read)"
+        log "$system@$revision" "$(echo-progress read)"
         if grep -q "^$system,$revision," "$(output-path date.csv)"; then
             log "" "$(echo-skip)"
             return
@@ -133,4 +133,108 @@ read-statistics(options=) {
     echo system,revision,source_lines_of_code > "$(output-path sloc.csv)"
     experiment-systems
     join-tables "$(output-path date.csv)" "$(output-path sloc.csv)" > "$(output-csv)"
+}
+
+# reads some system-defined property of a revision with a system-specific reader
+read-property(system, reader, field) {
+    READ_PROPERTY_SYSTEM=$system
+    READ_PROPERTY_FIELD=$field
+    READ_PROPERTY_READER=$reader
+
+    add-revision(system, revision) {
+        if [[ $system != "$READ_PROPERTY_SYSTEM" ]]; then
+            return
+        fi
+        revision=$(revision-without-context "$revision")
+        if ! has-function "$READ_PROPERTY_READER"; then
+            error "Reader $READ_PROPERTY_READER is not defined."
+        fi
+        log "$system@$revision" "$(echo-progress read)"
+        if grep -q "^$system,$revision," "$(output-csv)"; then
+            log "" "$(echo-skip)"
+            return
+        fi
+        if [[ ! -d $(input-directory)/$system ]]; then
+            error "$system has not been cloned yet. Please prepend a stage that clones $system."
+        fi
+        local values
+        mapfile -t values < <("$READ_PROPERTY_READER" "$READ_PROPERTY_FIELD" "$revision")
+        for value in "${values[@]}"; do
+            echo "$system,$revision,$value" >> "$(output-csv)"
+        done
+        log "" "$(echo-done)"
+    }
+
+    echo "system,revision,$READ_PROPERTY_FIELD" > "$(output-csv)"
+    experiment-systems
+}
+
+# reads configuration options from Kconfig files at a given revision
+# this is admittedly a pretty scary regex, but it was manually inspected on Linux (see TOSEM'25)
+# be careful when calling this in a dedicated state though, as it can only operate on existing KConfig files
+# in case any KConfig files have to be generated, this should be called after generation (e.g., in a post-binding hook)
+read-kconfig-configs(system, revision, globs...) {
+    # match lines in all Kconfig files of the given revision that:
+    # - start with 'config' or 'menuconfig' (possibly with leading whitespace)
+    # - after which follows an alphanumeric configuration option name
+    # then format the result by removing 'config' or 'menuconfig', possible comments, and trimming any whitespace
+    # finally, ignore all lines which contain illegal characters (e.g., whitespace)
+    { git -C "$(input-directory)/$system" grep -E $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- "${globs[@]}" || true; } \
+        | awk -F: -v system="$system" $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print system, $1, $2, $3}' \
+        | grep -E ',.*,.*,[0-9a-zA-Z_]+$' \
+        | sort | uniq
+}
+
+# reads configuration option types from Kconfig files at a given revision
+read-kconfig-config-types(system, revision, globs...) {
+    # similar to kconfig-configs, reads all configuration options, but also tries to read their types from the succeeding line
+    # note that this is less accurate than kconfig-configs due to the complexity of the regular expressions
+    { git -C "$(input-directory)/$system" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- "${globs[@]}" || true; } \
+        | perl -pe 's/[ \t]*(menu)?config[ \t]+([0-9a-zA-Z_]+).*/$2/' \
+        | perl -pe 's/\n/&&&/g' \
+        | perl -pe 's/&&&--&&&/\n/g' \
+        | perl -pe 's/&&&[^:&]*?:[^:&]*?Kconfig[^:&]*?-/&&&/g' \
+        | perl -pe 's/&&&([^:&]*?:[^:&]*?Kconfig[^:&]*?:)/&&&\n$1/g' \
+        | perl -pe 's/&&&/:/g' \
+        | awk -F: -v system="$system" $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print system, $1, $2, $3, $4}' \
+        | grep -E ',(bool|tristate|string|int|hex)$' \
+        | sort | uniq
+}
+
+# reads configuration options and types from Kconfig files
+read-kconfig-configs-helper(system, globs...) {
+    READ_KCONFIG_CONFIGS_SYSTEM=$system
+    READ_KCONFIG_CONFIGS_GLOBS=("${globs[@]}")
+
+    add-revision(system, revision) {
+        if [[ $system != "$READ_KCONFIG_CONFIGS_SYSTEM" ]]; then
+            return
+        fi
+        revision=$(revision-without-context "$revision")
+        log "$system@$revision" "$(echo-progress read)"
+        if grep -q "^$system,$revision," "$(output-csv)"; then
+            log "" "$(echo-skip)"
+            return
+        fi
+        if [[ ! -d $(input-directory)/$system ]]; then
+            error "$system has not been cloned yet. Please prepend a stage that clones $system."
+        fi
+        local configs config_types
+        configs=$(mktemp)
+        config_types=$(mktemp)
+        echo system,revision,kconfig_file,config >> "$configs"
+        echo system,revision,kconfig_file,config,type >> "$config_types"
+        read-kconfig-configs "$system" "$revision" "${READ_KCONFIG_CONFIGS_GLOBS[@]}" >> "$configs"
+        tail -n+2 < "$configs" >> "$(output-csv)"
+        read-kconfig-config-types "$system" "$revision" "${READ_KCONFIG_CONFIGS_GLOBS[@]}" >> "$config_types"
+        if [[ ! -f $(output-file types.csv) ]]; then
+            join-tables "$configs" "$config_types" | head -n1 > "$(output-file types.csv)"
+        fi
+        join-tables "$configs" "$config_types" | tail -n+2 >> "$(output-file types.csv)"
+        log "" "$(echo-done)"
+        rm-safe "$configs" "$config_types"
+    }
+
+    echo system,revision,kconfig_file,config > "$(output-csv)"
+    experiment-systems
 }

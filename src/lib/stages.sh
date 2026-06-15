@@ -8,19 +8,14 @@ define-stages() {
         run --output clone-systems
     }
 
-    # extracts code names of linux revisions
-    read-linux-names() {
-        run --output read-linux-names
+    # reads some system-defined property of a revision with a system-specific reader
+    read-property(output, system, reader, field) {
+        run --output "$output" --command read-property "$system" "$reader" "$field"
     }
 
-    # extracts architectures of linux revisions
-    read-linux-architectures() {
-        run --output read-linux-architectures
-    }
-
-    # extracts configuration options of linux revisions
-    read-linux-configs() {
-        run --output read-linux-configs
+    # extracts configuration options of revisions
+    read-kconfig-configs(output=read-kconfig-configs, system, globs...) {
+        run --output "$output" --command read-kconfig-configs-helper "$system" "${globs[@]}"
     }
 
     # read basic statistics for each system
