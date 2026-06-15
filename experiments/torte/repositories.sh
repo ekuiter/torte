@@ -16,6 +16,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # Run this experiment when the prepared forks should be refreshed, then execute repositories-push.sh to update the remotes.
 
 CLONE_FORKS=
+add-payload-file repositories-push.sh
 
 experiment-systems() {
     add-linux-system
@@ -24,5 +25,5 @@ experiment-systems() {
 
 experiment-stages() {
     clone-systems
-    "$(dirname "$0")/repositories-push.sh"
+    "$(payload-file repositories-push.sh)"
 }

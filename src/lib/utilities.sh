@@ -1,7 +1,7 @@
 #!/bin/bash
 # functions for working with Git repositories and statistics
 
-CLONE_DONE_FILE=".clone_done" # file indicating clone completion
+CLONE_DONE_FILE=".git/.clone_done" # file indicating clone completion
 
 # clones system repositories using git and applies the requested repository transform(s), if any
 clone-systems() {

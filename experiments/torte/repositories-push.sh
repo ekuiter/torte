@@ -11,8 +11,8 @@ push_repository() {
     fi
     git -C "$directory" remote remove origin 2>/dev/null || true
     git -C "$directory" remote add origin "$remote"
-    git -C "$directory" push origin --all
-    git -C "$directory" push origin --tags
+    git -C "$directory" push --force origin --all
+    git -C "$directory" push --force origin --tags
 }
 
 push_linux_repository() {
