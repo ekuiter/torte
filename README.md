@@ -3,18 +3,13 @@
 **torte is a declarative experimentation platform for reproducible feature-model analysis research.
 It integrates 10+ configurable software systems, various extractors and transformers, and 700+ automated solvers.**
 
-[<img src="meta/cli.png" width="32%">](meta/cli.png)
-[<img src="meta/profile.png" width="32%">](meta/profile.png)
-[<img src="meta/satgraf.jpg" width="32%">](meta/satgraf.jpg)
-[<img src="meta/tree.png" width="32%">](meta/tree.png)
-[<img src="meta/dashboard.png" width="32%">](http://elias-kuiter.de/torte-dashboard/)
-[<img src="meta/demo.png" width="32%">](https://www.youtube.com/watch?v=VtaJiC_b8RA)
-
 [![Tests](https://img.shields.io/github/actions/workflow/status/ekuiter/torte/run-tests.yml?style=for-the-badge&label=tests)](https://github.com/ekuiter/torte/actions/workflows/run-tests.yml)
 [![Version](https://img.shields.io/github/v/tag/ekuiter/torte?style=for-the-badge&label=version)](https://github.com/ekuiter/torte/releases)
 [![License](https://img.shields.io/github/license/ekuiter/torte?style=for-the-badge&color=blue)](https://github.com/ekuiter/torte/blob/main/LICENSE.txt)
 
 Jump to: [**ICSE'26 Demo**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Publications**](#publications-and-artifacts) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/) | [**Dashboard**](http://elias-kuiter.de/torte-dashboard/) | [**Research**](http://elias-kuiter.de/torte-research/)
+
+[<img src="meta/demo.gif">](https://www.youtube.com/watch?v=VtaJiC_b8RA)
 
 <img style="float: right;" align="right" width="23%" src="meta/torte.png">
 
