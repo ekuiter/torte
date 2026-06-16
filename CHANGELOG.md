@@ -6,20 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-06-16
+
 ### Added
 
 - Allow distinguishing tristate and Boolean encoding in KConfigReader-extracted formulas
+- Integrated clausy for CNF transformation and feature-model differencing
+- Added stages for computing neighboring file pairs and removing duplicate neighboring files
+- Added optional date prefixes for extracted models, including correct `sort -V` interaction
+- Added attempt logic and iteration support for clausy differencing
 
 ### Changed
 
 - Ignore `imply` conditions in KConfigReader instead of handling them as `select` conditions, which reflects semantics more accurately
-
-### Removed
+- Generalized KConfig extraction, config option reading, and property extraction across systems
+- Generalized repository cloning transformations, including prepared repository forks
+- Revised system definitions and Linux repository preparation, improved progress reporting
+- Updated BusyBox mirror
+- Replaced natural inner joins with natural right outer joins for CSV files
 
 ### Fixed
 
 - Fixed bug concerning payload file extraction
 - Fixed potential race conditions in parallel execution of various solvers
+- Fixed Linux cloning when analyzing payload files
+- Fixed option handling and unnecessary LKC binding directory creation
+- Several other bugs
 
 ## [2.1.0] - 2025-12-19
 
