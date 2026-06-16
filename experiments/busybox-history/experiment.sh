@@ -24,11 +24,10 @@ experiment-test-systems() {
 experiment-stages() {
     clone-systems
     read-statistics
-    extract-kconfig-models --with-kclause y
+    extract-kconfig-models \
+        --with-kclause y \
+        --date-prefix "$(date-format time)"
     join-into read-statistics extract-kconfig-models
     transform-to-uvl
     transform-to-dimacs
-
-    collect-stage-files --input transform-to-dimacs-with-featureide --extension dimacs
-    collect-stage-files --input transform-to-uvl-with-featureide --extension uvl
 }

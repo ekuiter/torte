@@ -180,7 +180,7 @@ read-kconfig-configs(system, revision, globs...) {
     # then format the result by removing 'config' or 'menuconfig', possible comments, and trimming any whitespace
     # finally, ignore all lines which contain illegal characters (e.g., whitespace)
     { git -C "$(input-directory)/$system" grep -E $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- "${globs[@]}" || true; } \
-        | awk -F: -v system="$system" $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print system, $1, $2, $3}' \
+        | awk -F: -v system_name="$system" $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print system_name, $1, $2, $3}' \
         | grep -E ',.*,.*,[0-9a-zA-Z_]+$' \
         | sort | uniq
 }
@@ -196,7 +196,7 @@ read-kconfig-config-types(system, revision, globs...) {
         | perl -pe 's/&&&[^:&]*?:[^:&]*?Kconfig[^:&]*?-/&&&/g' \
         | perl -pe 's/&&&([^:&]*?:[^:&]*?Kconfig[^:&]*?:)/&&&\n$1/g' \
         | perl -pe 's/&&&/:/g' \
-        | awk -F: -v system="$system" $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print system, $1, $2, $3, $4}' \
+        | awk -F: -v system_name="$system" $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print system_name, $1, $2, $3, $4}' \
         | grep -E ',(bool|tristate|string|int|hex)$' \
         | sort | uniq
 }

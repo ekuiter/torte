@@ -7,7 +7,11 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # This experiment extracts and transform a single feature model from a recent revision of the Linux kernel.
 
 experiment-systems() {
-    add-linux-kconfig-tags --from v6.17 --to v6.18 --architecture x86
+    add-linux-kconfig-tags --from v7.1 --to v7.2 --architecture x86
+}
+
+experiment-test-systems(__NO_CI__) {
+    add-linux-kconfig-tags --from v7.1 --to v7.2 --architecture x86
 }
 
 experiment-stages() {
