@@ -27,7 +27,7 @@ experiment-stages(__NO_SILENT__) {
     # git push origin main
     # check if CI passes
     # git tag vX.Y.Z
-    # git push -t origin main
+    # git push --tags origin main
     # run this experiment on a Linux machine with `./torte.sh experiments/torte/release.sh`
     # create a release on GitHub and upload the images in 'release'
 
