@@ -40,10 +40,10 @@ define-stages() {
             --date-prefix "$date_prefix"
     }
 
-    # extracts kconfig models with kconfigreader, kclause, and/or configfix
-    # configfix is disabled by default, because it is experimental
-    extract-kconfig-models(input=, output=extract-kconfig-models, iteration_field=, options=, timeout=0, with_kconfigreader=, with_kclause=, with_configfix=, date_prefix=) {
-        if [[ -z $with_kconfigreader ]] && [[ -z $with_kclause ]] && [[ -z $with_configfix ]]; then
+    # extracts kconfig models with kconfigreader, kclause, configfix, and/or kconfirm-smt
+    # configfix and kconfirm-smt are disabled by default, because they are experimental and Linux-only, respectively
+    extract-kconfig-models(input=, output=extract-kconfig-models, iteration_field=, options=, timeout=0, with_kconfigreader=, with_kclause=, with_configfix=, with_kconfirm_smt=, date_prefix=) {
+        if [[ -z $with_kconfigreader ]] && [[ -z $with_kclause ]] && [[ -z $with_configfix ]] && [[ -z $with_kconfirm_smt ]]; then
             with_kconfigreader=y
             with_kclause=y
             with_configfix=n
@@ -54,6 +54,8 @@ define-stages() {
         [[ $with_kclause == y ]] && with_kclause=1
         [[ $with_configfix == n ]] && with_configfix=
         [[ $with_configfix == y ]] && with_configfix=1
+        [[ $with_kconfirm_smt == n ]] && with_kconfirm_smt=
+        [[ $with_kconfirm_smt == y ]] && with_kconfirm_smt=1
         local inputs=()
 
         if [[ -n $with_kconfigreader ]]; then
@@ -90,6 +92,18 @@ define-stages() {
                 --timeout "$timeout" \
                 --date-prefix "$date_prefix"
             inputs+=("extract-kconfig-models-with-configfix")
+        fi
+
+        if [[ -n $with_kconfirm_smt ]]; then
+            extract-kconfig-models-with \
+                --extractor kconfirm-smt \
+                --input "$input" \
+                --iterations "$with_kconfirm_smt" \
+                --iteration-field "$iteration_field" \
+                --options "$options" \
+                --timeout "$timeout" \
+                --date-prefix "$date_prefix"
+            inputs+=("extract-kconfig-models-with-kconfirm-smt")
         fi
 
         # aggregate all extracted models in one stage
