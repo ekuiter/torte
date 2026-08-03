@@ -105,7 +105,9 @@ tag-old-releases-linux-helper(base_uri, start_inclusive=, end_exclusive=) {
 }
 
 kconfig-post-checkout-hook-linux(system, revision) {
-    if [[ $system == linux ]]; then
+    # kconfirm-smt evaluates Kconfig macros itself, so preserve the original
+    # source instead of applying the LKC compatibility rewrites below.
+    if [[ $system == linux ]] && [[ $EXTRACTOR != kconfirm-smt ]]; then
         replace-linux(regex, replacement=) { find ./ -type f -name "*Kconfig*" -exec sed -i "s/$regex/$replacement/g" {} \;; }
         # ignore all constraints that use the newer $(success,...) syntax
         replace-linux "\s*default \$(.*" # default values are not translated into the formula anyway, so we can ignore them
