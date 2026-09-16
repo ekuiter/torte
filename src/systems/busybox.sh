@@ -19,7 +19,8 @@ post-clone-hook-busybox(system, transform...) {
         directory="$(input-directory)/$system"
         # manually tag the release 1.38.0
         local revision_hash=fc71374dfccd46448c62947269a35f1420d7ee28
-        if git -C "$directory" rev-parse --quiet --verify "$revision_hash" >/dev/null; then
+        if git -C "$directory" rev-parse --quiet --verify "$revision_hash" >/dev/null \
+            && ! git -C "$directory" rev-parse --quiet --verify refs/tags/1_38_0 >/dev/null; then
             git -C "$directory" tag -a 1_38_0 "$revision_hash" -m 1_38_0
         fi
         if array-contains generate-kconfig-commits "${transform[@]}"; then
