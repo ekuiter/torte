@@ -4,6 +4,8 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
+# This file reproduces the primary evaluation for ICSE'26 paper "Can SAT Solvers Keep Up With the Linux Kernel’s Feature Model?".
+
 # This experiment extracts a yearly history of feature models from the Linux kernel and races it against the corresponding year's SAT solvers.
 # On an Intel Xeon E5-2630 machine with 2.40GHz and 1TiB RAM, extraction and transformation takes under one day and SAT solving takes about three weeks.
 

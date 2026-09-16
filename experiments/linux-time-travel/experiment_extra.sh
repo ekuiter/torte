@@ -4,6 +4,8 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source <(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh) "$@"
 
+# This file includes the secondary evaluation for ICSE'26 paper "Can SAT Solvers Keep Up With the Linux Kernel’s Feature Model?".
+
 # A secondary experiment that evaluates non-winning SAT competition solvers on the Linux kernel.
 # We query randomly for core and dead features, as well as partial configurations.
 
