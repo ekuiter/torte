@@ -210,6 +210,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [axTLS](src/systems/axtls.sh) | 1.0.0 - 2.1.5 | 2006 - 2019 | |
 | [Buildroot](src/systems/buildroot.sh) | 2009.02 - 2025.08 | 2009 - 2025 | |
 | [BusyBox](src/systems/busybox.sh) | 1.0 - 1.38.0 | 2004 - 2026 | [^27] [^34] |
+| [coreboot](src/systems/coreboot.sh) | 4.0 - 26.06 | 2010 - 2026 | [^44] |
 | [EmbToolkit](src/systems/embtoolkit.sh) | 0.1.0 - 1.9.0 | 2012 - 2017 | |
 | [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] [^43] |
 | [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] [^43] |
@@ -265,6 +266,9 @@ To avoid this, use KClause instead or run on a machine with more RAM.
 [^43]: This system generates (part of) its `Kconfig` files during the build stage, which makes it not trivial to extract a full history of the feature model (because we use Git to detect changes in any KConfig files to identify relevant commits).
 This can be fixed by committing all such generated files to a new, modified repository (see BusyBox), but such a transformer is currently not implemented for this system.
 Thus, experiments that operate on the entire (i.e., all commits) history of this system are currently not supported.
+
+[^44]: If extracted with KConfigReader, many releases of coreboot generate very large RSF dumps and in practical extraction times.
+We discourage using KConfigReader to extract coreboot (see `experiments/featured-model-histories/restrictions.csv`) and to use KClause instead.
 
 [^57]: The Linux releases 2.5.45-2.6.11 are not on the kernel's `master` branch, but can nonetheless be analyzed, by applying the `tag-old-releases` transform (with is enabled by default).
 However, that transform does not modify the `master` branch itself, so sampling with `add-linux-kconfig-sample` will not consider these releases (and any commits before 2005, in general).
