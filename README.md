@@ -211,10 +211,11 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [Buildroot](src/systems/buildroot.sh) | 2009.02 - 2025.08 | 2009 - 2025 | |
 | [BusyBox](src/systems/busybox.sh) | 1.0 - 1.38.0 | 2004 - 2026 | [^27] [^34] |
 | [EmbToolkit](src/systems/embtoolkit.sh) | 0.1.0 - 1.9.0 | 2012 - 2017 | |
-| [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] |
-| [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] |
+| [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] [^43] |
+| [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] [^43] |
 | [Linux](src/systems/linux.sh) | 2.5.45 - 6.17 | 2002 - 2025 | [^21] [^25] [^26] [^29] |
-| [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | |
+| [Soletta](src/systems/soletta.sh) | v1_beta0 - v2_rc2 | 2015 - 2018 | |
+| [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | [^43] |
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
 | [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |
 
@@ -249,8 +250,8 @@ We solve this problem by iterating over all commits to generate all KConfig file
 
 [^34]: Feature-model extraction for BusyBox should only be attempted starting with version 1.0, where the root KConfig file is named `sysdeps/linux/Config.in`.
 In older versions this file is named `sysdeps/linux/config.in` (and written in CML1 instead of KConfig).
-If torte is run for earlier versions than 1.0, it will crash on macOS due to the different casing in both filenames and macOS having a case-insensitive file system by default.
-Fixing this would require a Git history rewrite, which comes with its own issues.
+If torte is run for earlier versions than 1.0, it may crash on macOS due to the different casing in both filenames and macOS having a case-insensitive file system by default.
+Fixing this would require a Git history rewrite, which comes with its own issues (see Linux).
 As extraction of earlier versions is not supported anyway (due to CML1 being used), it should not be attempted to avoid this crash cause.
 The versions 1.0.1 - 1.1.3 can also not be extracted due to malformed KConfig files.
 
@@ -259,6 +260,10 @@ The in-between versions are in the process of migration and cannot be successful
 
 [^37]: Freetz-NG has a very large and complex feature model in recent versions, which may cause a `java.lang.OutOfMemoryError` exception when using KConfigReader.
 To avoid this, use KClause instead or run on a machine with more RAM.
+
+[^43]: This system generates (part of) its `Kconfig` files during the build stage, which makes it not trivial to extract a full history of the feature model (because we use Git to detect changes in any KConfig files to identify relevant commits).
+This can be fixed by committing all such generated files to a new, modified repository (see BusyBox), but such a transformer is currently not implemented for this system.
+Thus, experiments that operate on the entire (i.e., all commits) history of this system are currently not supported.
 
 [^57]: The Linux releases 2.5.45-2.6.11 are not on the kernel's `master` branch, but can nonetheless be analyzed, by applying the `tag-old-releases` transform (with is enabled by default).
 However, that transform does not modify the `master` branch itself, so sampling with `add-linux-kconfig-sample` will not consider these releases (and any commits before 2005, in general).
