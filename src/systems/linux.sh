@@ -287,7 +287,8 @@ add-linux-kconfig-tags(from=, to=, architecture=x86) {
         "$architecture"
 }
 
-add-linux-kconfig-sample(interval, architecture=x86) {
+add-linux-kconfig-sample(interval=, architecture=x86) {
+    if [[ -z $interval ]]; then interval=$(interval yearly); fi
     add-linux-kconfig-revisions "$(memoize-global git-sample-commits linux "$interval" master)" "$architecture"
 }
 

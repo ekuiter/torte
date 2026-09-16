@@ -260,6 +260,9 @@ The in-between versions are in the process of migration and cannot be successful
 [^37]: Freetz-NG has a very large and complex feature model in recent versions, which may cause a `java.lang.OutOfMemoryError` exception when using KConfigReader.
 To avoid this, use KClause instead or run on a machine with more RAM.
 
+[^57]: The Linux releases 2.5.45-2.6.11 are not on the kernel's `master` branch, but can nonetheless be analyzed, by applying the `tag-old-releases` transform (with is enabled by default).
+However, that transform does not modify the `master` branch itself, so sampling with `add-linux-kconfig-sample` will not consider these releases (and any commits before 2005, in general).
+
 ## Bundled Tools
 
 We only list tools here that are integrated into torte.
@@ -340,15 +343,15 @@ However, for many analyses that depend on knowing the entire feature set (e.g., 
 We do not modify the extracted formulas, to preserve the original output of KConfigReader and KClause.
 To address this threat, we instead offer the transformation stage `compute-unconstrained-features`, which explicitly computes these features.
 
-[^33]: Extraction with ConfigFix is experimental (and not enabled by default), which means that not all systems and revisions are supported.
+[^33]: Extraction with ConfigFix is **experimental** (and not enabled by default), which means that not all systems and revisions are tested and/or supported.
 This is because the integration of ConfigFix with the C implementation of LKC is so tight that it cannot be easily decoupled.
 In particular, ConfigFix does not have a dedicated abstraction layer in between KConfig and the extraction tool, such as the other extractors (i.e., a C binding that produces intermediate output).
-Due to this architecture, compiling ConfigFix against older versions of the Linux kernel or even other systems is essentially a futile effort.
+Due to this architecture, compiling ConfigFix against older versions of the Linux kernel or even other systems is probably a futile effort.
 Instead, we only integrate one version of ConfigFix, which we compiled against a [patched version](https://github.com/ekuiter/torte-ConfigFix) of Linux from 2025-02-07.
 Consequently, ConfigFix is less flexibly applicable than the other extractors, mostly due to breaking syntax changes in the KConfig grammar (which sometimes cause segmentation faults in ConfigFix).
-However, ConfigFix is still viable on systems that only use simple KConfig constructs (e.g., BusyBox) and on recent Linux versions (as of 2025).
+However, ConfigFix is still mostly viable on systems that only use simple KConfig constructs (e.g., BusyBox) and on recent Linux versions (as of 2025).
 We successfully tested ConfigFix on the following systems and respective revisions: axTLS (1.0.0 - 2.1.5), BusyBox (1.5.1 - 1.36.1), EmbToolkit (0.1.0 - 1.9.0), Linux (6.13 - 6.17), toybox (0.0.2 - 0.4.1), uClibc (0.9.30 - 0.9.33), uClibc-ng (1.0.7 - 1.0.47).
-We did not succeed with the following systems: Buildroot, Freetz-NG, L4Re.
+We did not succeed with the following systems: Buildroot, Freetz-NG, L4Re, Soletta.
 
 [^39]: ConfigFix does not offer a feature extraction mechanism, so the computations for (un-)constrained features cannot be applied for this extractor.
 
