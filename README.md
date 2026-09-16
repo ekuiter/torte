@@ -217,6 +217,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [Soletta](src/systems/soletta.sh) | v1_beta0 - v2_rc2 | 2015 - 2018 | |
 | [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | [^43] |
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
+| [uClibc++](src/systems/uclibcxx.sh) | 0_0_5 - v0.2.5 | 2004 - 2020 | |
 | [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |
 
 torte also integrates with feature-model or formula repositories such as [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark), [UVLHub](https://www.uvlhub.io/), or [Global Benchmark Database](https://benchmark-database.de/) (with `download-payload-file`/`add-model-payload-file`).
@@ -355,7 +356,7 @@ Due to this architecture, compiling ConfigFix against older versions of the Linu
 Instead, we only integrate one version of ConfigFix, which we compiled against a [patched version](https://github.com/ekuiter/torte-ConfigFix) of Linux from 2025-02-07.
 Consequently, ConfigFix is less flexibly applicable than the other extractors, mostly due to breaking syntax changes in the KConfig grammar (which sometimes cause segmentation faults in ConfigFix).
 However, ConfigFix is still mostly viable on systems that only use simple KConfig constructs (e.g., BusyBox) and on recent Linux versions (as of 2025).
-We successfully tested ConfigFix on the following systems and respective revisions: axTLS (1.0.0 - 2.1.5), BusyBox (1.5.1 - 1.36.1), EmbToolkit (0.1.0 - 1.9.0), Linux (6.13 - 6.17), toybox (0.0.2 - 0.4.1), uClibc (0.9.30 - 0.9.33), uClibc-ng (1.0.7 - 1.0.47).
+We successfully tested ConfigFix on the following systems and respective revisions: axTLS (1.0.0 - 2.1.5), BusyBox (1.5.1 - 1.36.1), EmbToolkit (0.1.0 - 1.9.0), Linux (6.13 - 6.17), toybox (0.0.2 - 0.4.1), uClibc (0.9.30 - 0.9.33), uClibc-ng (1.0.7 - 1.0.47), uClibc++ (0_0_5 - v0.2.5).
 We did not succeed with the following systems: Buildroot, Freetz-NG, L4Re, Soletta.
 
 [^39]: ConfigFix does not offer a feature extraction mechanism, so the computations for (un-)constrained features cannot be applied for this extractor.
