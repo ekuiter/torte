@@ -215,6 +215,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] [^43] |
 | [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] [^43] |
 | [Linux](src/systems/linux.sh) | 2.5.45 - 6.17 | 2002 - 2025 | [^21] [^25] [^26] [^29] |
+| [PTXdist](src/systems/ptxdist.sh) | ptxdist-1.99.4 - ptxdist-2026.09.0 | 2006 - 2026 | [^43] [^55] |
 | [Soletta](src/systems/soletta.sh) | v1_beta0 - v2_rc2 | 2015 - 2018 | |
 | [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | [^43] |
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
@@ -269,6 +270,11 @@ Thus, experiments that operate on the entire (i.e., all commits) history of this
 
 [^44]: If extracted with KConfigReader, many releases of coreboot generate very large RSF dumps and in practical extraction times.
 We discourage using KConfigReader to extract coreboot (see `experiments/featured-model-histories/restrictions.csv`) and to use KClause instead.
+
+[^55]: The integration of this system has been assisted by AI (OpenAI Codex).
+The system-specific code has been reviewed and tested by a human.
+However, the approach taken by the AI is not necessarily the simplest one.
+So, it may include superfluous or unidiomatic steps and should not be taken as reference for integrating new systems.
 
 [^57]: The Linux releases 2.5.45-2.6.11 are not on the kernel's `master` branch, but can nonetheless be analyzed, by applying the `tag-old-releases` transform (with is enabled by default).
 However, that transform does not modify the `master` branch itself, so sampling with `add-linux-kconfig-sample` will not consider these releases (and any commits before 2005, in general).

@@ -8,7 +8,7 @@ define-system \
     --lkc-directory util/kconfig \
     --lkc-output-directory build/util/kconfig \
     --environment KBUILD_KCONFIG=src/Kconfig \
-    --sample-branch master
+    --sample-branch main
 
 add-coreboot-system() {
     add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-coreboot
