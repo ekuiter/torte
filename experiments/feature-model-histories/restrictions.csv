@@ -1,0 +1,3 @@
+pass,stage,function,argument,system,revision,file,comment
+,extract-kconfig-models-with-kconfigreader,,,coreboot,,,skip KConfigReader extraction for coreboot because it is too slow and produces a very large RSF
+,extract-kconfig-models-with-kconfigreader,,,u-boot,,,same for u-boot

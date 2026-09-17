@@ -4,10 +4,10 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
-# The point of this experiment file is to extract feature-model histories for a representative selection of Kconfig-based configurable systems.
-# More information on some of the systems below can be found in Berger et al.'s "Variability Modeling in the Systems Software Domain" (DOI: 10.1109/TSE.2013.34).
-# Our general strategy is to read feature models for all tagged Git revisions, provided that tags give a meaningful history, or a yearly sample otherwise.
-# Usually, we compile bindings from the LKC distributions included in the projects' source code to get the most accurate translation.
+# The point of this experiment file is to extract feature-model histories for a wide selection of Kconfig-based configurable systems.
+# More information on some of the systems below can be found on https://elias-kuiter.de/torte-research/.
+# Our general strategy is to read feature models for all tagged Git revisions, provided that tags give a meaningful history, and a yearly sample.
+# Mostly, we compile bindings from the LKC distributions included in the projects' source code to get the most accurate translation.
 # It is also possible to read feature models for any other tags/commits (e.g., for every commit that changes a Kconfig file).
 # However, usually very old versions won't work (because Kconfig might have only been introduced later).
 # Very recent versions might also not work (because they use new/esoteric Kconfig features).
@@ -16,17 +16,19 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 EXTRACT_TIMEOUT=1200 # timeout for extraction in seconds
 TRANSFORM_TIMEOUT=30 # timeout for transformation in seconds
 
+SYSTEMS=(axtls barebox buildroot busybox coreboot crosstool-ng embtoolkit \
+    entware freetz-ng l4re linux openadk openwrt ptxdist soletta toybox \
+    u-boot uclibc-ng uclibc uclibcxx uclinux-dist unikraft xvisor)
+
+add-restrictions-payload-file restrictions.csv # disable certain problematic combinations of system and extractor
+
 experiment-systems() {
-    add-axtls-kconfig-tags
-    add-buildroot-kconfig-tags
-    add-busybox-kconfig-tags
-    add-embtoolkit-kconfig-tags
-    add-freetz-ng-kconfig-sample --interval "$(interval yearly)"
-    add-l4re-kconfig-sample --interval "$(interval yearly)"
-    add-linux-kconfig-tags
-    add-toybox-kconfig-tags
-    add-uclibc-kconfig-tags
-    add-uclibc-ng-kconfig-tags
+    for system in "${SYSTEMS[@]}"; do
+        if has-command add-"${system}"-kconfig-tags; then
+            add-"${system}"-kconfig-tags
+        fi
+        add-"${system}"-kconfig-sample
+    done
 }
 
 experiment-stages() {
@@ -35,13 +37,14 @@ experiment-stages() {
     read-statistics
     
     # extract feature models
-    extract-kconfig-models --timeout "$EXTRACT_TIMEOUT"
+    extract-kconfig-models --timeout "$EXTRACT_TIMEOUT" \
+        --date-prefix "$(date-format)"
     join-into read-statistics extract-kconfig-models
 
-    # transform into UVL
+    # # transform into UVL
     transform-to-uvl --timeout "$TRANSFORM_TIMEOUT"
 
-    # CNF transformation
+    # # CNF transformation
     transform-to-dimacs --timeout "$TRANSFORM_TIMEOUT"
 }
 
