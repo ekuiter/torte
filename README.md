@@ -215,6 +215,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] [^43] |
 | [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] [^43] |
 | [Linux](src/systems/linux.sh) | 2.5.45 - 6.17 | 2002 - 2025 | [^21] [^25] [^26] [^29] |
+| [OpenADK](src/systems/openadk.sh) | - | 2014 - 2026 | [^23] [^56] [^55] |
 | [PTXdist](src/systems/ptxdist.sh) | ptxdist-1.99.4 - ptxdist-2026.09.0 | 2006 - 2026 | [^43] [^55] |
 | [Soletta](src/systems/soletta.sh) | v1_beta0 - v2_rc2 | 2015 - 2018 | |
 | [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | [^43] |
