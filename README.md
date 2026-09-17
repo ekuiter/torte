@@ -221,6 +221,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
 | [uClibc++](src/systems/uclibcxx.sh) | 0_0_5 - v0.2.5 | 2004 - 2020 | |
 | [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |
+| [Unikraft](src/systems/unikraft.sh) | RELEASE-0.4 - RELEASE-0.21.0 | 2019 - 2026 | |
 | [Xvisor](src/systems/xvisor.sh) | v0.1.0 - v0.3.2 | 2011 - 2026 | |
 
 torte also integrates with feature-model or formula repositories such as [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark), [UVLHub](https://www.uvlhub.io/), or [Global Benchmark Database](https://benchmark-database.de/) (with `download-payload-file`/`add-model-payload-file`).
