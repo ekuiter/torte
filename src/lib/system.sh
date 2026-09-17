@@ -22,9 +22,13 @@ define-system(system, kconfig_file=, lkc_directory=, lkc_target=, lkc_output_dir
 		add-${system}-kconfig-revisions(revisions=) {
 		    add-${system}-system
 		    if [[ -z \$revisions ]]; then return; fi
-		    while read -r revision; do
+		    local -a revisions_array
+		    local revision
+		    mapfile -t revisions_array < <(printf '%s\n' "\$revisions")
+		    for revision in "\${revisions_array[@]}"; do
+		        [[ -z \$revision ]] && continue
 		        add-${system}-kconfig --revision "\$revision"
-		    done < <(printf '%s\n' "\$revisions")
+		    done
 		}
 		add-${system}-kconfig-sample(interval=) {
 		    if [[ -z \$interval ]]; then interval=$(interval yearly); fi
