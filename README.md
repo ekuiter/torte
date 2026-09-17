@@ -218,7 +218,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [PTXdist](src/systems/ptxdist.sh) | ptxdist-1.99.4 - ptxdist-2026.09.0 | 2006 - 2026 | [^43] [^55] |
 | [Soletta](src/systems/soletta.sh) | v1_beta0 - v2_rc2 | 2015 - 2018 | |
 | [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | [^43] |
-| [uClinux-dist](src/systems/uclinux.sh) | release/v2.0 - release/v2.1-p1 | 2008 - 2014 | [^56] [^55] |
+| [uClinux-dist](src/systems/uclinux-dist.sh) | release/v2.0 - release/v2.1-p1 | 2008 - 2014 | [^56] [^55] |
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
 | [uClibc++](src/systems/uclibcxx.sh) | 0_0_5 - v0.2.5 | 2004 - 2020 | |
 | [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |

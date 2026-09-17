@@ -1,29 +1,29 @@
 #!/bin/bash
 
-UCLINUX_URL=https://github.com/scs/uclinux
+UCLINUX_DIST_URL=https://github.com/scs/uclinux
 
 define-system \
-    --system uclinux \
+    --system uclinux-dist \
     --sample-branch master
 
-add-uclinux-system(transform...) {
+add-uclinux-dist-system(transform...) {
     if is-array-empty transform; then
         transform=(filter-case-insensitive)
     fi
-    add-hook-step post-clone-hook post-clone-hook-uclinux
-    add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-uclinux
-    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-uclinux
-    add-system --system uclinux --url "$UCLINUX_URL" --transform "${transform[@]}"
+    add-hook-step post-clone-hook post-clone-hook-uclinux-dist
+    add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-uclinux-dist
+    add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-uclinux-dist
+    add-system --system uclinux-dist --url "$UCLINUX_DIST_URL" --transform "${transform[@]}"
 }
 
-add-uclinux-kconfig(revision) {
-    add-uclinux-system
-    if [[ ! -d $(input-directory)/uclinux ]]; then
+add-uclinux-dist-kconfig(revision) {
+    add-uclinux-dist-system
+    if [[ ! -d $(input-directory)/uclinux-dist ]]; then
         return
     fi
 
     local revision_commit safe_revision
-    revision_commit=$(git -C "$(input-directory)/uclinux" rev-parse --verify "$revision^{commit}" 2>/dev/null || echo "$revision")
+    revision_commit=$(git -C "$(input-directory)/uclinux-dist" rev-parse --verify "$revision^{commit}" 2>/dev/null || echo "$revision")
     if [[ $revision_commit != "$revision" ]] && [[ $revision == *"/"* ]]; then
         # keep slash-bearing tags usable as path-safe contexts
         safe_revision=$(revision-with-context "$revision_commit" "${revision//\//_}")
@@ -32,9 +32,9 @@ add-uclinux-kconfig(revision) {
     fi
 
     # keep filtering, generated root, and old-lkc target in one place
-    add-revision --system uclinux --revision "$safe_revision"
+    add-revision --system uclinux-dist --revision "$safe_revision"
     add-kconfig \
-        --system uclinux \
+        --system uclinux-dist \
         --revision "$safe_revision" \
         --kconfig-file Kconfig.torte \
         --lkc-directory config/kconfig \
@@ -42,25 +42,25 @@ add-uclinux-kconfig(revision) {
         --environment SCRIPTSDIR=config/kconfig,CONFIG_SHELL=/bin/bash,HOSTCC=gcc,HOSTCXX=g++
 }
 
-add-uclinux-kconfig-tags(from=, to=) {
-    add-uclinux-kconfig-revisions "$(uclinux-tags | start-at-revision "$from" | stop-at-revision "$to")"
+add-uclinux-dist-kconfig-tags(from=, to=) {
+    add-uclinux-dist-kconfig-revisions "$(uclinux-dist-tags | start-at-revision "$from" | stop-at-revision "$to")"
 }
 
-uclinux-tags() {
-    git-tags uclinux | grep -E '^release/v[0-9]+[.][0-9]+(-p[0-9]+)?$'
+uclinux-dist-tags() {
+    git-tags uclinux-dist | grep -E '^release/v[0-9]+[.][0-9]+(-p[0-9]+)?$'
 }
 
-post-clone-hook-uclinux(system, transform...) {
-    if [[ $system == uclinux ]]; then
+post-clone-hook-uclinux-dist(system, transform...) {
+    if [[ $system == uclinux-dist ]]; then
         if array-contains filter-case-insensitive "${transform[@]}"; then
-            filter-case-insensitive-uclinux
+            filter-case-insensitive-uclinux-dist
         fi
     fi
 }
 
-filter-case-insensitive-uclinux() {
+filter-case-insensitive-uclinux-dist() {
     # remove unused payload collisions and rename the second-stage root
-    git -C "$(input-directory)/uclinux" filter-repo --force --invert-paths \
+    git -C "$(input-directory)/uclinux-dist" filter-repo --force --invert-paths \
         --path lib/Libnet/makefile \
         --path lib/libnl/makefile \
         --path lib/libpam/Linux-PAM-0.99.3.0/CHANGELOG \
@@ -100,27 +100,27 @@ filter-case-insensitive-uclinux() {
         --path-rename config/Kconfig:config/Kconfig.torte
 }
 
-kconfig-post-checkout-hook-uclinux(system, revision) {
-    if [[ $system == uclinux ]]; then
-        prepare-uclinux-kconfig "$revision"
+kconfig-post-checkout-hook-uclinux-dist(system, revision) {
+    if [[ $system == uclinux-dist ]]; then
+        prepare-uclinux-dist-kconfig "$revision"
     fi
 }
 
-kconfig-pre-binding-hook-uclinux(system, revision, lkc_directory=) {
-    if [[ $system == uclinux ]]; then
-        prepare-uclinux-kconfig "$revision"
+kconfig-pre-binding-hook-uclinux-dist(system, revision, lkc_directory=) {
+    if [[ $system == uclinux-dist ]]; then
+        prepare-uclinux-dist-kconfig "$revision"
     fi
 }
 
-prepare-uclinux-kconfig(revision) {
-    write-uclinux-vendor-kconfig
-    write-uclinux-torte-root "$revision"
-    normalize-uclinux-kconfig-sources
-    patch-uclinux-old-lkc
-    write-uclinux-minimal-target
+prepare-uclinux-dist-kconfig(revision) {
+    write-uclinux-dist-vendor-kconfig
+    write-uclinux-dist-torte-root "$revision"
+    normalize-uclinux-dist-kconfig-sources
+    patch-uclinux-dist-old-lkc
+    write-uclinux-dist-minimal-target
 }
 
-write-uclinux-vendor-kconfig() {
+write-uclinux-dist-vendor-kconfig() {
     mkdir -p vendors
     {
         find vendors -mindepth 2 '(' -name .svn -prune ')' -o -type f -name Kconfig -print \
@@ -128,7 +128,7 @@ write-uclinux-vendor-kconfig() {
     } > vendors/Kconfig.torte
 }
 
-write-uclinux-torte-root(revision) {
+write-uclinux-dist-torte-root(revision) {
     if [[ -x config/mkconfig ]]; then
         chmod u+x config/mkconfig
         if ! config/mkconfig > Kconfig.torte 2>/dev/null; then
@@ -150,7 +150,7 @@ endmenu
 EOF
 }
 
-normalize-uclinux-kconfig-sources() {
+normalize-uclinux-dist-kconfig-sources() {
     for source_dir in lib user vendors; do
         [[ -d $source_dir ]] || continue
         find "$source_dir" -type f \( -name Kconfig -o -name Config.in \) \
@@ -158,7 +158,7 @@ normalize-uclinux-kconfig-sources() {
     done
 }
 
-patch-uclinux-old-lkc() {
+patch-uclinux-dist-old-lkc() {
     [[ -d config/kconfig ]] || return 0
     pushd config/kconfig >/dev/null || return 0
 
@@ -183,7 +183,7 @@ patch-uclinux-old-lkc() {
     popd >/dev/null
 }
 
-write-uclinux-minimal-target() {
+write-uclinux-dist-minimal-target() {
     # use a narrow conf-only target after the root model is generated
     cat > Makefile <<'EOF'
 .PHONY: torte-conf
