@@ -209,6 +209,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | System | Releases | Years | Notes |
 | - | - | - | - |
 | [axTLS](src/systems/axtls.sh) | 1.0.0 - 2.1.5 | 2006 - 2019 | |
+| [barebox](src/systems/barebox.sh) | v2009.12.0 - v2026.08.0 | 2008 - 2026 | [^45] [^56] [^55] |
 | [Buildroot](src/systems/buildroot.sh) | 2009.02 - 2025.08 | 2009 - 2025 | |
 | [BusyBox](src/systems/busybox.sh) | 1.0 - 1.38.0 | 2004 - 2026 | [^27] [^34] |
 | [coreboot](src/systems/coreboot.sh) | 4.0 - 26.06 | 2010 - 2026 | [^44] |
@@ -279,6 +280,9 @@ Thus, experiments that operate on the entire (i.e., all commits) history of this
 
 [^44]: If extracted with KConfigReader, many releases of this system generate very large RSF dumps (> 100 MiB), leading to infeasible extraction times.
 We discourage using KConfigReader to extract this system (see `experiments/featured-model-histories/restrictions.csv`) and to use KClause instead.
+
+[^45]: barebox distinguishes architectures similar to Linux.
+To simplify extraction, we fix this architecture to `x86`, which can be overwritten with the `BAREBOX_ARCH` variable.
 
 [^55]: The integration of this system has been assisted by AI (OpenAI Codex).
 The system-specific code has been reviewed and tested by a human.
