@@ -199,6 +199,7 @@ Thus, we exclude some experiments from the CI pipeline with `__NO_CI__`. However
 This is a list of all subject systems for which feature-model extraction has been tested and confirmed to work for at least one extraction tool.
 Other systems or revisions may also be supported.
 For an overview of KConfig-based system software, have a look at our [research](http://elias-kuiter.de/torte-research/) website.
+Currently, we implement extraction for all systems we are aware of that rely on LKC (the implementation of KConfig found in Linux).
 
 Detailed system-specific information on potential threats to validity is available in the `scripts/systems` directory.
 The files in this directory include templates and convenience functions for working with well-known systems.
@@ -219,6 +220,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [PTXdist](src/systems/ptxdist.sh) | ptxdist-1.99.4 - ptxdist-2026.09.0 | 2006 - 2026 | [^43] [^55] |
 | [Soletta](src/systems/soletta.sh) | v1_beta0 - v2_rc2 | 2015 - 2018 | |
 | [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | [^43] |
+| [U-Boot](src/systems/u-boot.sh) | v2014.10 - v2026.07 | 2014 - 2026 | [^56] [^44] |
 | [uClinux-dist](src/systems/uclinux-dist.sh) | release/v2.0 - release/v2.1-p1 | 2008 - 2014 | [^56] [^55] |
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
 | [uClibc++](src/systems/uclibcxx.sh) | 0_0_5 - v0.2.5 | 2004 - 2020 | |
@@ -272,8 +274,8 @@ To avoid this, use KClause instead or run on a machine with more RAM.
 This can be fixed by committing all such generated files to a new, modified repository (see BusyBox),[^27] but such a transformer is currently not implemented for this system.
 Thus, experiments that operate on the entire (i.e., all commits) history of this system are currently not supported.
 
-[^44]: If extracted with KConfigReader, many releases of coreboot generate very large RSF dumps and in practical extraction times.
-We discourage using KConfigReader to extract coreboot (see `experiments/featured-model-histories/restrictions.csv`) and to use KClause instead.
+[^44]: If extracted with KConfigReader, many releases of this system generate very large RSF dumps and infeasible extraction times.
+We discourage using KConfigReader to extract this system (see `experiments/featured-model-histories/restrictions.csv`) and to use KClause instead.
 
 [^55]: The integration of this system has been assisted by AI (OpenAI Codex).
 The system-specific code has been reviewed and tested by a human.

@@ -105,6 +105,8 @@ char* replace_char(char* str, char find, char replace){
 
 void dumpsymref(FILE *out, struct symbol *s) {
 	replace_char(s->name, '&', '_'); // necessary to parse freetz-ng, which uses & characters in feature names
+	replace_char(s->name, '<', '_'); // necessary to parse u-boot, which uses </> characters
+	replace_char(s->name, '>', '_');
 	if (s==&symbol_mod) 
 		fprintf(out, "m");
 	else if (s==&symbol_yes) 
