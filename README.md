@@ -218,6 +218,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] [^43] |
 | [Linux](src/systems/linux.sh) | 2.5.45 - 6.17 | 2002 - 2025 | [^21] [^25] [^26] [^29] |
 | [OpenADK](src/systems/openadk.sh) | - | 2014 - 2026 | [^23] [^56] [^55] |
+| [OpenWrt](src/systems/openwrt.sh) | v17.01.0 - v25.12.5 | 2014 - 2022 | [^55] [^43] |
 | [PTXdist](src/systems/ptxdist.sh) | ptxdist-1.99.4 - ptxdist-2026.09.0 | 2006 - 2026 | [^43] [^55] |
 | [Soletta](src/systems/soletta.sh) | v1_beta0 - v2_rc2 | 2015 - 2018 | |
 | [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | [^43] |
@@ -275,7 +276,7 @@ To avoid this, use KClause instead or run on a machine with more RAM.
 This can be fixed by committing all such generated files to a new, modified repository (see BusyBox),[^27] but such a transformer is currently not implemented for this system.
 Thus, experiments that operate on the entire (i.e., all commits) history of this system are currently not supported.
 
-[^44]: If extracted with KConfigReader, many releases of this system generate very large RSF dumps and infeasible extraction times.
+[^44]: If extracted with KConfigReader, many releases of this system generate very large RSF dumps (> 100 MiB), leading to infeasible extraction times.
 We discourage using KConfigReader to extract this system (see `experiments/featured-model-histories/restrictions.csv`) and to use KClause instead.
 
 [^55]: The integration of this system has been assisted by AI (OpenAI Codex).
