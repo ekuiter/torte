@@ -1,7 +1,8 @@
 #!/bin/bash
 
-UCLIBCXX_URL=git://git.busybox.net/uClibc++
-UCLIBCXX_URL_FORK=https://github.com/ekuiter/torte-uclibcxx
+# use a frozen Git copy of the original Git repository, with better availability
+# UCLIBCXX_URL=git://git.busybox.net/uClibc++
+UCLIBCXX_URL=https://github.com/ekuiter/torte-uclibcxx
 
 define-system \
     --system uclibcxx \
@@ -10,7 +11,7 @@ define-system \
     --sample-branch master
 
 add-uclibcxx-system() {
-    add-system --system uclibcxx --url "$UCLIBCXX_URL" --fork-url "$UCLIBCXX_URL_FORK"
+    add-system --system uclibcxx --url "$UCLIBCXX_URL"
 }
 
 add-uclibcxx-kconfig-tags(from=, to=) {
