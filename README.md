@@ -265,7 +265,7 @@ The in-between versions are in the process of migration and cannot be successful
 To avoid this, use KClause instead or run on a machine with more RAM.
 
 [^43]: This system generates (part of) its `Kconfig` files during the build stage, which makes it not trivial to extract a full history of the feature model (because we use Git to detect changes in any KConfig files to identify relevant commits).
-This can be fixed by committing all such generated files to a new, modified repository (see BusyBox), but such a transformer is currently not implemented for this system.
+This can be fixed by committing all such generated files to a new, modified repository (see BusyBox),[^27] but such a transformer is currently not implemented for this system.
 Thus, experiments that operate on the entire (i.e., all commits) history of this system are currently not supported.
 
 [^44]: If extracted with KConfigReader, many releases of coreboot generate very large RSF dumps and in practical extraction times.
@@ -367,7 +367,7 @@ Instead, we only integrate one version of ConfigFix, which we compiled against a
 Consequently, ConfigFix is less flexibly applicable than the other extractors, mostly due to breaking syntax changes in the KConfig grammar (which sometimes cause segmentation faults in ConfigFix).
 However, ConfigFix is still mostly viable on systems that only use simple KConfig constructs (e.g., BusyBox) and on recent Linux versions (as of 2025).
 We successfully tested ConfigFix on the following systems and respective revisions: axTLS (1.0.0 - 2.1.5), BusyBox (1.5.1 - 1.36.1), EmbToolkit (0.1.0 - 1.9.0), Linux (6.13 - 6.17), toybox (0.0.2 - 0.4.1), uClibc (0.9.30 - 0.9.33), uClibc-ng (1.0.7 - 1.0.47), uClibc++ (0_0_5 - v0.2.5).
-We did not succeed with the following systems: Buildroot, Freetz-NG, L4Re, Soletta.
+We did not succeed with the following systems: Buildroot, Freetz-NG, L4Re, Soletta, coreboot, ptxdist.
 
 [^39]: ConfigFix does not offer a feature extraction mechanism, so the computations for (un-)constrained features cannot be applied for this extractor.
 

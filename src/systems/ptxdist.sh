@@ -11,7 +11,6 @@ define-system \
     --sample-branch master
 
 add-ptxdist-system() {
-    add-hook-step post-clone-hook post-clone-hook-ptxdist
     add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-ptxdist
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-ptxdist
     add-hook-step kclause-post-binding-hook kclause-post-binding-hook-ptxdist
