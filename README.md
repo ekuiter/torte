@@ -221,6 +221,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
 | [uClibc++](src/systems/uclibcxx.sh) | 0_0_5 - v0.2.5 | 2004 - 2020 | |
 | [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |
+| [Xvisor](src/systems/xvisor.sh) | v0.1.0 - v0.3.2 | 2011 - 2026 | |
 
 torte also integrates with feature-model or formula repositories such as [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark), [UVLHub](https://www.uvlhub.io/), or [Global Benchmark Database](https://benchmark-database.de/) (with `download-payload-file`/`add-model-payload-file`).
 We also support the extraction of individual KConfig files (with `add-kconfig-payload-file`), which is useful for testing extractors.
@@ -275,6 +276,10 @@ We discourage using KConfigReader to extract coreboot (see `experiments/featured
 The system-specific code has been reviewed and tested by a human.
 However, the approach taken by the AI is not necessarily the simplest one.
 So, it may include superfluous or unidiomatic steps and should not be taken as reference for integrating new systems.
+
+[^56]: This system includes colliding file paths of varying cases (e.g., `scripts/Kconfig` and `scripts/kconfig`), which causes checkout issues on case-insensitive file systems.
+We solve this by removing or renaming the colliding file paths with a `filter-case-insensitive` transform, which is enabled by default.
+To preserve the original commit hashes, the transform can be disabled explicitly (see Linux).[^29]
 
 [^57]: The Linux releases 2.5.45-2.6.11 are not on the kernel's `master` branch, but can nonetheless be analyzed, by applying the `tag-old-releases` transform (with is enabled by default).
 However, that transform does not modify the `master` branch itself, so sampling with `add-linux-kconfig-sample` will not consider these releases (and any commits before 2005, in general).
