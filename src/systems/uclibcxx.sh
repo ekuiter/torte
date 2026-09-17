@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # use a frozen Git copy of the original Git repository, with better availability
-# UCLIBCXX_URL=git://git.busybox.net/uClibc++
 UCLIBCXX_URL=https://github.com/ekuiter/torte-uclibcxx
 
 define-system \
