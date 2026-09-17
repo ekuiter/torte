@@ -1,7 +1,7 @@
 ## torte: reproducible feature-model experiments à la carte 🍰
 
 **torte is a declarative experimentation platform for reproducible feature-model analysis research.
-It integrates 10+ configurable software systems, various extractors and transformers, and 700+ automated solvers.**
+It integrates 25 configurable software systems, various extractors and transformers, and 700+ automated solvers.**
 
 Jump to: [**ICSE'26 Demo**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Publications**](#publications-and-artifacts) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/) | [**Dashboard**](http://elias-kuiter.de/torte-dashboard/) | [**Research**](http://elias-kuiter.de/torte-research/)
 
