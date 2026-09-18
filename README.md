@@ -213,7 +213,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [Buildroot](src/systems/buildroot.sh) | 2009.02 - 2025.08 | 2009 - 2025 | |
 | [BusyBox](src/systems/busybox.sh) | 1.0 - 1.38.0 | 2004 - 2026 | [^27] [^34] |
 | [coreboot](src/systems/coreboot.sh) | 4.0 - 26.06 | 2010 - 2026 | [^44] |
-| [crosstool-NG](src/systems/crosstool-ng.sh) | crosstool-ng-0.0.1 - crosstool-ng-1.29.0 | 2007 - 2026 | [^47] [^55] [^43] |
+| [crosstool-NG](src/systems/crosstool-ng.sh) | crosstool-ng-0.0.1 - crosstool-ng-1.29.0 | 2007 - 2026 | [^55] [^43] |
 | [EmbToolkit](src/systems/embtoolkit.sh) | 0.1.0 - 1.9.0 | 2012 - 2017 | |
 | [Entware](src/systems/entware.sh) | 2025.06 | 2015 - 2026 | [^55] [^43] |
 | [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] [^43] |
