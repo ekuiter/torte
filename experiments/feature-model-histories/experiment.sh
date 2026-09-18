@@ -16,9 +16,10 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 EXTRACT_TIMEOUT=1200 # timeout for extraction in seconds
 TRANSFORM_TIMEOUT=30 # timeout for transformation in seconds
 
+# define systems to extract here
 SYSTEMS=(axtls barebox buildroot busybox coreboot crosstool-ng embtoolkit \
-    entware freetz-ng l4re linux openadk openwrt ptxdist soletta toybox \
-    u-boot uclibc-ng uclibc uclibcxx uclinux-dist unikraft xvisor)
+    entware freetz-ng l4re linux nuttx openadk openwrt ptxdist soletta \
+    toybox u-boot uclibc-ng uclibc uclibcxx uclinux-dist unikraft xvisor)
 
 add-restrictions-payload-file restrictions.csv # disable certain problematic combinations of system and extractor
 
