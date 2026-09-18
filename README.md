@@ -209,30 +209,30 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | System | Releases | Years | Notes |
 | - | - | - | - |
 | [axTLS](src/systems/axtls.sh) | 1.0.0 - 2.1.5 | 2006 - 2019 | |
-| [barebox](src/systems/barebox.sh) | v2009.12.0 - v2026.08.0 | 2008 - 2026 | [^45] [^56] [^55] |
+| [barebox](src/systems/barebox.sh) | 2009.12.0 - 2026.08.0 | 2008 - 2026 | [^45] [^56] [^55] |
 | [Buildroot](src/systems/buildroot.sh) | 2009.02 - 2025.08 | 2009 - 2025 | |
 | [BusyBox](src/systems/busybox.sh) | 1.0 - 1.38.0 | 2004 - 2026 | [^27] [^34] |
 | [coreboot](src/systems/coreboot.sh) | 4.0 - 26.06 | 2010 - 2026 | [^44] |
-| [crosstool-NG](src/systems/crosstool-ng.sh) | crosstool-ng-0.0.1 - crosstool-ng-1.29.0 | 2007 - 2026 | [^55] [^43] |
+| [crosstool-NG](src/systems/crosstool-ng.sh) | 0.0.1 - 1.29.0 | 2007 - 2026 | [^55] [^43] |
 | [EmbToolkit](src/systems/embtoolkit.sh) | 0.1.0 - 1.9.0 | 2012 - 2017 | |
 | [Entware](src/systems/entware.sh) | 2025.06 | 2015 - 2026 | [^55] [^43] |
 | [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] [^43] |
 | [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] [^43] |
 | [Linux](src/systems/linux.sh) | 2.5.45 - 6.17 | 2002 - 2025 | [^21] [^25] [^26] [^29] |
-| [NuttX](src/systems/nuttx.sh) | nuttx-10.3.0 - nuttx-13.0.1 | 2015 - 2026 | [^44] |
+| [NuttX](src/systems/nuttx.sh) | 10.3.0 - 13.0.1 | 2015 - 2026 | [^44] |
 | [OpenADK](src/systems/openadk.sh) | - | 2014 - 2026 | [^23] [^56] [^55] |
-| [OpenWrt](src/systems/openwrt.sh) | v17.01.0 - v25.12.5 | 2014 - 2022 | [^55] [^43] |
-| [PTXdist](src/systems/ptxdist.sh) | ptxdist-1.99.4 - ptxdist-2026.09.0 | 2006 - 2026 | [^43] [^55] |
+| [OpenWrt](src/systems/openwrt.sh) | 17.01.0 - 25.12.5 | 2014 - 2022 | [^55] [^43] |
+| [PTXdist](src/systems/ptxdist.sh) | 1.99.4 - 2026.09.0 | 2006 - 2026 | [^43] [^55] |
 | [Soletta](src/systems/soletta.sh) | v1_beta0 - v2_rc2 | 2015 - 2018 | |
-| [TizenRT](src/systems/tizenrt.sh) | 1.0_Public_M1 - v3.1_PRE | 2017 - 2026 | |
+| [TizenRT](src/systems/tizenrt.sh) | 1.0 - 3.1 | 2017 - 2026 | |
 | [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | [^43] |
-| [U-Boot](src/systems/u-boot.sh) | v2014.10 - v2026.07 | 2014 - 2026 | [^56] [^44] |
-| [uClinux-dist](src/systems/uclinux-dist.sh) | release/v2.0 - release/v2.1-p1 | 2008 - 2014 | [^56] [^55] |
+| [U-Boot](src/systems/u-boot.sh) | 2014.10 - 2026.07 | 2014 - 2026 | [^56] [^44] |
+| [uClinux-dist](src/systems/uclinux-dist.sh) | 2.0 - 2.1 | 2008 - 2014 | [^56] [^55] |
 | [uClibc](src/systems/uclibc.sh) | 0.9.21 - 0.9.33 | 2003 - 2012 | [^36] |
-| [uClibc++](src/systems/uclibcxx.sh) | 0_0_5 - v0.2.5 | 2004 - 2020 | |
+| [uClibc++](src/systems/uclibcxx.sh) | 0.0.5 - v0.2.5 | 2004 - 2020 | |
 | [uClibc-ng](src/systems/uclibc-ng.sh) | 1.0.0 - 1.0.47 | 2015 - 2024 | |
-| [Unikraft](src/systems/unikraft.sh) | RELEASE-0.4 - RELEASE-0.21.0 | 2019 - 2026 | |
-| [Xvisor](src/systems/xvisor.sh) | v0.1.0 - v0.3.2 | 2011 - 2026 | |
+| [Unikraft](src/systems/unikraft.sh) | 0.4 - 0.21.0 | 2019 - 2026 | |
+| [Xvisor](src/systems/xvisor.sh) | 0.1.0 - 0.3.2 | 2011 - 2026 | |
 
 torte also integrates with feature-model or formula repositories such as [feature-model benchmark](https://github.com/SoftVarE-Group/feature-model-benchmark), [UVLHub](https://www.uvlhub.io/), or [Global Benchmark Database](https://benchmark-database.de/) (with `download-payload-file`/`add-model-payload-file`).
 We also support the extraction of individual KConfig files (with `add-kconfig-payload-file`), which is useful for testing extractors.
