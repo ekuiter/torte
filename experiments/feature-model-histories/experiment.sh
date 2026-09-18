@@ -19,9 +19,11 @@ TRANSFORM_TIMEOUT=30 # timeout for transformation in seconds
 # define systems to extract here
 SYSTEMS=(axtls barebox buildroot busybox coreboot crosstool-ng embtoolkit \
     entware freetz-ng l4re linux nuttx openadk openwrt ptxdist soletta \
-    toybox u-boot uclibc-ng uclibc uclibcxx uclinux-dist unikraft xvisor)
+    tizenrt toybox u-boot uclibc-ng uclibc uclibcxx uclinux-dist unikraft \
+    xvisor)
 
-add-restrictions-payload-file restrictions.csv # disable certain problematic combinations of system and extractor
+# disable certain problematic combinations of system and extractor
+add-restrictions-payload-file restrictions.csv
 
 experiment-systems() {
     for system in "${SYSTEMS[@]}"; do
