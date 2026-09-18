@@ -69,9 +69,11 @@ add-hook-step(name, function) {
 # stores a hook function as a function in the global namespace
 compile-hook(name) {
     local body=""
-    for hook_step in $(get-hook-steps "$name"); do
+    local hook_step
+    while read -r hook_step; do
+        [[ -n $hook_step ]] || continue
         body+="\"$hook_step\" \"\$@\";"
-    done
+    done < <(get-hook-steps "$name")
     eval "${name}() { $body :; }"
 }
 
