@@ -50,18 +50,22 @@ generate-ptxdist-kconfig-sections() {
         export PTXDIST_PATH_RULES=$PTXDIST_TOPDIR/rules
         export PTXDIST_PATH_PLATFORMS=$PTXDIST_TOPDIR/platforms
         export PTXDIST_TEMPDIR=$PTXDIST_TOPDIR/.ptxdist-torte
+        export PTXDIST_KGEN_DIR=$PTXDIST_TEMPDIR/kgen
+        export PTX_KGEN_DIR=$PTXDIST_KGEN_DIR
 
         source scripts/lib/ptxd_lib_kgen.sh
         ptxd_kgen ptx
 
         # expose the generated kconfig sections where config/kconfig expects them
+        local ptxd_kgen_dir
+        ptxd_kgen_dir=${PTX_KGEN_DIR:-$PTXDIST_KGEN_DIR}
         rm -rf generated
-        if [[ -d $PTX_KGEN_DIR/generated ]]; then
-            ln -s "$PTX_KGEN_DIR/generated" generated
-        elif [[ -d $PTX_KGEN_DIR/ptx ]]; then
-            ln -s "$PTX_KGEN_DIR/ptx" generated
-        elif [[ -d $PTX_KGEN_DIR ]]; then
-            ln -s "$PTX_KGEN_DIR" generated
+        if [[ -d $ptxd_kgen_dir/generated ]]; then
+            ln -s "$ptxd_kgen_dir/generated" generated
+        elif [[ -d $ptxd_kgen_dir/ptx ]]; then
+            ln -s "$ptxd_kgen_dir/ptx" generated
+        elif [[ -d $ptxd_kgen_dir ]]; then
+            ln -s "$ptxd_kgen_dir" generated
         fi
     else
         write-ptxdist-generated-sections
