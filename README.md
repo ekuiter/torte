@@ -224,6 +224,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [OpenWrt](src/systems/openwrt.sh) | v17.01.0 - v25.12.5 | 2014 - 2022 | [^55] [^43] |
 | [PTXdist](src/systems/ptxdist.sh) | ptxdist-1.99.4 - ptxdist-2026.09.0 | 2006 - 2026 | [^43] [^55] |
 | [Soletta](src/systems/soletta.sh) | v1_beta0 - v2_rc2 | 2015 - 2018 | |
+| [TizenRT](src/systems/tizenrt.sh) | 1.0_Public_M1 - v3.1_PRE | 2017 - 2026 | |
 | [toybox](src/systems/toybox.sh) | 0.0.3 - 0.8.13 | 2007 - 2025 | [^43] |
 | [U-Boot](src/systems/u-boot.sh) | v2014.10 - v2026.07 | 2014 - 2026 | [^56] [^44] |
 | [uClinux-dist](src/systems/uclinux-dist.sh) | release/v2.0 - release/v2.1-p1 | 2008 - 2014 | [^56] [^55] |
