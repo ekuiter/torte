@@ -219,7 +219,7 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] [^43] |
 | [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] [^43] |
 | [Linux](src/systems/linux.sh) | 2.5.45 - 6.17 | 2002 - 2025 | [^21] [^25] [^26] [^29] |
-| [NuttX](src/systems/nuttx.sh) | nuttx-10.3.0 - nuttx-13.0.1 | 2022 - 2026 | [^44] |
+| [NuttX](src/systems/nuttx.sh) | nuttx-10.3.0 - nuttx-13.0.1 | 2015 - 2026 | [^44] |
 | [OpenADK](src/systems/openadk.sh) | - | 2014 - 2026 | [^23] [^56] [^55] |
 | [OpenWrt](src/systems/openwrt.sh) | v17.01.0 - v25.12.5 | 2014 - 2022 | [^55] [^43] |
 | [PTXdist](src/systems/ptxdist.sh) | ptxdist-1.99.4 - ptxdist-2026.09.0 | 2006 - 2026 | [^43] [^55] |

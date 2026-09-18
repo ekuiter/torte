@@ -48,10 +48,11 @@ kconfig-post-checkout-hook-nuttx(system, revision) {
             .torte-build/drivers/platform/sensors \
             arch/dummy \
             boards/dummy \
+            configs/dummy \
             drivers/platform \
             dummy
 
-        wrap-source-statements-in-double-quotes -name 'Kconfig*'
+        quote-nuttx-source-statements
 
         # apps are maintained in apache/nuttx-apps
         touch .torte-empty-apps/Kconfig
@@ -63,11 +64,21 @@ kconfig-post-checkout-hook-nuttx(system, revision) {
         touch .torte-build/drivers/platform/Kconfig
         touch .torte-build/drivers/platform/audio/Kconfig
         touch .torte-build/drivers/platform/sensors/Kconfig
+        touch arch/Kconfig
         touch arch/dummy/Kconfig
         touch boards/dummy/Kconfig
+        touch configs/dummy/Kconfig
         touch drivers/platform/Kconfig
 
         # EXTERNALDIR is optional
         touch dummy/Kconfig
+
+        # KClause reads CONFIG_iC-JX_MULTIPLE as Python subtraction
+        find . -name 'Kconfig*' -type f -exec sed -i 's/iC-JX_/ICJX_/g' {} +
     fi
+}
+
+quote-nuttx-source-statements() {
+    find . -name 'Kconfig*' -type f -exec sed -i -r \
+        's|^source[[:space:]]+([^"$][^[:space:]]*)[[:space:]]*$|source "\1"|' {} +
 }
