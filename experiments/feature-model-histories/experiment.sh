@@ -53,12 +53,12 @@ experiment-stages() {
 
 # execute this with "torte feature-model-histories clean-up" in the stages directory
 clean-up() {
-    rm -rf ./*_experiment
-    rm -rf ./*_clone_systems
     rm -rf ./*_extract_kconfig_models_with_*
-    rm -rf ./*_transform_model_to_dimacs_with_*
-    rm -rf ./*_transform_model_to_model_with_featureide
-    rm -rf ./*_transform_model_to_smt_with_z3
+    rm -rf ./*_transform_to_dimacs_with_*
+    rm -rf ./*_transform_to_model_with_featureide
+    rm -rf ./*_transform_to_smt_with_z3
     rm -rf ./*_transform_smt_to_dimacs_with_z3
-    # then zip the remaining stages and upload them into a torte release
+    # then zip the remaining stages and upload them into a torte release:
+    # for dir in */; do zip -r ${dir%/}.zip ${dir%/}; done
+    # zip 5_extract_kconfig_models.zip --out model.zip -s 2000m
 }
