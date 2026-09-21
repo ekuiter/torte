@@ -196,7 +196,10 @@ Thus, we exclude some experiments from the CI pipeline with `__NO_CI__`. However
 
 ## Supported Systems
 
-This is a list of all subject systems for which feature-model extraction has been tested and confirmed to work for at least one extraction tool.
+The following plot shows the subject systems for which feature-model extraction has been tested, and confirmed to work on large parts of the history (for at least one extraction tool out of KConfigReader and KClause).
+
+![Success and failure of feature-model history extraction](./experiments/feature-model-histories/extraction-history.svg)
+
 Other systems or revisions may also be supported.
 For an overview of KConfig-based system software, have a look at our [research](http://elias-kuiter.de/torte-research/) website.
 Currently, we implement extraction for all systems we are aware of that rely on LKC (the implementation of KConfig found in Linux).
