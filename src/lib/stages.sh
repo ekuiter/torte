@@ -47,6 +47,7 @@ define-stages() {
             with_kconfigreader=y
             with_kclause=y
             with_configfix=n
+            with_kconfirm_smt=n
         fi
         [[ $with_kconfigreader == n ]] && with_kconfigreader=
         [[ $with_kconfigreader == y ]] && with_kconfigreader=1
