@@ -120,8 +120,7 @@ experiment-stages() {
         solve_args=(
             --kind sat \
             --query "$query_name" \
-            --timeout "$SOLVE_TIMEOUT" \
-            --solver_specs "${sat_solver_specs[@]}"
+            --timeout "$SOLVE_TIMEOUT"
         )
         if [[ -n $query_iterator ]]; then
             solve_args+=(
@@ -129,6 +128,7 @@ experiment-stages() {
                 --query-iterator "$(to-lambda query-$query_iterator constrained.features)"
             )
         fi
+        solve_args+=(--solver_specs "${sat_solver_specs[@]}")
         solve "${solve_args[@]}"
         sat_solve_stages+=("solve-$query_name-sat")
     done
@@ -142,8 +142,7 @@ experiment-stages() {
         solve_args=(
             --kind sharp-sat \
             --query "$query_name" \
-            --timeout "$SOLVE_TIMEOUT" \
-            --solver_specs "${sharp_sat_solver_specs[@]}"
+            --timeout "$SOLVE_TIMEOUT"
         )
         if [[ -n $query_iterator ]]; then
             solve_args+=(
@@ -151,6 +150,7 @@ experiment-stages() {
                 --query-iterator "$(to-lambda query-$query_iterator constrained.features)"
             )
         fi
+        solve_args+=(--solver_specs "${sharp_sat_solver_specs[@]}")
         solve "${solve_args[@]}"
         sharp_sat_solve_stages+=("solve-$query_name-sharp-sat")
     done
