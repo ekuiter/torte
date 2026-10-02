@@ -5,6 +5,7 @@
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
 # The point of this experiment file is to extract feature-model histories for a wide selection of Kconfig-based configurable systems.
+# The resulting histories have been uploaded here: https://github.com/ekuiter/torte/releases/tag/feature-model-histories
 # More information on some of the systems below can be found on https://elias-kuiter.de/torte-research/.
 # Our general strategy is to read feature models for all tagged Git revisions, provided that tags give a meaningful history, and a yearly sample.
 # Mostly, we compile bindings from the LKC distributions included in the projects' source code to get the most accurate translation.

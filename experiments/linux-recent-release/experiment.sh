@@ -5,13 +5,14 @@
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
 # This experiment extracts and transform a single feature model from a recent revision of the Linux kernel.
+# It is mentioned in the RCR Report for our TOSEM'25 paper "How Configurable is the Linux Kernel? Analyzing Two Decades of Feature-Model History".
 
 experiment-systems() {
-    add-linux-kconfig-tags --from v7.1 --to v7.2 --architecture x86
+    add-linux-kconfig-tags --from v7.2 --to v7.3 --architecture x86
 }
 
 experiment-test-systems(__NO_CI__) {
-    add-linux-kconfig-tags --from v7.1 --to v7.2 --architecture x86
+    add-linux-kconfig-tags --from v7.2 --to v7.3 --architecture x86
 }
 
 experiment-stages() {

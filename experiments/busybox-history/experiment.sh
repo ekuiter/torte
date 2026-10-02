@@ -25,7 +25,6 @@ experiment-stages() {
     clone-systems
     read-statistics
     extract-kconfig-models \
-        --with-kclause y \
         --date-prefix "$(date-format time)"
     join-into read-statistics extract-kconfig-models
     transform-to-uvl

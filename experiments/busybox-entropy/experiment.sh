@@ -4,6 +4,8 @@
 # In that case, make sure to check out the correct revision manually and run ./torte.sh <this-file>.
 TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(curl -fsSL https://raw.githubusercontent.com/ekuiter/torte/$TORTE_REVISION/torte.sh)" "$@"
 
+# playing around with information-theoretic definitions of entropy and information, using BusyBox as a case study
+
 experiment-systems() {
     add-busybox-kconfig-tags
 }
