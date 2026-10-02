@@ -18,7 +18,7 @@ experiment-test-systems(__NO_CI__) {
 experiment-stages() {
     # extract
     clone-systems
-    extract-kconfig-models --with-kconfigreader y --with-kclause y --with-configfix y # --with-kconfirm-smt y
+    extract-kconfig-models --with-kconfigreader y --with-kclause y # --with-configfix y --with-kconfirm-smt y
     compute-unconstrained-features
 
     # transform
