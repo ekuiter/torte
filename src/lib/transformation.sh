@@ -197,6 +197,9 @@ compute-model-features-helper(input, output) {
     if [[ -f $kextractor_file ]]; then
         # this formula was extracted with KClause
         grep -E "^config " "$kextractor_file" | cut -d' ' -f2 | sed 's/^CONFIG_//'
+    elif grep -q "<featureModel" "$input"; then
+        # this formula is a FeatureIDE XML model, where features are declared as XML nodes
+        grep -oE 'name="[^"]+"' "$input" | cut -d'"' -f2
     else
         # this formula was either extracted with KConfigReader (and already mentions all variables in the model file) ...
         grep -E "^#item " "$input" | cut -d' ' -f2
@@ -204,12 +207,15 @@ compute-model-features-helper(input, output) {
     fi | sort | uniq > "$output"
 }
 
-# for model files, computes all features that are constrained (i.e., mentioned in the formula)
+# for model/XML files, computes all features that are constrained (i.e., mentioned in the formula)
 # outputs a .constrained.features file, which is a subset of the features in the .model.features file
+# in XML, all features are constrained because the common Root is mandatory
 compute-constrained-features-helper(input, output) {
     # extract features mentioned in the model file (i.e., the formula)
     if grep -q "def(" "$input"; then
         sed "s/)/)\n/g" < "$input" | grep "def(" | sed "s/.*def(\(.*\)).*/\1/g"
+    elif grep -q "<featureModel" "$input"; then
+        grep -oE 'name="[^"]+"' "$input" | cut -d'"' -f2
     fi | sort | uniq > "$output"
 }
 
