@@ -87,3 +87,85 @@ write-log(file) {
         write-all "$file" | grep -oP "\[$TOOL\] \K.*"
     fi
 }
+
+# runs a command while showing a rolling preview of its latest output lines.
+# the command's full output is captured in a temporary file, while the terminal
+# only shows the latest few lines and redraws them in place. We write the
+# preview to /dev/tty when possible, because compact experiment execution pipes
+# stdout through write-log, which intentionally filters non-torte log lines.
+# If the command fails, the full captured output is printed afterwards.
+run-with-rolling-tail(lines=5, command...) {
+    local log_file
+    log_file=$(mktemp)
+    local shown_lines=0
+    local rolling_tail_output=/dev/stderr
+    if [[ -t 2 ]] && [[ -w /dev/tty ]]; then
+        rolling_tail_output=/dev/tty
+    fi
+    cleanup-rolling-tail() {
+        clear-rolling-tail "$shown_lines"
+        rm-safe "$log_file"
+        rm-safe "$log_file.status"
+    }
+    trap cleanup-rolling-tail RETURN INT TERM
+
+    {
+        "${command[@]}" > "$log_file" 2>&1
+        echo "$?" > "$log_file.status"
+    } &
+    local pid=$!
+
+    while kill -0 "$pid" 2>/dev/null; do
+        draw-rolling-tail-from-file "$log_file" "$lines" "$shown_lines"
+        shown_lines=$DRAWN_ROLLING_TAIL_LINES
+        sleep 1
+    done
+
+    local wait_status status
+    wait "$pid"
+    wait_status=$?
+    draw-rolling-tail-from-file "$log_file" "$lines" "$shown_lines"
+    shown_lines=$DRAWN_ROLLING_TAIL_LINES
+    status=$(cat "$log_file.status" 2>/dev/null)
+    status=${status:-$wait_status}
+    clear-rolling-tail "$shown_lines"
+    shown_lines=0
+
+    if [[ $status -ne 0 ]]; then
+        cat "$log_file" >&2
+    fi
+    cleanup-rolling-tail
+    trap - RETURN INT TERM
+    return "$status"
+}
+
+# redraws a rolling preview from a captured output file
+draw-rolling-tail-from-file(file, lines=5, shown_lines=0) {
+    local current_lines=()
+    if [[ -s $file ]]; then
+        readarray -t current_lines < <(tail -n "$lines" "$file" | tr '\r' '\n' | tail -n "$lines")
+    fi
+    draw-rolling-tail "$shown_lines" "${current_lines[@]}"
+}
+
+# redraws the given lines, first clearing the lines drawn by the previous preview
+draw-rolling-tail(shown_lines=0, current_lines...) {
+    clear-rolling-tail "$shown_lines"
+    local columns=${COLUMNS:-}
+    if [[ ! $columns =~ ^[0-9]+$ ]]; then
+        columns=$(tput cols 2>/dev/null || echo 120)
+    fi
+    local line
+    for line in "${current_lines[@]}"; do
+        printf "%.*s\n" "$columns" "$line" > "$rolling_tail_output"
+    done
+    DRAWN_ROLLING_TAIL_LINES=${#current_lines[@]}
+}
+
+# clears a previously drawn rolling preview
+clear-rolling-tail(shown_lines=0) {
+    local i
+    for ((i = 0; i < shown_lines; i++)); do
+        printf "\033[1A\033[2K" > "$rolling_tail_output"
+    done
+}
