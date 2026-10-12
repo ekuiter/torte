@@ -6,6 +6,7 @@ DOCKER_OUTPUT_DIRECTORY=/home/output # output directory inside Docker containers
 DOCKER_SRC_DIRECTORY=/home/${TOOL}_src # source directory inside Docker containers
 MAIN_INPUT_KEY=main # the name of the canonical input key
 OUTPUT_FILE_PREFIX=output # prefix for output files
+STAGE_STARTED_FILE=".stage_started" # file indicating stage start
 STAGE_DONE_FILE=".stage_done" # file indicating stage completion
 STAGE_MOVED_FILE=".stage_moved" # file indicating stage has been moved
 
@@ -170,8 +171,38 @@ output-path(components...) { compose-path "$(output-directory)" "${components[@]
 stage-file(extension, stage) { stage-path "$stage" "$OUTPUT_FILE_PREFIX.$extension"; }
 input-file(extension, key=) { input-path "$key" "$OUTPUT_FILE_PREFIX.$extension"; }
 output-file(extension) { output-path "$OUTPUT_FILE_PREFIX.$extension"; }
+stage-started-file(stage) { stage-path "$stage" "$STAGE_STARTED_FILE"; }
 stage-done-file(stage) { stage-path "$stage" "$STAGE_DONE_FILE"; }
 stage-moved-file(stage) { stage-path "$stage" "$STAGE_MOVED_FILE"; }
+
+stage-timestamp() {
+    local now
+    now=$(date +%s)
+    printf "%s\t%s\n" "$now" "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+}
+
+mark-stage-started(stage) {
+    stage-timestamp > "$(stage-started-file "$stage")"
+}
+
+mark-stage-done(stage) {
+    stage-timestamp > "$(stage-done-file "$stage")"
+}
+
+mark-stage-moved(stage, target_stage) {
+    echo "$target_stage" > "$(stage-moved-file "$stage")"
+}
+
+read-stage-timestamp(file) {
+    if [[ ! -f $file ]]; then
+        return
+    fi
+    local timestamp
+    read -r timestamp _ < "$file" || true
+    if [[ $timestamp =~ ^[0-9]+$ ]]; then
+        echo "$timestamp"
+    fi
+}
 
 # standard files for experimental results, human-readable output, and errors
 stage-csv(stage) { stage-file csv "$stage"; }
@@ -189,7 +220,7 @@ output-prf() { output-file prf; }
 # returns whether the given experiment stage is done
 stage-done(stage) {
     assert-host
-    [[ -f $(stage-done-file "$stage") ]] || stage-moved "$stage"
+    stage-moved "$stage" || [[ -f $(stage-done-file "$stage") ]]
 }
 
 # returns whether the given stage has been moved to an aggregate stage

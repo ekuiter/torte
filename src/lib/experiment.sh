@@ -168,16 +168,22 @@ list-stages() {
     if [[ ${#numbered_stages[@]} -eq 0 ]]; then
         return
     fi
-    printf "┌────┬─────────────────────────────┬────────────┬────────┬──────┐\n"
-    printf "│ %2s │ %-27s │ %-10s │ %6s │ %4s │\n" "#" "Stage" "Status" "Size" "#Row"
-    printf "├────┼─────────────────────────────┼────────────┼────────┼──────┤\n"
-    local total_complete=0 total_csv_rows=0
+    printf "┌────┬─────────────────────────────────────────┬────────────┬──────────┬────────┬──────┐\n"
+    printf "│ %2s │ %-39s │ %-10s │ %8s │ %6s │ %4s │\n" "#" "Stage" "Status" "Duration" "Size" "#Row"
+    printf "├────┼─────────────────────────────────────────┼────────────┼──────────┼────────┼──────┤\n"
+    local total_complete=0 total_duration_seconds=0 total_csv_rows=0
     for numbered_stage in "${numbered_stages[@]}"; do
         if [[ -n "$numbered_stage" ]]; then
-            local stage_number stage_name status size csv_entries
+            local stage_number stage_name status duration size csv_entries
             stage_number=$(get-stage-number "$numbered_stage")
             stage_name=$(get-stage-name "$numbered_stage")
             if [[ -n $stage_name ]]; then
+                local stage_duration_seconds
+                stage_duration_seconds=$(stage-duration-seconds "$stage_name")
+                duration=$(format-duration-seconds "$stage_duration_seconds")
+                if [[ -n $stage_duration_seconds ]]; then
+                    total_duration_seconds=$((total_duration_seconds + stage_duration_seconds))
+                fi
                 if stage-moved "$stage_name"; then
                     local moved_to
                     moved_to=$(stage-moved-to "$stage_name")
@@ -202,11 +208,11 @@ list-stages() {
                 else
                     csv_entries=""
                 fi
-                if [[ ${#stage_name} -gt 27 ]]; then
-                    stage_name="${stage_name:0:24}..."
+                if [[ ${#stage_name} -gt 39 ]]; then
+                    stage_name="${stage_name:0:36}..."
                 fi
-                printf "│ %2s │ %-27s │ %-10s │ %6s │ %4s │\n" \
-                    "$stage_number" "$stage_name" "$status" "$size" "$csv_entries"
+                printf "│ %2s │ %-39s │ %-10s │ %8s │ %6s │ %4s │\n" \
+                    "$stage_number" "$stage_name" "$status" "$duration" "$size" "$csv_entries"
             fi
         fi
     done
@@ -214,10 +220,45 @@ list-stages() {
     if [[ -d "$(stages-directory)" ]]; then
         total_size=$(du -sh "$(stages-directory)" 2>/dev/null | cut -f1 || echo "")
     fi
-    printf "├────┼─────────────────────────────┼────────────┼────────┼──────┤\n"
-    printf "│ %2s │ %-27s │ %-10s │ %6s │ %4s │\n" \
-        "" "total" "${total_complete} done" "$total_size" "$total_csv_rows"
-    printf "└────┴─────────────────────────────┴────────────┴────────┴──────┘\n"
+    printf "├────┼─────────────────────────────────────────┼────────────┼──────────┼────────┼──────┤\n"
+    printf "│ %2s │ %-39s │ %-10s │ %8s │ %6s │ %4s │\n" \
+        "" "total" "${total_complete} done" "$(format-duration-seconds "$total_duration_seconds")" "$total_size" "$total_csv_rows"
+    printf "└────┴─────────────────────────────────────────┴────────────┴──────────┴────────┴──────┘\n"
+}
+
+# reads when a stage started.
+stage-start-seconds(stage) {
+    read-stage-timestamp "$(stage-started-file "$stage")"
+}
+
+# reads when a stage ended.
+stage-end-seconds(stage) {
+    read-stage-timestamp "$(stage-done-file "$stage")"
+}
+
+# reads how long a stage took in seconds.
+stage-duration-seconds(stage) {
+    local start end
+    start=$(stage-start-seconds "$stage")
+    end=$(stage-end-seconds "$stage")
+    if [[ -n $start ]] && [[ -n $end ]] && [[ $end -ge $start ]]; then
+        echo "$((end - start))"
+    fi
+}
+
+# formats a duration in seconds for compact tables.
+format-duration-seconds(seconds=) {
+    if [[ -z $seconds ]]; then
+        return
+    elif [[ $seconds -lt 60 ]]; then
+        printf "%ss" "$seconds"
+    elif [[ $seconds -lt 3600 ]]; then
+        printf "%sm%02ds" "$((seconds / 60))" "$((seconds % 60))"
+    elif [[ $seconds -lt 86400 ]]; then
+        printf "%sh%02dm" "$((seconds / 3600))" "$(((seconds % 3600) / 60))"
+    else
+        printf "%sd%02dh" "$((seconds / 86400))" "$(((seconds % 86400) / 3600))"
+    fi
 }
 
 # removes all stages of the experiment (optionally, only the ones after the one with the specified number)
@@ -257,8 +298,9 @@ command-run() {
         mkdir -p "$(stages-directory)"
         clean "$EXPERIMENT_STAGE"
         mkdir -p "$(stage-directory "$EXPERIMENT_STAGE")"
+        mark-stage-started "$EXPERIMENT_STAGE"
         cp -R "$SRC_EXPERIMENT_DIRECTORY/" "$(stage-directory "$EXPERIMENT_STAGE")"
-        touch "$(stage-done-file "$EXPERIMENT_STAGE")"
+        mark-stage-done "$EXPERIMENT_STAGE"
         define-stages
         if grep -q '^\s*debug\s*$' "$SRC_EXPERIMENT_FILE" \
             || grep -q "^\s*experiment-stages\s*(\s*__NO_SILENT__" "$SRC_EXPERIMENT_FILE"; then

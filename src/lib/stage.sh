@@ -55,11 +55,11 @@ run(image=util, input=, output=, resumable=, command...) {
             # (re-)build Docker image
             log "" "$(echo-progress build)"
             local cmd=(docker build)
-            if [[ -z $VERBOSE ]]; then
-                cmd+=(-q)
-            fi
             if [[ -n $FORCE_BUILD ]]; then
                 cmd+=(--no-cache)
+            fi
+            if [[ -z $VERBOSE ]]; then
+                cmd+=(--progress=plain)
             fi
             cmd+=(-f "$dockerfile")
             cmd+=(-t "${TOOL}_$image")
@@ -68,7 +68,11 @@ run(image=util, input=, output=, resumable=, command...) {
                 cmd+=(--platform "$platform")
             fi
             cmd+=("$(dirname "$dockerfile")")
-            "${cmd[@]}" >/dev/null
+            if [[ -n $VERBOSE ]]; then
+                "${cmd[@]}"
+            else
+                run-with-rolling-tail 5 "${cmd[@]}"
+            fi
         fi
 
         if [[ -z $DOCKER_EXPORT ]]; then
@@ -76,6 +80,7 @@ run(image=util, input=, output=, resumable=, command...) {
             log "" "$(echo-progress run)"
             mkdir -p "$(stage-directory "$output")"
             chmod 0777 "$(stage-directory "$output")"
+            mark-stage-started "$output"
 
             # prepare shared context used for passing data between stages for caching purposes
             # first, move any existing shared directory from an unfinished stage to the global shared directory
@@ -187,7 +192,7 @@ run(image=util, input=, output=, resumable=, command...) {
         fi
         # mark stage as completed, so it won't be rerun unless forced or cleaned
         if [[ $output != "$TRANSIENT_STAGE" ]]; then
-            touch "$(stage-done-file "$output")"
+            mark-stage-done "$output"
         fi
         log "" "$(echo-done)"
     else
@@ -216,7 +221,10 @@ aggregate-helper(file_fields=, stage_field=, stage_transformer=, directory_field
     for stage in "${inputs[@]}"; do
         while IFS= read -r -d $'\0' file; do
             mv "$file" "$(output-path "$("$stage_transformer" "$stage")" "${file#"$(input-directory "$stage")/"}")"
-        done < <(find "$(input-directory "$stage")" -type f -print0)
+        done < <(find "$(input-directory "$stage")" -type f \
+            ! -name "$STAGE_STARTED_FILE" \
+            ! -name "$STAGE_DONE_FILE" \
+            -print0)
         find "$(input-directory "$stage")" -type d -empty -delete 2>/dev/null || true
     done
     tmp=$(mktemp)
@@ -248,7 +256,7 @@ aggregate(output, file_fields=, stage_field=, stage_transformer=, directory_fiel
             --directory-field "$directory_field" \
             --inputs "${inputs[@]}"
     for current_stage in "${inputs[@]}"; do
-        echo "$output" > "$(stage-moved-file "$current_stage")"
+        mark-stage-moved "$current_stage" "$output"
     done
 }
 
