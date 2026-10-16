@@ -443,6 +443,7 @@ Of 42k `select/depends on/imply` dependencies in Linux v6.19-rc7, only 1.1% (458
 Note that a previous fork of KConfigReader ([smba/kconfigreader](https://github.com/smba/kconfigreader)) treated `imply` as `select`.
 This leads to an overapproximation of the constraints that may even render parts of the feature model (conditionally) dead.
 We advise against this, as it probably does more harm to the feature model than ignoring `imply` completely.
+For a more accurate encoding of `imply`, use `kconfirm-smt`, which was developed later than the other extractors and encodes its semantics better.
 
 ### Solvers
 
