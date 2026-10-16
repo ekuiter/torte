@@ -1,5 +1,6 @@
 # platform-override=linux/amd64
 FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
     default-jre \

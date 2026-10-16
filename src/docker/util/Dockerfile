@@ -1,5 +1,7 @@
 FROM ubuntu:22.04
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 # install git and other utilities used in scripts
 RUN apt-get update && apt-get install -y \
     git \

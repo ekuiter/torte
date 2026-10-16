@@ -1,4 +1,5 @@
 FROM ubuntu:14.04
+ENV DEBIAN_FRONTEND=noninteractive
 
 # install (tested) dependencies of kconfigreader
 RUN apt-get update && apt-get install -y --allow-unauthenticated \
