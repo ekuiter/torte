@@ -5,7 +5,7 @@
 define-stages() {
     # clone the systems specified in the experiment file
     clone-systems() {
-        run --output clone-systems
+        run --output clone-systems --resumable y
     }
 
     # reads some system-defined property of a revision with a system-specific reader
