@@ -325,7 +325,7 @@ There are also some general known limitations of torte. [^1]
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | 3fc8d66 | 2025-10-10 | [^12] [^15] [^6] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
 | [isselab/configfix](https://github.com/isselab/configfix) | 5aebac6 | 2026-10-20 | [^33] [^39] [^42] |
-| [julianbraha/kconfirm-smt](https://github.com/julianbraha/kconfirm/tree/smt/kconfirm-smt) | 176c549 | 2026-08-02 | [^46] |
+| [julianbraha/kconfirm-smt](https://github.com/julianbraha/kconfirm/tree/main/kconfirm-smt) | 455504c | 2026-10-19 | [^46] |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) ([KClause](https://github.com/paulgazz/kmax/blob/master/kmax/kclause)) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] [^22] [^42] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 | [zephyrproject-rtos/Kconfiglib](https://github.com/zephyrproject-rtos/Kconfiglib) | 601f63d | 2025-11-04 | [^2] |

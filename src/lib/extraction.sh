@@ -244,8 +244,8 @@ extract-kconfig-model-with-kconfirm-smt(system, revision, kconfig_model, feature
         | tee "$output_log"
     MEASURED_TIME=$(grep -oP "^measure_time=\K.*" < "$output_log")
 
-    # config option names precede the SMT encoding suffixes (>=m, >=y, and :vis)
-    sed -nE 's/^\(declare-fun \|?([^|:>= ]+).*/\1/p' "$kconfig_model" | sort -u > "$features_file"
+    # export metadata lists all config options, including those without SMT declarations
+    sed -nE 's/^; symbol [^ ]+ (.+)$/\1/p' "$kconfig_model" | sort -u > "$features_file"
 }
 
 # wraps source statements in the selected KConfig files the working directory in double quotes
