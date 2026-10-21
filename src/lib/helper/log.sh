@@ -115,17 +115,20 @@ run-with-rolling-tail(lines=5, command...) {
     } &
     local pid=$!
 
+   # wait a few seconds before showing the preview, so quick commands do not flash
+    local elapsed=0
     while kill -0 "$pid" 2>/dev/null; do
-        draw-rolling-tail-from-file "$log_file" "$lines" "$shown_lines"
-        shown_lines=$DRAWN_ROLLING_TAIL_LINES
+        if [[ $elapsed -ge 3 ]]; then
+            draw-rolling-tail-from-file "$log_file" "$lines" "$shown_lines"
+            shown_lines=$DRAWN_ROLLING_TAIL_LINES
+        fi
         sleep 1
+        elapsed=$((elapsed + 1))
     done
 
     local wait_status status
     wait "$pid"
     wait_status=$?
-    draw-rolling-tail-from-file "$log_file" "$lines" "$shown_lines"
-    shown_lines=$DRAWN_ROLLING_TAIL_LINES
     status=$(cat "$log_file.status" 2>/dev/null)
     status=${status:-$wait_status}
     clear-rolling-tail "$shown_lines"
