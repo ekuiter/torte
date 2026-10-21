@@ -162,7 +162,7 @@ extract-kconfig-model-with-kclause(system, revision, kconfig_file, lkc_binding_f
 # runs ConfigFix to extract a feature-model formula from Kconfig files
 # sets the global MEASURED_TIME variable
 extract-kconfig-model-with-configfix(system, revision, kconfig_file, kconfig_model, features_file, output_log, lkc_directory, lkc_target=config, lkc_output_directory=, options=, timeout=0, date_prefix=) {
-    local configfix_directory=/home/torte-ConfigFix override_lkc_target
+    local configfix_directory=/home/linux override_lkc_target
 
     # the following three lines are only needed to address a bug in ConfigFix
     # for systems that don't define a list of defconfigs, we need an empty dummy file (instead of an empty list) to avoid a segmentation fault inside of ConfigFix
@@ -258,7 +258,7 @@ wrap-source-statements-in-double-quotes(file_query...) {
 }
 
 # until Linux 4.18, option env is used to import environment variables into the KConfig namespace
-# this is not supported by ConfigFix (which is roughly based on LKC in Linux 6.14) and must be removed
+# this is not supported by ConfigFix (which is based on LKC in Linux 7.3) and must be removed
 # see https://stackoverflow.com/q/10099478
 # this has no impact because we are usually not interested in default values derived from environment variables
 remove-environment-variable-imports(file_query...) {

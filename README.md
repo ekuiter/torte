@@ -100,7 +100,7 @@ The following instructions will get you started on a fresh system.
 By default, each of these instruction sets will install torte into the `torte` directory.
 All experiment data will then be stored in the `stages` directory in your working directory.
 
-### Ubuntu 22.04
+### Ubuntu 24.04
 
 ```
 # install and set up dependencies
@@ -324,8 +324,8 @@ There are also some general known limitations of torte. [^1]
 | [ekuiter/clausy](https://github.com/ekuiter/clausy) | 2.2.0 | 2026-05-15 | |
 | [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | 3fc8d66 | 2025-10-10 | [^12] [^15] [^6] |
 | [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
-| [isselab/configfix](https://github.com/ekuiter/torte-ConfigFix) | 0312ab7 | 2025-11-28 | [^33] [^39] [^40] [^42] |
-| [julianbraha/kconfirm-smt](https://github.com/julianbraha/kconfirm/tree/smt/kconfirm-smt) | 176c549 | 2026-08-02 | [^43] |
+| [isselab/configfix](https://github.com/isselab/configfix) | 5aebac6 | 2026-10-20 | [^33] [^39] [^42] |
+| [julianbraha/kconfirm-smt](https://github.com/julianbraha/kconfirm/tree/smt/kconfirm-smt) | 176c549 | 2026-08-02 | [^46] |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) ([KClause](https://github.com/paulgazz/kmax/blob/master/kmax/kclause)) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] [^22] [^42] |
 | [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
 | [zephyrproject-rtos/Kconfiglib](https://github.com/zephyrproject-rtos/Kconfiglib) | 601f63d | 2025-11-04 | [^2] |
@@ -386,7 +386,7 @@ To address this threat, we instead offer the transformation stage `compute-uncon
 This is because the integration of ConfigFix with the C implementation of LKC is so tight that it cannot be easily decoupled.
 In particular, ConfigFix does not have a dedicated abstraction layer in between KConfig and the extraction tool, such as the other extractors (i.e., a C binding that produces intermediate output).
 Due to this architecture, compiling ConfigFix against older versions of the Linux kernel or even other systems is probably a futile effort.
-Instead, we only integrate one version of ConfigFix, which we compiled against a [patched version](https://github.com/ekuiter/torte-ConfigFix) of Linux from 2025-02-07.
+Instead, we integrate [ConfigFix v7.3](https://github.com/isselab/configfix/releases/tag/v7.3), compiled against LKC from Linux 7.3.
 Consequently, ConfigFix is less flexibly applicable than the other extractors, mostly due to breaking syntax changes in the KConfig grammar (which sometimes cause segmentation faults in ConfigFix).
 However, ConfigFix is still mostly viable on systems that only use simple KConfig constructs (e.g., BusyBox) and on recent Linux versions (as of 2025).
 We successfully tested ConfigFix on the following systems and respective revisions: axTLS (1.0.0 - 2.1.5), BusyBox (1.5.1 - 1.36.1), EmbToolkit (0.1.0 - 1.9.0), Linux (6.13 - 6.17), toybox (0.0.2 - 0.4.1), uClibc (0.9.30 - 0.9.33), uClibc-ng (1.0.7 - 1.0.47), uClibc++ (0_0_5 - v0.2.5).
@@ -394,11 +394,9 @@ We did not succeed with the following systems: Buildroot, Freetz-NG, L4Re, Solet
 
 [^39]: ConfigFix does not offer a feature extraction mechanism, so the computations for (un-)constrained features cannot be applied for this extractor.
 
-[^40]: ConfigFix has a [known bug](https://github.com/isselab/configfix/issues/1) that causes formulas of recent Linux versions (>= 6.16) to be unsatisfiable.
-
-While this issue is being resolved, we recommend to only extract formulas for Linux <= 6.15.
-
-[^43]: kconfirm-smt currently supports only recent revisions of Linux. It extracts formulas in the SMT-LIB2 format (`.smt2`) directly, and represents `int`/`hex` and `string` options as SMT integers and strings, respectively. Imply semantics are supported. Select's overreach of dependencies is also supported. Cannot be combined with subsequent stages that expect `.model` files (e.g., for (#)SAT-based analysis).
+[^46]: kconfirm-smt currently supports only recent revisions of Linux. It extracts formulas in the SMT-LIB2 format (`.smt2`) directly, and represents `int`/`hex` and `string` options as SMT integers and strings, respectively.
+`Imply` semantics are supported, `select`'s overreach of dependencies is also supported.
+Cannot be combined with subsequent stages that expect `.model` files (e.g., for (#)SAT-based analysis).
 
 [^2]: UVL hierarchy extraction using Kconfiglib is currently experimental.
 In particular, this extraction is not available for all systems and revisions because it heavily relies on the parsing behavior of Kconfiglib.

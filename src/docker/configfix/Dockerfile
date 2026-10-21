@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
     bc \
     git \
     flex \
-    bison
+    bison \
+    xz-utils
 WORKDIR /home
 
 # the most recent version of configfix requires picosat to be built separately as a shared library
@@ -22,16 +23,24 @@ WORKDIR /home
 COPY picosat-965.tar.gz .
 RUN tar -xvf picosat-965.tar.gz && \
     cd picosat-965 && \
-    export CFLAGS="-fPIC" && \
-    ./configure.sh && \
+    ./configure.sh --trace --shared && \
     make libpicosat.so && \
     cp libpicosat.so libpicosat-trace.so
 ENV LD_LIBRARY_PATH=/home/picosat-965
 
-# install (the tested version of) configfix
-RUN git clone https://github.com/ekuiter/torte-ConfigFix.git \
-    && cd torte-ConfigFix \
-    && git checkout a2bee573cd3a70bd21af87b9ca9af6831fee7aab \
+# ConfigFix v7.3 is a copy-patch payload that must be built against Linux 7.3
+RUN wget -q https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.3.tar.xz \
+    && echo "87363c24f10e06321eb362765521094e94471f6bff8bce2d6b3e40f39f004953  linux-7.3.tar.xz" | sha256sum -c - \
+    && mkdir linux \
+    && tar -xf linux-7.3.tar.xz --strip-components=1 -C linux \
+    && rm linux-7.3.tar.xz
+RUN git clone --branch v7.3 --depth 1 https://github.com/isselab/configfix.git \
+    && cd configfix \
+    && git checkout 5aebac6d611478ee6e01fdb3877a5fab02b0e0f7 \
+    && ./copy_files.sh /home/linux \
+    && cd /home/linux \
+    # Export into the working directory, including for non-Linux systems.
+    && sed -i 's|\./scripts/kconfig/cfout_constraints|cfout_constraints|g' scripts/kconfig/cfoutconfig.c \
     && make build_cfoutconfig
 
 COPY *.sh .
