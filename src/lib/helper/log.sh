@@ -110,8 +110,9 @@ run-with-rolling-tail(lines=5, command...) {
     trap cleanup-rolling-tail RETURN INT TERM
 
     {
-        "${command[@]}" > "$log_file" 2>&1
-        echo "$?" > "$log_file.status"
+        local command_status=0
+        "${command[@]}" > "$log_file" 2>&1 || command_status=$?
+        echo "$command_status" > "$log_file.status"
     } &
     local pid=$!
 
@@ -127,9 +128,9 @@ run-with-rolling-tail(lines=5, command...) {
     done
 
     local wait_status status
-    wait "$pid"
-    wait_status=$?
-    status=$(cat "$log_file.status" 2>/dev/null)
+    wait_status=0
+    wait "$pid" || wait_status=$?
+    status=$(cat "$log_file.status" 2>/dev/null) || status=
     status=${status:-$wait_status}
     clear-rolling-tail "$shown_lines"
     shown_lines=0
