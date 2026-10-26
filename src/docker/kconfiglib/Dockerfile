@@ -8,6 +8,6 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /home
 RUN git clone https://github.com/zephyrproject-rtos/Kconfiglib.git
 WORKDIR /home/Kconfiglib
-RUN git checkout 601f63d035ba355fefb69387de1a9bc5cc2201ab
+RUN git checkout b8535af53f0650a69e52db4bf8585c09d55852e7
 COPY *.py ./
 WORKDIR /home
