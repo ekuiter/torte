@@ -367,25 +367,25 @@ command-install-remote(host, image, directory=.) {
 command-test() {
     local testable_experiments=()
     # find all experiments that define experiment-test-systems
-    for experiment_dir in "$TOOL_DIRECTORY"/experiments/*/; do
-        local experiment_name
-        experiment_name=$(basename "$experiment_dir")
-        local experiment_file
-        experiment_file=$(experiment-file "$experiment_name")
-        if [[ -f "$experiment_file" ]] \
-            && grep -q "^\s*experiment-test-systems\s*(" "$experiment_file" \
+    local experiment_file
+    while IFS= read -r -d '' experiment_file; do
+        if grep -q "^\s*experiment-test-systems\s*(" "$experiment_file" \
             && ([[ -z "$CI" ]] || ! grep -q "^\s*experiment-test-systems\s*(\s*__NO_CI__" "$experiment_file"); then
-            testable_experiments+=("$experiment_name")
+            testable_experiments+=("$experiment_file")
         fi
-    done
+    done < <(find "$TOOL_DIRECTORY/experiments" -type f -name '*.sh' -print0)
     if [[ ${#testable_experiments[@]} -eq 0 ]]; then
         error "No testable experiments found (experiments must define experiment-test-systems)"
     fi
     # run each testable experiment with TEST=y
     for experiment in "${testable_experiments[@]}"; do
-        log "$experiment" "$(echo-progress test)"
+        local experiment_name
+        experiment_name=${experiment#"$TOOL_DIRECTORY/experiments/"}
+        experiment_name=${experiment_name%.sh}
+        experiment_name=${experiment_name%/experiment}
+        log "$experiment_name" "$(echo-progress test)"
         # run the experiment with TEST=y in experiment-specific output directory
-        STAGES_DIRECTORY="$STAGES_DIRECTORY/$experiment" TEST=y TORTE_BANNER_PRINTED=y "$TOOL_SCRIPT" "$experiment"
+        STAGES_DIRECTORY="$STAGES_DIRECTORY/$experiment_name" TEST=y TORTE_BANNER_PRINTED=y "$TOOL_SCRIPT" "$experiment"
         FORCE_NEW_LOG=y
         log "" "$(echo-done)"
     done
