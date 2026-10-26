@@ -12,7 +12,7 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 with_timeout="--timeout 10"
 with_jobs="--jobs 4"
 
-add-payload-file evaluation.ipynb # we can add Jupyter notebooks to execute at the end of the experiment
+# add-payload-file evaluation.ipynb # we can add Jupyter notebooks to execute at the end of the experiment
 # add-payload-file Kconfig.test # we can inject individual KConfig files to test extraction on small examples
 # download-payload-file smart_home_fm.uvl https://www.uvlhub.io/hubfiles/download/189 # we can also download arbitrary payload files from the web
 # download-payload-file Tankwar.dimacs \
