@@ -322,8 +322,8 @@ There are also some general known limitations of torte. [^1]
 | [arminbiere/cadiback](https://github.com/arminbiere/cadiback) | 0.2.1 (789329d) | 2024-10-19 | |
 | [ckaestne/kconfigreader](https://github.com/ckaestne/kconfigreader) | 913bf31 | 2016-07-01 | [^3] [^4] [^5] [^9] [^16] [^24] [^41] [^42] |
 | [ekuiter/clausy](https://github.com/ekuiter/clausy) | 2.2.0 | 2026-05-15 | |
-| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | 3fc8d66 | 2025-10-10 | [^12] [^15] [^6] |
-| [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.9.1 | 2022-12-06 | [^13] [^14] [^15] |
+| [FeatureIDE/FeatJAR](https://github.com/FeatureIDE/FeatJAR) | 7469930 | 2026-10-01 | [^12] [^15] [^6] |
+| [FeatureIDE/FeatureIDE](https://github.com/FeatureIDE/FeatureIDE) | 3.12.0 | 2026-03-11 | [^13] [^14] [^15] |
 | [isselab/configfix](https://github.com/isselab/configfix) | 35f5e8b | 2026-10-20 | [^33] [^39] [^42] |
 | [julianbraha/kconfirm-smt](https://github.com/julianbraha/kconfirm/tree/main/kconfirm-smt) | 455504c | 2026-10-19 | [^46] |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) ([KClause](https://github.com/paulgazz/kmax/blob/master/kmax/kclause)) | 4.10 | 2026-08-18 | [^4] [^5] [^7] [^8] [^24] [^22] [^42] |
