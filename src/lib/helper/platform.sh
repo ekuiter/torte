@@ -75,3 +75,39 @@ is-testing() {
 is-multi-pass() {
     [[ ${#PASSES[@]} -gt 0 ]]
 }
+
+# returns whether the given pass is active
+in-pass(pass) {
+    [[ -n $PASS && $PASS == "$pass" ]]
+}
+
+# returns whether the first pass of a multi-pass experiment is active
+in-first-pass() {
+    is-multi-pass && in-pass "${PASSES[0]}"
+}
+
+# returns the first pass of a multi-pass experiment
+first-pass() {
+    if ! is-multi-pass; then
+        error "first-pass requires a multi-pass experiment."
+    fi
+    echo "${PASSES[0]}"
+}
+
+# returns the pass immediately preceding the active pass
+previous-pass() {
+    if [[ -z $PASS ]] || ! is-multi-pass; then
+        error "previous-pass requires an active pass of a multi-pass experiment."
+    fi
+    local i
+    for ((i=0; i<${#PASSES[@]}; i++)); do
+        if [[ ${PASSES[i]} == "$PASS" ]]; then
+            if [[ $i -eq 0 ]]; then
+                error "Pass $PASS has no previous pass."
+            fi
+            echo "${PASSES[i-1]}"
+            return
+        fi
+    done
+    error "Pass $PASS is not listed in PASSES."
+}
