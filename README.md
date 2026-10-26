@@ -327,7 +327,7 @@ There are also some general known limitations of torte. [^1]
 | [isselab/configfix](https://github.com/isselab/configfix) | 35f5e8b | 2026-10-20 | [^33] [^39] [^42] |
 | [julianbraha/kconfirm-smt](https://github.com/julianbraha/kconfirm/tree/main/kconfirm-smt) | 455504c | 2026-10-19 | [^46] |
 | [paulgazz/kmax](https://github.com/paulgazz/kmax) ([KClause](https://github.com/paulgazz/kmax/blob/master/kmax/kclause)) | 4.9 | 2025-10-27 | [^4] [^5] [^7] [^8] [^24] [^22] [^42] |
-| [Z3Prover/z3](https://github.com/Z3Prover/z3) | 4.11.2 | 2022-09-04 | [^10] |
+| [Z3Prover/z3](https://github.com/Z3Prover/z3) | 5.3.2 | 2026-10-25 | [^10] |
 | [zephyrproject-rtos/Kconfiglib](https://github.com/zephyrproject-rtos/Kconfiglib) | 601f63d | 2025-11-04 | [^2] |
 | [znewsham/SATGraf](https://github.com/ekuiter/SATGraf) | 2677015 | 2023-04-05 | [^11] |
 
