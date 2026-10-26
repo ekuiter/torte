@@ -1,11 +1,12 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # kmax and system (e.g., Linux) dependencies
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --allow-unauthenticated \
+ARG Z3_VERSION=5.3.2.0
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  ca-certificates \
   git \
-  python3-setuptools \
-  pipx \
+  python3-venv \
   python3-dev \
   flex \
   bison \
@@ -15,16 +16,21 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
   wget \
   parallel \
   cmake \
-  build-essential
+  build-essential \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv /opt/kmax
+ENV PATH="/opt/kmax/bin:${PATH}"
 
 # install (the tested version of) kmax
 WORKDIR /home
-# we fix z3 to an older version although we do not need it here, as 4.12.2.0 does not compile correctly
 RUN git clone https://github.com/paulgazz/kmax.git \
   && cd kmax \
   && git checkout 2880e6c99cecb828761e65e53cb9752cd74a8ada \
-  && sed -i 's/z3-solver/z3-solver==4.11.2/' setup.py \
-  && python3 setup.py install
+  && sed -i "s/z3-solver/z3-solver==${Z3_VERSION}/" setup.py \
+  && python3 -m pip install --no-cache-dir . \
+  && python3 -m pip check \
+  && python3 -c "import z3; assert z3.get_version()[:3] == tuple(map(int, '${Z3_VERSION}'.split('.')[:3])); assert z3.Solver().check() == z3.sat"
 
 # copy and set up
 # - kextractor (which is compiled against the projects' Kconfig implementations)

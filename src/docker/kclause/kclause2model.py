@@ -31,7 +31,7 @@ def format(a):
     _PP(out, _Formatter(a))
     return out.getvalue()
 
-sexprs = [re.sub('\s', '', format(c))
+sexprs = [re.sub(r'\s', '', format(c))
   .strip()
   .replace(',', ' ')
   .replace('And(', '(and ')
