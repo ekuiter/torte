@@ -487,3 +487,10 @@ reuse-stage-from-pass(stage, pass, will_resume=) {
         mark-stage-done "$stage"
     fi
 }
+
+# reuses a completed stage from the pass immediately preceding the active pass
+reuse-stage-from-previous-pass(stage, will_resume=) {
+    local pass
+    pass=$(previous-pass) || return
+    reuse-stage-from-pass --stage "$stage" --pass "$pass" --will-resume "$will_resume"
+}

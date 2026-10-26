@@ -25,19 +25,13 @@ experiment-test-systems() {
 
 # shellcheck disable=SC2086
 experiment-stages() {
-    if ! in-first-pass; then
-        # in multipass experiments, we can reuse intermediate stage outputs from any previous pass to avoid redoing work
-        reuse-stage-from-pass --stage clone-systems --pass "$(previous-pass)"
-    fi
+    # in multipass experiments, we can reuse intermediate stage outputs from any previous pass to avoid redoing work
+    ! in-first-pass && reuse-stage-from-previous-pass --stage clone-systems
     clone-systems
-    if ! in-first-pass; then
-        reuse-stage-from-pass --stage read-statistics --pass "$(previous-pass)"
-    fi
+    ! in-first-pass && reuse-stage-from-previous-pass --stage read-statistics
     read-statistics
-    if ! in-first-pass; then
-        # to respect stage-specific experiment-systems(), we must resume the extract-kconfig-models stage with --will-resume y
-        reuse-stage-from-pass --stage extract-kconfig-models --pass "$(previous-pass)" --will-resume y
-    fi
+    # to respect stage-specific experiment-systems(), we must resume the extract-kconfig-models stage with --will-resume y
+    ! in-first-pass && reuse-stage-from-previous-pass --stage extract-kconfig-models --will-resume y
     extract-kconfig-models --with-kconfigreader y --with-kclause y --with-configfix y
 
     # we can now apply arbitrary transformations to different sets of extracted models in different passes of the experiment
