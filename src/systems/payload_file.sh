@@ -64,8 +64,10 @@ inject-payload-files-after-extraction() {
         local payload_file_path
         payload_file_path="$(input-path "$MAIN_INPUT_KEY" "$payload_file")"
         if is-file-empty "$payload_file_path"; then
-            table-construct-row "$(input-csv)" model_file "$payload_file" >> "$(input-csv)"
             cp "$SRC_EXPERIMENT_DIRECTORY/$payload_file" "$payload_file_path"
+        fi
+        if ! table-field "$(input-csv)" model_file | grep -Fxq "$payload_file"; then
+            table-construct-row "$(input-csv)" model_file "$payload_file" >> "$(input-csv)"
         fi
         PAYLOAD_FILE_INDEX=$((PAYLOAD_FILE_INDEX + 1))
     }

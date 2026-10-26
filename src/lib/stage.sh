@@ -374,3 +374,116 @@ plot(stage, type, fields, arguments...) {
     fi
     run-transient-unless "" "plot-helper \"${file#"$(stages-directory)/"}\" \"$type\" \"$fields\" ${arguments[*]}"
 }
+
+# moves a completed stage's payload files from another pass into a new stage in the active pass
+# aggregates can be moved as a unit, but their already-consumed constituent stages cannot be recovered generically
+# this function is only relevant for complex multipass experiments in order to reuse the results of earlier passes
+reuse-stage-from-pass(stage, pass, will_resume=) {
+    assert-host
+    if [[ -z $PASS ]] || ! is-multi-pass; then
+        error "reuse-stage-from-pass requires an active pass of a multi-pass experiment."
+    elif [[ $pass == "$PASS" ]]; then
+        error "Cannot move stage files within the active pass $PASS."
+    fi
+
+    local source_pass_index=-1 current_pass_index=-1 i
+    for ((i=0; i<${#PASSES[@]}; i++)); do
+        [[ ${PASSES[i]} == "$pass" ]] && source_pass_index=$i
+        [[ ${PASSES[i]} == "$PASS" ]] && current_pass_index=$i
+    done
+    if [[ $source_pass_index -lt 0 ]]; then
+        error "Pass $pass is not listed in PASSES."
+    elif [[ $current_pass_index -lt 0 ]]; then
+        error "Pass $PASS is not listed in PASSES."
+    elif [[ $source_pass_index -gt $current_pass_index ]]; then
+        error "Cannot move stage files from later pass $pass into pass $PASS."
+    fi
+
+    local source_directory destination_directory source_reference destination_reference csv_file
+    source_directory=$(lookup-stage-directory-in-pass "$stage" "$pass")
+    if [[ -z $source_directory ]]; then
+        error "Could not find stage $stage in pass $pass."
+    elif [[ ! -f $source_directory/$STAGE_DONE_FILE ]]; then
+        error "Stage $stage in pass $pass is not complete."
+    elif [[ -f $source_directory/$FILES_MOVED_TO_FILE ]]; then
+        source_reference=${source_directory#"$STAGES_DIRECTORY"/}
+        destination_reference=$(cat "$source_directory/$FILES_MOVED_TO_FILE")
+        destination_directory=$STAGES_DIRECTORY/$destination_reference
+        if [[ $destination_reference != "$PASS/"* ]]; then
+            error "Stage $stage in pass $pass was moved to $destination_reference, not the active pass $PASS."
+        elif [[ ! -d $destination_directory ]] \
+            || [[ $(get-stage-name "$destination_directory") != "$stage" ]]; then
+            error "Stage $stage in pass $pass points to missing or invalid destination $destination_reference."
+        elif [[ ! -f $destination_directory/$FILES_MOVED_FROM_FILE ]] \
+            && { [[ -z $will_resume ]] || [[ $will_resume == n ]]; } \
+            && [[ -f $destination_directory/$STAGE_DONE_FILE ]]; then
+            echo "$source_reference" > "$destination_directory/$FILES_MOVED_FROM_FILE"
+        elif [[ ! -f $destination_directory/$FILES_MOVED_FROM_FILE ]] \
+            || [[ $(cat "$destination_directory/$FILES_MOVED_FROM_FILE") != "$source_reference" ]]; then
+            error "Stage $stage in pass $pass has inconsistent file-move markers."
+        fi
+        return
+    elif [[ -f $source_directory/$STAGE_MOVED_FILE ]]; then
+        error "Stage $stage in pass $pass has already been moved into an aggregate stage."
+    fi
+
+    destination_directory=$(stage-directory "$stage")
+    if [[ -e $destination_directory ]]; then
+        error "Cannot move stage files into existing directory $destination_directory."
+    fi
+    mkdir -p "$destination_directory"
+
+    # preserve the CSVs from the first move as the canonical description of all moved payload files
+    # later moves carry this snapshot forward instead of replacing it with an intermediate reduced CSV
+    mkdir -p "$destination_directory/$FILES_MOVED_OUTPUT_DIRECTORY"
+    if [[ -d $source_directory/$FILES_MOVED_OUTPUT_DIRECTORY ]]; then
+        cp -R "$source_directory/$FILES_MOVED_OUTPUT_DIRECTORY/." \
+            "$destination_directory/$FILES_MOVED_OUTPUT_DIRECTORY/"
+    else
+        for csv_file in "$source_directory"/*.csv; do
+            if [[ -f $csv_file ]]; then
+                cp "$csv_file" "$destination_directory/$FILES_MOVED_OUTPUT_DIRECTORY/"
+            fi
+        done
+    fi
+
+    local file relative_file destination_file
+    while IFS= read -r -d $'\0' file; do
+        relative_file=${file#"$source_directory"/}
+        # skip files that are not part of the stage's payload, e.g., logs, markers, and CSVs
+        if [[ $relative_file != */* ]]; then
+            case $relative_file in
+                *.csv|"$STAGE_STARTED_FILE"|"$STAGE_DONE_FILE"|"$STAGE_MOVED_FILE"|\
+                    "$FILES_MOVED_TO_FILE"|"$FILES_MOVED_FROM_FILE"|\
+                    "$OUTPUT_FILE_PREFIX.log"|"$OUTPUT_FILE_PREFIX.err"|"$OUTPUT_FILE_PREFIX.prf"|\
+                    .payload_files_injected)
+                    continue
+                    ;;
+            esac
+        fi
+        # move the file to the new stage directory, preserving its relative path
+        destination_file=$destination_directory/$relative_file
+        mkdir -p "$(dirname "$destination_file")"
+        mv "$file" "$destination_file"
+    done < <(find "$source_directory" \
+        -path "$source_directory/$SHARED_DIRECTORY" -prune -o \
+        -path "$source_directory/$FILES_MOVED_OUTPUT_DIRECTORY" -prune -o \
+        \( -type f -o -type l \) \
+        -print0) # consider all files, but skip the shared directory and the output CSVs
+    # remove any empty directories left behind in the source stage
+    find "$source_directory" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+
+    # mark the source stage as moved and the destination stage as having received files from the source stage
+    source_reference=${source_directory#"$STAGES_DIRECTORY"/}
+    destination_reference=${destination_directory#"$STAGES_DIRECTORY"/}
+    echo "$destination_reference" > "$source_directory/$FILES_MOVED_TO_FILE"
+    echo "$source_reference" > "$destination_directory/$FILES_MOVED_FROM_FILE"
+
+    # complete the destination stage unless it will resume processing the moved files (which require stage-specific handling)
+    if [[ -z $will_resume ]] || [[ $will_resume == n ]]; then
+        for csv_file in "$destination_directory/$FILES_MOVED_OUTPUT_DIRECTORY"/*.csv; do
+            [[ -f $csv_file ]] && cp "$csv_file" "$destination_directory/"
+        done
+        mark-stage-done "$stage"
+    fi
+}

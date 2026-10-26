@@ -9,13 +9,47 @@ OUTPUT_FILE_PREFIX=output # prefix for output files
 STAGE_STARTED_FILE=".stage_started" # file indicating stage start
 STAGE_DONE_FILE=".stage_done" # file indicating stage completion
 STAGE_MOVED_FILE=".stage_moved" # file indicating stage has been moved
+FILES_MOVED_TO_FILE=".files_moved_to" # indicates that files have been moved to another pass
+FILES_MOVED_FROM_FILE=".files_moved_from" # indicates that files have been moved from another pass
+FILES_MOVED_OUTPUT_DIRECTORY=".files_moved_output" # original CSV output retained across repeated moves
 
 stages-directory() {
-    if [[ -z $PASS ]]; then
+    stages-directory-for-pass "$PASS"
+}
+
+# returns the stages directory for a specific pass without changing the active pass
+stages-directory-for-pass(pass=) {
+    if [[ -z $pass ]]; then
         echo "$STAGES_DIRECTORY"
     else
-        echo "$STAGES_DIRECTORY/$PASS"
+        echo "$STAGES_DIRECTORY/$pass"
     fi
+}
+
+# returns the first pass of a multi-pass experiment
+first-pass() {
+    if ! is-multi-pass; then
+        error "first-pass requires a multi-pass experiment."
+    fi
+    echo "${PASSES[0]}"
+}
+
+# returns the pass immediately preceding the active pass
+previous-pass() {
+    if [[ -z $PASS ]] || ! is-multi-pass; then
+        error "previous-pass requires an active pass of a multi-pass experiment."
+    fi
+    local i
+    for ((i=0; i<${#PASSES[@]}; i++)); do
+        if [[ ${PASSES[i]} == "$PASS" ]]; then
+            if [[ $i -eq 0 ]]; then
+                error "Pass $PASS has no previous pass."
+            fi
+            echo "${PASSES[i-1]}"
+            return
+        fi
+    done
+    error "Pass $PASS is not listed in PASSES."
 }
 
 # extracts the stage number from a numbered stage name
@@ -67,6 +101,22 @@ lookup-stage-directory(stage) {
     if [[ -d "$(stages-directory)" ]]; then
         for dir in "$(stages-directory)"/[0-9]*_"${stage//-/_}"; do
             if [[ -d "$dir" ]] && [[ "$(get-stage-name "$dir")" == "$stage" ]]; then
+                echo "$dir"
+                return
+            fi
+        done
+    fi
+}
+
+# finds an existing numbered stage directory in a specific pass
+lookup-stage-directory-in-pass(stage, pass) {
+    assert-host
+    local pass_stages_directory
+    pass_stages_directory=$(stages-directory-for-pass "$pass")
+    if [[ -d $pass_stages_directory ]]; then
+        local dir
+        for dir in "$pass_stages_directory"/[0-9]*_"${stage//-/_}"; do
+            if [[ -d $dir ]] && [[ "$(get-stage-name "$dir")" == "$stage" ]]; then
                 echo "$dir"
                 return
             fi
@@ -174,6 +224,7 @@ output-file(extension) { output-path "$OUTPUT_FILE_PREFIX.$extension"; }
 stage-started-file(stage) { stage-path "$stage" "$STAGE_STARTED_FILE"; }
 stage-done-file(stage) { stage-path "$stage" "$STAGE_DONE_FILE"; }
 stage-moved-file(stage) { stage-path "$stage" "$STAGE_MOVED_FILE"; }
+stage-files-moved-from-file(stage) { stage-path "$stage" "$FILES_MOVED_FROM_FILE" __NO_CREATE__; }
 
 stage-timestamp() {
     local now
@@ -235,6 +286,12 @@ stage-moved-to(stage) {
     if stage-moved "$stage"; then
         cat "$(stage-moved-file "$stage")"
     fi
+}
+
+# returns whether payload files were moved into the given stage from another pass
+stage-files-moved-from(stage) {
+    assert-host
+    [[ -f "$(stage-files-moved-from-file "$stage")" ]]
 }
 
 # asserts that the given experiment stage is done

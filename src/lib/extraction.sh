@@ -351,6 +351,9 @@ extract-kconfig-model(extractor, lkc_binding, system, revision, kconfig_file, lk
 # defines API functions for extracting kconfig models
 # sets the global EXTRACTOR, LKC_BINDING, TIMEOUT, DATE_PREFIX variables
 register-kconfig-extractor(extractor, lkc_binding, options=, timeout=0, date_prefix=) {
+    if [[ -f $(output-path "$FILES_MOVED_FROM_FILE" __NO_CREATE__) ]]; then
+        error "Moved extraction output can only be reused through the aggregate extract-kconfig-models stage."
+    fi
     EXTRACTOR=$extractor
     LKC_BINDING=$lkc_binding
     OPTIONS=$options
@@ -513,4 +516,80 @@ extract-kconfig-hierarchies-with-kconfiglib(timeout=0) {
 mount-for-hierarchy-extraction(input=, uvl_input=transform-to-uvl-with-featureide, unconstrained_features_input=compute-unconstrained-features) {
     input=${input:-$ROOT_STAGE}
     echo "$MAIN_INPUT_KEY=$input,$UVL_INPUT_KEY=$uvl_input,$UNCONSTRAINED_FEATURES_INPUT_KEY=$unconstrained_features_input"
+}
+
+# rebuilds the output CSVs of a moved extract-kconfig-models aggregate for the current experiment definition
+# only relevant in multipass experiments, where the aggregate is moved from one pass to another to facilitate reuse
+reuse-extracted-kconfig-models(options=, extractors...) {
+    assert-array extractors
+    local source_file requested_file output_file extractor_stage original_inside_stage
+    source_file=$(output-path "$FILES_MOVED_OUTPUT_DIRECTORY" "$OUTPUT_FILE_PREFIX.csv" __NO_CREATE__)
+    if [[ ! -f $source_file ]]; then
+        error "Cannot reuse aggregate extraction output: source CSV is missing."
+    fi
+    requested_file=$(mktemp)
+    output_file=$(mktemp "$(output-directory)/.$OUTPUT_FILE_PREFIX.csv.XXXXXX")
+    echo extractor,system,revision,context,kconfig_file,environment,options > "$requested_file"
+    original_inside_stage=$INSIDE_STAGE
+
+    # iterate over all extractors and record the requested extraction output for each system and revision
+    for extractor_stage in "${extractors[@]}"; do
+        INSIDE_STAGE=$extractor_stage
+        add-lkc-binding(system, revision, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
+            :
+        }
+        add-kconfig-model(system, revision, kconfig_file, lkc_binding_file=, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
+            if ! should-skip extract-kconfig-model "" "$system" "$revision"; then
+                echo "$extractor_stage,$system,$(revision-without-context "$revision"),$(get-context "$revision"),$kconfig_file,${environment//,/|},$options" >> "$requested_file"
+            fi
+        }
+        add-kconfig(system, revision, kconfig_file, lkc_directory, lkc_target=, lkc_output_directory=, environment=) {
+            add-kconfig-model "$system" "$revision" "$kconfig_file" "" "$lkc_directory" "$lkc_target" "$lkc_output_directory" "$environment"
+        }
+        experiment-systems
+    done
+    INSIDE_STAGE=$original_inside_stage
+
+    # rebuild the output CSV by joining the source CSV with the requested CSV
+    if ! awk -F, '
+        NR == FNR {
+            if (FNR == 1)
+            {
+                header = $0
+                for (i = 1; i <= NF; i++)
+                {
+                    columns[$i] = i
+                }
+            }
+            else
+            {
+                key = $(columns["extractor"]) SUBSEP $(columns["system"]) SUBSEP $(columns["revision"])
+                key = key SUBSEP $(columns["context"]) SUBSEP $(columns["kconfig_file"])
+                key = key SUBSEP $(columns["environment"]) SUBSEP $(columns["options"])
+                rows[key] = $0
+            }
+            next
+        }
+        FNR == 1 {
+            print header
+            next
+        }
+        {
+            key = $1 SUBSEP $2 SUBSEP $3 SUBSEP $4 SUBSEP $5 SUBSEP $6 SUBSEP $7
+            if (key in rows)
+            {
+                print rows[key]
+            }
+            else
+            {
+                print "Cannot reuse missing extraction output: " $0 > "/dev/stderr"
+                exit 1
+            }
+        }
+    ' "$source_file" "$requested_file" > "$output_file"; then
+        rm-safe "$output_file" "$requested_file"
+        return 1
+    fi
+    mv "$output_file" "$(output-csv)"
+    rm-safe "$requested_file"
 }

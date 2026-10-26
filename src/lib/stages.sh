@@ -59,60 +59,76 @@ define-stages() {
         [[ $with_kconfirm_smt == y ]] && with_kconfirm_smt=1
         local inputs=()
 
-        if [[ -n $with_kconfigreader ]]; then
-            extract-kconfig-models-with \
-                --extractor kconfigreader \
-                --input "$input" \
-                --iterations "$with_kconfigreader" \
-                --iteration-field "$iteration_field" \
-                --options "$options" \
-                --timeout "$timeout" \
-                --date-prefix "$date_prefix"
-            inputs+=("extract-kconfig-models-with-kconfigreader")
-        fi
+        [[ -n $with_kconfigreader ]] && inputs+=("extract-kconfig-models-with-kconfigreader")
+        [[ -n $with_kclause ]] && inputs+=("extract-kconfig-models-with-kclause")
+        [[ -n $with_configfix ]] && inputs+=("extract-kconfig-models-with-configfix")
+        [[ -n $with_kconfirm_smt ]] && inputs+=("extract-kconfig-models-with-kconfirm-smt")
 
-        if [[ -n $with_kclause ]]; then
-            extract-kconfig-models-with \
-                --extractor kclause \
-                --input "$input" \
-                --iterations "$with_kclause" \
-                --iteration-field "$iteration_field" \
+        if stage-files-moved-from "$output"; then
+            # the following is needed in case that we are in a multipass experiment
+            # that reuses the extracted models of a previous pass as input for this pass
+            # (i.e., when reuse-stage-from-pass is called before extract-kconfig-models)
+            # this is needed because the final aggregate consumed its constituent stages,
+            # and they cannot be reconstructed easily, and this code avoids us needing to do this
+            run \
+                --image util \
+                --output "$output" \
+                --resumable y \
+                --command reuse-extracted-kconfig-models \
                 --options "$options" \
-                --timeout "$timeout" \
-                --date-prefix "$date_prefix"
-            inputs+=("extract-kconfig-models-with-kclause")
-        fi
+                --extractors "${inputs[@]}"
+        else
+            if [[ -n $with_kconfigreader ]]; then
+                extract-kconfig-models-with \
+                    --extractor kconfigreader \
+                    --input "$input" \
+                    --iterations "$with_kconfigreader" \
+                    --iteration-field "$iteration_field" \
+                    --options "$options" \
+                    --timeout "$timeout" \
+                    --date-prefix "$date_prefix"
+            fi
 
-        if [[ -n $with_configfix ]]; then
-            extract-kconfig-models-with \
-                --extractor configfix \
-                --input "$input" \
-                --iterations "$with_configfix" \
-                --iteration-field "$iteration_field" \
-                --options "$options" \
-                --timeout "$timeout" \
-                --date-prefix "$date_prefix"
-            inputs+=("extract-kconfig-models-with-configfix")
-        fi
+            if [[ -n $with_kclause ]]; then
+                extract-kconfig-models-with \
+                    --extractor kclause \
+                    --input "$input" \
+                    --iterations "$with_kclause" \
+                    --iteration-field "$iteration_field" \
+                    --options "$options" \
+                    --timeout "$timeout" \
+                    --date-prefix "$date_prefix"
+            fi
 
-        if [[ -n $with_kconfirm_smt ]]; then
-            extract-kconfig-models-with \
-                --extractor kconfirm-smt \
-                --input "$input" \
-                --iterations "$with_kconfirm_smt" \
-                --iteration-field "$iteration_field" \
-                --options "$options" \
-                --timeout "$timeout" \
-                --date-prefix "$date_prefix"
-            inputs+=("extract-kconfig-models-with-kconfirm-smt")
-        fi
+            if [[ -n $with_configfix ]]; then
+                extract-kconfig-models-with \
+                    --extractor configfix \
+                    --input "$input" \
+                    --iterations "$with_configfix" \
+                    --iteration-field "$iteration_field" \
+                    --options "$options" \
+                    --timeout "$timeout" \
+                    --date-prefix "$date_prefix"
+            fi
 
-        # aggregate all extracted models in one stage
-        aggregate \
-            --output "$output" \
-            --stage-field extractor \
-            --file-fields binding_file,model_file \
-            --inputs "${inputs[@]}"
+            if [[ -n $with_kconfirm_smt ]]; then
+                extract-kconfig-models-with \
+                    --extractor kconfirm-smt \
+                    --input "$input" \
+                    --iterations "$with_kconfirm_smt" \
+                    --iteration-field "$iteration_field" \
+                    --options "$options" \
+                    --timeout "$timeout" \
+                    --date-prefix "$date_prefix"
+            fi
+
+            # aggregate all extracted models in one stage
+            aggregate \
+                --output "$output" \
+                --stage-field extractor \
+                --file-fields binding_file,model_file \
+                --inputs "${inputs[@]}"
+        fi
 
         # inject any payload files specified in experiment-systems (e.g., additional UVL files)
         run-transient-unless \
