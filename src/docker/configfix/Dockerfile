@@ -36,7 +36,7 @@ RUN wget -q https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.3.tar.xz \
     && rm linux-7.3.tar.xz
 RUN git clone --branch v7.3 --depth 1 https://github.com/isselab/configfix.git \
     && cd configfix \
-    && git checkout 5aebac6d611478ee6e01fdb3877a5fab02b0e0f7 \
+    && git checkout 35f5e8b2535c9b4cbc1908f2875dcaf8911baf1c \
     && ./copy_files.sh /home/linux \
     && cd /home/linux \
     # Export into the working directory, including for non-Linux systems.
