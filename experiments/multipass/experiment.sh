@@ -10,6 +10,10 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 PASSES=(pass1 pass2 pass3)
 
 experiment-systems() {
+    experiment-test-systems
+}
+
+experiment-test-systems() {
     if in-pass pass1; then
         add-busybox-kconfig-tags --from 1_37_0 --to 1_39_0
     elif in-pass pass2; then
@@ -19,10 +23,6 @@ experiment-systems() {
     fi
 }
 
-experiment-test-systems() {
-    experiment-systems
-}
-
 # shellcheck disable=SC2086
 experiment-stages() {
     # in multipass experiments, we can reuse intermediate stage outputs from any previous pass to avoid redoing work
@@ -30,7 +30,7 @@ experiment-stages() {
     clone-systems
     ! in-first-pass && reuse-stage-from-previous-pass --stage read-statistics
     read-statistics
-    # to respect stage-specific experiment-systems(), we must resume the extract-kconfig-models stage with --will-resume y
+    # to respect stage-specific experiment-systems(), we must resume the extract-kconfig-models stage
     ! in-first-pass && reuse-stage-from-previous-pass --stage extract-kconfig-models --will-resume y
     extract-kconfig-models --with-kconfigreader y --with-kclause y --with-configfix y
 
