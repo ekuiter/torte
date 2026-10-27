@@ -142,7 +142,7 @@ kconfig-pre-binding-hook-linux(system, revision, lkc_directory=) {
 }
 
 linux-tags() {
-    git-tags linux | exclude-revision tree rc "v.*\..*\..*\..*"
+    git-tags linux | grep '^v' | exclude-revision tree rc "v.*\..*\..*\..*"
 }
 
 linux-architectures(revision) {
