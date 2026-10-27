@@ -15,11 +15,11 @@ experiment-systems() {
 
 experiment-test-systems() {
     if in-pass pass1; then
-        add-busybox-kconfig-tags --from 1_37_0 --to 1_39_0
-    elif in-pass pass2; then
         add-busybox-kconfig-tags --from 1_37_0 --to 1_38_0
+    elif in-pass pass2; then
+        add-busybox-kconfig-tags --from 1_37_0 --to 1_37_0
     elif in-pass pass3; then
-        add-busybox-kconfig-tags --from 1_38_0 --to 1_39_0
+        add-busybox-kconfig-tags --from 1_38_0 --to 1_38_0
     fi
 }
 

@@ -16,7 +16,7 @@ experiment-systems() {
 
 experiment-test-systems() {
     case "$PASS" in
-        releases) add-busybox-kconfig-tags --from 1_38_0 --to 1_39_0 ;;
+        releases) add-busybox-kconfig-tags --from 1_38_0 --to 1_38_0 ;;
         commits) ;;
     esac
 }

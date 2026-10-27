@@ -8,11 +8,11 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # It is mentioned in the RCR Report for our TOSEM'25 paper "How Configurable is the Linux Kernel? Analyzing Two Decades of Feature-Model History".
 
 experiment-systems() {
-    add-linux-kconfig-tags --from v7.2 --to v7.3 --architecture x86
+    add-linux-kconfig-tags --from v7.3 --to v7.3 --architecture x86
 }
 
 experiment-test-systems(__NO_CI__) {
-    add-linux-kconfig-tags --from v7.2 --to v7.3 --architecture x86
+    add-linux-kconfig-tags --from v7.3 --to v7.3 --architecture x86
 }
 
 experiment-stages() {

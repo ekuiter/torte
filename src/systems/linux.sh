@@ -60,7 +60,7 @@ tag-old-releases-linux() {
 
     # could also tag older revisions, but none use Kconfig
     tag-old-releases-linux-helper https://mirrors.edge.kernel.org/pub/linux/kernel/v2.5/ 2.5.45
-    tag-old-releases-linux-helper https://mirrors.edge.kernel.org/pub/linux/kernel/v2.6/ 2.6.0 2.6.12
+    tag-old-releases-linux-helper https://mirrors.edge.kernel.org/pub/linux/kernel/v2.6/ 2.6.0 2.6.11.12
     # could also add more granular revisions with minor or patch level after 2.6.12, if necessary
 
     git -C "$(input-directory)/linux" prune
@@ -68,12 +68,12 @@ tag-old-releases-linux() {
 }
 
 # downloads old Linux releases from the given webpage and tags them in the Git repository
-tag-old-releases-linux-helper(base_uri, start_inclusive=, end_exclusive=) {
+tag-old-releases-linux-helper(base_uri, start_inclusive=, end_inclusive=) {
     local revisions
     revisions=$(curl -s "$base_uri" \
         | sed 's/.*>\(.*\)<.*/\1/g' | grep .tar.gz | cut -d- -f2 | sed 's/\.tar\.gz//' | sort -V \
         | start-at-revision "$start_inclusive" \
-        | stop-at-revision "$end_exclusive")
+        | stop-at-revision "$end_inclusive")
     for revision in $revisions; do
         if ! git -C "$(input-directory)/linux" tag | grep -q "^v$revision$"; then
             log "linux@$revision" "$(echo-progress tag)"

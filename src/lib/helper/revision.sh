@@ -15,16 +15,16 @@ start-at-revision(start_inclusive=) {
     if [[ -z $start_inclusive ]]; then
         cat -
     else
-        sed -n '/'"$start_inclusive"'/,$p'
+        awk -v start="$start_inclusive" 'found || $0 == start { found = 1; print }'
     fi
 }
 
-# only include revisions starting up to a given revision
-stop-at-revision(end_exclusive=) {
-    if [[ -z $end_exclusive ]]; then
+# only include revisions up to a given revision
+stop-at-revision(end_inclusive=) {
+    if [[ -z $end_inclusive ]]; then
         cat -
     else
-        sed -n '/'"$end_exclusive"'/q;p'
+        awk -v end="$end_inclusive" '{ print } $0 == end { exit }'
     fi
 }
 

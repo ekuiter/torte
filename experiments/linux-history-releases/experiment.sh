@@ -35,11 +35,11 @@ add-payload-file evaluation.ipynb
 
 experiment-systems() {
     # analyze all revisions and architectures of the Linux kernel
-    add-linux-kconfig-tags --from v2.5.45 --to v6.12 --architecture all
+    add-linux-kconfig-tags --from v2.5.45 --to v6.11 --architecture all
 }
 
 experiment-test-systems(__NO_CI__) {
-    add-linux-kconfig-tags --from v6.11 --to v6.12 --architecture x86
+    add-linux-kconfig-tags --from v6.11 --to v6.11 --architecture x86
 }
 
 experiment-stages() {
