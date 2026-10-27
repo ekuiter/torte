@@ -12,7 +12,3 @@ define-system \
 add-uclibcxx-system() {
     add-system --system uclibcxx --url "$UCLIBCXX_URL"
 }
-
-add-uclibcxx-kconfig-tags(from=, to=) {
-    add-uclibcxx-kconfig-revisions "$(git-tags uclibcxx | start-at-revision "$from" | stop-at-revision "$to")"
-}
