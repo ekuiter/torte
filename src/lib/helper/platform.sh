@@ -63,6 +63,15 @@ memory-limit(further_limit=0) {
     echo "$((MEMORY_LIMIT-further_limit))"
 }
 
+# returns the number of available logical CPU cores for parallel jobs
+cpu-cores() {
+    if is-macos; then
+        sysctl -n hw.logicalcpu
+    else
+        nproc
+    fi
+}
+
 # returns whether we are in a testing environment
 is-testing() {
     [[ -n $TEST ]]
