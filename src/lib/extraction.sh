@@ -529,6 +529,7 @@ reuse-extracted-kconfig-models(options=, extractors...) {
     fi
     requested_file=$(mktemp)
     output_file=$(mktemp "$(output-directory)/.$OUTPUT_FILE_PREFIX.csv.XXXXXX")
+    chmod 0644 "$output_file"
     echo extractor,system,revision,context,kconfig_file,environment,options > "$requested_file"
     original_inside_stage=$INSIDE_STAGE
 

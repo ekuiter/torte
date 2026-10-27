@@ -56,6 +56,7 @@ generate-kconfig-commits(system, generator, branch=master, change_globs...) {
     # create a temporary Git repository for the generated KConfig history
     local output_directory
     output_directory=$(mktemp -d "$(output-directory)/.${system}.XXXXXX")
+    chmod 0755 "$output_directory"
     git -C "$output_directory" init -b "$branch" -q
     echo "*.log" >> "$output_directory/.gitignore"
     echo "*.err" >> "$output_directory/.gitignore"
