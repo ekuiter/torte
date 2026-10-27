@@ -50,7 +50,8 @@ git-commits-touching(system, branch=master, paths...) {
     git -C "$(input-directory)/$system" log "$branch" --format="%h" --reverse -- "${paths[@]}"
 }
 
-# sample commits in a given interval
+# sample commits in a given interval, starting at the oldest commit
+# to stop sampling early, pass a commit hash as the branch argument
 git-sample-commits(system, interval, branch=master) {
     if [[ ! -d $(input-directory)/$system ]]; then
         return
@@ -66,5 +67,34 @@ git-sample-commits(system, interval, branch=master) {
         last_timestamp=$timestamp
         ((timestamp+="$interval"))
         if [[ $(jobs -r -p | wc -l) -ge $N ]]; then wait -n; fi
+    done
+}
+
+# for a given list of revisions on stdin, returns the latest revision per year
+# uses commit dates, prints revisions in year order, and omits years without candidates
+git-last-revision-per-year(system, from, to) {
+    if [[ ! $from =~ ^[1-9][0-9]{3}$ || ! $to =~ ^[1-9][0-9]{3}$ ]] \
+        || [[ $from -gt $to ]]; then
+        error "Invalid year range $from-$to."
+    fi
+    if [[ ! -d $(input-directory)/$system ]]; then
+        return
+    fi
+    local revision timestamp year
+    local -A revisions_by_year=() timestamps_by_year=()
+    while IFS= read -r revision || [[ -n $revision ]]; do
+        [[ -z $revision ]] && continue
+        timestamp=$(git-timestamp "$system" "$revision") || return
+        year=$(date -u -d "@$timestamp" +%Y) || return
+        if [[ $year -ge $from && $year -le $to ]] \
+            && [[ -z ${timestamps_by_year[$year]} || $timestamp -ge ${timestamps_by_year[$year]} ]]; then
+            revisions_by_year[$year]=$revision
+            timestamps_by_year[$year]=$timestamp
+        fi
+    done
+    for ((year=from; year<=to; year++)); do
+        if [[ -n ${revisions_by_year[$year]} ]]; then
+            echo "${revisions_by_year[$year]}"
+        fi
     done
 }
