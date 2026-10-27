@@ -2,9 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
+### Added
+
+- New systems: barebox, coreboot, crosstool-NG, Entware, NuttX, OpenADK, OpenWrt, PTXdist, Soletta, TizenRT, U-Boot, uClibc++, uClinux-dist, Unikraft, and XVisor
+- New experiments: BusyBox entropy evaluation, a multipass example
+- Support for extracting Linux feature models as SMT-LIB2 with kconfirm-smt
+- Reuse completed stages across experiment passes, including previously extracted models
+- Helpers for multipass experiments and pruning intermediate stages
+- Better logging and output
+
+### Changed
+
+- Updated tools: clausy, FeatJAR, KClause, KConfigLib, CadiBack, and Z3; update ConfigFix to LKC 7.3
+- Make revision ranges inclusive at both ends (rather than exclusive, as the old --to option did)
+- Allow commit sampling to use a fixed tag (for better reproducibility)
+- Resume interrupted repository cloning
+- Discover testable shell experiments recursively
+- Revised experiments and evaluations
+
+### Fixed
+
+- Fix hook compilation when hook steps modify `IFS`
+- Fix permissions of temporary extraction CSVs and generated KConfig repositories used across containers
+- Check stage completion correctly before aggregating repeated runs
+- Noninteractive package installation in Docker images
+- Several other bugs
 
 ## [2.2.0] - 2026-06-16
 
