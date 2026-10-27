@@ -13,6 +13,33 @@ clean(stages...) {
     done
 }
 
+# removes stage payloads while retaining CSVs, logs, status markers, and shared bookkeeping
+# useful to save disk space in case payloads are no longer needed
+prune-stages(stages...) {
+    assert-array stages
+    assert-host
+    local stage directory file name
+    for stage in "${stages[@]}"; do
+        directory=$(lookup-stage-directory "$stage")
+        if [[ -z $directory ]]; then
+            error "Could not find stage $stage to prune."
+        fi
+        assert-stage-done "$stage"
+        while IFS= read -r -d '' file; do
+            name=${file##*/}
+            case $name in
+                *.csv|"$STAGE_STARTED_FILE"|"$STAGE_DONE_FILE"|"$STAGE_MOVED_FILE"|\
+                    "$FILES_MOVED_TO_FILE"|"$FILES_MOVED_FROM_FILE"|\
+                    "$OUTPUT_FILE_PREFIX.log"|"$OUTPUT_FILE_PREFIX.err"|"$OUTPUT_FILE_PREFIX.prf"|\
+                    .payload_files_injected|"$SHARED_DIRECTORY"|"$FILES_MOVED_OUTPUT_DIRECTORY")
+                    continue
+                    ;;
+            esac
+            rm-safe "$file"
+        done < <(find "$directory" -mindepth 1 -maxdepth 1 -print0)
+    done
+}
+
 # runs a stage of some experiment in a Docker container
 run(image=util, input=, output=, resumable=, command...) {
     output=${output:-$TRANSIENT_STAGE}

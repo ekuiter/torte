@@ -52,13 +52,18 @@ experiment-stages() {
     transform-to-dimacs --timeout "$TRANSFORM_TIMEOUT"
 }
 
-# execute this with "torte feature-model-histories clean-up" in the stages directory
+# execute this with "torte feature-model-histories clean-up" to prune intermediate payloads
 clean-up() {
-    rm -rf ./*_extract_kconfig_models_with_*
-    rm -rf ./*_transform_to_dimacs_with_*
-    rm -rf ./*_transform_to_model_with_featureide
-    rm -rf ./*_transform_to_smt_with_z3
-    rm -rf ./*_transform_smt_to_dimacs_with_z3
+    local directory stage
+    while IFS= read -r directory; do
+        stage=$(get-stage-name "$directory")
+        case $stage in
+            extract-kconfig-models-with-*|transform-to-dimacs-with-*|\
+                transform-to-model-with-featureide|transform-to-smt-with-z3|transform-smt-to-dimacs-with-z3)
+                prune-stages "$stage"
+                ;;
+        esac
+    done < <(list-numbered-stages)
     # then zip the remaining stages and upload them into a torte release:
     # for dir in */; do zip -r ${dir%/}.zip ${dir%/}; done
     # zip 5_extract_kconfig_models.zip --out model.zip -s 2000m
