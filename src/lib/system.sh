@@ -30,9 +30,9 @@ define-system(system, kconfig_file=, lkc_directory=, lkc_target=, lkc_output_dir
 		        add-${system}-kconfig --revision "\$revision"
 		    done
 		}
-		add-${system}-kconfig-sample(interval=) {
+		add-${system}-kconfig-sample(interval=, branch=${sample_branch:-master}) {
 		    if [[ -z \$interval ]]; then interval=$(interval yearly); fi
-		    add-${system}-kconfig-revisions "\$(memoize-global git-sample-commits ${system} "\$interval" ${sample_branch})"
+		    add-${system}-kconfig-revisions "\$(memoize-global git-sample-commits --system ${system} --interval "\$interval" --branch "\$branch")"
 		}
 		END
     ))"

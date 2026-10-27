@@ -288,9 +288,11 @@ add-linux-kconfig-tags(from=, to=, architecture=x86) {
         "$architecture"
 }
 
-add-linux-kconfig-sample(interval=, architecture=x86) {
+add-linux-kconfig-sample(interval=, architecture=x86, branch=master) {
     if [[ -z $interval ]]; then interval=$(interval yearly); fi
-    add-linux-kconfig-revisions "$(memoize-global git-sample-commits linux "$interval" master)" "$architecture"
+    add-linux-kconfig-revisions \
+        "$(memoize-global git-sample-commits --system linux --interval "$interval" --branch "$branch")" \
+        "$architecture"
 }
 
 # modifies Kconfig files before hierarchy extraction with KConfigLib

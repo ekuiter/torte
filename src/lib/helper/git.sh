@@ -55,13 +55,13 @@ git-sample-commits(system, interval, branch=master) {
     if [[ ! -d $(input-directory)/$system ]]; then
         return
     fi
-    local last_timestamp current_timestamp now_timestamp
+    local timestamp last_timestamp current_timestamp end_timestamp
     git-checkout "$branch" "$(input-directory)/$system" > /dev/null
     timestamp=$(git-timestamp "$system" "$(git -C "$(input-directory)/$system" log --format="%h" | tail -1)")
     last_timestamp=$timestamp
-    now_timestamp=$(date +%s)
+    end_timestamp=$(git-timestamp "$system" HEAD)
     local N=20
-    while [[ $timestamp -lt $now_timestamp ]]; do
+    while [[ $timestamp -lt $end_timestamp ]]; do
         git -C "$(input-directory)/$system" --no-pager log -1 --format="%h" --since "$last_timestamp" --until "$timestamp" &
         last_timestamp=$timestamp
         ((timestamp+="$interval"))
