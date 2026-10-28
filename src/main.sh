@@ -84,4 +84,19 @@ done
 
 # initialize torte and run the given experiment or command
 TOOL_INITIALIZED=y
+
+# redirect old experiment names (mentioned in papers and artifacts) to new, reorganized files
+declare -A EXPERIMENT_ALIASES=(
+    [linux-history-releases]=tosem25
+    [linux-recent-release]="$TOOL_DIRECTORY/experiments/tosem25/experiment_small.sh"
+    [linux-time-travel]=icse26
+    [tseitin-or-not-tseitin]=ase22
+    [busybox-entropy]=experimental/busybox-entropy
+    [configfix]=experimental/configfix
+    [multipass]=experimental/multipass
+)
+if [[ -n ${1:-} ]] && [[ -n ${EXPERIMENT_ALIASES[$1]:-} ]]; then
+    set -- "${EXPERIMENT_ALIASES[$1]}" "${@:2}"
+fi
+
 entrypoint "$@"

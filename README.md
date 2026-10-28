@@ -290,7 +290,7 @@ This can be fixed by committing all such generated files to a new, modified repo
 Thus, experiments that operate on the entire (i.e., all commits) history of this system are currently not supported.
 
 [^44]: If extracted with KConfigReader, many releases of this system generate very large RSF dumps (> 100 MiB) and/or have infeasible extraction times (> 20 min).
-We discourage using KConfigReader to extract this system (see `experiments/featured-model-histories/restrictions.csv`) and to use KClause instead.
+We discourage using KConfigReader to extract this system (see `experiments/feature-model-histories/restrictions.csv`) and to use KClause instead.
 
 [^45]: barebox distinguishes architectures similar to Linux.
 To simplify extraction, we fix this architecture to `x86`, which can be overwritten with the `BAREBOX_ARCH` variable.
@@ -638,7 +638,7 @@ Core contributors:
 Further contributors:
 
 - Eric Ketzler (University of Magdeburg, Germany): `src/docker/kconfiglib` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Ketzler25.pdf))
-- Urs-Benedict Braun (University of Magdeburg, Germany): `experiments/linux-time-travel` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Braun25.pdf))
+- Urs-Benedict Braun (University of Magdeburg, Germany): `experiments/icse26` ([Bachelor thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Braun25.pdf))
 - Rami Alfish (University of Magdeburg, Germany): `src/docker/configfix` ([Master thesis](https://wwwiti.cs.uni-magdeburg.de/iti_db/publikationen/ps/auto/Alfish25.pdf))
 - Lukas Petermann (University of Magdeburg, Germany): [torte-dashboard](https://github.com/ekuiter/torte-dashboard/) ([Project presentation](https://raw.githubusercontent.com/ekuiter/torte-dashboard/main/slides/slides.pdf))
 - [Julian Braha](https://julianbraha.com/): `src/docker/kconfirm-smt`
