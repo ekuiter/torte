@@ -3,7 +3,7 @@
 **torte is a declarative experimentation platform for reproducible feature-model analysis research.
 It integrates 25 configurable software systems, various extractors and transformers, and 700+ automated solvers.**
 
-Jump to: [**ICSE'26 Demo**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Publications**](#publications-and-artifacts) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/) | [**Dashboard**](http://elias-kuiter.de/torte-dashboard/) | [**Research**](http://elias-kuiter.de/torte-research/)
+Jump to: [**ICSE'26 Demo**](https://www.youtube.com/watch?v=VtaJiC_b8RA) | [**Publications**](#publications-and-artifacts) | [**Feature-Model Histories**](https://github.com/ekuiter/torte/releases/tag/feature-model-histories) | [**Zenodo Community**](https://zenodo.org/communities/torte/) | [**Dashboard**](http://ekuiter.github.io/torte-dashboard/) | [**Research**](http://ekuiter.github.io/torte-research/)
 
 <img src="meta/demo.gif">
 
@@ -39,7 +39,7 @@ This way, you can
 - **distribute fully-automated reproduction packages** when an experiment is ready for publication, and
 - **adapt and update existing experiments** without needing to resort to clone-and-own practices.
 
-To demonstrate the capabilities of torte, we provide a [dashboard](http://elias-kuiter.de/torte-dashboard/) and [demo video](https://www.youtube.com/watch?v=VtaJiC_b8RA).
+To demonstrate the capabilities of torte, we provide a [dashboard](http://ekuiter.github.io/torte-dashboard/) and [demo video](https://www.youtube.com/watch?v=VtaJiC_b8RA).
 
 ## Getting Started: The Quick Way
 
@@ -47,7 +47,7 @@ torte provides four major setup options:
 
 1. This one-liner will get you started with the [default experiment](experiments/default/experiment.sh) ([Docker](https://docs.docker.com/get-docker/) or [Podman](https://podman.io/get-started) required).
     ```
-    curl -sL https://elias-kuiter.de/torte/ | sh
+    curl -sL https://ekuiter.github.io/torte/ | sh
     ```
     Choose this option if you do not intend to customize torte.
     <details>
@@ -112,7 +112,7 @@ curl -fsSL https://get.docker.com | sh
 dockerd-rootless-setuptool.sh install
 
 # download and run the default experiment
-curl -sL https://elias-kuiter.de/torte/ | sh
+curl -sL https://ekuiter.github.io/torte/ | sh
 ```
 
 ### macOS 14
@@ -133,7 +133,7 @@ rm Docker.dmg
 open /Applications/Docker.app
 
 # download and run the default experiment
-curl -sL https://elias-kuiter.de/torte/ | sh
+curl -sL https://ekuiter.github.io/torte/ | sh
 ```
 
 ### Windows 11
@@ -154,13 +154,13 @@ sudo apt-get update
 sudo apt-get install -y curl git make
 
 # download and run the default experiment
-curl -sL https://elias-kuiter.de/torte/ | sh
+curl -sL https://ekuiter.github.io/torte/ | sh
 ```
 
 **Executing Experiments**
 
 - Above, we run the [default experiment](experiments/default/experiment.sh), which extracts, transforms, and solves the feature model of BusyBox 1.36.0 as a demonstration.
-To execute another experiment with the one-liner, run `curl -sL https://elias-kuiter.de/torte/ | sh -s - <experiment>` (information about predefined experiments is available [here](#predefined-experiments)).
+To execute another experiment with the one-liner, run `curl -sL https://ekuiter.github.io/torte/ | sh -s - <experiment>` (information about predefined experiments is available [here](#predefined-experiments)).
 You can also write your own experiments by adapting an existing experiment file.
 - As an alternative to the self-extracting one-line installer shown above, you can clone this repository and run experiments with `./torte.sh <experiment>` (e.g., `./torte.sh busybox-history`).
 - Yet another alternative is to download a [release](https://github.com/ekuiter/torte/releases), which is useful to get a specific version of torte.
@@ -201,7 +201,7 @@ The following plot shows the subject systems for which feature-model extraction 
 ![Success and failure of feature-model history extraction](./experiments/feature-model-histories/extraction-history.svg)
 
 Other systems or revisions may also be supported.
-For an overview of KConfig-based system software, have a look at our [research](http://elias-kuiter.de/torte-research/) website.
+For an overview of KConfig-based system software, have a look at our [research](http://ekuiter.github.io/torte-research/) website.
 Currently, we implement extraction for all systems we are aware of that rely on LKC (the implementation of KConfig found in Linux).
 
 Detailed system-specific information on potential threats to validity is available in the `scripts/systems` directory.
@@ -310,7 +310,7 @@ However, that transform does not modify the `master` branch itself, so sampling 
 ## Bundled Tools
 
 We only list tools here that are integrated into torte.
-For an overview of additional tools to feature-model analysis, have a look at our [research](http://elias-kuiter.de/torte-research/) website.
+For an overview of additional tools to feature-model analysis, have a look at our [research](http://ekuiter.github.io/torte-research/) website.
 
 ### Extraction and Transformation
 
