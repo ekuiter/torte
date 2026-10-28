@@ -212,16 +212,16 @@ To extract a single revision, you can specify an excerpt with only one commit.
 | System | Releases | Years | Notes |
 | - | - | - | - |
 | [axTLS](src/systems/axtls.sh) | 1.0.0 - 2.1.5 | 2006 - 2019 | |
-| [barebox](src/systems/barebox.sh) | 2009.12.0 - 2026.08.0 | 2008 - 2026 | [^45] [^56] [^55] |
+| [barebox](src/systems/barebox.sh) | 2009.12.0 - 2026.08.0 | 2008 - 2026 | [^45] [^56] [^55] [^58] |
 | [Buildroot](src/systems/buildroot.sh) | 2009.02 - 2025.08 | 2009 - 2025 | |
 | [BusyBox](src/systems/busybox.sh) | 1.0 - 1.38.0 | 2004 - 2026 | [^27] [^34] |
 | [coreboot](src/systems/coreboot.sh) | 4.0 - 26.06 | 2010 - 2026 | [^44] |
 | [crosstool-NG](src/systems/crosstool-ng.sh) | 0.0.1 - 1.29.0 | 2007 - 2026 | [^55] [^43] |
 | [EmbToolkit](src/systems/embtoolkit.sh) | 0.1.0 - 1.9.0 | 2012 - 2017 | |
 | [Entware](src/systems/entware.sh) | 2025.06 | 2015 - 2026 | [^55] [^43] |
-| [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] [^43] |
-| [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] [^43] |
-| [Linux](src/systems/linux.sh) | 2.5.45 - 6.17 | 2002 - 2025 | [^21] [^25] [^26] [^29] |
+| [Freetz-NG](src/systems/freetz-ng.sh) | - | 2007 - 2025 | [^23] [^37] [^43] [^58] |
+| [L4Re](src/systems/l4re.sh) | - | 2017 - 2025 | [^23] [^43] [^58] |
+| [Linux](src/systems/linux.sh) | 2.5.45 - 6.17 | 2002 - 2025 | [^21] [^25] [^26] [^29] [^58] |
 | [NuttX](src/systems/nuttx.sh) | 10.3.0 - 13.0.1 | 2015 - 2026 | [^44] |
 | [OpenADK](src/systems/openadk.sh) | - | 2014 - 2026 | [^23] [^56] [^55] |
 | [OpenWrt](src/systems/openwrt.sh) | 17.01.0 - 25.12.5 | 2014 - 2022 | [^55] [^43] |
@@ -259,6 +259,12 @@ By default, `add-linux-system` requests the `filter-case-insensitive` and `tag-o
 Set `CLONE_FORKS=` to regenerate the requested transform locally, or explicitly add Linux without transforms (e.g., `add-system --system linux --url "https://github.com/torvalds/linux"`) to use commit hashes identical to the original repository (will likely break on APFS).
 This does not affect typical use cases that involve tag and branch identifiers.
 Note that our history rewrite removes several `.c|h` files that cause filename collisions, which does not affect feature-model extraction, but may lead to a very slight underestimation of source code statistics like SLOC.
+
+[^58]: Linux v6.11 [changed conditional choice prompts](https://github.com/torvalds/linux/commit/d533828ef3cafc2178dda44851d7cd8875781d55) to hide only the prompt, rather than deactivate the choice.
+KConfigReader and KClause retain the older encoding, so affected choices may be extracted inaccurately in Linux v6.11+ and revisions of barebox, Freetz-NG, and L4Re that imported this change.
+We have [reported](https://github.com/paulgazz/kmax/issues/317) this issue to the KClause developers.
+However, as of October 2026, we only found one affected choice instance in Linux, and up to 14 in the other three systems, so we do not expect this it to be a significant issue.
+As an alternative, kconfirm-smt uses the updated encoding, so it can be used on affected Linux versions to extract a more accurate SMT formula.
 
 [^23]: This system does not regularly release tagged revisions, so only a yearly sample has been tested.
 
