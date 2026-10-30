@@ -79,8 +79,10 @@ experiment-systems() {
             fi
             if has-command add-"${system}"-kconfig-tags; then
                 add-"${system}"-kconfig-tags --to "$to" "${options[@]}"
+                add-"${system}"-kconfig-sample-last-tag-per-year --from 2002 --to 2026
+            else
+                add-"${system}"-kconfig-sample --branch "$branch" "${options[@]}"
             fi
-            add-"${system}"-kconfig-sample --branch "$branch" "${options[@]}"
         done
     elif in-pass 3b-transformation; then
         # use the latest pinned release, or the latest sampled revision that was extracted in the previous pass

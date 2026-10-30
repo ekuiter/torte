@@ -34,6 +34,9 @@ define-system(system, kconfig_file=, lkc_directory=, lkc_target=, lkc_output_dir
 		    if [[ -z \$interval ]]; then interval=$(interval yearly); fi
 		    add-${system}-kconfig-revisions "\$(memoize-global git-sample-commits --system ${system} --interval "\$interval" --branch "\$branch")"
 		}
+		add-${system}-kconfig-sample-last-tag-per-year(from, to) {
+			add-${system}-kconfig-revisions "\$(${system}-tags | git-last-revision-per-year --system "${system}" --from "\$from" --to "\$to")"
+		}
 		END
     ))"
 }
