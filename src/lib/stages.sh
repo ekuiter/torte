@@ -430,6 +430,17 @@ define-stages() {
             --group-field "$group_field"
     }
 
+    # filters feature lists to features that occur in every corresponding DIMACS file
+    filter-dimacs-features(input, dimacs_input=transform-to-dimacs, output=filter-dimacs-features, extension, jobs=1) {
+        run \
+            --input "$MAIN_INPUT_KEY=$input,$DIMACS_FILTER_INPUT_KEY=$dimacs_input" \
+            --output "$output" \
+            --resumable y \
+            --command filter-dimacs-features \
+            --extension "$extension" \
+            --jobs "$jobs"
+    }
+
     # compute a random sample of some input stage with line-delimited output (e.g., feature lists)
     compute-random-sample(input, output=compute-random-sample, extension, size=1, t_wise=1, separator=, seed=, timeout=0, jobs=1) {
         run \

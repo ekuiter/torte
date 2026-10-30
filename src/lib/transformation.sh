@@ -1,6 +1,8 @@
 #!/bin/bash
 # transforms files
 
+DIMACS_FILTER_INPUT_KEY=dimacs # name under which DIMACS files are mounted when filtering feature lists
+
 # transforms a file from one file format to another
 # measures the transformation time
 transform-file(file, input_extension, output_extension, transformer_name, transformer, data_fields=, data_extractor=, timeout=0) {
@@ -321,6 +323,79 @@ compute-random-sample-helper(input, output, size=1, t_wise=1, separator=, seed=)
     done
     paste -d "$separator" "${tmp_samples[@]}" > "$output"
     rm -f "${tmp_samples[@]}"
+}
+
+# filters a feature list to features that occur in every corresponding DIMACS file
+filter-dimacs-features-helper(file, extension) {
+    local input output relative_base dimacs_file dimacs_suffix
+    input=$(input-directory)/$file
+    output=$(output-directory)/$file
+    relative_base=${file%."$extension"}
+    dimacs_suffix=$relative_base.dimacs
+
+    log "$file" "$(echo-progress filter)"
+    if [[ -f $output ]]; then
+        log "" "$(echo-skip)"
+        return
+    fi
+
+    local intersection variables next_intersection
+    intersection=$(mktemp)
+    variables=$(mktemp)
+    next_intersection=$(mktemp)
+
+    local matched_dimacs_files=0
+    # match variants by source-model suffix, ignoring transformer and iteration prefixes
+    while IFS= read -r dimacs_file; do
+        if [[ $dimacs_file != "$dimacs_suffix" ]] && [[ $dimacs_file != */"$dimacs_suffix" ]]; then
+            continue
+        fi
+        if [[ ! -f $(input-directory "$DIMACS_FILTER_INPUT_KEY")/$dimacs_file ]]; then
+            continue
+        fi
+        # extract sorted feature names from "c <index> <feature>" mappings
+        awk '$1 == "c" && $2 ~ /^[0-9]+$/ {print $3}' \
+            < "$(input-directory "$DIMACS_FILTER_INPUT_KEY")/$dimacs_file" \
+            | sort -u > "$variables"
+        # intersect feature names across all variants
+        if [[ $matched_dimacs_files -eq 0 ]]; then
+            cp "$variables" "$intersection"
+        else
+            comm -12 "$intersection" "$variables" > "$next_intersection"
+            mv "$next_intersection" "$intersection"
+        fi
+        matched_dimacs_files=$((matched_dimacs_files + 1))
+    done < <(table-field "$(input-csv "$DIMACS_FILTER_INPUT_KEY")" dimacs_file | grep -v '^NA$')
+
+    # no match indicates incompatible inputs, not an empty intersection
+    if [[ $matched_dimacs_files -eq 0 ]]; then
+        rm-safe "$intersection" "$variables" "$next_intersection"
+        error "Could not find a DIMACS file corresponding to feature list $file."
+    fi
+
+    mkdir -p "$(dirname "$output")"
+    while IFS= read -r feature; do
+        if grep -Fxq -- "$(dimacs-normalize-feature-name "$feature")" "$intersection"; then
+            echo "$feature"
+        fi
+    done < "$input" > "$output"
+    rm-safe "$intersection" "$variables" "$next_intersection"
+    log "" "$(echo-done)"
+}
+
+# filters line-delimited feature lists against all corresponding DIMACS files
+filter-dimacs-features(extension, jobs=1) {
+    assert-command parallel
+    cp "$(input-csv)" "$(output-csv)"
+    if [[ $jobs -eq 1 ]]; then
+        while IFS= read -r file; do
+            filter-dimacs-features-helper "$file" "$extension"
+        done < <(table-field "$(input-csv)" "${extension}_file" | grep -v '^NA$' | sort -V)
+    else
+        table-field "$(input-csv)" "${extension}_file" | grep -v '^NA$' | sort -V \
+            | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
+            filter-dimacs-features-helper "{}" "$extension"
+    fi
 }
 
 # compute a random sample of lines of the given line-delimited files

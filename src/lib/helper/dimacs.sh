@@ -16,10 +16,10 @@ dimacs-set-clause-number(file, clause_number) {
     sed -i "s/^\(p cnf [[:digit:]]\+ \)[[:digit:]]\+/\1$clause_number/" "$file"
 }
 
-# looks up the variable index for a given feature in a DIMACS file
-dimacs-lookup-variable-index(file, feature) {
+# normalizes a feature name as used by DIMACS transformations
+dimacs-normalize-feature-name(feature) {
     # see https://github.com/ekuiter/torte-FeatJAR/blob/main/src/main/java/KConfigReaderFormat.java
-    # and https://github.com/FeatureIDE/FeatJAR-formula/blob/main/src/main/java/de/featjar/formula/io/KConfigReaderFormat.java
+    # and https://github.com/FeatureIDE/FeatJAR/blob/develop/formula/src/main/java/de/featjar/formula/io/kconfig/KConfigReaderFormat.java
     feature=${feature//=/_}
     feature=${feature//:/_}
     feature=${feature//./_}
@@ -28,6 +28,12 @@ dimacs-lookup-variable-index(file, feature) {
     feature=${feature//\\/ _}
     feature=${feature// /_}
     feature=${feature//-/_}
+    echo "$feature"
+}
+
+# looks up the variable index for a given feature in a DIMACS file
+dimacs-lookup-variable-index(file, feature) {
+    feature=$(dimacs-normalize-feature-name "$feature")
     grep -E '^c [0-9]+ '"$feature"'$' "$file" | cut -d' ' -f2
 }
 

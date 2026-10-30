@@ -211,8 +211,12 @@ experiment-stages-3b-transformation() {
 
     # prepare feature samples for later solving
     compute-constrained-features --jobs "$JOBS_MISC"
-    compute-random-sample \
+    filter-dimacs-features \
         --input compute-constrained-features \
+        --extension constrained.features \
+        --jobs "$JOBS_MISC"
+    compute-random-sample \
+        --input filter-dimacs-features \
         --output feature-sample \
         --extension constrained.features \
         --size "$sample_num_features" \
