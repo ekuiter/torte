@@ -351,7 +351,7 @@ filter-dimacs-features-helper(file, extension) {
             continue
         fi
         matched_model_rows=$((matched_model_rows + 1))
-        if [[ $dimacs_file == NA ]]; then
+        if [[ $dimacs_file == NA ]] || [[ $dimacs_file == */NA ]]; then
             continue
         fi
         if [[ ! -f $(input-directory "$DIMACS_FILTER_INPUT_KEY")/$dimacs_file ]]; then
