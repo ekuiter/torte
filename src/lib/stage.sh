@@ -433,6 +433,7 @@ reuse-stage-from-pass(stage, pass, will_resume=) {
     elif [[ ! -f $source_directory/$STAGE_DONE_FILE ]]; then
         error "Stage $stage in pass $pass is not complete."
     elif [[ -f $source_directory/$FILES_MOVED_TO_FILE ]]; then
+        log "$stage" "$(echo-progress reuse)"
         source_reference=${source_directory#"$STAGES_DIRECTORY"/}
         destination_reference=$(cat "$source_directory/$FILES_MOVED_TO_FILE")
         destination_directory=$STAGES_DIRECTORY/$destination_reference
@@ -449,11 +450,13 @@ reuse-stage-from-pass(stage, pass, will_resume=) {
             || [[ $(cat "$destination_directory/$FILES_MOVED_FROM_FILE") != "$source_reference" ]]; then
             error "Stage $stage in pass $pass has inconsistent file-move markers."
         fi
+        log "" "$(echo-done)"
         return
     elif [[ -f $source_directory/$STAGE_MOVED_FILE ]]; then
         error "Stage $stage in pass $pass has already been moved into an aggregate stage."
     fi
 
+    log "$stage" "$(echo-progress reuse)"
     destination_directory=$(stage-directory "$stage")
     if [[ -e $destination_directory ]]; then
         error "Cannot move stage files into existing directory $destination_directory."
@@ -513,6 +516,7 @@ reuse-stage-from-pass(stage, pass, will_resume=) {
         done
         mark-stage-done "$stage"
     fi
+    log "" "$(echo-done)"
 }
 
 # reuses a completed stage from the pass immediately preceding the active pass
