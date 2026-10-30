@@ -16,6 +16,7 @@ PASSES=(3a-extraction 3b-transformation 4-configurability 5-scalability 6-differ
 
 # these are all the systems we analyze (although not every pass analyzes every system)
 # for reproducibility, we specify the latest release (for tags) and commit (for sampling) as of 2026-10-27
+# for systems without tags, also include the latest extracted commit (needed by the transformation pass)
 SYSTEMS_SPECS=(
     axtls,release-2.1.5,4bf767c8fdf907fb8d6ec7c877ac6a4023c2a35d
     barebox,v2026.10.0,26ba70a71b5303731699b5ac5be54ee3639641f8
@@ -24,12 +25,12 @@ SYSTEMS_SPECS=(
     coreboot,26.09,206078d6d990d0b7e51b5d87bc27349cb960ead0
     crosstool-ng,crosstool-ng-1.29.0,deacc28df92242014699eac9220e1d18fac3eeb6
     embtoolkit,embtoolkit-1.9.0,b9b2687bcb114f9b80381b9357aa3fe2d06e7d26
-    entware,,36db8558ac7840d993cb11df1e47e0326d681077
-    freetz-ng,,7f9bc7ec79c2b01c53839d1f6c4bda21304caa15
-    l4re,,50bbe8a981199e17865e8553a4eb02c387b339cf
+    entware,,36db8558ac7840d993cb11df1e47e0326d681077,a436d6db
+    freetz-ng,,7f9bc7ec79c2b01c53839d1f6c4bda21304caa15,bf8d35c9b2
+    l4re,,50bbe8a981199e17865e8553a4eb02c387b339cf,627ff6f5
     linux,v7.3,e0d4c87f25acfef9071baf9d1cb08d65084e0baa
     nuttx,nuttx-13.1.0,a31c15492e1d093b251d7ec8ad096255c4042df3
-    openadk,,7fe21d0a9b1a129e86f218454b56c753a81831b5
+    openadk,,7fe21d0a9b1a129e86f218454b56c753a81831b5,e503a8429
     openwrt,v25.12.6,936801c4489b02ad39eadd1a9b26d38dd3a40e0f
     ptxdist,ptxdist-2026.10.0,25578c25031573977db826d12d05156574cc2898
     soletta,v2_rc2,5ca6d6a70bead00caf154b445755be94f3f68099
@@ -38,7 +39,7 @@ SYSTEMS_SPECS=(
     u-boot,v2026.10,04221f81e6b92681ed699d0fb380ef202e8a16fd
     uclibc-ng,v1.0.59,6246033750a5fc54e596e44656f710b6d8043e9a
     uclibc,v0.9.33.2,ca1c74d67dd115d059a875150e10b8560a9c35a8
-    uclibcxx,,6687fc9276fa52defaf8592f2001c19b826aec93
+    uclibcxx,,6687fc9276fa52defaf8592f2001c19b826aec93,7518644
     uclinux-dist,release/v2.1-p1,3943b15c6eb3842394d4f65db3eeabbba77f5529
     unikraft,RELEASE-0.21.0,359307a2a4cc9c1feb22683d841650902b799e4d
     xvisor,v0.3.2,ddbfcd6aee19ba3e2687f18f1d246744edad3495
@@ -67,11 +68,11 @@ add-restrictions-payload-file restrictions.csv
 
 # define which systems are analyzed in each pass of the experiment
 experiment-systems() {
-    local system_spec system to branch
+    local system_spec system to branch latest_extracted
     if in-pass 3a-extraction; then
         # extract feature models for all analyzed systems
         for system_spec in "${SYSTEMS_SPECS[@]}"; do
-            IFS=, read -r system to branch <<< "$system_spec"
+            IFS=, read -r system to branch latest_extracted <<< "$system_spec"
             local options=()
             if [[ $system == linux ]]; then
                 options=(--architecture all) # for linux, we want to extract all architectures (not just x86)
@@ -82,15 +83,15 @@ experiment-systems() {
             add-"${system}"-kconfig-sample --branch "$branch" "${options[@]}"
         done
     elif in-pass 3b-transformation; then
-        # extract the latest pinned release of every system (a commit for systems without tags)
+        # use the latest pinned release, or the latest sampled revision that was extracted in the previous pass
         for system_spec in "${SYSTEMS_SPECS[@]}"; do
-            IFS=, read -r system to branch <<< "$system_spec"
-            add-"${system}"-kconfig --revision "${to:-$branch}"
+            IFS=, read -r system to branch latest_extracted <<< "$system_spec"
+            add-"${system}"-kconfig --revision "${to:-${latest_extracted:-$branch}}"
         done
     elif in-pass 4-configurability; then
         # analyze all tagged revisions and architectures of the Linux kernel
         for system_spec in "${SYSTEMS_SPECS[@]}"; do
-            IFS=, read -r system to branch <<< "$system_spec"
+            IFS=, read -r system to branch latest_extracted <<< "$system_spec"
             if [[ $system == linux ]]; then
                 add-linux-kconfig-tags --to "$to" --architecture all
             fi
@@ -104,7 +105,7 @@ experiment-systems() {
     elif in-pass 6-differencing; then
         # analyze all tagged neighboring-revision pairs, if any, or use a yearly sample
         for system_spec in "${SYSTEMS_SPECS[@]}"; do
-            IFS=, read -r system to branch <<< "$system_spec"
+            IFS=, read -r system to branch latest_extracted <<< "$system_spec"
             if has-command add-"${system}"-kconfig-tags; then
                 add-"${system}"-kconfig-tags --to "$to"
             else
