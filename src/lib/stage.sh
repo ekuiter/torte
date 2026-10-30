@@ -477,12 +477,16 @@ reuse-stage-from-pass(stage, pass, will_resume=) {
         done
     fi
 
-    local file relative_file destination_file
+    local file name
     while IFS= read -r -d $'\0' file; do
-        relative_file=${file#"$source_directory"/}
-        # skip files that are not part of the stage's payload, e.g., logs, markers, and CSVs
-        if [[ $relative_file != */* ]]; then
-            case $relative_file in
+        name=${file##*/}
+        if [[ $name == "$SHARED_DIRECTORY" ]] || [[ $name == "$FILES_MOVED_OUTPUT_DIRECTORY" ]]; then
+            continue
+        fi
+        # skip entries that are not part of the stage's payload, e.g., logs, markers, and CSVs
+        # directories with a metadata-like name may contain payload and are moved like any other directory
+        if [[ ! -d $file ]] || [[ -L $file ]]; then
+            case $name in
                 *.csv|"$STAGE_STARTED_FILE"|"$STAGE_DONE_FILE"|"$STAGE_MOVED_FILE"|\
                     "$FILES_MOVED_TO_FILE"|"$FILES_MOVED_FROM_FILE"|\
                     "$OUTPUT_FILE_PREFIX.log"|"$OUTPUT_FILE_PREFIX.err"|"$OUTPUT_FILE_PREFIX.prf"|\
@@ -491,17 +495,9 @@ reuse-stage-from-pass(stage, pass, will_resume=) {
                     ;;
             esac
         fi
-        # move the file to the new stage directory, preserving its relative path
-        destination_file=$destination_directory/$relative_file
-        mkdir -p "$(dirname "$destination_file")"
-        mv "$file" "$destination_file"
-    done < <(find "$source_directory" \
-        -path "$source_directory/$SHARED_DIRECTORY" -prune -o \
-        -path "$source_directory/$FILES_MOVED_OUTPUT_DIRECTORY" -prune -o \
-        \( -type f -o -type l \) \
-        -print0) # consider all files, but skip the shared directory and the output CSVs
-    # remove any empty directories left behind in the source stage
-    find "$source_directory" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+        # top-level payload directories can be renamed as a unit instead of moving every contained file
+        mv "$file" "$destination_directory/"
+    done < <(find "$source_directory" -mindepth 1 -maxdepth 1 -print0)
 
     # mark the source stage as moved and the destination stage as having received files from the source stage
     source_reference=${source_directory#"$STAGES_DIRECTORY"/}
