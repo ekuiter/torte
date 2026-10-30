@@ -327,11 +327,11 @@ compute-random-sample-helper(input, output, size=1, t_wise=1, separator=, seed=)
 
 # filters a feature list to features that occur in every corresponding DIMACS file
 filter-dimacs-features-helper(file, extension) {
-    local input output relative_base dimacs_file dimacs_suffix
+    local input output relative_base model_file model_suffix dimacs_file
     input=$(input-directory)/$file
     output=$(output-directory)/$file
     relative_base=${file%."$extension"}
-    dimacs_suffix=$relative_base.dimacs
+    model_suffix=$relative_base.model
 
     log "$file" "$(echo-progress filter)"
     if [[ -f $output ]]; then
@@ -344,14 +344,19 @@ filter-dimacs-features-helper(file, extension) {
     variables=$(mktemp)
     next_intersection=$(mktemp)
 
-    local matched_dimacs_files=0
-    # match variants by source-model suffix, ignoring transformer and iteration prefixes
-    while IFS= read -r dimacs_file; do
-        if [[ $dimacs_file != "$dimacs_suffix" ]] && [[ $dimacs_file != */"$dimacs_suffix" ]]; then
+    local matched_model_rows=0 matched_dimacs_files=0
+    # find variants through their source model in the joined DIMACS table
+    while IFS=$'\t' read -r model_file dimacs_file; do
+        if [[ $model_file != "$model_suffix" ]] && [[ $model_file != */"$model_suffix" ]]; then
+            continue
+        fi
+        matched_model_rows=$((matched_model_rows + 1))
+        if [[ $dimacs_file == NA ]]; then
             continue
         fi
         if [[ ! -f $(input-directory "$DIMACS_FILTER_INPUT_KEY")/$dimacs_file ]]; then
-            continue
+            rm-safe "$intersection" "$variables" "$next_intersection"
+            error "DIMACS file $dimacs_file is listed in the input table but does not exist."
         fi
         # extract sorted feature names from "c <index> <feature>" mappings
         awk '$1 == "c" && $2 ~ /^[0-9]+$/ {print $3}' \
@@ -365,15 +370,24 @@ filter-dimacs-features-helper(file, extension) {
             mv "$next_intersection" "$intersection"
         fi
         matched_dimacs_files=$((matched_dimacs_files + 1))
-    done < <(table-field "$(input-csv "$DIMACS_FILTER_INPUT_KEY")" dimacs_file | grep -v '^NA$')
+    done < <(paste \
+        <(table-field "$(input-csv "$DIMACS_FILTER_INPUT_KEY")" model_file) \
+        <(table-field "$(input-csv "$DIMACS_FILTER_INPUT_KEY")" dimacs_file))
 
-    # no match indicates incompatible inputs, not an empty intersection
-    if [[ $matched_dimacs_files -eq 0 ]]; then
+    # no model rows indicate incompatible inputs
+    if [[ $matched_model_rows -eq 0 ]]; then
         rm-safe "$intersection" "$variables" "$next_intersection"
-        error "Could not find a DIMACS file corresponding to feature list $file."
+        error "Could not match feature list $file to a source model in the DIMACS table."
     fi
 
     mkdir -p "$(dirname "$output")"
+    # models without successful transformations have no features to filter
+    if [[ $matched_dimacs_files -eq 0 ]]; then
+        touch "$output"
+        rm-safe "$intersection" "$variables" "$next_intersection"
+        log "" "$(echo-skip)"
+        return
+    fi
     while IFS= read -r feature; do
         if grep -Fxq -- "$(dimacs-normalize-feature-name "$feature")" "$intersection"; then
             echo "$feature"
