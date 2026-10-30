@@ -32,7 +32,7 @@ transform-file(file, input_extension, output_extension, transformer_name, transf
         log "" "$(echo-fail)"
         new_file=NA
     fi
-    csv_line+="${new_file#./},$transformer_name,$(grep -oP "^measure_time=\K.*" < "$output_log")"
+    csv_line+="${new_file#./},$transformer_name,$(grep -oP "^measure_time=\K.*" < "$output_log" || true)"
     if [[ -n $data_extractor ]]; then
         if ! is-file-empty "$output"; then
             csv_line+=",$("$data_extractor" "$output" "$output_log")"
