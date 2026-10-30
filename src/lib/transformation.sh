@@ -80,6 +80,11 @@ dimacs-data-extractor() {
 # transforms files to various formats using FeatJAR
 transform-with-featjar(input_extension, output_extension, transformer, timeout=0, data_fields=, data_extractor=, jobs=1) {
     local jar=/home/FeatJAR/torte-FeatJAR/build/libs/torte-FeatJAR-all.jar
+    # FeatJAR lazily extracts bundled native solver libraries into a shared directory
+    # initialize them once to prevent parallel JVMs from racing to create the same files
+    if [[ $jobs -ne 1 ]]; then
+        java -jar "$jar" --help > /dev/null
+    fi
     transform-files \
         "$(input-csv)" \
         "$input_extension" \
