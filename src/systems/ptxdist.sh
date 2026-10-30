@@ -23,9 +23,7 @@ add-ptxdist-kconfig-tags(from=, to=) {
 
 kconfig-post-checkout-hook-ptxdist(system, revision) {
     if [[ $system == ptxdist ]]; then
-        if ! has-command gawk; then
-            apt-get install -y --allow-unauthenticated gawk 2>/dev/null
-        fi
+        has-command gawk || error "ptxdist extraction requires gawk; rebuild the extraction image."
         generate-ptxdist-kconfig-sections
     fi
 }

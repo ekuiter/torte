@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   flex \
   bison \
   bc \
+  gawk \
   libssl-dev \
   libelf-dev \
   wget \

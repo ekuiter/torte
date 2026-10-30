@@ -24,6 +24,7 @@ RUN git clone https://github.com/ckaestne/kconfigreader.git \
 RUN apt-get update && apt-get install -y --allow-unauthenticated \
   flex \
   bison \
+  gawk \
   build-essential \
   # some Linux versions require newer GCC
   software-properties-common \

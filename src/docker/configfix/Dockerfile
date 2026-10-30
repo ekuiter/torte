@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
     git \
     flex \
     bison \
+    gawk \
     xz-utils
 WORKDIR /home
 

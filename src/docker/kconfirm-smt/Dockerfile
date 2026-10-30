@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     bison \
     build-essential \
     flex \
+    gawk \
     git \
     libelf-dev \
     libssl-dev \
