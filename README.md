@@ -474,20 +474,23 @@ The newer #SAT solvers from the `mcc-*` collections should be preferred for new 
 | Ganak | ? | ? | |
 | sharpSAT | ? | ? | |
 
-#### Collection: mcc-2022
+#### Collection: mcc-*
 
-These #SAT solvers (available [here](https://cloudstore.zih.tu-dresden.de/index.php/s/pXFAfnJffKyNA77)) were used in the [model-counting competition 2022](https://mccompetition.org/past_iterations).
-Not all evaluated solvers are included here, as some solver binaries (i.e., for MTMC and ExactMC) have not been disclosed.
+These collections contain #SAT solvers from the model-counting competitions in [2022](https://mccompetition.org/past_iterations), [2025](https://mccompetition.org/assets/files/2025/MC2025_winners.pdf), and [2026](https://mccompetition.org/assets/files/2026/MC2026_awards.pdf).
+The 2022 binaries are available [here](https://cloudstore.zih.tu-dresden.de/index.php/s/pXFAfnJffKyNA77); MTMC and ExactMC are omitted because their binaries were not disclosed.
 
-| Solver | Notes |
-| - | - |
-| c2d | |
-| d4 | |
-| DPMC | |
-| gpmc | |
-| TwG | [^17] |
-| SharpSAT-TD | [^18] |
-| SharpSAT-td+Arjun | [^18] [^19] |
+| Collection | Solver | Version | Notes |
+| - | - | - | - |
+| mcc-2022 | c2d | | |
+| mcc-2022 | d4 | | |
+| mcc-2022 | DPMC | | |
+| mcc-2022 | gpmc | | |
+| mcc-2022 | TwG | | [^17] |
+| mcc-2022 | SharpSAT-TD | | [^18] |
+| mcc-2022 | SharpSAT-td+Arjun | | [^18] [^19] |
+| mcc-2025 | [SharpSAT-TD](https://github.com/Laakeri/sharpsat-td) | `0c234c11` | |
+| mcc-2026 | [d4](https://github.com/SoftVarE-Group/d4v2) | 2.3.2 | |
+| mcc-2026 | [Ganak](https://github.com/meelgroup/ganak) | | |
 
 #### Collection: other
 

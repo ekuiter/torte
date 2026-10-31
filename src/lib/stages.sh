@@ -578,8 +578,8 @@ define-stages() {
             mcc-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
             mcc-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,sharp-sat-mcc22
             other/d4v2.sh,solver,sharp-sat
-            mcc-2025/sharpSAT-TD.sh,solver,sharp-sat-mcc22
-            mcc-2026/d4-2.3.2.sh,solver.24,sharp-sat
+            mcc-2025/sharpSAT-TD/sharpSAT-TD.sh,solver,sharp-sat-mcc22
+            mcc-2026/d4/d4.sh,solver.24,sharp-sat
             mcc-2026/ganak.sh,solver,sharp-sat-mcc22
             other/ApproxMC,solver,sharp-sat
         )
