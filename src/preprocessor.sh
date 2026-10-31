@@ -53,9 +53,10 @@ compile-script() {
 # improves Bash's sourcing mechanism so scripts are compiled before inclusion
 source-script() {
     local script=$1
-    # this code is specific to this project to improve logging
-    if declare -F log >/dev/null && [[ -z $INSIDE_STAGE ]]; then
-        log "${script#"$SRC_DIRECTORY"/}" "$(echo-progress load)"
+    # this code is specific to this project to show loading progress
+    if [[ -n ${source_script_progress:-} ]] && [[ -z $INSIDE_STAGE ]]; then
+        source_script_index=$((source_script_index + 1))
+        show-source-script-progress "$source_script_index" "$source_script_total" "${script#"$SRC_DIRECTORY"/}"
     fi
     local generated_script_directory generated_script
     generated_script_directory=$(dirname "$script")
@@ -75,10 +76,57 @@ source-script() {
     fi
     # shellcheck source=/dev/null
     source "$generated_script"
-    # this code is specific to this project to improve logging
-    if [[ -n $CURRENT_SUBJECT ]]; then
-        log "" "$(echo-done)"
+}
+
+# loads all scripts below the given directories
+source-scripts() {
+    local source_scripts=()
+    local script
+    while IFS= read -r script; do
+        source_scripts+=("$script")
+    done < <(find "$@" -name '*.sh')
+
+    local source_script_total=${#source_scripts[@]}
+    local source_script_index=0
+    local source_script_progress=
+    local source_script_progress_started=
+    if [[ -t 1 ]] && [[ -z $INSIDE_STAGE ]]; then
+        source_script_progress=y
+        printf '\033[?25l'
+        trap 'printf "\033[?25h"' EXIT
     fi
+    for script in "${source_scripts[@]}"; do
+        source-script "$script"
+    done
+    if [[ -n $source_script_progress_started ]]; then
+        show-source-script-progress "$source_script_total" "$source_script_total" ""
+        printf '\033[?25h\n\n'
+        trap - EXIT
+    fi
+}
+
+# redraws the script-loading progress on a single line
+show-source-script-progress() {
+    local index=$1
+    local total=$2
+    local script=$3
+    script=${script%.sh}
+    local width=48
+    local filled=$((index * width / total))
+    local empty=$((width - filled))
+    local filled_bar= empty_bar= i
+    for ((i = 0; i < filled; i++)); do
+        filled_bar+="█"
+    done
+    for ((i = 0; i < empty; i++)); do
+        empty_bar+="░"
+    done
+    printf '\r\033[0K\033[0;33m│%s%s│ %s/%s' "$filled_bar" "$empty_bar" "$index" "$total"
+    if [[ -n $script ]]; then
+        printf ' %s' "$script"
+    fi
+    printf '\033[0m'
+    source_script_progress_started=y
 }
 
 # generates code that parses function arguments in a flexible way, which is prepended to the function body

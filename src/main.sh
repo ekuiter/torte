@@ -73,14 +73,8 @@ if [[ -d "$GEN_DIRECTORY" ]]; then
     fi
 fi
 
-# load all scripts, starting with specific facilities, which are needed right away to enable logging
-for script in \
-    lib/helper/time.sh \
-    lib/helper/log.sh \
-    $(find "$SRC_DIRECTORY"/lib -name '*.sh') \
-    $(find "$SRC_DIRECTORY"/systems -name '*.sh'); do
-    source-script "$script"
-done
+# load all scripts
+source-scripts "$SRC_DIRECTORY/lib" "$SRC_DIRECTORY/systems"
 
 # initialize torte and run the given experiment or command
 TOOL_INITIALIZED=y
