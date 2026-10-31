@@ -522,6 +522,8 @@ define-stages() {
             sat-competition/22-kissat_MAB-HyWalk,solver,sat
             sat-competition/23-sbva_cadical.sh,solver,sat
             sat-competition/24-kissat-sc2024,solver,sat
+            sat-competition/25-AE_kissat2025_MAB,solver,sat
+            sat-competition/26-satsuma-iter-kissat.sh,solver.24,sat
             sat-museum/boehm1-1992,solver,sat
             sat-museum/grasp-1997,solver,sat
             sat-museum/chaff-2001,solver,sat
@@ -576,6 +578,9 @@ define-stages() {
             mcc-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
             mcc-2022/SharpSAT-TD/SharpSAT-TD.sh,solver,sharp-sat-mcc22
             other/d4v2.sh,solver,sharp-sat
+            mcc-2025/sharpSAT-TD.sh,solver,sharp-sat-mcc22
+            mcc-2026/d4-2.3.2.sh,solver.24,sharp-sat
+            mcc-2026/ganak.sh,solver,sharp-sat-mcc22
             other/ApproxMC,solver,sharp-sat
         )
         solve --kind sharp-sat --input "$input" --timeout "$timeout" --jobs "$jobs" \

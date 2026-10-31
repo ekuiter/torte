@@ -55,6 +55,14 @@ run(image=util, input=, output=, resumable=, command...) {
     if [[ $FORCE_RUN == y ]] || ! stage-done "$output"; then
         # to prepare the Docker image, identify the correct dockerfile
         local dockerfile=$DOCKER_DIRECTORY/$image/Dockerfile
+        local docker_context=$DOCKER_DIRECTORY/$image
+        # image variants such as solver.24 use Dockerfile.24 with the solver build context
+        if [[ ! -f $dockerfile && $image == *.* ]]; then
+            local image_base=${image%.*}
+            local image_variant=${image##*.}
+            dockerfile=$DOCKER_DIRECTORY/$image_base/Dockerfile.$image_variant
+            docker_context=$DOCKER_DIRECTORY/$image_base
+        fi
         if [[ ! -f $dockerfile ]]; then
             error "Could not find Dockerfile for image $image."
         fi
@@ -94,7 +102,7 @@ run(image=util, input=, output=, resumable=, command...) {
             if [[ -n $platform ]]; then
                 cmd+=(--platform "$platform")
             fi
-            cmd+=("$(dirname "$dockerfile")")
+            cmd+=("$docker_context")
             if [[ -n $VERBOSE ]]; then
                 "${cmd[@]}"
             else

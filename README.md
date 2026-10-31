@@ -464,7 +464,7 @@ These #SAT solvers (available [here](https://github.com/SoftVarE-Group/emse-eval
 * [Evaluating State-of-the-Art #SAT Solvers on Industrial Configuration Spaces](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2023/2023-EMSE-Sundermann.pdf) (EMSE 2023)
 * [Tseitin or not Tseitin? The Impact of CNF Transformations on Feature-Model Analyses](https://raw.githubusercontent.com/SoftVarE-Group/Papers/main/2022/2022-ASE-Kuiter.pdf) (ASE 2022)
 
-The #SAT solvers from the collection `mcc-2022` should be preferred for new experiments.
+The newer #SAT solvers from the `mcc-*` collections should be preferred for new experiments.
 
 | Solver | Version | Date | Notes |
 | - | - | - | - |
@@ -540,6 +540,8 @@ One overarching difference is that the SAT museum controls for compiler optimiza
 | 2022 | Kissat_MAB-HyWalk | |
 | 2023 | sbva_cadical | [^32] |
 | 2024 | kissat-sc2024 | [^32] |
+| 2025 | AE-Kissat-MAB | |
+| 2026 | satsuma-iter+kissat | |
 
 [^17]: For TwG, two configurations were provided by the model-counting competition (`TwG1` and `TwG2`).
 As there was no indication as to which configuration was used in the competition, we arbitrarily chose `TwG1`.

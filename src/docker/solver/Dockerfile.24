@@ -1,0 +1,11 @@
+# platform-override=linux/amd64
+FROM ubuntu:24.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    parallel \
+    bc
+WORKDIR /home
+COPY sat-competition/26-* ./sat-competition/
+COPY mcc-2026/d4-2.3.2.sh ./mcc-2026/
+COPY mcc-2026/d4-2.3.2/ ./mcc-2026/d4-2.3.2/
