@@ -8,11 +8,16 @@ TORTE_REVISION=main; [[ $TOOL != torte ]] && builtin source /dev/stdin <<<"$(cur
 # It leverages the multipass architecture so that it can be entirely executed in one experiment.
 # This provides code reuse, full automation, and notably also reuse of cloned systems and
 # extracted feature models, which saves a ton of disk space/time and manually shuffling around data.
+# At least 16GiB of RAM are recommended if no parameters are changed.
+# On low-end machines, check the settings below to reduce parallelism and adjust the memory limit.
 
 # each experiment pass corresponds to one chapter of the PhD thesis
 # you can also adjust this to execute experiments only for a single chapter (no changes below needed)
 # however, executing _more than one_ chapter generally only works if 3a-extraction is included as well
-PASSES=(3a-extraction 3b-transformation 4-configurability 5-scalability 6-differencing)
+PASSES=(3a-extraction 3b-transformation \
+    4a-configurability-linux 4b-configurability-other \
+    5a-scalability-linux 5b-scalability-other \
+    6-differencing)
 
 # these are all the systems we analyze (although not every pass analyzes every system)
 # for reproducibility, we specify the latest release (for tags) and commit (for sampling) as of 2026-10-27
@@ -49,9 +54,13 @@ SYSTEMS_SPECS=(
 JOBS_MISC=$(cpu-cores)
 
 # number of parallel jobs in heavy-to-compute stages, by default a quarter of the available cores, at least one
-# we choose a conservative amount of course to avoid disturbing time measurements and reaching the memory limit
+# we choose a conservative amount of cores to avoid utilizing logical cores and disturbing time measurements
 JOBS_HARD=$(( $(cpu-cores) / 4 ))
 if (( JOBS_HARD < 1 )); then JOBS_HARD=1; fi
+
+# define a memory limit for all Docker containers to avoid hard jobs disturbing each other
+# leave 5% memory for the host system and other processes
+MEMORY_LIMIT=$(( (( $MEMORY_LIMIT * 95 / 100 )) / $JOBS_HARD ))
 
 # if is-testing; then
 #     SOLVE_TIMEOUT=10 # todo
@@ -88,7 +97,7 @@ experiment-systems() {
             IFS=, read -r system to branch latest_extracted <<< "$system_spec"
             add-"${system}"-kconfig --revision "${to:-${latest_extracted:-$branch}}"
         done
-    elif in-pass 4-configurability; then
+    elif in-pass 4a-configurability-linux; then
         # analyze all tagged revisions and architectures of the Linux kernel
         for system_spec in "${SYSTEMS_SPECS[@]}"; do
             IFS=, read -r system to branch latest_extracted <<< "$system_spec"
@@ -96,12 +105,16 @@ experiment-systems() {
                 add-linux-kconfig-tags --to "$to" --architecture all
             fi
         done
-    elif in-pass 5-scalability; then
-        # choose the last revision of Linux for each year from 2002-2024,
+    elif in-pass 4b-configurability-other; then
+        error todo
+    elif in-pass 5a-scalability-linux; then
+        # choose the last revision of Linux for each year from 2002-2026,
         # which can then be analyzed with the corresponding year's SAT competition solver
         add-linux-kconfig-revisions \
             --revisions "$(linux-tags \
-                | git-last-revision-per-year --system linux --from 2002 --to 2024)"
+                | git-last-revision-per-year --system linux --from 2002 --to 2026)"
+    elif in-pass 5b-scalability-other; then
+        error todo
     elif in-pass 6-differencing; then
         # analyze all tagged neighboring-revision pairs, if any, or use a yearly sample
         for system_spec in "${SYSTEMS_SPECS[@]}"; do
@@ -160,14 +173,16 @@ experiment-stages() {
     #     --payload-file evaluation.ipynb
 }
 
+# requires about 2d17h to run and 266G of disk space
 experiment-stages-3a-extraction() {
     : # this pass has no specific computations
 }
 
+# requires about 1d5h to run and 271G of disk space (including 3a-extraction)
 experiment-stages-3b-transformation() {
     local transform_iterations=3 # number of iterations for CNF transformation
     local transform_timeout=180 # timeout for CNF transformation in seconds
-    local solve_timeout=1200 # timeout for model counting in seconds
+    local solve_timeout=300 # timeout for model counting in seconds
     local sample_num_features=3 # number of randomly sampled feature queries
     local sample_seed=20261026 # fixed seed for reproducible random samples
 
@@ -178,26 +193,36 @@ experiment-stages-3b-transformation() {
         sat-competition/05-SatELiteGTI.sh,solver,sat
         sat-competition/06-MiniSat,solver,sat
         sat-competition/07-RSat.sh,solver,sat
+        sat-competition/08-MiniSat,solver,sat
         sat-competition/09-precosat,solver,sat
         sat-competition/10-CryptoMiniSat,solver,sat
         sat-competition/11-glucose.sh,solver,sat
         sat-competition/12-glucose.sh,solver,sat
         sat-competition/13-lingeling-aqw,solver,sat
         sat-competition/14-lingeling-ayv,solver,sat
+        sat-competition/15-abcdSAT,solver,sat
         sat-competition/16-MapleCOMSPS_DRUP,solver,sat
         sat-competition/17-Maple_LCM_Dist,solver,sat
         sat-competition/18-MapleLCMDistChronoBT,solver,sat
         sat-competition/19-MapleLCMDiscChronoBT-DL-v3,solver,sat
         sat-competition/20-Kissat-sc2020-sat,solver,sat
         sat-competition/21-Kissat_MAB,solver,sat
+        sat-competition/22-kissat_MAB-HyWalk,solver,sat
+        sat-competition/23-sbva_cadical.sh,solver,sat
+        sat-competition/24-kissat-sc2024,solver,sat
+        sat-competition/25-AE_kissat2025_MAB,solver,sat
+        sat-competition/26-satsuma-iter-kissat.sh,solver.24,sat
+        other/SAT4J.210.sh,solver,sat
+        other/SAT4J.231.sh,solver,sat
+        other/SAT4J.235.sh,solver,sat
     )
 
     local sharp_sat_solver_specs=(
         emse-2023/countAntom,solver,sharp-sat
-        emse-2023/d4,solver,sharp-sat
         emse-2023/dSharp,solver,sharp-sat
-        emse-2023/ganak,solver,sharp-sat
         emse-2023/sharpSAT,solver,sharp-sat
+        mcc-2026/d4/d4.sh,solver.24,sharp-sat
+        mcc-2026/ganak.sh,solver,sharp-sat-mcc22
     )
 
     # transform extracted feature models into CNF
@@ -257,21 +282,28 @@ experiment-stages-3b-transformation() {
     done
 }
 
-experiment-stages-4-configurability() {
-    local solve_timeout=3600 # timeout for model counting in seconds
-    local solve_attempts=4 # how many successive timeouts are allowed before giving up and moving on
+experiment-stages-4-configurability(is_linux) {
+    if [[ $is_linux == y ]]; then
+        local solve_timeout=1200 # timeout for model counting in seconds
+        local solve_attempts=4 # how many successive timeouts are allowed before giving up and moving on
+    else
+        local solve_timeout=300
+        local solve_attempts=2
+    fi
 
     local sharp_sat_solver_specs=(
-        mcc-2022/d4.sh,solver,sharp-sat-mcc22
-        mcc-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
+        mcc-2026/d4/d4.sh,solver.24,sharp-sat
+        mcc-2026/ganak.sh,solver,sharp-sat-mcc22
     )
 
-    # read additional Linux information for later analysis
-    read-linux-names
-    read-linux-architectures
-    read-linux-configs
-    join-into read-statistics read-linux-names
-    join-into read-statistics read-linux-architectures
+    # read additional information for later analysis
+    if [[ $is_linux == y ]]; then
+        read-linux-architectures
+        read-linux-configs
+        join-into read-statistics read-linux-architectures
+    else
+        error todo
+    fi
     compute-unconstrained-features --jobs "$JOBS_MISC"
 
     # transform extracted feature models into CNF
@@ -282,7 +314,19 @@ experiment-stages-4-configurability() {
     transform-dimacs-to-backbone-dimacs-with --transformer cadiback --jobs "$JOBS_HARD"
     join-into transform-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs "$JOBS_MISC"
-    compute-linux-feature-statistics
+
+    # compute statistics on the Linux kernel features for later analysis
+    if [[ $is_linux == y ]]; then
+        compute-linux-feature-statistics
+    else
+        error todo
+    fi
+
+    # for Linux, we group attempts by architecture for correct timeout handling
+    local attempt_grouper
+    if [[ $is_linux == y ]]; then
+        attempt_grouper=$(to-lambda linux-attempt-grouper)
+    fi
 
     # solve #SAT (for counting the number of configurations)
     solve \
@@ -292,13 +336,22 @@ experiment-stages-4-configurability() {
         --timeout "$solve_timeout" \
         --jobs "$JOBS_HARD" \
         --attempts "$solve_attempts" \
-        --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
+        --attempt-grouper "$attempt_grouper" \
         --solver_specs "${sharp_sat_solver_specs[@]}"
     join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 }
 
+experiment-stages-4a-configurability-linux() {
+    experiment-stages-4-configurability --is_linux y
+}
+
+experiment-stages-4b-configurability-other() {
+    experiment-stages-4-configurability --is_linux n
+}
+
 experiment-stages-5-scalability() {
-    local solve_timeout=1200 # timeout for SAT solvers in seconds (rarely needed)
+    local solve_timeout=1200 # timeout for SAT solvers in seconds (rarely needed) # LINUX
+    local solve_timeout=300 # timeout for SAT solvers in seconds (rarely needed) # OTHER
     local iterations=5 # number of iterations for extraction and transformation
     local solve_iterations=3 # number of iterations for SAT solving
 
@@ -326,6 +379,8 @@ experiment-stages-5-scalability() {
         sat-competition/22-kissat_MAB-HyWalk,solver,sat
         sat-competition/23-sbva_cadical.sh,solver,sat
         sat-competition/24-kissat-sc2024,solver,sat
+        sat-competition/25-AE_kissat2025_MAB,solver,sat
+        sat-competition/26-satsuma-iter-kissat.sh,solver.24,sat
         other/SAT4J.210.sh,solver,sat
         other/SAT4J.231.sh,solver,sat
         other/SAT4J.235.sh,solver,sat
