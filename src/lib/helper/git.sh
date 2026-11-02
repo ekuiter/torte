@@ -38,7 +38,7 @@ git-commits(system, branch=master) {
     if [[ ! -d $(input-directory)/$system ]]; then
         return
     fi
-    git -C "$(input-directory)/$system" log "$branch" --format="%h" --reverse
+    git -C "$(input-directory)/$system" log "$branch" --format="%H" --reverse
 }
 
 # lists commits on a branch that touched any given paths, oldest first
@@ -47,7 +47,7 @@ git-commits-touching(system, branch=master, paths...) {
     if [[ ! -d $(input-directory)/$system ]]; then
         return
     fi
-    git -C "$(input-directory)/$system" log "$branch" --format="%h" --reverse -- "${paths[@]}"
+    git -C "$(input-directory)/$system" log "$branch" --format="%H" --reverse -- "${paths[@]}"
 }
 
 # sample commits in a given interval, starting at the oldest commit
@@ -58,12 +58,12 @@ git-sample-commits(system, interval, branch=master) {
     fi
     local timestamp last_timestamp current_timestamp end_timestamp
     git-checkout "$branch" "$(input-directory)/$system" > /dev/null
-    timestamp=$(git-timestamp "$system" "$(git -C "$(input-directory)/$system" log --format="%h" | tail -1)")
+    timestamp=$(git-timestamp "$system" "$(git -C "$(input-directory)/$system" log --format="%H" | tail -1)")
     last_timestamp=$timestamp
     end_timestamp=$(git-timestamp "$system" HEAD)
     local N=20
     while [[ $timestamp -lt $end_timestamp ]]; do
-        git -C "$(input-directory)/$system" --no-pager log -1 --format="%h" --since "$last_timestamp" --until "$timestamp" &
+        git -C "$(input-directory)/$system" --no-pager log -1 --format="%H" --since "$last_timestamp" --until "$timestamp" &
         last_timestamp=$timestamp
         ((timestamp+="$interval"))
         if [[ $(jobs -r -p | wc -l) -ge $N ]]; then wait -n; fi

@@ -64,7 +64,7 @@ generate-kconfig-commits(system, generator, branch=master, change_globs...) {
     # iterate over the source repository from oldest to newest commit
     local i n
     i=0
-    n=$(git -C "$input_directory" log "$branch" --format="%h" | wc -l)
+    n=$(git -C "$input_directory" log "$branch" --format="%H" | wc -l)
     while read -r revision; do
         ((i+=1))
         local timestamp
@@ -86,7 +86,7 @@ generate-kconfig-commits(system, generator, branch=master, change_globs...) {
         if [ $((i % 100)) -eq 1 ]; then
             log "" "$(echo-progress "$((i*100/n))%")"
         fi
-    done < <(git -C "$input_directory" log "$branch" --format="%h" | tac)
+    done < <(git -C "$input_directory" log "$branch" --format="%H" | tac)
     log "" "$(echo-done)"
 
     # replace the original clone with the generated KConfig history
