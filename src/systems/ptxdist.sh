@@ -37,6 +37,8 @@ kconfig-pre-binding-hook-ptxdist(system, revision, lkc_directory=) {
 }
 
 generate-ptxdist-kconfig-sections() {
+    # some older PTXdist helpers modify IFS without restoring it - keep its mutation local here
+    local IFS="$IFS"
     if [[ -f scripts/lib/ptxd_lib_kgen.sh ]]; then
         # ptxdist generates generated/*.in from section markers in rules/*.in
         # normally this is done by the ptxdist frontend before running kconfig
