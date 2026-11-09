@@ -30,12 +30,12 @@ SYSTEMS_SPECS=(
     coreboot,26.09,206078d6d990d0b7e51b5d87bc27349cb960ead0
     crosstool-ng,crosstool-ng-1.29.0,deacc28df92242014699eac9220e1d18fac3eeb6
     embtoolkit,embtoolkit-1.9.0,b9b2687bcb114f9b80381b9357aa3fe2d06e7d26
-    entware,,36db8558ac7840d993cb11df1e47e0326d681077,a436d6db
-    freetz-ng,,7f9bc7ec79c2b01c53839d1f6c4bda21304caa15,bf8d35c9b2
-    l4re,,50bbe8a981199e17865e8553a4eb02c387b339cf,627ff6f5
+    entware,,36db8558ac7840d993cb11df1e47e0326d681077,a436d6db3be958dc50d00ecd5304d4d1b6fb9965
+    freetz-ng,,7f9bc7ec79c2b01c53839d1f6c4bda21304caa15,bf8d35c9b2d625c282c1cead079ffc6839f69de5
+    l4re,,50bbe8a981199e17865e8553a4eb02c387b339cf,627ff6f5d22d62e2602acc45b8b1e0c0f77a8f07
     linux,v7.3,e0d4c87f25acfef9071baf9d1cb08d65084e0baa
     nuttx,nuttx-13.1.0,a31c15492e1d093b251d7ec8ad096255c4042df3
-    openadk,,7fe21d0a9b1a129e86f218454b56c753a81831b5,e503a8429
+    openadk,,7fe21d0a9b1a129e86f218454b56c753a81831b5,e503a84293b1585aad09aa6252dc4c0647cb26a5
     openwrt,v25.12.6,936801c4489b02ad39eadd1a9b26d38dd3a40e0f
     ptxdist,ptxdist-2026.10.0,25578c25031573977db826d12d05156574cc2898
     soletta,v2_rc2,5ca6d6a70bead00caf154b445755be94f3f68099
@@ -44,7 +44,7 @@ SYSTEMS_SPECS=(
     u-boot,v2026.10,04221f81e6b92681ed699d0fb380ef202e8a16fd
     uclibc-ng,v1.0.59,6246033750a5fc54e596e44656f710b6d8043e9a
     uclibc,v0.9.33.2,ca1c74d67dd115d059a875150e10b8560a9c35a8
-    uclibcxx,,6687fc9276fa52defaf8592f2001c19b826aec93,7518644
+    uclibcxx,,6687fc9276fa52defaf8592f2001c19b826aec93,75186445c1abab4db8124251a914310b565e3b2b
     uclinux-dist,release/v2.1-p1,3943b15c6eb3842394d4f65db3eeabbba77f5529
     unikraft,RELEASE-0.21.0,359307a2a4cc9c1feb22683d841650902b799e4d
     xvisor,v0.3.2,ddbfcd6aee19ba3e2687f18f1d246744edad3495
@@ -212,8 +212,6 @@ experiment-stages-3b-transformation() {
         sat-competition/24-kissat-sc2024,solver,sat
         sat-competition/25-AE_kissat2025_MAB,solver,sat
         sat-competition/26-satsuma-iter-kissat.sh,solver.24,sat
-        other/SAT4J.210.sh,solver,sat
-        other/SAT4J.231.sh,solver,sat
         other/SAT4J.235.sh,solver,sat
     )
 
@@ -230,6 +228,8 @@ experiment-stages-3b-transformation() {
         --with-featureide "$transform_iterations" \
         --with-kconfigreader "$transform_iterations" \
         --with-z3 "$transform_iterations" \
+        --with-clausy "$transform_iterations" \
+        --clausy-options "-t cnf-tseitin" \
         --timeout "$transform_timeout" \
         --jobs "$JOBS_HARD"
     join-into extract-kconfig-models transform-to-dimacs
