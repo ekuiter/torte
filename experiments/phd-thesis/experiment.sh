@@ -296,31 +296,15 @@ experiment-stages-4-configurability(is_linux) {
         mcc-2026/ganak.sh,solver,sharp-sat-mcc22
     )
 
-    # read additional information for later analysis
-    if [[ $is_linux == y ]]; then
-        read-linux-architectures
-        read-linux-configs
-        join-into read-statistics read-linux-architectures
-    else
-        error todo
-    fi
-    compute-unconstrained-features --jobs "$JOBS_MISC"
-
     # transform extracted feature models into CNF
     transform-to-dimacs --with-z3 y --jobs "$JOBS_MISC"
     join-into extract-kconfig-models transform-to-dimacs
 
-    # compute backbone (for counting the number of features)
+    # compute unconstrained features and backbone (for counting the number of features)
+    compute-unconstrained-features --jobs "$JOBS_MISC"
     transform-dimacs-to-backbone-dimacs-with --transformer cadiback --jobs "$JOBS_HARD"
     join-into transform-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs "$JOBS_MISC"
-
-    # compute statistics on the Linux kernel features for later analysis
-    if [[ $is_linux == y ]]; then
-        compute-linux-feature-statistics
-    else
-        error todo
-    fi
 
     # for Linux, we group attempts by architecture for correct timeout handling
     local attempt_grouper
@@ -339,6 +323,16 @@ experiment-stages-4-configurability(is_linux) {
         --attempt-grouper "$attempt_grouper" \
         --solver_specs "${sharp_sat_solver_specs[@]}"
     join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
+
+    # read additional information for later analysis
+    if [[ $is_linux == y ]]; then
+        read-linux-architectures
+        read-linux-configs
+        join-into read-statistics read-linux-architectures
+        compute-feature-statistics --configs-input read-linux-configs
+    else
+        error todo
+    fi
 }
 
 experiment-stages-4a-configurability-linux() {
