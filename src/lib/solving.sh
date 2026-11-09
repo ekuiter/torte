@@ -56,7 +56,7 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
             else
                 timeout_file=$(output-file "default.timeout")
             fi
-            timeouts="$(wc -l 2>/dev/null < "$timeout_file" || echo 0)"
+            timeouts=$(count-lines-atomically "$timeout_file")
             if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
                 fail_fast=y
             fi
@@ -101,7 +101,7 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
             # report success or failure
             if [[ -n $success ]]; then
                 log "" "$(echo-done)"
-                rm-safe "$timeout_file"
+                clear-atomically "$timeout_file"
             else
                 log "" "$(echo-fail)"
             fi
@@ -117,9 +117,7 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
 
 # solves a list of files
 solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=, query_iterator=) {
-    if [[ -n $attempts ]] && [[ $jobs -gt 1 ]]; then
-        error "Cannot use parallel jobs when detecting consecutive timeouts, as this requires sequential timeout tracking."
-    fi
+    # note that with --jobs > 1, --attempts timeout tracking is approximate and may allow a few extra attempts
     if [[ ! -f $(output-csv) ]]; then
         echo -n "${input_extension}_file,${input_extension}_solver,${input_extension}_query,${input_extension}_solver_time" > "$(output-csv)"
         if [[ -n $data_fields ]]; then
@@ -138,6 +136,10 @@ solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_e
             | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
             solve-file "{}" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
     fi
+    # once all workers have finished, empty timeout attempt files can safely be removed
+    for timeout_file in "$(output-directory)"/"$OUTPUT_FILE_PREFIX".*.timeout; do
+        [[ -e $timeout_file ]] && rm-if-empty "$timeout_file"
+    done
 }
 
 # runs a solver on a file

@@ -31,11 +31,30 @@ pop() {
     popd > /dev/null || error "Failed to pop directory."
 }
 
-# atomically write a line to a file by locking an arbitrary constant file descriptor (200)
+# atomically write a line to a file using a dynamically allocated lock descriptor
 # useful when using parallel jobs to avoid garbled output
 append-atomically(file, line) {
-    {
-        flock 200
-        echo "$line" >&200
-    } 200>>"$file"
+    local lock_fd
+    exec {lock_fd}>>"$file"
+    flock "$lock_fd"
+    echo "$line" >&"$lock_fd"
+    exec {lock_fd}>&-
+}
+
+# counts lines while holding the same lock used by append-atomically
+count-lines-atomically(file) {
+    local lock_fd
+    exec {lock_fd}<>"$file"
+    flock "$lock_fd"
+    wc -l <&"$lock_fd"
+    exec {lock_fd}>&-
+}
+
+# clears a file without unlinking it, so concurrent appenders keep using the locked inode
+clear-atomically(file) {
+    local lock_fd
+    exec {lock_fd}<>"$file"
+    flock "$lock_fd"
+    : > "$file"
+    exec {lock_fd}>&-
 }
