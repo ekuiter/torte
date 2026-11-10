@@ -168,9 +168,9 @@ list-stages() {
     if [[ ${#numbered_stages[@]} -eq 0 ]]; then
         return
     fi
-    printf "┌────┬─────────────────────────────────────────┬────────────┬──────────┬────────┬───────┐\n"
-    printf "│ %2s │ %-39s │ %-10s │ %8s │ %6s │ %5s │\n" "#" "Stage" "Status" "Duration" "Size" "#Row"
-    printf "├────┼─────────────────────────────────────────┼────────────┼──────────┼────────┼───────┤\n"
+    printf "┌─────┬─────────────────────────────────────────┬─────────────┬──────────┬────────┬───────┐\n"
+    printf "│ %3s │ %-39s │ %-11s │ %8s │ %6s │ %5s │\n" "#" "Stage" "Status" "Duration" "Size" "#Row"
+    printf "├─────┼─────────────────────────────────────────┼─────────────┼──────────┼────────┼───────┤\n"
     local total_complete=0 total_duration_seconds=0 total_csv_rows=0
     for numbered_stage in "${numbered_stages[@]}"; do
         if [[ -n "$numbered_stage" ]]; then
@@ -190,10 +190,10 @@ list-stages() {
                     status="moved: #$(lookup-stage-number "$moved_to")"
                     total_complete=$((total_complete + 1))
                 elif stage-done "$stage_name"; then
-                    status="$(echo-green "done      ")"
+                    status="$(echo-green "done       ")"
                     total_complete=$((total_complete + 1))
                 else
-                    status="$(echo-yellow incomplete)"
+                    status="$(echo-yellow "incomplete ")"
                 fi
                 if [[ -d "$numbered_stage" ]] && ! stage-moved "$stage_name"; then
                     size=$(du -sh "$numbered_stage" 2>/dev/null | cut -f1 || echo "")
@@ -211,7 +211,7 @@ list-stages() {
                 if [[ ${#stage_name} -gt 39 ]]; then
                     stage_name="${stage_name:0:36}..."
                 fi
-                printf "│ %2s │ %-39s │ %-10s │ %8s │ %6s │ %5s │\n" \
+                printf "│ %3s │ %-39s │ %-11s │ %8s │ %6s │ %5s │\n" \
                     "$stage_number" "$stage_name" "$status" "$duration" "$size" "$csv_entries"
             fi
         fi
@@ -220,10 +220,10 @@ list-stages() {
     if [[ -d "$(stages-directory)" ]]; then
         total_size=$(du -sh "$(stages-directory)" 2>/dev/null | cut -f1 || echo "")
     fi
-    printf "├────┼─────────────────────────────────────────┼────────────┼──────────┼────────┼───────┤\n"
-    printf "│ %2s │ %-39s │ %-10s │ %8s │ %6s │ %5s │\n" \
+    printf "├─────┼─────────────────────────────────────────┼─────────────┼──────────┼────────┼───────┤\n"
+    printf "│ %3s │ %-39s │ %-11s │ %8s │ %6s │ %5s │\n" \
         "" "total" "${total_complete} done" "$(format-duration-seconds "$total_duration_seconds")" "$total_size" "$total_csv_rows"
-    printf "└────┴─────────────────────────────────────────┴────────────┴──────────┴────────┴───────┘\n\n"
+    printf "└─────┴─────────────────────────────────────────┴─────────────┴──────────┴────────┴───────┘\n\n"
 }
 
 # reads when a stage started.
