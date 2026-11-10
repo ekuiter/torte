@@ -12,7 +12,7 @@ PAIR_INPUT_KEY=pair # the name of the input key to access the pairs stage in dif
 # measures the solve time
 # optionally applies multiple solver queries
 solve-file(file, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=, query_iterator=) {
-    local input output_log timeout_file csv_line timeouts fail_fast
+    local input output_log attempt_file csv_line failed_attempts fail_fast command_succeeded success extracted_data
     input="$(input-directory)/$file" # the file we are going to solve (before applying the query)
     output="$(output-directory)/$(dirname "$file")/$(basename "$file")" # the input file for the solver (after applying the query)
     state="$(output-directory)/$(dirname "$file")/$(basename "$file" ".$input_extension").iterator" # the query iterator state
@@ -47,17 +47,20 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
         else
             log "" "$(echo-progress solve)"
             csv_line="$file,"
+            command_succeeded=
+            success=
+            extracted_data=
 
-            # in case of a certain number of successive timeouts, skip any further attempts
+            # after a certain number of successive attempts without a parsed result, skip any further attempts
             # this is useful if files are executed in order of increasingly complexity, as later files will likely not be solvable either
             # if files naturally cluster into several groups of increasing complexity (like Linux's architectures), we can optionally group them accordingly
             if [[ -n $attempt_grouper ]]; then
-                timeout_file=$(output-file "$("$attempt_grouper" "$file" "$next_query").timeout")
+                attempt_file=$(output-file "$("$attempt_grouper" "$file" "$next_query").attempts")
             else
-                timeout_file=$(output-file "default.timeout")
+                attempt_file=$(output-file "default.attempts")
             fi
-            timeouts=$(count-lines-atomically "$timeout_file")
-            if [[ -n $attempts ]] && [[ $timeouts -ge $attempts ]]; then
+            failed_attempts=$(count-lines-atomically "$attempt_file")
+            if [[ -n $attempts ]] && [[ $failed_attempts -ge $attempts ]]; then
                 fail_fast=y
             fi
 
@@ -68,16 +71,10 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
             fi
 
             # check whether the solving attempt was successful
-            local success
             if [[ -z $fail_fast ]] \
                 && { [[ -n $ignore_exit_code ]] || [[ $(grep -oP "^measure_exit_code=\K.*" < "$output_log") -eq 0 ]]; } \
                 && ! grep -q "^measure_timeout=y" < "$output_log"; then
-                success=y
-            fi
-
-            # in case of timeout, append this attempt to the timeout file, so further attempts can potentially be skipped
-            if grep -q "^measure_timeout=y" < "$output_log"; then
-                append-atomically "$timeout_file" "$file"
+                command_succeeded=y
             fi
             
             # collect results into CSV line
@@ -85,12 +82,29 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
 
             # collect additional data fields (e.g., satisfiability or model count) if requested and if solving succeeded
             if [[ -n $data_extractor ]]; then
-                if [[ -n $success ]]; then
-                    csv_line+=",$("$data_extractor" "$output_log")"
+                if [[ -n $command_succeeded ]]; then
+                    extracted_data=$("$data_extractor" "$output_log")
+                    csv_line+=",$extracted_data"
+                    # a solver process that exits before the timeout but produces no parsable
+                    # result (for example after an OOM kill) is still a failed attempt
+                    if [[ -n $extracted_data ]] && [[ ,$extracted_data, != *,NA,* ]]; then
+                        success=y
+                    fi
                 else
                     for _ in $(seq 1 $(($(echo "$data_fields" | tr -cd , | wc -c)+1))); do
                         csv_line+=",NA"
                     done
+                fi
+            elif [[ -n $command_succeeded ]]; then
+                success=y
+            fi
+
+            # update the consecutive-failure state only for actual invocations, a parsed result resets the group
+            if [[ -z $fail_fast ]]; then
+                if [[ -n $success ]]; then
+                    clear-atomically "$attempt_file"
+                else
+                    append-atomically "$attempt_file" "$file"
                 fi
             fi
 
@@ -101,7 +115,6 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
             # report success or failure
             if [[ -n $success ]]; then
                 log "" "$(echo-done)"
-                clear-atomically "$timeout_file"
             else
                 log "" "$(echo-fail)"
             fi
@@ -115,9 +128,16 @@ solve-file(file, input_extension, solver_name, solver, data_fields=, data_extrac
     rm-safe "$output" "$state"
 }
 
+# solves one already ordered group sequentially to ensure that consecutive attempts are tracked correctly
+solve-file-group(file_list, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, ignore_exit_code=, attempts=, attempt_grouper=, query_iterator=) {
+    local file
+    while IFS= read -r file; do
+        solve-file "$file" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
+    done < "$file_list"
+}
+
 # solves a list of files
 solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=, query_iterator=) {
-    # note that with --jobs > 1, --attempts timeout tracking is approximate and may allow a few extra attempts
     if [[ ! -f $(output-csv) ]]; then
         echo -n "${input_extension}_file,${input_extension}_solver,${input_extension}_query,${input_extension}_solver_time" > "$(output-csv)"
         if [[ -n $data_fields ]]; then
@@ -126,8 +146,26 @@ solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_e
             echo >> "$(output-csv)"
         fi
     fi
-    # to avoid the constant overhead from parallelization due to reloading torte, run sequentially if only one job is requested
-    if [[ $jobs -eq 1 ]]; then
+    # exact consecutive-attempt tracking requires sequential execution within a group (for Linux, architectures)
+    if [[ $jobs -gt 1 ]] && [[ -n $attempts ]] && [[ -n $attempt_grouper ]]; then
+        source-lambda "$attempt_grouper"
+        local group_directory group group_file group_index=0 file
+        local -A group_files=()
+        group_directory=$(mktemp -d)
+        while IFS= read -r file; do
+            group=$("$attempt_grouper" "$file" "")
+            if [[ -z ${group_files[$group]+x} ]]; then
+                group_file="$group_directory/$group_index"
+                group_files[$group]=$group_file
+                group_index=$((group_index + 1))
+            fi
+            echo "$file" >> "${group_files[$group]}"
+        done < <(table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V)
+        find "$group_directory" -type f | sort -V \
+            | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
+            solve-file-group "{}" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
+        rm-safe "$group_directory"
+    elif [[ $jobs -eq 1 ]] || [[ -n $attempts ]]; then
         while IFS= read -r file; do
             solve-file "$file" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
         done < <(table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V)
@@ -136,9 +174,9 @@ solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_e
             | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
             solve-file "{}" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
     fi
-    # once all workers have finished, empty timeout attempt files can safely be removed
-    for timeout_file in "$(output-directory)"/"$OUTPUT_FILE_PREFIX".*.timeout; do
-        [[ -e $timeout_file ]] && rm-if-empty "$timeout_file"
+    # once all workers have finished, empty attempt files can safely be removed
+    for attempt_file in "$(output-directory)"/"$OUTPUT_FILE_PREFIX".*.attempts; do
+        [[ -e $attempt_file ]] && rm-if-empty "$attempt_file"
     done
 }
 
