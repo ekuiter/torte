@@ -11,3 +11,4 @@
 .ipynb_checkpoints
 *.local.json
 /meta/plans
+__pycache__
