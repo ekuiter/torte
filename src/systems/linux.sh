@@ -133,6 +133,9 @@ kconfig-pre-binding-hook-linux(system, revision, lkc_directory=) {
             # until v2.5.75, the Makefile tries to build modpost during kconfig extraction, which fails
             # as we don't need it anyway, we disable it here
             sed -i 's/^\(host-progs	:= .*\) modpost/\1/' scripts/Makefile
+            # these versions also build a target-architecture empty.o; this fails when the first
+            # requested architecture is not supported by the host compiler (e.g., Alpha)
+            sed -i 's/ empty.o//g' scripts/Makefile
         fi
         if [[ -f Makefile ]]; then
             # until v2.5.70, ARCH is set using ':=', which prevents overriding it with an environment variable
