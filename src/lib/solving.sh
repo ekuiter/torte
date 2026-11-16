@@ -136,8 +136,22 @@ solve-file-group(file_list, input_extension, solver_name, solver, data_fields=, 
     done < "$file_list"
 }
 
+# lists solver inputs in filename order by default, or by a numeric CSV field when requested
+solve-input-files(csv_file, input_extension, order_field=) {
+    if [[ -z $order_field ]]; then
+        table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V
+        return
+    fi
+    paste \
+        <(table-field "$csv_file" "$order_field") \
+        <(table-field "$csv_file" "${input_extension}_file") \
+        | awk -F '\t' '$2 !~ /NA$/ { print }' \
+        | sort -s -t $'\t' -k1,1n -k2,2V \
+        | cut -f2
+}
+
 # solves a list of files
-solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=, query_iterator=) {
+solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_extractor=, timeout=0, jobs=1, ignore_exit_code=, attempts=, attempt_grouper=, query_iterator=, order_field=) {
     if [[ ! -f $(output-csv) ]]; then
         echo -n "${input_extension}_file,${input_extension}_solver,${input_extension}_query,${input_extension}_solver_time" > "$(output-csv)"
         if [[ -n $data_fields ]]; then
@@ -146,7 +160,7 @@ solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_e
             echo >> "$(output-csv)"
         fi
     fi
-    # exact consecutive-attempt tracking requires sequential execution within a group (for Linux, architectures)
+    # exact consecutive-attempt tracking requires sequential execution within a group (e.g., all systems for an extractor)
     if [[ $jobs -gt 1 ]] && [[ -n $attempts ]] && [[ -n $attempt_grouper ]]; then
         source-lambda "$attempt_grouper"
         local group_directory group group_file group_index=0 file
@@ -160,7 +174,7 @@ solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_e
                 group_index=$((group_index + 1))
             fi
             echo "$file" >> "${group_files[$group]}"
-        done < <(table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V)
+        done < <(solve-input-files "$csv_file" "$input_extension" "$order_field")
         find "$group_directory" -type f | sort -V \
             | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
             solve-file-group "{}" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
@@ -168,9 +182,9 @@ solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_e
     elif [[ $jobs -eq 1 ]] || [[ -n $attempts ]]; then
         while IFS= read -r file; do
             solve-file "$file" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
-        done < <(table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V)
+        done < <(solve-input-files "$csv_file" "$input_extension" "$order_field")
     else  
-        table-field "$csv_file" "${input_extension}_file" | grep -v NA$ | sort -V \
+        solve-input-files "$csv_file" "$input_extension" "$order_field" \
             | parallel -q ${jobs:+"-j$jobs"} "$SRC_DIRECTORY/main.sh" \
             solve-file "{}" "$input_extension" "$solver_name" "$solver" "$data_fields" "$data_extractor" "$timeout" "$ignore_exit_code" "$attempts" "$attempt_grouper" "$query_iterator"
     fi
@@ -181,7 +195,7 @@ solve-files(csv_file, input_extension, solver_name, solver, data_fields=, data_e
 }
 
 # runs a solver on a file
-solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=) {
+solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, order_field=) {
     parser=${parser:-$kind}
     solve-files \
         "$(input-csv)" \
@@ -195,7 +209,15 @@ solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempt
         y \
         "$attempts" \
         "$attempt_grouper" \
-        "$query_iterator"
+        "$query_iterator" \
+        "$order_field"
+}
+
+# creates one shared attempt history and sequential job per extractor and system
+extractor-system-attempt-grouper(file, query=) {
+    local system_directory
+    system_directory=$(dirname "$file")
+    echo "$(basename "$(dirname "$system_directory")").$(basename "$system_directory")"
 }
 
 # performs a single solver call on the given input file

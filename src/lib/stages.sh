@@ -458,7 +458,7 @@ define-stages() {
     }
 
     # solve DIMACS files
-    solve(kind, query=, input=transform-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=, file_fields=, solver_specs...) {
+    solve(kind, query=, input=transform-to-dimacs, input_extension=dimacs, timeout=0, jobs=1, attempts=, attempt_grouper=, query_iterator=, iterations=1, iteration_field=, file_fields=, order_field=, solver_specs...) {
         local stages=()
         for solver_spec in "${solver_specs[@]}"; do
             local solver stage image parser
@@ -487,7 +487,8 @@ define-stages() {
                 --jobs "$jobs" \
                 --attempts "$attempts" \
                 --attempt-grouper "$attempt_grouper" \
-                --query-iterator "$query_iterator"
+                --query-iterator "$query_iterator" \
+                --order-field "$order_field"
         done
         if [[ -n $query ]]; then
             stage=$query-${stage,,}
