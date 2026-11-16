@@ -284,8 +284,8 @@ experiment-stages-3b-transformation() {
 
 experiment-stages-4-configurability(is_linux) {
     if [[ $is_linux == y ]]; then
-        local solve_timeout=1200 # timeout for model counting in seconds
-        local solve_attempts=4 # how many successive timeouts are allowed before giving up and moving on
+        local solve_timeout=3600 # timeout for model counting in seconds
+        local solve_attempts=4 # how many successive attempts without a count are allowed before giving up and moving on
     else
         local solve_timeout=300
         local solve_attempts=2
@@ -293,7 +293,7 @@ experiment-stages-4-configurability(is_linux) {
 
     local sharp_sat_solver_specs=(
         mcc-2026/d4/d4.sh,solver.24,sharp-sat
-        mcc-2026/ganak.sh,solver,sharp-sat-mcc22
+        mcc-2022/SharpSAT-td+Arjun/SharpSAT-td+Arjun.sh,solver,sharp-sat-mcc22
     )
 
     # transform extracted feature models into CNF
@@ -306,7 +306,7 @@ experiment-stages-4-configurability(is_linux) {
     join-into transform-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs "$JOBS_MISC"
 
-    # for Linux, we group attempts by architecture for correct timeout handling
+    # for Linux, group attempts by architecture so each cutoff follows its own history
     local attempt_grouper
     if [[ $is_linux == y ]]; then
         attempt_grouper=$(to-lambda linux-attempt-grouper)
