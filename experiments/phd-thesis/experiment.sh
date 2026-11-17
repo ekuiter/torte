@@ -77,6 +77,14 @@ add-restrictions-payload-file restrictions.csv
 
 # define which systems are analyzed in each pass of the experiment
 experiment-systems() {
+    add-kconfig-history(system, to=, branch=, force_sample=, options...) {
+        if has-command add-"${system}"-kconfig-tags; then
+            add-"${system}"-kconfig-tags --to "$to" "${options[@]}"
+            [[ -z $force_sample ]] && return
+        fi
+        add-"${system}"-kconfig-sample --branch "$branch" "${options[@]}"
+    }
+
     local system_spec system to branch latest_extracted
     if in-pass 3a-extraction; then
         # extract feature models for all analyzed systems
@@ -86,10 +94,7 @@ experiment-systems() {
             if [[ $system == linux ]]; then
                 options=(--architecture all) # for linux, we want to extract all architectures (not just x86)
             fi
-            if has-command add-"${system}"-kconfig-tags; then
-                add-"${system}"-kconfig-tags --to "$to" "${options[@]}"
-            fi
-            add-"${system}"-kconfig-sample --branch "$branch" "${options[@]}"
+            add-kconfig-history "$system" "$to" "$branch" y "${options[@]}"
         done
     elif in-pass 3b-transformation; then
         # use the latest pinned release, or the latest sampled revision that was extracted in the previous pass
@@ -106,7 +111,13 @@ experiment-systems() {
             fi
         done
     elif in-pass 4b-configurability-other; then
-        error todo
+        # analyze all tagged and sampled revisions of every non-Linux system
+        for system_spec in "${SYSTEMS_SPECS[@]}"; do
+            IFS=, read -r system to branch latest_extracted <<< "$system_spec"
+            if [[ $system != linux ]]; then
+                add-kconfig-history "$system" "$to" "$branch" y
+            fi
+        done
     elif in-pass 5a-scalability-linux; then
         # choose the last revision of Linux for each year from 2002-2026,
         # which can then be analyzed with the corresponding year's SAT competition solver
@@ -119,11 +130,7 @@ experiment-systems() {
         # analyze all tagged neighboring-revision pairs, if any, or use a yearly sample
         for system_spec in "${SYSTEMS_SPECS[@]}"; do
             IFS=, read -r system to branch latest_extracted <<< "$system_spec"
-            if has-command add-"${system}"-kconfig-tags; then
-                add-"${system}"-kconfig-tags --to "$to"
-            else
-                add-"${system}"-kconfig-sample --branch "$branch"
-            fi
+            add-kconfig-history "$system" "$to" "$branch"
         done
     fi
 }
@@ -278,18 +285,16 @@ experiment-stages-3b-transformation() {
             solve "${solve_args[@]}" --solver_specs "${solver_specs[@]}"
             solve_stages+=("solve-$query_name-$kind")
         done
-        aggregate --output "solve-$kind" --inputs "${solve_stages[@]}"
+        aggregate \
+            --output "solve-$kind" \
+            --inputs "${solve_stages[@]}"
     done
 }
 
 experiment-stages-4-configurability(is_linux) {
-    if [[ $is_linux == y ]]; then
-        local solve_timeout=3600 # timeout for model counting in seconds
-        local solve_attempts=4 # how many successive attempts without a count are allowed before giving up and moving on
-    else
-        local solve_timeout=300
-        local solve_attempts=2
-    fi
+    local transform_timeout=600 # timeout for CNF and backbone transformation in seconds
+    local solve_timeout=3600 # timeout for model counting in seconds
+    local solve_attempts=4 # how many successive attempts without a count are allowed before giving up and moving on
 
     local sharp_sat_solver_specs=(
         mcc-2026/d4/d4.sh,solver.24,sharp-sat
@@ -297,20 +302,26 @@ experiment-stages-4-configurability(is_linux) {
     )
 
     # transform extracted feature models into CNF
-    transform-to-dimacs --with-z3 y --jobs "$JOBS_MISC"
+    transform-to-dimacs \
+        --with-z3 y \
+        --timeout "$transform_timeout" \
+        --jobs "$JOBS_HARD"
     join-into extract-kconfig-models transform-to-dimacs
 
     # compute unconstrained features and backbone (for counting the number of features)
     compute-unconstrained-features --jobs "$JOBS_MISC"
-    transform-dimacs-to-backbone-dimacs-with --transformer cadiback --jobs "$JOBS_HARD"
+    transform-dimacs-to-backbone-dimacs-with \
+        --transformer cadiback \
+        --timeout "$transform_timeout" \
+        --jobs "$JOBS_HARD"
     join-into transform-to-dimacs transform-dimacs-to-backbone-dimacs
     compute-backbone-features --jobs "$JOBS_MISC"
 
-    # for Linux, group attempts by architecture so each cutoff follows its own history
-    local attempt_grouper
-    if [[ $is_linux == y ]]; then
-        attempt_grouper=$(to-lambda linux-attempt-grouper)
-    fi
+    # follow each independent history sequentially
+    # group Linux by architecture, other histories by extractor and system
+    local attempt_grouper=system-attempt-grouper
+    [[ $is_linux == y ]] && attempt_grouper=linux-attempt-grouper
+    attempt_grouper=$(to-lambda "$attempt_grouper")
 
     # solve #SAT (for counting the number of configurations)
     solve \
@@ -321,6 +332,7 @@ experiment-stages-4-configurability(is_linux) {
         --jobs "$JOBS_HARD" \
         --attempts "$solve_attempts" \
         --attempt-grouper "$attempt_grouper" \
+        --order-field committer_date_unix \
         --solver_specs "${sharp_sat_solver_specs[@]}"
     join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 
@@ -404,7 +416,9 @@ experiment-stages-6-differencing() {
 
     # prepare for differencing by computing pairs of non-duplicate versions to difference
     remove-duplicate-files --file-field model_file
-    compute-file-pairs --file-field model_file --group-field system
+    compute-file-pairs \
+        --file-field model_file \
+        --group-field system
 
     # compute differences between feature models using clausy
     # (see details on the evaluation runs in src/docker/clausy/scripts/evaluate_diff.sh)

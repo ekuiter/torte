@@ -214,7 +214,7 @@ solve(solver, kind=, parser=, input_extension=dimacs, timeout=0, jobs=1, attempt
 }
 
 # creates one shared attempt history and sequential job per extractor and system
-extractor-system-attempt-grouper(file, query=) {
+system-attempt-grouper(file, query=) {
     local system_directory
     system_directory=$(dirname "$file")
     echo "$(basename "$(dirname "$system_directory")").$(basename "$system_directory")"
