@@ -419,6 +419,14 @@ define-stages() {
             --jobs "$jobs"
     }
 
+    # gather detailed feature information from KConfig-extracted feature models and Z3-produced backbone DIMACS
+    compute-feature-statistics(models_input=extract-kconfig-models, configs_input=read-kconfig-configs, unconstrained_features_input=compute-unconstrained-features, backbone_dimacs_input=transform-dimacs-to-backbone-dimacs, backbone_features_input=compute-backbone-features, output=compute-feature-statistics) {
+        run \
+            --input "models=$models_input,configs=$configs_input,unconstrained_features=$unconstrained_features_input,backbone_dimacs=$backbone_dimacs_input,backbone_features=$backbone_features_input" \
+            --output "$output" \
+            --command compute-feature-statistics
+    }
+
     # computes neighboring pairs of files from the given field of the input stage
     compute-file-pairs(file_field, group_field=, input=extract-kconfig-models, output=compute-file-pairs) {
         run \

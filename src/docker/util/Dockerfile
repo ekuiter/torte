@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     cloc \
     curl \
     wget \
+    python3 \
+    python3-pandas \
     ruby-dev \
     build-essential \
     parallel \

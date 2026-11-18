@@ -303,6 +303,27 @@ compute-features(kind=model, output_extension=, timeout=0, jobs=1) {
         "$jobs"
 }
 
+# exports feature statistics from Z3-produced DIMACS files to reusable CSV files for evaluation notebooks
+compute-feature-statistics() {
+    python3 "$DOCKER_SRC_DIRECTORY/docker/util/compute_feature_statistics.py" \
+        --models "$(input-directory models)" \
+        --configs "$(input-directory configs)" \
+        --unconstrained-features "$(input-directory unconstrained_features)" \
+        --backbone-dimacs "$(input-directory backbone_dimacs)" \
+        --backbone-features "$(input-directory backbone_features)" \
+        --output "$(output-directory)" \
+        --log-models \
+        | while IFS=$'\t' read -r event model_file; do
+            if [[ $event == start ]]; then
+                log "$model_file" "$(echo-progress compute)"
+            elif [[ $event == end ]]; then
+                log "$model_file" "$(echo-done)"
+            fi
+        done
+    local python_status=${PIPESTATUS[0]}
+    return "$python_status"
+}
+
 # provides a pseudo-random source based on a seed, which is much less predictable than passing --random-source=<(yes "$seed")
 pseudo-random-source(seed) {
     openssl enc -aes-256-ctr -pass pass:"$seed" -nosalt -out /dev/stdout </dev/zero 2>/dev/null
