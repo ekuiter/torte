@@ -41,10 +41,12 @@ valid for DIMACS files produced by other transformers.
 All artifact paths in these CSVs are relative to their respective stage
 directory.  Kconfig types are inferred generically for every system; declarations
 that the config-reading stage cannot classify remain ``unknown``.  An architecture
-is read only from an explicit ``architecture`` column; it is left empty when
-architecture does not apply to the model.  Failed extraction rows whose
-``model_file`` is empty or ends in ``NA`` are ignored because they have no feature
-artifacts to summarize.
+is read from an explicit ``architecture`` column.  Existing Linux extraction CSVs
+instead store their architecture in ``context``; that fallback is deliberately
+restricted to Linux because other systems use context for values such as commit
+hashes.  Architecture remains empty when it does not apply to a model.  Failed
+extraction rows whose ``model_file`` is empty or ends in ``NA`` are ignored because
+they have no feature artifacts to summarize.
 
 Output files:
 
@@ -66,6 +68,7 @@ import pandas as pd
 
 
 KCLAUSE_EXTRACTOR = "extract-kconfig-models-with-kclause"
+KCONFIGREADER_EXTRACTOR = "extract-kconfig-models-with-kconfigreader"
 
 # Columns of the per-model output.csv.  Empty strings represent unavailable
 # measurements and are intentionally serialized as empty CSV cells.
@@ -158,6 +161,17 @@ def read_features(path):
 def version_key(value):
     """Produce a natural-sort key so, for example, v10 follows v9."""
     return [int(part) if part.isdigit() else part for part in re.split(r"([0-9]+)", value or "")]
+
+
+def model_architecture(row):
+    """Read a model architecture, including the established Linux CSV schema."""
+    architecture = row.get("architecture", "")
+    if not architecture and row.get("system", "") == "linux":
+        # add-linux-kconfig stores its architecture as the extraction context.
+        # Context remains opaque for every other system, where it may instead
+        # contain a commit hash or another non-architecture identifier.
+        architecture = row.get("context", "")
+    return architecture
 
 
 def jaccard(left, right):
@@ -373,6 +387,30 @@ def revision_change_counts(total_features_by_revision_extractor):
     return changes
 
 
+def build_extractor_comparison_rows(comparison_features_by_extractor):
+    """Compare KConfigReader and KClause feature sets for matching models."""
+    rows = []
+    for (system, revision, architecture), extractor_features in sorted(
+        comparison_features_by_extractor.items(),
+        key=lambda item: (item[0][0], version_key(item[0][1]), item[0][2]),
+    ):
+        value = ""
+        if KCONFIGREADER_EXTRACTOR in extractor_features and KCLAUSE_EXTRACTOR in extractor_features:
+            value = jaccard(
+                extractor_features[KCONFIGREADER_EXTRACTOR],
+                extractor_features[KCLAUSE_EXTRACTOR],
+            )
+        rows.append(
+            {
+                "system": system,
+                "revision": revision,
+                "architecture": architecture,
+                "extractor_jaccard": value,
+            }
+        )
+    return rows
+
+
 def metadata_rows(*, model_rows, config_rows, config_type_rows, rows, comparable):
     """Record input and output row counts alongside the derived data."""
     return [
@@ -499,7 +537,7 @@ def main():
     #   previous_features: changes from one revision to the next;
     #   total_*: unions over all architectures of a revision.
     rows = []
-    extractor_comparison = {}
+    comparison_features_by_extractor = defaultdict(dict)
     potential_misses_grep = defaultdict(set)
     potential_misses_kmax = defaultdict(set)
     feature_sets_by_system = defaultdict(
@@ -516,14 +554,14 @@ def main():
             row["system"],
             row["extractor"],
             version_key(row["revision"]),
-            row.get("architecture", ""),
+            model_architecture(row),
         )
     )
     for row in model_rows:
         system = row["system"]
         extractor = row["extractor"]
         revision = row["revision"]
-        architecture = row.get("architecture", "")
+        architecture = model_architecture(row)
         model_file = row["model_file"]
         if args.log_models:
             print(f"start\t{model_file}", flush=True)
@@ -587,14 +625,10 @@ def main():
         previous_features[(system, extractor)][architecture] = features
         total_features_by_revision_extractor[(system, extractor, revision)].update(features)
 
-        # The first extractor contributes a set; the second replaces that set
-        # with their Jaccard agreement.  A remaining set later becomes an empty
-        # value because no extractor comparison was possible.
+        # Retain each extractor's feature set until both sides of the intended
+        # KConfigReader/KClause comparison are available.
         comparison_key = (system, revision, architecture)
-        if comparison_key not in extractor_comparison:
-            extractor_comparison[comparison_key] = features
-        else:
-            extractor_comparison[comparison_key] = jaccard(extractor_comparison[comparison_key], features)
+        comparison_features_by_extractor[comparison_key][extractor] = features
 
         # KClause/Kmax-specific diagnostics expose names that occur on only one
         # side of the config-versus-model comparison.  They do not alter the
@@ -675,18 +709,7 @@ def main():
             potential_misses_kmax[system].update(config_features - kmax_variables)
 
     # Flatten the extractor-agreement accumulator into a stable CSV table.
-    comparable = [
-        {
-            "system": system,
-            "revision": revision,
-            "architecture": architecture,
-            "extractor_jaccard": "" if isinstance(value, set) else value,
-        }
-        for (system, revision, architecture), value in sorted(
-            extractor_comparison.items(),
-            key=lambda item: (item[0][0], version_key(item[0][1]), item[0][2]),
-        )
-    ]
+    comparable = build_extractor_comparison_rows(comparison_features_by_extractor)
 
     # A config is marked configurable if at least one extractor/architecture
     # includes it.  The resulting table supports config- and type-level plots.
