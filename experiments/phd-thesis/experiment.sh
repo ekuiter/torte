@@ -282,7 +282,7 @@ experiment-stages-3b-transformation() {
                     --query-iterator "$(to-lambda "query-$query_iterator" constrained.features)"
                 )
             fi
-            solve "${solve_args[@]}" --solver_specs "${solver_specs[@]}"
+            solve "${solve_args[@]}" --solver-specs "${solver_specs[@]}"
             solve_stages+=("solve-$query_name-$kind")
         done
         aggregate \
@@ -333,7 +333,7 @@ experiment-stages-4-configurability(is_linux) {
         --attempts "$solve_attempts" \
         --attempt-grouper "$attempt_grouper" \
         --order-field committer_date_unix \
-        --solver_specs "${sharp_sat_solver_specs[@]}"
+        --solver-specs "${sharp_sat_solver_specs[@]}"
     join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 
     # read additional information for later analysis
@@ -348,11 +348,11 @@ experiment-stages-4-configurability(is_linux) {
 }
 
 experiment-stages-4a-configurability-linux() {
-    experiment-stages-4-configurability --is_linux y
+    experiment-stages-4-configurability --is-linux y
 }
 
 experiment-stages-4b-configurability-other() {
-    experiment-stages-4-configurability --is_linux n
+    experiment-stages-4-configurability --is-linux n
 }
 
 experiment-stages-5-scalability() {
@@ -406,7 +406,7 @@ experiment-stages-5-scalability() {
         --iterations "$solve_iterations" \
         --timeout "$solve_timeout" \
         --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
-        --solver_specs "${solver_specs[@]}"
+        --solver-specs "${solver_specs[@]}"
 }
 
 experiment-stages-6-differencing() {
