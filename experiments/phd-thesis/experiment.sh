@@ -119,13 +119,37 @@ experiment-systems() {
             fi
         done
     elif in-pass 5a-scalability-linux; then
-        # choose the last revision of Linux for each year from 2002-2026,
+        # choose the last tagged release of Linux for each year from 2002-2026,
         # which can then be analyzed with the corresponding year's SAT competition solver
-        add-linux-kconfig-revisions \
-            --revisions "$(linux-tags \
-                | git-last-revision-per-year --system linux --from 2002 --to 2026)"
+        for system_spec in "${SYSTEMS_SPECS[@]}"; do
+            IFS=, read -r system to branch latest_extracted <<< "$system_spec"
+            if [[ $system == linux ]]; then
+                for architecture in x86 arm; do
+                    add-linux-kconfig-revisions \
+                        --revisions "$(linux-tags \
+                            | stop-at-revision "$to" \
+                            | git-last-revision-per-year --system linux --from 2002 --to 2026)" \
+                        --architecture "$architecture"
+                done
+            fi
+        done
     elif in-pass 5b-scalability-other; then
-        error todo
+        # choose the last tagged or sampled revision of each system that is not Linux
+        for system_spec in "${SYSTEMS_SPECS[@]}"; do
+            IFS=, read -r system to branch latest_extracted <<< "$system_spec"
+            if [[ $system != linux ]]; then
+                add-"${system}"-kconfig-revisions \
+                    --revisions "$({
+                        if has-command "${system}"-tags; then
+                            "${system}"-tags | stop-at-revision "$to"
+                        fi
+                        memoize-global git-sample-commits \
+                            --system "$system" \
+                            --interval "$(interval yearly)" \
+                            --branch "$branch"
+                    } | git-last-revision-per-year --system "$system" --from 2002 --to 2026)"
+            fi
+        done
     elif in-pass 6-differencing; then
         # analyze all tagged neighboring-revision pairs, if any, or use a yearly sample
         for system_spec in "${SYSTEMS_SPECS[@]}"; do
@@ -336,14 +360,14 @@ experiment-stages-4-configurability(is_linux) {
         --solver-specs "${sharp_sat_solver_specs[@]}"
     join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 
-    # read additional information for later analysis
+    # read generic Kconfig declarations and derive reusable feature statistics
+    read-kconfig-configs
+    compute-feature-statistics
+
+    # read additional Linux-specific information for later analysis
     if [[ $is_linux == y ]]; then
         read-linux-architectures
-        read-linux-configs
         join-into read-statistics read-linux-architectures
-        compute-feature-statistics --configs-input read-linux-configs
-    else
-        error todo
     fi
 }
 
@@ -355,10 +379,9 @@ experiment-stages-4b-configurability-other() {
     experiment-stages-4-configurability --is-linux n
 }
 
-experiment-stages-5-scalability() {
-    local solve_timeout=1200 # timeout for SAT solvers in seconds (rarely needed) # LINUX
-    local solve_timeout=300 # timeout for SAT solvers in seconds (rarely needed) # OTHER
-    local iterations=5 # number of iterations for extraction and transformation
+experiment-stages-5-scalability(is_linux) {
+    local solve_timeout=300 # timeout for SAT solvers in seconds (rarely needed)
+    local iterations=3 # number of iterations for extraction and transformation
     local solve_iterations=3 # number of iterations for SAT solving
 
     local solver_specs=(
@@ -392,6 +415,32 @@ experiment-stages-5-scalability() {
         other/SAT4J.235.sh,solver,sat
     )
 
+    if [[ $is_linux == y ]]; then
+        solver_specs+=(
+            sat-museum/limmat-2002,solver,sat
+            sat-museum/berkmin-2003.sh,solver,sat
+            sat-museum/zchaff-2004,solver,sat
+            sat-museum/satelite-gti-2005.sh,solver,sat
+            sat-museum/minisat-2006,solver,sat
+            sat-museum/rsat-2007.sh,solver,sat
+            sat-museum/minisat-2008,solver,sat
+            sat-museum/precosat-2009,solver,sat
+            sat-museum/cryptominisat-2010,solver,sat
+            sat-museum/glucose-2011.sh,solver,sat
+            sat-museum/glucose-2012.sh,solver,sat
+            sat-museum/lingeling-2013,solver,sat
+            sat-museum/lingeling-2014,solver,sat
+            sat-museum/abcdsat-2015.sh,solver,sat
+            sat-museum/maple-comsps-drup-2016,solver,sat
+            sat-museum/maple-lcm-dist-2017,solver,sat
+            sat-museum/maple-lcm-dist-cb-2018,solver,sat
+            sat-museum/maple-lcm-disc-cb-dl-v3-2019,solver,sat
+            sat-museum/kissat-2020,solver,sat
+            sat-museum/kissat-mab-2021,solver,sat
+            sat-museum/kissat-mab-hywalk-2022,solver,sat
+        )
+    fi
+
     # transform extracted feature models into CNF
     # we don't iterate Z3 because it is fully deterministic
     transform-to-dimacs \
@@ -405,8 +454,16 @@ experiment-stages-5-scalability() {
         --kind sat \
         --iterations "$solve_iterations" \
         --timeout "$solve_timeout" \
-        --attempt-grouper "$(to-lambda linux-attempt-grouper)" \
+        --jobs "$JOBS_HARD" \
         --solver-specs "${solver_specs[@]}"
+}
+
+experiment-stages-5a-scalability-linux() {
+    experiment-stages-5-scalability --is-linux y
+}
+
+experiment-stages-5b-scalability-other() {
+    experiment-stages-5-scalability --is-linux n
 }
 
 experiment-stages-6-differencing() {
