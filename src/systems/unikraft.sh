@@ -11,6 +11,10 @@ define-system \
     --environment CONFIG_=CONFIG_,KCONFIG_CONFIG=.config,KCONFIG_AUTOCONFIG=build/kconfig/auto.conf,KCONFIG_AUTOHEADER=build/include/uk/bits/config.h,KCONFIG_TRISTATE=build/kconfig/tristate.config,HOST_ARCH=x86_64,BUILD_DIR=build,UK_BASE=.,UK_APP=.,UK_CONFIG=.config,UK_FULLVERSION=0,UK_CODENAME=,UK_ARCH=x86_64,KCONFIG_DIR=build/kconfig,KCONFIG_LIB_BASE=lib,KCONFIG_ELIB_DIRS=,KCONFIG_PLAT_BASE=plat,KCONFIG_EPLAT_DIRS=,KCONFIG_DRIV_BASE=drivers,KCONFIG_EAPP_DIR=,KCONFIG_EXCLUDEDIRS=,UK_NAME=unikraft,HOSTCC=gcc,HOSTCXX=g++,CC=gcc \
     --sample-branch staging
 
+define-config-source \
+    --system unikraft \
+    --globs ':(glob)**/Config.uk'
+
 add-unikraft-system() {
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-unikraft
     add-system --system unikraft --url "$UNIKRAFT_URL"

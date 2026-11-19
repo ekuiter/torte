@@ -14,6 +14,19 @@ define-system \
     --lkc-output-directory build/scripts/kconfig \
     --sample-branch master
 
+define-config-source --system l4re --mode generated
+
 add-l4re-system() {
+    add-hook-step read-configs-hook read-configs-hook-l4re
     add-system --system l4re --url "$L4RE_URL"
+}
+
+read-configs-hook-l4re(system, revision) {
+    if [[ $system == l4re ]]; then
+        prepare-l4re-generated-kconfig
+    fi
+}
+
+prepare-l4re-generated-kconfig() {
+    make fiasco.builddir.create >/dev/null 2>&1 || true
 }

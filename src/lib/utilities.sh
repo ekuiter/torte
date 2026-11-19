@@ -170,47 +170,40 @@ read-property(system, reader, field) {
     experiment-systems
 }
 
-# reads configuration options from Kconfig files at a given revision
-# this is admittedly a pretty scary regex, but it was manually inspected on Linux (see TOSEM'25)
-# be careful when calling this in a dedicated state though, as it can only operate on existing KConfig files
-# in case any KConfig files have to be generated, this should be called after generation (e.g., in a post-binding hook)
-read-kconfig-configs(system, revision, globs...) {
-    # match lines in all Kconfig files of the given revision that:
-    # - start with 'config' or 'menuconfig' (possibly with leading whitespace)
-    # - after which follows an alphanumeric configuration option name
-    # then format the result by removing 'config' or 'menuconfig', possible comments, and trimming any whitespace
-    # finally, ignore all lines which contain illegal characters (e.g., whitespace)
-    { git -C "$(input-directory)/$system" grep -E $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- "${globs[@]}" || true; } \
-        | awk -F: -v system_name="$system" $'{OFS=","; gsub("^[ \t]*(menu)?config[ \t]+", "", $3); gsub("#.*", "", $3); gsub(/^[[:space:]]+|[[:space:]]+$/, "", $3); print system_name, $1, $2, $3}' \
-        | grep -E ',.*,.*,[0-9a-zA-Z_]+$' \
-        | sort | uniq
+# registers how each system's kconfig declarations can be read
+# most systems use the fast git-grep mode and common filename conventions
+# generated mode first prepares a checkout and then reads ignored and untracked generated files
+declare -gA CONFIG_SOURCE_MODES
+declare -gA CONFIG_SOURCE_GLOBS
+
+define-config-source(system, mode=git-grep, globs...) {
+    if [[ $mode != git-grep ]] && [[ $mode != generated ]]; then
+        error "Unknown config source mode for $system: $mode"
+    fi
+    CONFIG_SOURCE_MODES["$system"]=$mode
+    CONFIG_SOURCE_GLOBS["$system"]=$(printf '%s\n' "${globs[@]}")
 }
 
-# reads configuration option types from Kconfig files at a given revision
-read-kconfig-config-types(system, revision, globs...) {
-    # similar to kconfig-configs, reads all configuration options, but also tries to read their types from the succeeding line
-    # note that this is less accurate than kconfig-configs due to the complexity of the regular expressions
-    { git -C "$(input-directory)/$system" grep -E -A1 $'^[ \t]*(menu)?config[ \t]+[0-9a-zA-Z_]+' "$revision" -- "${globs[@]}" || true; } \
-        | perl -pe 's/[ \t]*(menu)?config[ \t]+([0-9a-zA-Z_]+).*/$2/' \
-        | perl -pe 's/\n/&&&/g' \
-        | perl -pe 's/&&&--&&&/\n/g' \
-        | perl -pe 's/&&&[^:&]*?:[^:&]*?Kconfig[^:&]*?-/&&&/g' \
-        | perl -pe 's/&&&([^:&]*?:[^:&]*?Kconfig[^:&]*?:)/&&&\n$1/g' \
-        | perl -pe 's/&&&/:/g' \
-        | awk -F: -v system_name="$system" $'{OFS=","; gsub(".*bool.*", "bool", $4); gsub(".*tristate.*", "tristate", $4); gsub(".*string.*", "string", $4); gsub(".*int.*", "int", $4); gsub(".*hex.*", "hex", $4); print system_name, $1, $2, $3, $4}' \
-        | grep -E ',(bool|tristate|string|int|hex)$' \
-        | sort | uniq
+# prints the registered source mode, defaulting to git-grep
+config-source-mode(system) {
+    echo "${CONFIG_SOURCE_MODES[$system]:-git-grep}"
 }
 
-# reads configuration options and types from Kconfig files
-read-kconfig-configs-helper(system, globs...) {
-    READ_KCONFIG_CONFIGS_SYSTEM=$system
-    READ_KCONFIG_CONFIGS_GLOBS=("${globs[@]}")
+# prints the common pathspecs plus any system-specific additions
+config-source-globs(system) {
+    printf '%s\n' \
+        ':(glob)**/Kconfig*' \
+        ':(glob)**/Config.in*'
+    if [[ -n ${CONFIG_SOURCE_GLOBS[$system]:-} ]]; then
+        printf '%s\n' "${CONFIG_SOURCE_GLOBS[$system]}"
+    fi
+}
 
+# reads configuration options and types for every revision registered by the
+# current experiment; repeated revisions are written only once
+# the declaration parsing and its limitations are documented in read_configs.py
+read-configs-helper() {
     add-revision(system, revision) {
-        if [[ $system != "$READ_KCONFIG_CONFIGS_SYSTEM" ]]; then
-            return
-        fi
         revision=$(revision-without-context "$revision")
         log "$system@$revision" "$(echo-progress read)"
         if grep -q "^$system,$revision," "$(output-csv)"; then
@@ -220,18 +213,43 @@ read-kconfig-configs-helper(system, globs...) {
         if [[ ! -d $(input-directory)/$system ]]; then
             error "$system has not been cloned yet. Please prepend a stage that clones $system."
         fi
-        local configs config_types
+        local mode
+        mode=$(config-source-mode "$system")
+        if [[ $mode == generated ]]; then
+            # prepare a checkout of the revision, which may be needed for generated Kconfig files
+            # the generation can happen in the post-checkout hook or a dedicated read-configs-hook
+            kconfig-checkout "$system" "$revision"
+            compile-hook read-configs-hook
+            push "$(input-directory)/$system"
+            read-configs-hook "$system" "$revision"
+            pop
+        fi
+
+        local configs config_types globs
         configs=$(mktemp)
         config_types=$(mktemp)
-        echo system,revision,kconfig_file,config >> "$configs"
-        echo system,revision,kconfig_file,config,type >> "$config_types"
-        read-kconfig-configs "$system" "$revision" "${READ_KCONFIG_CONFIGS_GLOBS[@]}" >> "$configs"
-        tail -n+2 < "$configs" >> "$(output-csv)"
-        read-kconfig-config-types "$system" "$revision" "${READ_KCONFIG_CONFIGS_GLOBS[@]}" >> "$config_types"
-        if [[ ! -f $(output-file types.csv) ]]; then
-            join-tables "$configs" "$config_types" | head -n1 > "$(output-file types.csv)"
+        mapfile -t globs < <(config-source-globs "$system")
+        local reader_status=0
+        python3 "$DOCKER_SRC_DIRECTORY/docker/util/read_configs.py" \
+            --repository "$(input-directory)/$system" \
+            --system "$system" \
+            --revision "$revision" \
+            --mode "$mode" \
+            --configs-output "$configs" \
+            --types-output "$config_types" \
+            "${globs[@]}" || reader_status=$?
+        if [[ $mode == generated ]]; then
+            git-clean "$(input-directory)/$system"
         fi
-        join-tables "$configs" "$config_types" | tail -n+2 >> "$(output-file types.csv)"
+        if (( reader_status != 0 )); then
+            rm-safe "$configs" "$config_types"
+            return "$reader_status"
+        fi
+        tail -n+2 < "$configs" >> "$(output-csv)"
+        if [[ ! -f $(output-file types.csv) ]]; then
+            head -n1 < "$config_types" > "$(output-file types.csv)"
+        fi
+        tail -n+2 < "$config_types" >> "$(output-file types.csv)"
         log "" "$(echo-done)"
         rm-safe "$configs" "$config_types"
     }

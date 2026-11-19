@@ -14,8 +14,8 @@ define-stages() {
     }
 
     # extracts configuration options of revisions
-    read-kconfig-configs(output=read-kconfig-configs, system, globs...) {
-        run --output "$output" --command read-kconfig-configs-helper "$system" "${globs[@]}"
+    read-configs(output=read-configs) {
+        run --output "$output" --command read-configs-helper
     }
 
     # read basic statistics for each system
@@ -420,7 +420,7 @@ define-stages() {
     }
 
     # gather detailed feature information from KConfig-extracted feature models and Z3-produced backbone DIMACS
-    compute-feature-statistics(models_input=extract-kconfig-models, configs_input=read-kconfig-configs, unconstrained_features_input=compute-unconstrained-features, backbone_dimacs_input=transform-dimacs-to-backbone-dimacs, backbone_features_input=compute-backbone-features, output=compute-feature-statistics) {
+    compute-feature-statistics(models_input=extract-kconfig-models, configs_input=read-configs, unconstrained_features_input=compute-unconstrained-features, backbone_dimacs_input=transform-dimacs-to-backbone-dimacs, backbone_features_input=compute-backbone-features, output=compute-feature-statistics) {
         run \
             --input "models=$models_input,configs=$configs_input,unconstrained_features=$unconstrained_features_input,backbone_dimacs=$backbone_dimacs_input,backbone_features=$backbone_features_input" \
             --output "$output" \

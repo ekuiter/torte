@@ -13,6 +13,8 @@ define-system \
     --environment ADK_TOPDIR=.,TOPDIR=.,HOST_CC=cc,CC_FOR_BUILD=cc,HOST_CFLAGS=-O0,HOST_CXX=c++,HOST_CXXFLAGS=-O0,CURSES_CFLAGS=,CURSES_LIBS=-lncurses,OS_FOR_BUILD=linux,CONFIG_=ADK_ \
     --sample-branch master
 
+define-config-source --system openadk --mode generated
+
 add-openadk-system(transform...) {
     if is-array-empty transform; then
         transform=(filter-case-insensitive)

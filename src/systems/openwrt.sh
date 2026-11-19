@@ -10,6 +10,11 @@ define-system \
     --environment TOPDIR=.,STAGING_DIR=staging_dir,TMP_DIR=tmp,HOSTCC=gcc,CC=gcc,HOST_OS=Linux \
     --sample-branch master
 
+define-config-source \
+    --system openwrt \
+    --mode generated \
+    --globs ':(glob)**/.config-*.in'
+
 add-openwrt-system() {
     add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-openwrt
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-openwrt

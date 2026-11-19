@@ -10,6 +10,16 @@ define-system \
     --environment CONFIG_=PTXCONF_,PTXDIST_VERSION_FULL=0,CONFIGFILE_VERSION=0 \
     --sample-branch master
 
+define-config-source \
+    --system ptxdist \
+    --mode generated \
+    --globs \
+        ':(glob)config/**/*.in' \
+        ':(glob)rules/**/*.in' \
+        ':(glob)platforms/**/*.in' \
+        ':(glob)generated/**/*.in' \
+        ':(glob)workspace/rules/**/*.in'
+
 add-ptxdist-system() {
     add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-ptxdist
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-ptxdist

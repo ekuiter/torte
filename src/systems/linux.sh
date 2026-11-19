@@ -180,12 +180,6 @@ read-linux-architectures() {
     read-property --output read-linux-architectures --system linux --reader read-property-linux --field architecture
 }
 
-# extracts configuration options of linux revisions
-read-linux-configs() {
-    # this does not exclude the architecture um as done in other functions
-    read-kconfig-configs --output read-linux-configs --system linux --globs '**/*Kconfig*'
-}
-
 add-linux-kconfig(revision, architecture=x86, lkc_binding_file=) {
     add-linux-system
     if [[ ! -d $(input-directory)/linux ]]; then

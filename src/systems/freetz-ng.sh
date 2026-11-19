@@ -10,7 +10,10 @@ define-system \
     --system freetz-ng \
     --sample-branch master
 
+define-config-source --system freetz-ng --mode generated
+
 add-freetz-ng-system() {
+    add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-freetz-ng
     add-system --system freetz-ng --url "$FREETZ_NG_URL"
 }
 
@@ -38,7 +41,6 @@ add-freetz-ng-kconfig(revision) {
         return
     fi
     add-revision --system freetz-ng --revision "$revision"
-    add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-freetz-ng
     add-kconfig \
         --system freetz-ng \
         --revision "$revision" \

@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y \
     cloc \
     curl \
     wget \
+    gawk \
+    flex \
+    bison \
     python3 \
     python3-pandas \
     ruby-dev \

@@ -9,6 +9,15 @@ define-system \
     --environment "CT_VERSION=0,CT_CONFIG_VERSION_CURRENT=4,CT_VCHECK=,srctree=." \
     --sample-branch master
 
+define-config-source \
+    --system crosstool-ng \
+    --mode generated \
+    --globs \
+        ':(glob)config/**/*.in' \
+        ':(glob)config/**/*.in.2' \
+        ':(glob)config.gen/**/*.in' \
+        ':(glob)config.gen/**/*.in.2'
+
 add-crosstool-ng-system() {
     add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-crosstool-ng
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-crosstool-ng

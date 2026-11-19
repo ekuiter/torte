@@ -10,6 +10,11 @@ define-system \
     --environment TOPDIR=.,STAGING_DIR=staging_dir,TMP_DIR=tmp,HOSTCC=cc,CC=cc,HOST_OS=Linux \
     --sample-branch master
 
+define-config-source \
+    --system entware \
+    --mode generated \
+    --globs ':(glob)**/.config-*.in'
+
 add-entware-system() {
     add-hook-step kconfig-post-checkout-hook kconfig-post-checkout-hook-entware
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-entware

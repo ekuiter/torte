@@ -12,10 +12,26 @@ define-system \
     --lkc-directory kconfig \
     --sample-branch master
 
+define-config-source --system toybox --mode generated
+
 add-toybox-system() {
+    add-hook-step read-configs-hook read-configs-hook-toybox
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-toybox
     add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-toybox
     add-system --system toybox --url "$TOYBOX_URL"
+}
+
+read-configs-hook-toybox(system, revision) {
+    if [[ $system == toybox ]]; then
+        prepare-toybox-generated-kconfig
+    fi
+}
+
+prepare-toybox-generated-kconfig() {
+    if [[ -f scripts/genconfig.sh ]]; then
+        chmod +x scripts/genconfig.sh
+        scripts/genconfig.sh >/dev/null 2>&1 || true
+    fi
 }
 
 add-toybox-kconfig-tags(from=, to=) {

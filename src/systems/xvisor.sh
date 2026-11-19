@@ -10,6 +10,10 @@ define-system \
     --environment OPENCONF_INPUT=openconf.cfg,OPENCONF_SRCTREE=.,OPENCONF_TMPDIR=build/openconf,CONFIG_SHELL=/bin/bash,HOSTCC=gcc,HOST_CC=gcc \
     --sample-branch master
 
+define-config-source \
+    --system xvisor \
+    --globs ':(glob)**/*.cfg'
+
 add-xvisor-system() {
     add-hook-step kconfig-pre-binding-hook kconfig-pre-binding-hook-xvisor
     add-system --system xvisor --url "$XVISOR_URL"

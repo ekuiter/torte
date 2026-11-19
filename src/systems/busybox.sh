@@ -7,10 +7,26 @@ define-system \
     --system busybox \
     --sample-branch master
 
+define-config-source --system busybox --mode generated
+
 add-busybox-system(transform...) {
     add-hook-step configfix-pre-extraction-hook configfix-pre-extraction-hook-busybox
     add-hook-step post-clone-hook post-clone-hook-busybox
+    add-hook-step read-configs-hook read-configs-hook-busybox
     add-system --system busybox --url "$BUSYBOX_URL" --fork-url "$BUSYBOX_URL_FORK" --transform "${transform[@]}"
+}
+
+read-configs-hook-busybox(system, revision) {
+    if [[ $system == busybox ]]; then
+        prepare-busybox-generated-kconfig
+    fi
+}
+
+prepare-busybox-generated-kconfig(directory=.) {
+    if [[ -f $directory/scripts/gen_build_files.sh ]]; then
+        chmod +x "$directory/scripts/gen_build_files.sh"
+        make -C "$directory" gen_build_files >/dev/null 2>&1 || true
+    fi
 }
 
 post-clone-hook-busybox(system, transform...) {
@@ -94,10 +110,7 @@ add-busybox-kconfig-commits() {
 
 # transform helper that generates the KConfig files for a BusyBox revision and copies them into the new repository
 generate-kconfig-commits-busybox(system, input_directory, output_directory, revision) {
-    if [[ -f "$input_directory/scripts/gen_build_files.sh" ]]; then
-        chmod +x "$input_directory/scripts/gen_build_files.sh"
-        make -C "$input_directory" gen_build_files >/dev/null 2>&1 || true
-    fi
+    prepare-busybox-generated-kconfig "$input_directory"
     (cd "$input_directory" || exit; find . -type f -name "*Config.in" -exec cp --parents {} "$output_directory" \;)
     mkdir -p "$output_directory/scripts/"
     cp -R "$input_directory/scripts/"* "$output_directory/scripts/" 2>/dev/null || true
