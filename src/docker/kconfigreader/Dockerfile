@@ -10,6 +10,12 @@ RUN apt-get update && apt-get install -y --allow-unauthenticated \
 COPY sbt-0.13.6.deb .
 RUN dpkg -i sbt-0.13.6.deb
 
+# install cached dependencies for offline sbt bootstrapping and compilation
+COPY sbt-cache.tar.gz /tmp/
+RUN echo "a42b4b0acef4aa593d36014a9b6416ee0827ecf856c753399182c2393e3e336b  /tmp/sbt-cache.tar.gz" | sha256sum -c - \
+  && tar -xzf /tmp/sbt-cache.tar.gz -C /root \
+  && rm /tmp/sbt-cache.tar.gz
+
 # install (the tested version of) kconfigreader
 WORKDIR /home
 RUN git clone https://github.com/ckaestne/kconfigreader.git \
