@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents working with code in this repository.
 
 ## Project Overview
 
@@ -104,8 +104,17 @@ torte automatically numbers stages in execution order for easier navigation:
 - torte is bash-based, so use bash features like `[[]]`, arrays, `readarray`, process substitution `< <()`
 - to run and test any given function, it can just be executed with `./torte.sh <function> <args>`
 - when committing with git, keep generated commit message rather short (at most 4 bullet points; if the commit does a rather small thing, maybe even no bullet points)
-- IMPORTANT: DO NOT refer to Claude in Git commit messages, under any circumstances
-- DO NOT attempt to refactor Jupyter notebooks because Claude is not able to do it correctly
+- IMPORTANT: DO NOT refer to coding agents in Git commit messages, under any circumstances
+- DO NOT attempt to refactor Jupyter notebooks because coding agents are not able to do it correctly
+
+### Comments
+
+- Match the comment style already used in the surrounding Torte code.
+- Write `#` comments as short, practical, lowercase sentence fragments, normally without a trailing period.
+- Explain non-obvious purpose, constraints, or rationale; do not narrate straightforward code.
+- Avoid polished, prose-heavy comments and references to replaced or historical implementations.
+- When moving or rewriting code, preserve useful existing comments by adapting them at the new location.
+- Keep Python docstrings brief and factual unless a function has behavior or limitations that genuinely require more explanation.
 
 ### Preprocessor Pitfalls
 
