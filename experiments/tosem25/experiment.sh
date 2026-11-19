@@ -47,7 +47,7 @@ experiment-stages() {
     clone-systems
     read-linux-names
     read-linux-architectures
-    read-linux-configs
+    read-configs
     read-statistics
     join-into read-statistics read-linux-names
     join-into read-statistics read-linux-architectures
