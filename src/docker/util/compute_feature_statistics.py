@@ -539,7 +539,7 @@ def main():
     rows = []
     comparison_features_by_extractor = defaultdict(dict)
     potential_misses_grep = defaultdict(set)
-    potential_misses_kmax = defaultdict(set)
+    potential_misses_kclause = defaultdict(set)
     feature_sets_by_system = defaultdict(
         lambda: {"unconstrained": set(), "core": set(), "dead": set()}
     )
@@ -630,7 +630,7 @@ def main():
         comparison_key = (system, revision, architecture)
         comparison_features_by_extractor[comparison_key][extractor] = features
 
-        # KClause/Kmax-specific diagnostics expose names that occur on only one
+        # KClause-specific diagnostics expose names that occur on only one
         # side of the config-versus-model comparison.  They do not alter the
         # generic feature classification above.
         if extractor == KCLAUSE_EXTRACTOR:
@@ -699,14 +699,14 @@ def main():
         row["#total_added_features"] = added
         row["#total_removed_features"] = removed
 
-    # Report known configs absent from Kmax's complete variable union.  These
+    # Report known configs absent from KClause's complete variable union.  These
     # are diagnostics for investigation, not automatically extraction errors.
     for (system, revision), config_features in configs_by_revision.items():
-        kmax_variables = total_feature_variables_by_revision_extractor.get(
+        kclause_variables = total_feature_variables_by_revision_extractor.get(
             (system, KCLAUSE_EXTRACTOR, revision), set()
         )
-        if kmax_variables:
-            potential_misses_kmax[system].update(config_features - kmax_variables)
+        if kclause_variables:
+            potential_misses_kclause[system].update(config_features - kclause_variables)
 
     # Flatten the extractor-agreement accumulator into a stable CSV table.
     comparable = build_extractor_comparison_rows(comparison_features_by_extractor)
@@ -724,7 +724,7 @@ def main():
     write_csv(args.output / "output.csv", rows, ["system", "extractor", "revision", "architecture", *STAT_COLUMNS, *COUNT_COLUMNS])
     write_csv(args.output / "output.extractor-comparison.csv", comparable, ["system", "revision", "architecture", "extractor_jaccard"])
     write_csv(args.output / "output.potential-misses-grep.csv", system_feature_rows(potential_misses_grep), ["system", "config"])
-    write_csv(args.output / "output.potential-misses-kmax.csv", system_feature_rows(potential_misses_kmax), ["system", "config"])
+    write_csv(args.output / "output.potential-misses-kclause.csv", system_feature_rows(potential_misses_kclause), ["system", "config"])
     write_csv(args.output / "output.configs-configurable.csv", configurable_rows, [*config_rows[0].keys(), "configurable"] if config_rows else ["configurable"])
     write_csv(args.output / "output.feature-type-statistics.csv", type_rows, ["system", "type", "ratio", "variable", "value"])
     write_csv(
