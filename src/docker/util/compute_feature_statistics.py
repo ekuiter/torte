@@ -545,6 +545,7 @@ def main():
     )
     previous_features = defaultdict(dict)
     total_features_by_revision_extractor = defaultdict(set)
+    incomplete_total_features = set()
     total_feature_variables_by_revision_extractor = defaultdict(set)
 
     # Sorting makes the "previous revision" calculation deterministic.  Each
@@ -592,20 +593,33 @@ def main():
         raw_backbone = read_features(backbone_path) if backbone_path else set()
         core_feature_variables = {feature[1:] for feature in raw_backbone if feature.startswith("+")} & feature_variables
         dead_feature_variables = {feature[1:] for feature in raw_backbone if feature.startswith("-")} & feature_variables
+        feature_data_available = bool(dimacs_file and backbone_file)
 
         # The final feature set contains named config options that are either
         # represented by a live DIMACS variable or explicitly unconstrained.
         # Constrained features are the remainder after core and unconstrained
         # features have been separated.
-        undead_feature_variables = feature_variables - dead_feature_variables
-        all_feature_variables = undead_feature_variables | unconstrained_feature_variables
-        features = all_feature_variables & config_features
-        core_features = features & core_feature_variables
-        unconstrained_features = features & unconstrained_feature_variables
-        constrained_features = features - core_feature_variables - unconstrained_feature_variables
+        if feature_data_available:
+            undead_feature_variables = feature_variables - dead_feature_variables
+            all_feature_variables = undead_feature_variables | unconstrained_feature_variables
+            features = all_feature_variables & config_features
+            core_features = features & core_feature_variables
+            unconstrained_features = features & unconstrained_feature_variables
+            constrained_features = features - core_feature_variables - unconstrained_feature_variables
+        else:
+            core_feature_variables = None
+            dead_feature_variables = None
+            undead_feature_variables = None
+            all_feature_variables = None
+            features = None
+            core_features = None
+            unconstrained_features = unconstrained_feature_variables & config_features
+            constrained_features = None
+            incomplete_total_features.add((system, extractor, revision))
         feature_sets_by_system[system]["unconstrained"].update(unconstrained_features)
-        feature_sets_by_system[system]["core"].update(core_features)
-        feature_sets_by_system[system]["dead"].update(features & dead_feature_variables)
+        if feature_data_available:
+            feature_sets_by_system[system]["core"].update(core_features)
+            feature_sets_by_system[system]["dead"].update(features & dead_feature_variables)
 
         # Type information is optional.  Missing entries fall into "unknown"
         # and therefore do not contribute to the bool/tristate columns.
@@ -618,22 +632,24 @@ def main():
         # removal in another architecture.
         added_features = None
         removed_features = None
-        previous = previous_features[(system, extractor)].get(architecture)
-        if previous is not None:
-            added_features = features - previous
-            removed_features = previous - features
-        previous_features[(system, extractor)][architecture] = features
-        total_features_by_revision_extractor[(system, extractor, revision)].update(features)
+        if feature_data_available:
+            previous = previous_features[(system, extractor)].get(architecture)
+            if previous is not None:
+                added_features = features - previous
+                removed_features = previous - features
+            previous_features[(system, extractor)][architecture] = features
+            total_features_by_revision_extractor[(system, extractor, revision)].update(features)
 
         # Retain each extractor's feature set until both sides of the intended
         # KConfigReader/KClause comparison are available.
         comparison_key = (system, revision, architecture)
-        comparison_features_by_extractor[comparison_key][extractor] = features
+        if feature_data_available:
+            comparison_features_by_extractor[comparison_key][extractor] = features
 
         # KClause-specific diagnostics expose names that occur on only one
         # side of the config-versus-model comparison.  They do not alter the
         # generic feature classification above.
-        if extractor == KCLAUSE_EXTRACTOR:
+        if extractor == KCLAUSE_EXTRACTOR and feature_data_available:
             potential_misses_grep[system].update(
                 feature for feature in all_feature_variables - features if "__CONFIG_" not in feature
             )
@@ -648,13 +664,13 @@ def main():
             "extractor": extractor,
             "revision": revision,
             "architecture": architecture,
-            "extracted_features_jaccard": jaccard(extracted_features, features),
-            "all_variables_jaccard": jaccard(all_variables, features),
-            "variables_jaccard": jaccard(variables, features),
-            "feature_variables_jaccard": jaccard(feature_variables, features),
-            "undead_feature_variables_jaccard": jaccard(undead_feature_variables, features),
-            "all_feature_variables_jaccard": jaccard(all_feature_variables, features),
-            "features_jaccard": 1 if features else "",
+            "extracted_features_jaccard": jaccard(extracted_features, features) if feature_data_available else "",
+            "all_variables_jaccard": jaccard(all_variables, features) if feature_data_available else "",
+            "variables_jaccard": jaccard(variables, features) if feature_data_available else "",
+            "feature_variables_jaccard": jaccard(feature_variables, features) if feature_data_available else "",
+            "undead_feature_variables_jaccard": jaccard(undead_feature_variables, features) if feature_data_available else "",
+            "all_feature_variables_jaccard": jaccard(all_feature_variables, features) if feature_data_available else "",
+            "features_jaccard": 1 if feature_data_available and features else "",
             "unconstrained_bools": type_counts["bool"],
             "unconstrained_tristates": type_counts["tristate"],
         }
@@ -669,10 +685,10 @@ def main():
             "feature_variables": feature_variables,
             "core_feature_variables": core_feature_variables,
             "dead_feature_variables": dead_feature_variables,
-            "constrained_feature_variables": undead_feature_variables - core_feature_variables,
+            "constrained_feature_variables": undead_feature_variables - core_feature_variables if feature_data_available else None,
             "undead_feature_variables": undead_feature_variables,
             "all_feature_variables": all_feature_variables,
-            "ALL_feature_variables": feature_variables | unconstrained_feature_variables,
+            "ALL_feature_variables": feature_variables | unconstrained_feature_variables if feature_data_available else None,
             "features": features,
             "core_features": core_features,
             "unconstrained_features": unconstrained_features,
@@ -688,20 +704,31 @@ def main():
 
     # Add architecture unions after all model rows of a revision are known.
     for row in rows:
-        total_features = total_features_by_revision_extractor[(row["system"], row["extractor"], row["revision"])]
-        row["#total_features"] = count_or_nan(total_features, 1)
+        key = (row["system"], row["extractor"], row["revision"])
+        total_features = total_features_by_revision_extractor[key]
+        row["#total_features"] = "" if key in incomplete_total_features else count_or_nan(total_features, 1)
 
     # Compute additions/removals again at revision level, this time over the
     # union of architectures rather than one architecture at a time.
-    total_changes = revision_change_counts(total_features_by_revision_extractor)
+    complete_total_features = {
+        key: values
+        for key, values in total_features_by_revision_extractor.items()
+        if key not in incomplete_total_features
+    }
+    total_changes = revision_change_counts(complete_total_features)
     for row in rows:
-        added, removed = total_changes[(row["system"], row["extractor"], row["revision"])]
+        added, removed = total_changes.get(
+            (row["system"], row["extractor"], row["revision"]),
+            ("", ""),
+        )
         row["#total_added_features"] = added
         row["#total_removed_features"] = removed
 
     # Report known configs absent from KClause's complete variable union.  These
     # are diagnostics for investigation, not automatically extraction errors.
     for (system, revision), config_features in configs_by_revision.items():
+        if (system, KCLAUSE_EXTRACTOR, revision) in incomplete_total_features:
+            continue
         kclause_variables = total_feature_variables_by_revision_extractor.get(
             (system, KCLAUSE_EXTRACTOR, revision), set()
         )
