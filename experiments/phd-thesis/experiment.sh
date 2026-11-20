@@ -53,14 +53,18 @@ SYSTEMS_SPECS=(
 # number of parallel jobs in miscellaneous stages, defaults to the available CPU cores
 JOBS_MISC=$(cpu-cores)
 
-# number of parallel jobs in heavy-to-compute stages, by default a quarter of the available cores, at least one
-# we choose a conservative amount of cores to avoid utilizing logical cores and disturbing time measurements
-JOBS_HARD=$(( $(cpu-cores) / 4 ))
+# leave 5% memory for the host
+MEMORY_LIMIT=$(( MEMORY_LIMIT * 95 / 100 ))
+
+# allow one heavy job per two logical cores and at least 8 GiB per job
+MIN_PROCESS_MEMORY=8
+CPU_JOBS=$(( $(cpu-cores) / 2 ))
+MEMORY_JOBS=$(( MEMORY_LIMIT / MIN_PROCESS_MEMORY ))
+JOBS_HARD=$(( CPU_JOBS < MEMORY_JOBS ? CPU_JOBS : MEMORY_JOBS ))
 if (( JOBS_HARD < 1 )); then JOBS_HARD=1; fi
 
-# define a memory limit for all Docker containers to avoid hard jobs disturbing each other
-# leave 5% memory for the host system and other processes
-MEMORY_LIMIT=$(( (( $MEMORY_LIMIT * 95 / 100 )) / $JOBS_HARD ))
+# divide the container memory evenly among parallel processes
+PROCESS_MEMORY_LIMIT=$(( MEMORY_LIMIT / JOBS_HARD ))
 
 # if is-testing; then
 #     SOLVE_TIMEOUT=10 # todo

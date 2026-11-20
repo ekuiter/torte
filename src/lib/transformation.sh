@@ -94,7 +94,7 @@ transform-with-featjar(input_extension, output_extension, transformer, timeout=0
         "$transformer" \
         "$(lambda input,output echo java \
             `# setting a lower memory limit is necessary to avoid that the process is killed erroneously` \
-            "-Xmx$(memory-limit 1)G" \
+            "-Xmx$(process-memory-limit 1)G" \
             -jar "$jar" \
             --command Transform \
             --timeout "$timeout" \
@@ -127,7 +127,7 @@ transform-to-dimacs-with-kconfigreader(input_extension=model, output_extension=d
         "$input_extension" \
         "$output_extension" \
         transform-to-dimacs-with-kconfigreader \
-        "$(lambda input,output 'echo /home/kconfigreader/run.sh '"$(memory-limit 1)"' de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
+        "$(lambda input,output 'echo /home/kconfigreader/run.sh '"$(process-memory-limit 1)"' de.fosd.typechef.kconfig.TransformIntoDIMACS "$input" "$output"')" \
         "$(dimacs-data-fields)" \
         "$(dimacs-data-extractor)" \
         "$timeout" \

@@ -177,6 +177,9 @@ run(image=util, input=, output=, resumable=, command...) {
             cmd+=(-e TEST) # ... if testing is enabled ...
             cmd+=(-e CI) # ... and if running in CI environment
             cmd+=(-e PASS) # also tell it about which pass of a multi-pass experiment is supposed to be run
+            if [[ -n $PROCESS_MEMORY_LIMIT ]]; then # pass per-process memory limit to the stage
+                cmd+=(-e "PROCESS_MEMORY_LIMIT=$PROCESS_MEMORY_LIMIT")
+            fi
             cmd+=(--init) # proper signal and exit handling
             if [[ ${command[*]} == /bin/bash ]] && [[ -z "$CI" ]]; then
                 cmd+=(-it) # needed for debugging in a terminal

@@ -111,7 +111,7 @@ compile-lkc-binding(lkc_binding, system, revision, lkc_directory, lkc_target=con
 # sets the global MEASURED_TIME variable
 extract-kconfig-model-with-kconfigreader(system, revision, kconfig_file, lkc_binding_file, output_log, options=, timeout=0, date_prefix=) {
     measure "$timeout" /home/kconfigreader/run.sh \
-        "$(memory-limit 1)" \
+        "$(process-memory-limit 1)" \
         de.fosd.typechef.kconfig.KConfigReader \
         --fast \
         --dumpconf "$lkc_binding_file" \

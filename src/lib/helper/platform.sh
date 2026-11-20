@@ -63,6 +63,11 @@ memory-limit(further_limit=0) {
     echo "$((MEMORY_LIMIT-further_limit))"
 }
 
+# returns the memory limit for one process inside a parallel stage
+process-memory-limit(further_limit=0) {
+    echo "$(( ${PROCESS_MEMORY_LIMIT:-$MEMORY_LIMIT} - further_limit ))"
+}
+
 # returns the number of available logical CPU cores for parallel jobs
 cpu-cores() {
     if is-macos; then
