@@ -1,0 +1,35 @@
+# platform-override=linux/amd64
+FROM ubuntu:24.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    bc \
+    libflint18t64 \
+    libgmp10 \
+    libgomp1 \
+    libmpfr6 \
+    parallel \
+    python3 \
+    python3-bitstring \
+    python3-graphviz \
+    python3-jsonschema \
+    python3-lxml \
+    python3-pycparser \
+    python3-requests \
+    python3-tqdm \
+    python3-yaml \
+    xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /home
+COPY sat-competition/26-lymphosat.tar.xz /tmp/green.tar.xz
+RUN echo "7bc2ad3278197261cee221fd8c2dd583069821213f31d63e6873495000713c70  /tmp/green.tar.xz" \
+        | sha256sum -c - \
+    && mkdir lymphosat \
+    && tar -xJf /tmp/green.tar.xz \
+        -C lymphosat \
+        --strip-components=3 \
+        green/lymphosat/src \
+    && rm /tmp/green.tar.xz
+
+COPY sat-competition/26-lymphosat.sh ./sat-competition/

@@ -87,7 +87,7 @@ To run torte, you need:
 - [Git](https://git-scm.com/), [curl](https://curl.se/), GNU tools ([bash](https://www.gnu.org/software/bash/), [coreutils](https://www.gnu.org/software/coreutils/), [make](https://www.gnu.org/software/make/), [grep](https://www.gnu.org/software/grep/), and [sed](https://www.gnu.org/software/sed/))
 - [Docker](https://docs.docker.com/get-docker/) (preferably in [rootless mode](https://docs.docker.com/engine/security/rootless/) on Linux) or [Podman](https://podman.io/get-started)
 
-[^28]: On `arm64` systems (e.g., Windows tablets and Apple Silicon Macs), torte cross-compiles some Docker images to ensure that precompiled binaries (e.g., JavaSMT, Z3, and all solvers) function correctly.
+[^28]: On `arm64` systems (e.g., Windows tablets and Apple Silicon Macs), torte cross-compiles some Docker images to ensure that precompiled binaries (e.g., JavaSMT, Z3, and most solvers) function correctly.
 This may negatively impact performance on some systems (e.g., ARM-based Windows tablets), although recent Macs should not be affected due to [Rosetta](https://en.wikipedia.org/wiki/Rosetta_(software)).
 (If you encounter errors like [this one](https://github.com/docker/for-mac/issues/7006), try to disable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in the Docker settings. This setting can be re-enabled after the Docker images have been built.)
 Executing torte from within a virtual machine has only been confirmed to work with Linux guest systems on `x86_64` host systems.
@@ -544,7 +544,8 @@ One overarching difference is that the SAT museum controls for compiler optimiza
 | 2023 | sbva_cadical | [^32] |
 | 2024 | kissat-sc2024 | [^32] |
 | 2025 | AE-Kissat-MAB | |
-| 2026 | satsuma-iter+kissat | |
+| 2026 | satsuma-iter+kissat | non-AI winner |
+| 2026 | LymphoSAT | AI winner |
 
 [^17]: For TwG, two configurations were provided by the model-counting competition (`TwG1` and `TwG2`).
 As there was no indication as to which configuration was used in the competition, we arbitrarily chose `TwG1`.

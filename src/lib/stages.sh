@@ -533,6 +533,7 @@ define-stages() {
             sat-competition/24-kissat-sc2024,solver,sat
             sat-competition/25-AE_kissat2025_MAB,solver,sat
             sat-competition/26-satsuma-iter-kissat.sh,solver.24,sat
+            sat-competition/26-lymphosat.sh,solver.lymphosat,sat
             sat-museum/boehm1-1992,solver,sat
             sat-museum/grasp-1997,solver,sat
             sat-museum/chaff-2001,solver,sat
