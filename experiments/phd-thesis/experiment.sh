@@ -361,7 +361,7 @@ experiment-stages-4-configurability(is_linux) {
     join-into transform-dimacs-to-backbone-dimacs solve-sharp-sat
 
     # read generic Kconfig declarations and derive reusable feature statistics
-    read-kconfig-configs
+    read-configs
     compute-feature-statistics
 
     # read additional Linux-specific information for later analysis

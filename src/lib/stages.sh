@@ -14,8 +14,8 @@ define-stages() {
     }
 
     # extracts configuration options of revisions
-    read-configs(output=read-configs) {
-        run --output "$output" --command read-configs-helper
+    read-configs(input=, output=read-configs) {
+        run --input "$input" --output "$output" --command read-configs-helper
     }
 
     # read basic statistics for each system
