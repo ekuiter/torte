@@ -23,6 +23,15 @@ define-stages() {
         run --input "$input" --output read-statistics --command read-statistics "$options"
     }
 
+    # extracts a ZIP payload into a reusable stage
+    extract-zip(payload_file, output=extract-zip) {
+        run \
+            --image util \
+            --output "$output" \
+            --command extract-zip \
+            --payload-file "$payload_file"
+    }
+
     # extracts kconfig models with the given extractor
     extract-kconfig-models-with(extractor, input=, output=, iterations=1, iteration_field=, options=, timeout=0, date_prefix=) {
         output="${output:-extract-kconfig-models-with-$extractor}"
@@ -620,20 +629,21 @@ define-stages() {
     }
 
     # diffs pairs of feature model files using clausy
-    diff-with-clausy(file_field, input=, pair_input=, output=diff-with-clausy, iterations=1, iteration_field=, timeout=0, attempts=, group_field=) {
+    diff-with-clausy(file_field, input=, pair_input=, variable_map_input=, output=diff-with-clausy, iterations=1, iteration_field=, timeout=0, attempts=, group_field=, variable_map_field=) {
         iterate \
             --iterations "$iterations" \
             --iteration-field "$iteration_field" \
             --file-fields "" \
             --image clausy \
-            --input "$(mount-for-diff "$input" "$pair_input")" \
+            --input "$(mount-for-diff "$input" "$pair_input" "$variable_map_input")" \
             --output "$output" \
             --resumable y \
             --command diff-with-clausy \
             --file-field "$file_field" \
             --timeout "$timeout" \
             --attempts "$attempts" \
-            --group-field "$group_field"
+            --group-field "$group_field" \
+            --variable-map-field "$variable_map_field"
     }
 
     # build the given image, if necessary

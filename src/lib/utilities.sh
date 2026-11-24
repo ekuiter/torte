@@ -1,5 +1,5 @@
 #!/bin/bash
-# functions for working with Git repositories and statistics
+# general utility functions, including repositories, archives, and statistics
 
 CLONE_DONE_FILE=".git/.clone_done" # file indicating clone completion
 
@@ -256,4 +256,11 @@ read-configs-helper() {
 
     echo system,revision,kconfig_file,config > "$(output-csv)"
     experiment-systems
+}
+
+extract-zip(payload_file) {
+    local archive
+    archive=$(payload-file "$payload_file")
+    [[ -n $archive ]] || error "ZIP payload not found: $payload_file"
+    unzip -q "$archive" -d "$(output-directory)"
 }

@@ -7,6 +7,7 @@ SAT_HERITAGE_SYSTEM_NAME=sat-heritage # the directory name under which SAT herit
 SAT_HERITAGE_INPUT_KEY=sat_heritage # the name of the input key to access SAT heritage solvers
 QUERY_SAMPLE_INPUT_KEY=query_sample # the name of the input key to access which feature sample to query
 PAIR_INPUT_KEY=pair # the name of the input key to access the pairs stage in diff analyses
+VARIABLE_MAP_INPUT_KEY=variable_map # the name of the input key containing clausy variable maps
 
 # solves a file
 # measures the solve time
@@ -354,22 +355,27 @@ solve-sat-heritage(solver) {
 
 # expresses the intent to mount files and their pairs stages in diff stages
 # can be passed as --input to diff-with-clausy(...)
-mount-for-diff(input=extract-kconfig-models, pair_input=compute-file-pairs) {
-    echo "$MAIN_INPUT_KEY=$input,$PAIR_INPUT_KEY=$pair_input"
+mount-for-diff(input=extract-kconfig-models, pair_input=compute-file-pairs, variable_map_input=) {
+    local mounts="$MAIN_INPUT_KEY=$input,$PAIR_INPUT_KEY=$pair_input"
+    [[ -n $variable_map_input ]] && mounts+=",$VARIABLE_MAP_INPUT_KEY=$variable_map_input"
+    echo "$mounts"
 }
 
 # diffs pairs of feature model files using clausy
 # iterates over pairs from the pairs stage, calling evaluate_diff.sh for each pair
 # evaluate_diff.sh manages its own CSV header, timing, and multi-row output
 # if attempts is set and that many consecutive pairs in a group all timed out, skip remaining pairs in that group
-diff-with-clausy(file_field, timeout=0, attempts=, group_field=) {
+diff-with-clausy(file_field, timeout=0, attempts=, group_field=, variable_map_field=) {
     local left_field="left_${file_field}"
     local right_field="right_${file_field}"
     local pair_csv
     pair_csv="$(input-csv "$PAIR_INPUT_KEY")"
-    local left_files right_files group_values=()
+    local left_files right_files group_values=() variable_map_files=()
     readarray -t left_files < <(table-field "$pair_csv" "$left_field")
     readarray -t right_files < <(table-field "$pair_csv" "$right_field")
+    if [[ -n $variable_map_field ]]; then
+        readarray -t variable_map_files < <(table-field "$pair_csv" "$variable_map_field")
+    fi
     if [[ -n $attempts ]] && [[ -n $group_field ]]; then
         readarray -t group_values < <(table-field "$pair_csv" "$group_field")
     fi
@@ -382,9 +388,12 @@ diff-with-clausy(file_field, timeout=0, attempts=, group_field=) {
         if [[ $left_file == NA ]] || [[ $right_file == NA ]]; then
             continue
         fi
-        local left_path right_path
+        local left_path right_path variable_map_path=
         left_path="$(input-directory)/$left_file"
         right_path="$(input-directory)/$right_file"
+        if [[ -n $variable_map_field ]]; then
+            variable_map_path="$DOCKER_INPUT_DIRECTORY/$VARIABLE_MAP_INPUT_KEY/${variable_map_files[$i]}"
+        fi
         log "$(dirname "$left_file")/{$(basename "$left_file"),$(basename "$right_file")}"
         if [[ -f $(output-csv) ]] && grep -qP "^\Q$left_file,$right_file,\E" "$(output-csv)"; then
             log "" "$(echo-skip)"
@@ -416,7 +425,12 @@ diff-with-clausy(file_field, timeout=0, attempts=, group_field=) {
 
         local tmp_csv
         tmp_csv=$(mktemp)
-        DRY_RUN=$dry_run scripts/evaluate_diff.sh "$left_path" "$right_path" "$tmp_csv" "$timeout" kissat >> "$(output-log)"
+        [[ -z $variable_map_path || -f $variable_map_path ]] \
+            || error "Variable map not found: $variable_map_path"
+        DRY_RUN=$dry_run \
+            VARIABLE_MAP="$variable_map_path" \
+            scripts/evaluate_diff.sh "$left_path" "$right_path" "$tmp_csv" "$timeout" kissat \
+            >> "$(output-log)"
 
         # detect whether all (or all but one) diff runs for this pair timed out
         # the reason why we allow one time out is that the run "false,false,satisfy,kissat,tseitin"
