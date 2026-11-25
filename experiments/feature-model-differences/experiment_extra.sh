@@ -39,10 +39,6 @@ experiment-systems() {
     done
 }
 
-experiment-test-systems() {
-    experiment-systems
-}
-
 # Joins the reviewed release manifest with the extracted model table. Unlike
 # compute-file-pairs, this deliberately does not compare every consecutive
 # model: it emits only reviewed release boundaries and attaches the mapping
