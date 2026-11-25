@@ -90,9 +90,10 @@ compute-reviewed-file-pairs(file_field, input=extract-kconfig-models, output=com
     run \
         --input "$input" \
         --output "$output" \
-        --command compute-reviewed-file-pairs-helper \
-        --file-field "$file_field" \
-        --manifest "$manifest"
+        --command "$DOCKER_SRC_DIRECTORY/experiment/experiment.sh" \
+            compute-reviewed-file-pairs-helper \
+            --file-field "$file_field" \
+            --manifest "$manifest"
 }
 
 experiment-stages() {
